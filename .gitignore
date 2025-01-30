@@ -4,3 +4,4 @@ guild_dictionaries.json
 openapi.json
 speakers.json
 dictionary.json
+docker/diff.patch
