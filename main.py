@@ -380,10 +380,25 @@ all_words = list(word_set)
 
 print(all_words)
 
-def get_word_uuid(word: str, guild_id: int):
-    if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
-        return guild_dictionary[guild_id][word].get("uuid")
-    return None
+def fetch_all_uuids():
+    try:
+        response = requests.get("http://localhost:10101/user_dict")
+        response.raise_for_status()  # エラーがあれば例外を発生させる
+        data = response.json()
+        uuid_dict = list(data.keys())
+        return uuid_dict
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching user dictionary: {e}")
+        return {}
+
+# UUID一覧を取得
+uuid_dict = fetch_all_uuids()
+if isinstance(uuid_dict, list) and uuid_dict:
+    print("取得したUUID一覧:")
+    for uuid in uuid_dict:
+        print(uuid)     # 取得したUUIDを出力
+else:
+    print("UUID一覧の取得に失敗しました。")
 
 def save_to_dictionary_file():
     with open("dictionary.json", "w", encoding="utf-8") as file:
@@ -433,7 +448,7 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
 async def edit_word_command(interaction: discord.Interaction, word: str, new_pronunciation: str, accent_type: int, word_type: str):
     guild_id = interaction.guild.id
     if word in all_words:
-        word_uuid = get_word_uuid(word, guild_id)
+        word_uuid = uuid_dict.get(word)  # 単語のUUIDを取得
         if word_uuid:
             response = requests.put(f"http://localhost:10101/user_dict_word/{word_uuid}?surface={word}&pronunciation={new_pronunciation}&accent_type={accent_type}&word_type={word_type}")
             if response.status_code == 200:
@@ -463,7 +478,7 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
 async def remove_word_command(interaction: discord.Interaction, word: str):
     guild_id = interaction.guild.id
     if word in all_words:
-        word_uuid = get_word_uuid(word, guild_id)
+        word_uuid = uuid_dict.get(word)  # 単語のUUIDを取得
         if word_uuid:
             response = requests.delete(f"http://localhost:10101/user_dict_word/{word_uuid}")
             if response.status_code == 200:
