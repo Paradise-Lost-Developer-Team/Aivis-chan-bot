@@ -31,3 +31,4 @@ docker/AivisSpeech-Engine/BertModelCaches/models--tsukumijima--deberta-v2-large-
 docker/AivisSpeech-Engine/BertModelCaches/models--tsukumijima--deberta-v2-large-japanese-char-wwm-onnx/snapshots/d701ec67708287b20d2063270f6b535e6eed09ab/vocab.txt
 docker/AivisSpeech-Engine/Models/1e5ae2f1-b3bc-4d90-b618-d891a3d7383b.aivmx
 docker/AivisSpeech-Engine/Models/a59cb814-0083-4369-8542-f51a29e72af7.aivmx
+.devcontainer/devcontainer.json
