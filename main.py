@@ -92,21 +92,6 @@ guild_dictionary= {}
 
 DICTIONARY_FILE = "dictionary.json"
 
-def load_dictionary():
-    global guild_dictionary
-    try:
-        with open(DICTIONARY_FILE, 'r', encoding='utf-8') as f:
-            guild_dictionary = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        guild_dictionary = {}
-
-def save_dictionary():
-    with open(DICTIONARY_FILE, 'w', encoding='utf-8') as f:
-        json.dump(guild_dictionary, f, ensure_ascii=False, indent=4)
-
-# 初期化時に辞書を読み込む
-load_dictionary()
-
 def speak_voice(text: str, speaker: int, guild_id: int):
     audio_query = post_audio_query(text, speaker)
     audio_query = adjust_audio_query(audio_query, guild_id)
@@ -493,5 +478,4 @@ async def remove_word_command(interaction: discord.Interaction, word: str):
     else:
         await interaction.response.send_message(f"単語 '{word}' が見つかりませんでした。", ephemeral=True)
 
-print(f"TOKEN: {TOKEN}")  # デバッグ用にTOKENを出力
 client.run(TOKEN)
