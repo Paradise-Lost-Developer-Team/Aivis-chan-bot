@@ -380,13 +380,9 @@ all_words = list(word_set)
 
 print(all_words)
 
-def get_word_uuid(word: str):
-    response = requests.get(f"http://127.0.0.1:10101/user_dict?surface={word}")
-    if response.status_code == 200:
-        word_data = response.json()
-        if word_data:
-            return word_data[0].get("uuid")
-        print("Word data is empty.")
+def get_word_uuid(word: str, guild_id: int):
+    if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
+        return guild_dictionary[guild_id][word].get("uuid")
     return None
 
 def save_to_dictionary_file():
@@ -436,15 +432,18 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
 @app_commands.choices(word_type=word_type_choices)
 async def edit_word_command(interaction: discord.Interaction, word: str, new_pronunciation: str, accent_type: int, word_type: str):
     guild_id = interaction.guild.id
-    if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
-        word_uuid = get_word_uuid(word)
+    if word in all_words:
+        word_uuid = get_word_uuid(word, guild_id)
         if word_uuid:
             response = requests.put(f"http://localhost:10101/user_dict_word/{word_uuid}?surface={word}&pronunciation={new_pronunciation}&accent_type={accent_type}&word_type={word_type}")
             if response.status_code == 200:
+                if guild_id not in guild_dictionary:
+                    guild_dictionary[guild_id] = {}
                 guild_dictionary[guild_id][word] = {
                     "pronunciation": new_pronunciation,
                     "accent_type": accent_type,
-                    "word_type": word_type
+                    "word_type": word_type,
+                    "uuid": word_uuid
                 }
                 save_to_dictionary_file()
                 await interaction.response.send_message(f"単語 '{word}' の発音を '{new_pronunciation}', アクセント '{accent_type}', 品詞 '{word_type}' に編集しました。")
@@ -463,13 +462,14 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
 )
 async def remove_word_command(interaction: discord.Interaction, word: str):
     guild_id = interaction.guild.id
-    if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
-        word_uuid = get_word_uuid(word)
+    if word in all_words:
+        word_uuid = get_word_uuid(word, guild_id)
         if word_uuid:
             response = requests.delete(f"http://localhost:10101/user_dict_word/{word_uuid}")
             if response.status_code == 200:
-                del guild_dictionary[guild_id][word]
-                save_to_dictionary_file()
+                if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
+                    del guild_dictionary[guild_id][word]
+                    save_to_dictionary_file()
                 await interaction.response.send_message(f"単語 '{word}' を辞書から削除しました。")
             else:
                 await interaction.response.send_message(f"単語 '{word}' の削除に失敗しました。", ephemeral=True)
