@@ -1,1 +1,1 @@
-# Aivis-chan-bot
+AivisSpeech Engineを使用したDiscord読み上げBotのソースコードである。
