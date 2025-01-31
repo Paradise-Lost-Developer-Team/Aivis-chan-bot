@@ -587,7 +587,7 @@ async def list_words_command(interaction: discord.Interaction):
     except (FileNotFoundError, json.JSONDecodeError):
         guild_dictionary = {}
 
-    words = guild_dictionary.get((guild_id), {})
+    words = guild_dictionary.get(guild_id, {})
     print(f"Guild ID: {guild_id}")  # デバッグ用にギルドIDを出力
     print(f"Words: {words}")  # デバッグ用に単語一覧を出力
     if not words:
