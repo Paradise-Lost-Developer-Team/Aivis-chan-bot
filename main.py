@@ -447,14 +447,13 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
 
     if response.status_code == 200:
         # UUIDを取得して登録
-        uuid = response.json().get("uuid")
         guild_dictionary[guild_id][word] = {
             "pronunciation": pronunciation,
             "accent_type": accent_type,
             "word_type": word_type,
-            "uuid": uuid
         }
         save_to_dictionary_file()
+        print(guild_dictionary)
         await interaction.response.send_message(f"単語 '{word}' を発音 '{pronunciation}', アクセント '{accent_type}', 品詞 '{word_type}'で辞書に登録しました。")
     else:
         await interaction.response.send_message(f"単語 '{word}' の登録に失敗しました。", ephemeral=True)
