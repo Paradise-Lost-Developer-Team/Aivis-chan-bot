@@ -426,10 +426,18 @@ def save_to_dictionary_file():
 )
 @app_commands.choices(word_type=word_type_choices)
 async def add_word_command(interaction: discord.Interaction, word: str, pronunciation: str, accent_type: int, word_type: str):
-    guild_id = interaction.guild.id
+    guild_id = str(interaction.guild.id)  # guild_idを文字列に変換
     add_url = f"http://localhost:10101/user_dict_word?surface={word}&pronunciation={pronunciation}&accent_type={accent_type}&word_type={word_type}"
+    
+    # 都度 dictionary.json を取得
+    try:
+        with open(DICTIONARY_FILE, "r", encoding="utf-8") as file:
+            guild_dictionary = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        guild_dictionary = {}
+
     if guild_id not in guild_dictionary:
-            guild_dictionary[guild_id] = {}
+        guild_dictionary[guild_id] = {}
     if word in guild_dictionary[guild_id]:
         await interaction.response.send_message(f"単語 '{word}' はすでに辞書に登録されています。", ephemeral=True)
         return
@@ -439,10 +447,10 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
 
     if response.status_code == 200:
         guild_dictionary[guild_id][word] = {
-        "pronunciation": pronunciation,
-        "accent_type": accent_type,
-        "word_type": word_type
-    }
+            "pronunciation": pronunciation,
+            "accent_type": accent_type,
+            "word_type": word_type
+        }
         save_to_dictionary_file()
         await interaction.response.send_message(f"単語 '{word}' を発音 '{pronunciation}', アクセント '{accent_type}', 品詞 '{word_type}'で辞書に登録しました。")
     else:
@@ -558,8 +566,8 @@ class DictionaryView(View):
         start = self.page * self.per_page
         end = start + self.per_page
         embed = discord.Embed(title="辞書の単語一覧")
-        for word in self.words[start:end]:
-            embed.add_field(name=word, value=self.words[word], inline=False)
+        for word, details in self.words[start:end]:
+            embed.add_field(name=word, value=details, inline=False)
         embed.set_footer(text=f"Page {self.page + 1}/{(len(self.words) - 1) // self.per_page + 1}")
         return embed
 
@@ -567,8 +575,21 @@ class DictionaryView(View):
     name="list_words", description="辞書の単語一覧を表示します。"
 )
 async def list_words_command(interaction: discord.Interaction):
+    if interaction.guild is None:
+        await interaction.response.send_message("このコマンドはサーバー内でのみ使用できます。", ephemeral=True)
+        return
     guild_id = interaction.guild.id
-    words = guild_dictionary.get(guild_id, {})
+
+    # 都度 dictionary.json を取得
+    try:
+        with open(DICTIONARY_FILE, "r", encoding="utf-8") as file:
+            guild_dictionary = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        guild_dictionary = {}
+
+    words = guild_dictionary.get(str(guild_id), {})
+    print(f"Guild ID: {guild_id}")  # デバッグ用にギルドIDを出力
+    print(f"Words: {words}")  # デバッグ用に単語一覧を出力
     if not words:
         await interaction.response.send_message("辞書に単語が登録されていません。", ephemeral=True)
         return
