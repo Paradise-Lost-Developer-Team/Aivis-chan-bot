@@ -89,9 +89,16 @@ def adjust_audio_query(audio_query: dict, guild_id: int):
     audio_query["tempoScale"] = voice_settings["tempo"].get(guild_id, 1.0)
     return audio_query
 
-guild_dictionary= {}
-
 DICTIONARY_FILE = "dictionary.json"
+
+guild_dictionary = {}
+
+# Load the dictionary from the file at the start
+try:
+    with open(DICTIONARY_FILE, "r", encoding="utf-8") as file:
+        guild_dictionary = json.load(file)
+except (FileNotFoundError, json.JSONDecodeError):
+    guild_dictionary = {}
 
 def speak_voice(text: str, speaker: int, guild_id: int):
     audio_query = post_audio_query(text, speaker)
