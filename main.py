@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 from discord.player import FFmpegPCMAudio
+from discord.ui import Button, View
 import requests
 import json
 import asyncio
@@ -501,5 +502,57 @@ async def remove_word_command(interaction: discord.Interaction, word: str):
             await interaction.response.send_message(f"単語 '{word}' のUUIDが見つかりませんでした。", ephemeral=True)
     else:
         await interaction.response.send_message(f"単語 '{word}' が見つかりませんでした。", ephemeral=True)
+
+class DictionaryView(View):
+    def __init__(self, words, page=0, per_page=10):
+        super().__init__()
+        self.words = words
+        self.page = page
+        self.per_page = per_page
+        self.update_buttons()
+
+    def update_buttons(self):
+        self.clear_items()
+        if self.page > 0:
+            self.add_item(Button(label="Previous", style=discord.ButtonStyle.primary, custom_id="previous"))
+        if (self.page + 1) * self.per_page < len(self.words):
+            self.add_item(Button(label="Next", style=discord.ButtonStyle.primary, custom_id="next"))
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user == interaction.message.interaction.user
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, custom_id="previous")
+    async def previous_page(self, interaction: discord.Interaction, button: Button):
+        self.page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.create_embed(), view=self)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, custom_id="next")
+    async def next_page(self, interaction: discord.Interaction, button: Button):
+        self.page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.create_embed(), view=self)
+
+    def create_embed(self):
+        start = self.page * self.per_page
+        end = start + self.per_page
+        embed = discord.Embed(title="辞書の単語一覧")
+        for word in self.words[start:end]:
+            embed.add_field(name=word, value=self.words[word], inline=False)
+        embed.set_footer(text=f"Page {self.page + 1}/{(len(self.words) - 1) // self.per_page + 1}")
+        return embed
+
+@tree.command(
+    name="list_words", description="辞書の単語一覧を表示します。"
+)
+async def list_words_command(interaction: discord.Interaction):
+    guild_id = interaction.guild.id
+    words = guild_dictionary.get(guild_id, {})
+    if not words:
+        await interaction.response.send_message("辞書に単語が登録されていません。", ephemeral=True)
+        return
+
+    view = DictionaryView(words)
+    await interaction.response.send_message(embed=view.create_embed(), view=view)
 
 client.run(TOKEN)
