@@ -90,10 +90,8 @@ def adjust_audio_query(audio_query: dict, guild_id: int):
     return audio_query
 
 DICTIONARY_FILE = "guild_dictionaries.json"
-
 guild_dictionary = {}
 
-# Load the dictionary from the file at the start
 try:
     with open(DICTIONARY_FILE, "r", encoding="utf-8") as file:
         guild_dictionary = json.load(file)
@@ -426,34 +424,24 @@ def save_to_dictionary_file():
 )
 @app_commands.choices(word_type=word_type_choices)
 async def add_word_command(interaction: discord.Interaction, word: str, pronunciation: str, accent_type: int, word_type: str):
-    guild_id = str(interaction.guild.id)  # guild_idを文字列に変換
+    guild_id = interaction.guild.id
     add_url = f"http://localhost:10101/user_dict_word?surface={word}&pronunciation={pronunciation}&accent_type={accent_type}&word_type={word_type}"
-    
-    # 都度 dictionary.json を取得
-    try:
-        with open(DICTIONARY_FILE, "r", encoding="utf-8") as file:
-            guild_dictionary = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        guild_dictionary = {}
 
     if guild_id not in guild_dictionary:
         guild_dictionary[guild_id] = {}
 
     response = requests.post(add_url)
     print("API response status:", response.status_code)
-    print("API response body:", response.text)  # ここでAPIのレスポンスを確認
 
     if response.status_code == 200:
-        uuid = response.json().get("uuid")
         guild_dictionary[guild_id][word] = {
             "pronunciation": pronunciation,
             "accent_type": accent_type,
             "word_type": word_type,
-            "uuid": uuid
         }
         print("Updated dictionary:", guild_dictionary)  # ここで辞書の状態を確認
         save_to_dictionary_file()
-        await interaction.response.send_message(f"単語 '{word}' を登録しました。")
+        await interaction.response.send_message(f"単語 '{word}' の発音を '{pronunciation}', アクセント '{accent_type}', 品詞 '{word_type}' に登録しました。")
     else:
         await interaction.response.send_message(f"単語 '{word}' の登録に失敗しました。", ephemeral=True)
 
