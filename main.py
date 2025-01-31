@@ -89,7 +89,7 @@ def adjust_audio_query(audio_query: dict, guild_id: int):
     audio_query["tempoScale"] = voice_settings["tempo"].get(guild_id, 1.0)
     return audio_query
 
-DICTIONARY_FILE = "dictionary.json"
+DICTIONARY_FILE = "guild_dictionaries.json"
 
 guild_dictionary = {}
 
@@ -97,10 +97,8 @@ guild_dictionary = {}
 try:
     with open(DICTIONARY_FILE, "r", encoding="utf-8") as file:
         guild_dictionary = json.load(file)
-        print(guild_dictionary)
 except (FileNotFoundError, json.JSONDecodeError):
     guild_dictionary = {}
-    print(guild_dictionary)
 
 def speak_voice(text: str, speaker: int, guild_id: int):
     audio_query = post_audio_query(text, speaker)
@@ -414,7 +412,7 @@ else:
     print("UUID一覧が空です。")
 
 def save_to_dictionary_file():
-    with open(DICTIONARY_FILE, "w", encoding="utf-8") as file:
+    with open("guild_dictionaries.json", "w", encoding="utf-8") as file:
         json.dump(guild_dictionary, file, ensure_ascii=False, indent=4)
 
 @tree.command(
