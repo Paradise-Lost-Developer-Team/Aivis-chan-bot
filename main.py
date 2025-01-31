@@ -227,6 +227,12 @@ async def on_message(message):
     message_content = re.sub(r'<@!?[0-9]+>', '', message_content)  # メンションを除外
     message_content = re.sub(r'\*|_|~|`', '', message_content)  # マークダウンを除外
     message_content = ''.join(char for char in message_content if char not in message.guild.emojis)
+    
+    # (音量0) が文頭にある場合は読み上げない
+    if re.match(r'^\(音量0\)', message_content):
+        print("Message contains (音量0) at the beginning, ignoring.")
+        return
+    
     global voice_clients, text_channels, current_speaker
     voice_client = voice_clients.get(message.guild.id)
     if voice_client and voice_client.is_connected() and message.channel == text_channels.get(message.guild.id):
