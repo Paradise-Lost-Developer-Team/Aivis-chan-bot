@@ -552,7 +552,7 @@ async def list_words_command(interaction: discord.Interaction):
         await interaction.response.send_message("辞書に単語が登録されていません。", ephemeral=True)
         return
 
-    view = DictionaryView(words)
+    view = DictionaryView(list(words.items()))  # 辞書のアイテムをリストに変換
     await interaction.response.send_message(embed=view.create_embed(), view=view)
 
 client.run(TOKEN)
