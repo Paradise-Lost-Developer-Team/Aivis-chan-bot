@@ -224,31 +224,26 @@ async def on_message(message):
     if message.mentions or message.role_mentions or message.channel_mentions:
         print("Message contains mentions, ignoring.")
         return
-    if any(str(emoji) in message.content for emoji in message.guild.emojis):
-        print("Message contains emojis, ignoring.")
-        return
-    if re.search(CUSTOM_EMOJI_REGEX, message.content):
-        print("Message contains custom emojis, ignoring.")
-        return
-    if re.search(URL_PATTERN, message.content):
-        print("Message contains a URL, ignoring.")
-        return
+    # メッセージから絵文字とカスタム絵文字を除外
+    message_content = re.sub(CUSTOM_EMOJI_REGEX, '', message.content)
+    message_content = re.sub(URL_PATTERN, '', message_content)
+    message_content = ''.join(char for char in message_content if char not in message.guild.emojis)
     global voice_clients, text_channels, current_speaker
     voice_client = voice_clients.get(message.guild.id)
     if voice_client and voice_client.is_connected() and message.channel == text_channels.get(message.guild.id):
         print("Voice client is connected and message is in the correct channel, handling message.")
-        asyncio.create_task(handle_message(message, voice_client))
+        asyncio.create_task(handle_message(message, message_content, voice_client))
     else:
         print("Voice client is not connected or message is in the wrong channel, ignoring message.")
 
-async def handle_message(message, voice_client):
-    print(f"Handling message: {message.content}")
+async def handle_message(message, message_content, voice_client):
+    print(f"Handling message: {message_content}")
     speaker_id = current_speaker.get(message.guild.id, 888753760)  # デフォルトの話者ID
-    path = speak_voice(message.content, speaker_id, message.guild.id)
+    path = speak_voice(message_content, speaker_id, message.guild.id)
     while voice_client.is_playing():
         await asyncio.sleep(0.1)
     voice_client.play(create_ffmpeg_audio_source(path))
-    print(f"Finished playing message: {message.content}")
+    print(f"Finished playing message: {message_content}")
 
 # スピーカー情報を読み込む
 with open('speakers.json', 'r', encoding='utf-8') as f:
