@@ -15,3 +15,7 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 2. 任意のVCに入った状態で`/join`コマンドを使用する
 3. メッセージを送信すると、自動的に読み上げてくれます
 4. 退出させる際は`/leave`コマンドを使用してください
+
+## ドキュメント
+- [利用規約](https://paladise-lost-developer-team.github.io/Aivis-chan-bot/Term-of-Service/)
+- [プライバシーポリシー](https://paladise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy/)
