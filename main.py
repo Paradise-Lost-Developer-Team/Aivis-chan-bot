@@ -484,6 +484,15 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
     else:
         await interaction.response.send_message(f"単語 '{word}' が見つかりませんでした。", ephemeral=True)
 
+    # JSONファイルの情報を編集
+    if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
+        guild_dictionary[guild_id][word] = {
+            "pronunciation": new_pronunciation,
+            "accent_type": accent_type,
+            "word_type": word_type
+        }
+        save_to_dictionary_file()
+
 @tree.command(
     name="remove_word", description="辞書から単語を削除します。"
 )
@@ -509,6 +518,11 @@ async def remove_word_command(interaction: discord.Interaction, word: str):
             await interaction.response.send_message(f"単語 '{word}' のUUIDが見つかりませんでした。", ephemeral=True)
     else:
         await interaction.response.send_message(f"単語 '{word}' が見つかりませんでした。", ephemeral=True)
+
+    # JSONファイルからも削除
+    if guild_id in guild_dictionary and word in guild_dictionary[guild_id]:
+        del guild_dictionary[guild_id][word]
+        save_to_dictionary_file()
 
 class DictionaryView(View):
     def __init__(self, words, page=0, per_page=10):
