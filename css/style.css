@@ -11,6 +11,7 @@ body {
     background-color: #f4f4f4;
     color: #333;
     line-height: 1.6;
+    padding: 20px;
 }
 
 /* Container for centering content */
@@ -24,9 +25,13 @@ body {
 header {
     background: #333;
     color: #fff;
-    padding-top: 30px;
-    min-height: 70px;
+    padding: 20px 0;
     border-bottom: #77aaff 3px solid;
+    text-align: center;
+}
+
+header h1 {
+    margin-bottom: 10px;
 }
 
 header a {
@@ -39,17 +44,39 @@ header a {
 header ul {
     padding: 0;
     list-style: none;
+    text-align: center;
 }
 
 header li {
     display: inline;
-    padding: 0 20px 0 20px;
+    padding: 0 20px;
 }
 
 /* Main content styles */
 main {
     padding: 20px;
     background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+main h2 {
+    margin-top: 20px;
+    color: #333;
+}
+
+main p {
+    margin-bottom: 20px;
+}
+
+main ul {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+main li {
+    margin-bottom: 10px;
 }
 
 /* Footer styles */
@@ -59,4 +86,5 @@ footer {
     text-align: center;
     padding: 10px;
     margin-top: 20px;
+    border-top: #77aaff 3px solid;
 }
