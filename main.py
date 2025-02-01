@@ -98,7 +98,11 @@ try:
 except (FileNotFoundError, json.JSONDecodeError):
     guild_dictionary = {}
 
+MAX_TEXT_LENGTH = 200  # 読み上げる文章の文字数上限
+
 def speak_voice(text: str, speaker: int, guild_id: int):
+    if len(text) > MAX_TEXT_LENGTH:
+        text = text[:MAX_TEXT_LENGTH] + "..."  # 上限を超えた場合は切り捨てて "..." を追加
     audio_query = post_audio_query(text, speaker)
     audio_query = adjust_audio_query(audio_query, guild_id)
     audio_content = post_synthesis(audio_query, speaker)
