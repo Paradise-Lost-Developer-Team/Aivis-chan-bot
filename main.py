@@ -474,6 +474,10 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
 )
 @app_commands.choices(word_type=word_type_choices)
 async def edit_word_command(interaction: discord.Interaction, word: str, new_pronunciation: str, accent_type: int, word_type: str):
+    if re.search(r'[a-zA-Z0-9!-/:-@[-`{-~]', word):
+        await interaction.response.send_message("単語に半角英数字や半角記号を含めることはできません。", ephemeral=True)
+        return
+
     guild_id = interaction.guild.id
     uuid_dict = fetch_all_uuids()  # UUID一覧を取得
     uuid = next((key for key, value in uuid_dict.items() if value["surface"] == word), None)
@@ -504,6 +508,10 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
     word="削除する単語を入力してください。"
 )
 async def remove_word_command(interaction: discord.Interaction, word: str):
+    if re.search(r'[a-zA-Z0-9!-/:-@[-`{-~]', word):
+        await interaction.response.send_message("単語に半角英数字や半角記号を含めることはできません。", ephemeral=True)
+        return
+
     guild_id = interaction.guild.id
     uuid_dict = fetch_all_uuids()  # UUID一覧を取得
     uuid = next((key for key, value in uuid_dict.items() if value["surface"] == word), None)
