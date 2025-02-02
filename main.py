@@ -495,8 +495,6 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
                 await interaction.response.send_message(f"単語 '{word}' の編集に失敗しました。", ephemeral=True)
         else:
             await interaction.response.send_message(f"単語 '{word}' のUUIDが見つかりませんでした。", ephemeral=True)
-    else:
-        await interaction.response.send_message(f"単語 '{word}' が見つかりませんでした。", ephemeral=True)
 
 @tree.command(
     name="remove_word", description="辞書から単語を削除します。"
@@ -524,8 +522,6 @@ async def remove_word_command(interaction: discord.Interaction, word: str):
                 await interaction.response.send_message(f"単語 '{word}' の削除に失敗しました。", ephemeral=True)
         else:
             await interaction.response.send_message(f"単語 '{word}' のUUIDが見つかりませんでした。", ephemeral=True)
-    else:
-        await interaction.response.send_message(f"単語 '{word}' が見つかりませんでした。", ephemeral=True)
 
 class DictionaryView(View):
     def __init__(self, words, page=0, per_page=10):
