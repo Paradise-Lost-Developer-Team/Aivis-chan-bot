@@ -231,17 +231,13 @@ async def on_message(message):
     if message.author.bot:
         print("Message is from a bot, ignoring.")
         return
-    if message.embeds:
-        print("Message contains embeds, ignoring.")
-        return
-    if message.attachments:
-        print("Message contains attachments, ignoring.")
-        return
-    # メッセージから絵文字、カスタム絵文字、メンション、URL、マークダウンを除外
-    message_content = re.sub(CUSTOM_EMOJI_REGEX, '', message.content)
+    # メッセージから絵文字、カスタム絵文字、メンション、URL、マークダウン、スポイラーを除外
+    message_content = message.content
+    message_content = re.sub(r'\|\|.*?\|\|', '', message_content)  # スポイラーを除外
+    message_content = re.sub(CUSTOM_EMOJI_REGEX, '', message_content)
     message_content = re.sub(URL_PATTERN, '', message_content)
     message_content = re.sub(r'<@!?[0-9]+>', '', message_content)  # ユーザー、ロールメンションを除外
-    message_content = re.sub(r'<#!?[0-9]+>', '', message_content) # チャンネルメンションを除外
+    message_content = re.sub(r'<#!?[0-9]+>', '', message_content)  # チャンネルメンションを除外
     message_content = re.sub(r'\*|_|~|`', '', message_content)  # マークダウンを除外
     message_content = ''.join(char for char in message_content if char not in message.guild.emojis)
     
