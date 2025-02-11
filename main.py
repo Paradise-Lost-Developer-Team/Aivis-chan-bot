@@ -23,9 +23,9 @@ tree = app_commands.CommandTree(client)
 join_command_connected = False
 text_channels = {} # テキストチャンネルを格納する辞書
 guild_id = {}  # ギルドIDを格納するための辞書
-voice_clients = {}
+voice_clients = {} # キューを格納するための辞書
 current_speaker = {}  # ギルドまたはユーザーごとの音声設定
-auto_join_channels = {}
+auto_join_channels = {} # 自動入室するボイスチャンネル
 audio_queues = {}  # ギルドごとの音声キュー
 
 FFMPEG_PATH = "C:/ffmpeg/bin/ffmpeg.exe"
@@ -384,7 +384,7 @@ async def on_message(message):
         return
 
     try:
-        # メッセージ内容からスポイラー、カスタム絵文字、URL、各種メンション、マークダウン記法を除外
+        # メッセージ内容の加工（スポイラー、絵文字、URL、メンション、マークダウン記法の除外）
         message_content = message.content
         message_content = re.sub(r'\|\|.*?\|\|', '', message_content)  # スポイラー除外
         message_content = re.sub(CUSTOM_EMOJI_REGEX, '', message_content)
@@ -404,55 +404,82 @@ async def on_message(message):
 
         global voice_clients, text_channels, current_speaker, join_command_connected
 
-        # guild ID の扱い：voice_clients は int、text_channels 自動入室設定は str をキーとしているので使い分ける
-        guild_id_int = message.guild.id
-        guild_id_str = str(guild_id_int)
+        # on_message 内
+        guild_id = str(message.guild.id)
+        voice_client = voice_clients.get(guild_id)
 
-        voice_client = voice_clients.get(guild_id_int)
 
         # JSONから自動入室チャンネルの設定を読み込む
         auto_join_channels_data = load_auto_join_channels()
-        auto_text_channel_id = None
-        if guild_id_str in auto_join_channels_data:
-            auto_text_channel_id = auto_join_channels_data[guild_id_str].get("text_channel_id")
+        print(f"auto_join_channels_data = {auto_join_channels_data}")
+
+        if guild_id in auto_join_channels_data:
+            auto_voice_channel_id = auto_join_channels_data[guild_id].get("voice_channel_id")
+            auto_text_channel_id = auto_join_channels_data[guild_id].get("text_channel_id")  # 必要なら取得
+            channel = client.get_channel(int(auto_voice_channel_id))
+            
+            if channel is None:
+                print(f"Error: Channel with id {auto_voice_channel_id} not found.")
+            else:
+                if channel.guild.voice_client is None:
+                    voice_client = await channel.connect()
+                else:
+                    voice_client = channel.guild.voice_client
+                voice_clients[guild_id] = voice_client
+        else:
+            print(f"Guild ID {guild_id} not found in auto_join_channels_data.")
+
 
         if join_command_connected:
-            # join コマンドで接続済みの場合、保存しているテキストチャンネルと同じチャンネルなら読み上げ対象とする
-            registered_text_channel = text_channels.get(guild_id_str, {}).get("text_channel")
+            registered_text_channel = text_channels.get(guild_id, {}).get("text_channel")
+            # ログ出力で確認
+            print(f"registered_text_channel = {registered_text_channel}")
+            print(f"voice_client = {voice_client}")
             print(f"join_command_connected = {join_command_connected}")
-            if voice_client and voice_client.is_connected() and message.channel == registered_text_channel:
+            print(f"text_channels = {text_channels}")
+
+            if voice_client is not None and voice_client.is_connected() and message.channel == registered_text_channel:
                 print("Voice client is connected and message is in the registered text channel. Handling message.")
-                asyncio.create_task(handle_message(message, message_content, voice_client))
+                asyncio.create_task(handle_message(message))
             else:
                 print("Voice client is not connected or message is in the wrong channel (registered). Ignoring message.")
+
         else:
-            # 自動入室設定が有効の場合、設定したテキストチャンネルIDと一致する場合に読み上げる
+            # 自動入室設定の場合の処理
+            print(f"voice_client = {voice_client}")
+            print(f"auto_text_channel_id = {auto_text_channel_id}")
             print(f"join_command_connected = {join_command_connected}")
-            if voice_client and voice_client.is_connected() and str(message.channel.id) == auto_text_channel_id:
+            
+            if voice_client is not None and voice_client.is_connected() and str(message.channel.id) == auto_text_channel_id:
                 print("Voice client is connected and message is in the auto-join text channel. Handling message.")
-                asyncio.create_task(handle_message(message, message_content, voice_client))
+                asyncio.create_task(handle_message(message))
             else:
                 print("Voice client is not connected or message is in the wrong channel (auto-join). Ignoring message.")
-                print(f"auto_text_channel_id: {auto_text_channel_id}")
-                print(f"message.channel.id: {message.channel.id}")
-                print(f"text_channels: {text_channels}")
 
     except Exception as e:
         print(f"An error occurred while processing the message: {e}")
-
-    # 旧コマンドの処理は不要なため、client.process_commands(message) は削除しています。
     
 
-async def handle_message(message, message_content, voice_client):
+async def handle_message(message: discord.Message):
+    message_content = message.content
+    # handle_message 内
+    guild_id = str(message.guild.id)
+    voice_client = voice_clients.get(guild_id)
+
+
+    if voice_client is None:
+        print("Error: Voice client is None, skipping message processing.")
+        return
+
     print(f"Handling message: {message_content}")
-    speaker_id = current_speaker.get(message.guild.id, 888753760)  # デフォルトの話者ID
+    speaker_id = current_speaker.get(guild_id, 888753760)  # デフォルトの話者ID
     path = speak_voice(message_content, speaker_id, message.guild.id)
+
     while voice_client.is_playing():
         await asyncio.sleep(0.1)
+    
     voice_client.play(create_ffmpeg_audio_source(path))
     print(f"Finished playing message: {message_content}")
-
-
 
 
 
@@ -545,28 +572,28 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     guild_id = str(member.guild.id)
     voice_client = voice_clients.get(guild_id)
 
-    if member.guild.id in voice_clients and voice_clients[member.guild.id].is_connected():
+    if voice_client and voice_client.is_connected():
         if before.channel is None and after.channel is not None:
             # ユーザーがボイスチャンネルに参加したとき
-            if voice_clients[member.guild.id].channel == after.channel:
+            if voice_client.channel == after.channel:
                 nickname = member.display_name
                 path = speak_voice(f"{nickname} さんが入室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
-                while voice_clients[member.guild.id].is_playing():
+                while voice_client.is_playing():
                     await asyncio.sleep(1)
-                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
+                voice_client.play(create_ffmpeg_audio_source(path))
         elif before.channel is not None and after.channel is None:
             # ユーザーがボイスチャンネルから退出したとき
-            if voice_clients[member.guild.id].channel == before.channel:
+            if voice_client.channel == before.channel:
                 nickname = member.display_name
                 path = speak_voice(f"{nickname} さんが退室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
-                while voice_clients[member.guild.id].is_playing():
+                while voice_client.is_playing():
                     await asyncio.sleep(1)
-                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
+                voice_client.play(create_ffmpeg_audio_source(path))
                 
                 # ボイスチャンネルに誰もいなくなったら退室
-                if len(voice_clients[member.guild.id].channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
-                    await voice_clients[member.guild.id].disconnect()
-                    del voice_clients[member.guild.id]
+                if len(voice_client.channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
+                    await voice_client.disconnect()
+                    del voice_clients[guild_id]
 
     # Auto join channels handling
     try:
@@ -584,7 +611,7 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         if before.channel is None and after.channel is not None:
             if voice_channel_id == str(after.channel.id):
                 if guild_id not in voice_clients or not voice_clients[guild_id].is_connected():
-                    join_command_connected = False
+                    join_command_connected = False  # ここで False にする
                     try:
                         voice_client = await after.channel.connect()
                         voice_clients[guild_id] = voice_client
@@ -597,13 +624,14 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         
         # ユーザーがボイスチャンネルから退出した場合
         if before.channel is not None and after.channel is None:
-            if voice_client and voice_client.channel and len(voice_client.channel.members) == 1:
-                try:
-                    print(f"{voice_client.guild.name}: Only BOT is left in the channel, disconnecting.")
-                    await voice_client.disconnect()
-                    del voice_clients[guild_id]
-                except Exception as e:
-                    print(f"Error while disconnecting: {e}")
+            if guild_id in voice_clients and voice_clients[guild_id].is_connected():
+                if len(voice_clients[guild_id].channel.members) == 1:
+                    try:
+                        print(f"{voice_clients[guild_id].guild.name}: Only BOT is left in the channel, disconnecting.")
+                        await voice_clients[guild_id].disconnect()
+                        del voice_clients[guild_id]
+                    except Exception as e:
+                        print(f"Error while disconnecting: {e}")
     except FileNotFoundError:
         print("Error: auto_join_channels.json file not found")
     except json.JSONDecodeError:
@@ -612,10 +640,12 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         print(f"Error: failed to connect to voice channel - {error}")
     except Exception as error:
         print(f"Error in on_voice_state_update: {error}")
+
 async def play_audio(vc, path):
     while vc.is_playing():
         await asyncio.sleep(1)
     vc.play(create_ffmpeg_audio_source(path))
+
 @tree.command(
     name="set_speaker", description="話者を選択メニューから切り替えます。"
 )
