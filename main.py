@@ -424,7 +424,7 @@ async def on_message(message):
                 if channel.guild.voice_client is None:
                     voice_client = await channel.connect()
                 else:
-                    voice_client = channel.guild.voice_client
+                    voice_client = discord.utils.get(client.voice_clients, guild=channel.guild)
                 voice_clients[guild_id] = voice_client
         else:
             print(f"Guild ID {guild_id} not found in auto_join_channels_data.")
