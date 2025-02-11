@@ -354,15 +354,20 @@ async def register_auto_join_command(
     description="自動接続の設定を解除します。"
 )
 async def unregister_auto_join(interaction: discord.Interaction):
+    global auto_join_channels
     guild_id = str(interaction.guild.id)
-    auto_join_channels_data = load_auto_join_channels()
     
-    if guild_id in auto_join_channels_data:
-        del auto_join_channels_data[guild_id]
-        save_auto_join_channels()
+    # 登録時と同じグローバル変数を更新する
+    # もし load_auto_join_channels() がグローバル変数 auto_join_channels を更新するなら呼び出すだけでOKです
+    auto_join_channels = load_auto_join_channels()  # もしくは、load_auto_join_channels()が既にグローバル変数を更新していれば不要
+
+    if guild_id in auto_join_channels:
+        del auto_join_channels[guild_id]
+        save_auto_join_channels()  # グローバル変数 auto_join_channels を保存
         await interaction.response.send_message("自動接続設定を解除しました。")
     else:
         await interaction.response.send_message("このサーバーには登録された自動接続設定がありません。", ephemeral=True)
+
 
 
 # URL、ファイル、EMBEDを除外するための正規表現パターン
