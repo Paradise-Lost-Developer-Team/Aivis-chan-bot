@@ -250,32 +250,52 @@ async def ping_command(interaction: discord.Interaction):
     name="register_auto_join", description="BOTの自動入室機能を登録します。"
 )
 @app_commands.describe(
-    voice_channel="自動入室するボイスチャンネルを選択してください。"
+    voice_channel="自動入室するボイスチャンネルを選択してください。",
+    text_channel="通知を送るテキストチャンネルを選択してください。(任意)"
 )
-async def register_auto_join_command(interaction: discord.Interaction, voice_channel: discord.VoiceChannel):
+async def register_auto_join_command(
+    interaction: discord.Interaction,
+    voice_channel: discord.VoiceChannel,
+    text_channel: discord.TextChannel = None
+):
     global auto_join_channels
     load_auto_join_channels()
     guild_id = str(interaction.guild.id)
-    auto_join_channels[guild_id] = str(voice_channel.id)
+
+    if voice_channel:
+        if text_channel:
+            auto_join_channels[guild_id] = {
+                "voice_channel_id": str(voice_channel.id),
+                "text_channel_id": str(text_channel.id)
+            }
+        else:
+            auto_join_channels[guild_id] = {
+                "voice_channel_id": str(voice_channel.id),
+                "text_channel_id": str(voice_channel.id)
+            }
+    
     save_auto_join_channels()
-    guild = client.get_guild(int(guild_id))
-    await interaction.response.send_message(f"サーバー {guild.name} の自動入室チャンネルを {voice_channel.name} に設定しました。")
+    guild = interaction.guild
+    channel_name = text_channel.name if text_channel else voice_channel.name
+    await interaction.response.send_message(
+        f"サーバー {guild.name} の自動入室チャンネルを {channel_name} に設定しました。"
+    )
 
 @tree.command(
-    name="unregister_auto_join", description="BOTの自動入室機能を解除します。"
+    name="unregister_auto_join",
+    description="自動接続の設定を解除します。"
 )
-async def unregister_auto_join_command(interaction: discord.Interaction):
-    global auto_join_channels
-    load_auto_join_channels()
+async def unregister_auto_join(interaction: discord.Interaction):
     guild_id = str(interaction.guild.id)
-    if guild_id in auto_join_channels:
-        del auto_join_channels[guild_id]
+    auto_join_channels_data = load_auto_join_channels()
+    
+    if guild_id in auto_join_channels_data:
+        del auto_join_channels_data[guild_id]
         save_auto_join_channels()
-        guild = client.get_guild(int(guild_id))
-        if guild:
-            await interaction.response.send_message(f"サーバー {guild.name} の自動入室設定を解除しました。")
+        await interaction.response.send_message("自動接続設定を解除しました。")
     else:
-        await interaction.response.send_message("自動入室設定が見つかりませんでした。", ephemeral=True)
+        await interaction.response.send_message("このサーバーには登録された自動接続設定がありません。", ephemeral=True)
+
 
 # URL、ファイル、EMBEDを除外するための正規表現パターン
 URL_PATTERN = r"https?://[^\s]+"
@@ -304,8 +324,22 @@ async def on_message(message):
         return
     
     global voice_clients, text_channels, current_speaker
-    voice_client = voice_clients.get(message.guild.id)
-    if voice_client and voice_client.is_connected() and message.channel == text_channels.get(message.guild.id):
+    voice_client = voice_clients.get(str(message.guild.id))
+    
+    # JSONからvoice_channel_idとtext_channel_idを取得
+    auto_join_channels_data = load_auto_join_channels()
+    
+    guild_data = auto_join_channels_data.get(str(message.guild.id))
+    if not guild_data:
+        return
+    
+    auto_text_channel_id = str(guild_data.get("text_channel_id"))
+    manual_text_channel_id = str(text_channels.get(message.guild.id).id) if message.guild.id in text_channels else None
+    
+    # text_channels の設定があれば優先し、なければ auto_join_channels.json の text_channel_id を使用
+    valid_text_channel_id = manual_text_channel_id or auto_text_channel_id
+    
+    if voice_client and voice_client.is_connected() and str(message.channel.id) == valid_text_channel_id:
         print("Voice client is connected and message is in the correct channel, handling message.")
         asyncio.create_task(handle_message(message, message_content, voice_client))
     else:
@@ -313,7 +347,7 @@ async def on_message(message):
 
 async def handle_message(message, message_content, voice_client):
     print(f"Handling message: {message_content}")
-    speaker_id = current_speaker.get(message.guild.id, 888753760)  # デフォルトの話者ID
+    speaker_id = current_speaker.get(str(message.guild.id), 888753760)  # デフォルトの話者ID
     path = speak_voice(message_content, speaker_id, message.guild.id)
     while voice_client.is_playing():
         await asyncio.sleep(0.1)
@@ -440,38 +474,34 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         auto_join_channels_data = load_auto_join_channels()
         print(f"Loaded auto_join_channels data: {auto_join_channels_data}")
 
-        # Check if the user joined a voice channel
+        guild_data = auto_join_channels_data.get(guild_id)
+        if not guild_data:
+            return
+        
+        voice_channel_id = str(guild_data.get("voice_channel_id"))
+        text_channel_id = str(guild_data.get("text_channel_id"))
+        
+        # ユーザーがボイスチャンネルに参加した場合
         if before.channel is None and after.channel is not None:
-            # Get the guild ID and channel ID from the auto_join_channels data
-            channel_id = str(after.channel.id)
-
-            # Check if the guild ID and channel ID are in the auto_join_channels data
-            if guild_id in auto_join_channels_data and auto_join_channels_data[guild_id] == channel_id:
-                # Connect to the voice channel
+            if voice_channel_id == str(after.channel.id):
                 if guild_id not in voice_clients or not voice_clients[guild_id].is_connected():
-                    voice_client = await after.channel.connect()
-                    voice_clients[guild_id] = voice_client
-                    print(f"Connected to voice channel {channel_id} in guild {guild_id}")
-
-                    # Code to be executed when joining the voice channel
-                    path = speak_voice("自動接続しました。", current_speaker.get(int(guild_id), 888753760), int(guild_id))
-                    print(f"Generated audio path: {path}")
-                    await play_audio(voice_client, path)
-
-        # Check if the user left a voice channel
+                    try:
+                        voice_client = await after.channel.connect()
+                        voice_clients[guild_id] = voice_client
+                        print(f"Connected to voice channel {voice_channel_id} in guild {guild_id}")
+                        
+                        path = speak_voice("自動接続しました。", current_speaker.get(int(guild_id), 888753760), int(guild_id))
+                        await play_audio(voice_client, path)
+                    except discord.errors.ClientException as e:
+                        print(f"Error: failed to connect to voice channel - {e}")
+        
+        # ユーザーがボイスチャンネルから退出した場合
         if before.channel is not None and after.channel is None:
-            # Get the guild ID and channel ID from the auto_join_channels data
-            channel_id = str(before.channel.id)
-
-            # Check if the guild ID and channel ID are in the auto_join_channels data
             if voice_client and voice_client.channel and len(voice_client.channel.members) == 1:
                 try:
                     print(f"{voice_client.guild.name}: Only BOT is left in the channel, disconnecting.")
                     await voice_client.disconnect()
                     del voice_clients[guild_id]
-                    # Code to be executed when leaving the voice channel
-                    path = speak_voice("自動切断しました。", current_speaker.get(int(guild_id), 888753760), int(guild_id))
-                    print(f"Generated audio path: {path}")
                 except Exception as e:
                     print(f"Error while disconnecting: {e}")
     except FileNotFoundError:
