@@ -30,6 +30,17 @@ audio_queues = {}  # ギルドごとの音声キュー
 
 FFMPEG_PATH = "C:/ffmpeg/bin/ffmpeg.exe"
 
+class Voice_Channels:
+    def __init__(self, voice_clients: int):
+        self.voice_clients = voice_clients
+        asyncio.create_task(self.save_task())
+    
+    async def save_task(self):
+        while True:
+            # voice_clientsを保存するロジックをここに追加
+            print(f"Saving voice_clients: {self.voice_clients}")
+            await asyncio.sleep(60)  # 60秒ごとに保存
+
 class ServerStatus:
     def __init__(self, guild_id: int):
         self.guild_id = guild_id
