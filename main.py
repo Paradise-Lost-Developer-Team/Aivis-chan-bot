@@ -116,6 +116,21 @@ async def fetch_uuids_periodically():
         fetch_all_uuids()
         await asyncio.sleep(300)  # 5分ごとに実行
 
+AUTO_JOIN_FILE = "auto_join_channels.json"
+auto_join_channels = {}
+
+def load_auto_join_channels():
+    global auto_join_channels
+    try:
+        with open(AUTO_JOIN_FILE, "r", encoding="utf-8") as file:
+            auto_join_channels = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        auto_join_channels = {}
+
+def save_auto_join_channels():
+    with open(AUTO_JOIN_FILE, "w", encoding="utf-8") as file:
+        json.dump(auto_join_channels, file, ensure_ascii=False, indent=4)
+
 @client.event
 async def on_ready():
     print("起動完了")
@@ -124,6 +139,16 @@ async def on_ready():
         print(f"{len(synced)}個のコマンドを同期しました")
     except Exception as e:
         print(e)
+
+    # 自動入室機能の実行
+    load_auto_join_channels()
+    for guild_id, channel_id in auto_join_channels.items():
+        guild = client.get_guild(int(guild_id))
+        if guild:
+            channel = guild.get_channel(channel_id)
+            if channel:
+                voice_clients[guild.id] = await channel.connect()
+                print(f"自動入室: ギルドID {guild_id} のチャンネル {channel.name} に接続しました。")
 
     # 15秒毎にアクティヴィティを更新します
     client.loop.create_task(fetch_uuids_periodically())  # UUID取得タスクを開始
@@ -140,39 +165,60 @@ async def on_ready():
         await asyncio.sleep(15)
 
 @tree.command(
-    name="join", description="ボイスチャンネルに接続します。"
+    name="join", description="ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。"
 )
 @app_commands.describe(
-    voice_channel="接続するボイスチャンネルを選択してください。"
+    voice_channel="接続するボイスチャンネルを選択してください。",
+    text_channel="読み上げを行うテキストチャンネルを選択してください。"
 )
-async def join_command(interaction: discord.Interaction, voice_channel: discord.VoiceChannel = None):
+async def join_command(
+    interaction: discord.Interaction, 
+    voice_channel: discord.VoiceChannel = None, 
+    text_channel: discord.TextChannel = None
+):
     global voice_clients, text_channels
+
+    # サーバー外では実行不可
     if interaction.guild is None:
         await interaction.response.send_message("このコマンドはサーバー内でのみ使用できます。", ephemeral=True)
         return
+
+    # ユーザーがボイスチャンネルを指定していない場合、自分がいるチャンネルを取得
     if voice_channel is None:
-        if interaction.user.voice is None or interaction.user.voice.channel is None:
+        if not interaction.user.voice or not interaction.user.voice.channel:
             await interaction.response.send_message("あなたはボイスチャンネルに接続していません。", ephemeral=True)
             return
         voice_channel = interaction.user.voice.channel
-    text_channels[interaction.guild.id] = interaction.channel
+
+    # 指定がなければコマンドを実行したチャンネルをデフォルトの読み上げチャンネルにする
+    text_channels[interaction.guild.id] = text_channel or interaction.channel
+
     try:
+        # すでに接続済みなら移動、未接続なら新規接続
         if interaction.guild.id in voice_clients and voice_clients[interaction.guild.id].is_connected():
             await voice_clients[interaction.guild.id].move_to(voice_channel)
-            await interaction.response.send_message(f"{voice_channel.name} に移動しました。")
+            await interaction.response.send_message(f"ボイスチャンネル {voice_channel.name} に移動しました。\n読み上げチャンネル: {text_channels[interaction.guild.id].mention}")
         else:
-            global server_statuses
             voice_clients[interaction.guild.id] = await voice_channel.connect()
-            await interaction.response.send_message(f"{voice_channel.name} に接続しました。")
+            await interaction.response.send_message(f"ボイスチャンネル {voice_channel.name} に接続しました。\n読み上げチャンネル: {text_channels[interaction.guild.id].mention}")
+
+            # サーバーステータスの初期化
+            global server_statuses
             server_statuses[interaction.guild.id] = ServerStatus(interaction.guild.id)
-        
-        # 接続完了時に音声を鳴らす
+
+        # 接続完了時の音声を再生
         path = speak_voice("接続しました。", current_speaker.get(interaction.guild.id, 888753760), interaction.guild.id)
-        while voice_clients[interaction.guild.id].is_playing():
-            await asyncio.sleep(1)
-        voice_clients[interaction.guild.id].play(create_ffmpeg_audio_source(path))
+        if path:
+            audio_source = create_ffmpeg_audio_source(path)
+            if not voice_clients[interaction.guild.id].is_playing():
+                voice_clients[interaction.guild.id].play(audio_source)
+        else:
+            await interaction.response.send_message("音声ファイルの生成に失敗しました。", ephemeral=True)
+
     except discord.errors.ClientException as e:
         await interaction.response.send_message(f"エラーが発生しました: {str(e)}", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"予期しないエラー: {str(e)}", ephemeral=True)
 
 @tree.command(
     name="leave", description="ボイスチャンネルから切断します。"
@@ -193,6 +239,35 @@ async def ping_command(interaction: discord.Interaction):
     embed = discord.Embed(title="Latency", description=text)
     print(text)
     await interaction.response.send_message(embed=embed)
+
+@tree.command(
+    name="register_auto_join", description="BOTの自動入室機能を登録します。"
+)
+@app_commands.describe(
+    voice_channel="自動入室するボイスチャンネルを選択してください。"
+)
+async def register_auto_join_command(interaction: discord.Interaction, voice_channel: discord.VoiceChannel):
+    load_auto_join_channels()
+    guild_id = str(interaction.guild.id)
+    auto_join_channels[guild_id] = voice_channel.id
+    save_auto_join_channels()
+    guild = client.get_guild(int(guild_id))
+    await interaction.response.send_message(f"サーバー {guild.name} の自動入室チャンネルを {voice_channel.name} に設定しました。")
+
+@tree.command(
+    name="unregister_auto_join", description="BOTの自動入室機能を解除します。"
+)
+async def unregister_auto_join_command(interaction: discord.Interaction):
+    load_auto_join_channels()
+    guild_id = str(interaction.guild.id)
+    if guild_id in auto_join_channels:
+        del auto_join_channels[guild_id]
+        save_auto_join_channels()
+        guild = client.get_guild(int(guild_id))
+        if guild:
+            await interaction.response.send_message(f"サーバー {guild.name} の自動入室設定を解除しました。")
+    else:
+        await interaction.response.send_message("自動入室設定が見つかりませんでした。", ephemeral=True)
 
 @client.event
 async def on_voice_state_update(member, before, after):
