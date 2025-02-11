@@ -411,40 +411,28 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     guild_id = str(member.guild.id)
     voice_client = voice_clients.get(guild_id)
 
-    # Independent voice state update handling
-    if before.channel is None and after.channel is not None:
-        print(f"{member.display_name} joined {after.channel.name}")
-        if voice_client and voice_client.channel == after.channel:
-            nickname = member.display_name
-            path = speak_voice(
-                f"{nickname} さんが入室しました。",
-                current_speaker.get(guild_id, 888753760),
-                int(guild_id)
-            )
-            print(path)
-            await play_audio(voice_client, path)
-
-    # User leaves a voice channel
-    elif before.channel is not None and after.channel is None:
-        print(f"{member.display_name} left {before.channel.name}")
-        if voice_client and voice_client.channel == before.channel:
-            nickname = member.display_name
-            path = speak_voice(
-                f"{nickname} さんが退室しました。",
-                current_speaker.get(guild_id, 888753760),
-                int(guild_id)
-            )
-            print(path)
-            await play_audio(voice_client, path)
-
-    # If the bot is the only one left in the channel, disconnect
-    if voice_client and voice_client.channel and len(voice_client.channel.members) == 1:
-        try:
-            print(f"{voice_client.guild.name}: Only BOT is left in the channel, disconnecting.")
-            await voice_client.disconnect()
-            del voice_clients[guild_id]
-        except Exception as e:
-            print(f"Error while disconnecting: {e}")
+    if member.guild.id in voice_clients and voice_clients[member.guild.id].is_connected():
+        if before.channel is None and after.channel is not None:
+            # ユーザーがボイスチャンネルに参加したとき
+            if voice_clients[member.guild.id].channel == after.channel:
+                nickname = member.display_name
+                path = speak_voice(f"{nickname} さんが入室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
+                while voice_clients[member.guild.id].is_playing():
+                    await asyncio.sleep(1)
+                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
+        elif before.channel is not None and after.channel is None:
+            # ユーザーがボイスチャンネルから退出したとき
+            if voice_clients[member.guild.id].channel == before.channel:
+                nickname = member.display_name
+                path = speak_voice(f"{nickname} さんが退室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
+                while voice_clients[member.guild.id].is_playing():
+                    await asyncio.sleep(1)
+                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
+                
+                # ボイスチャンネルに誰もいなくなったら退室
+                if len(voice_clients[member.guild.id].channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
+                    await voice_clients[member.guild.id].disconnect()
+                    del voice_clients[member.guild.id]
 
     # Auto join channels handling
     try:
@@ -498,32 +486,6 @@ async def play_audio(vc, path):
     while vc.is_playing():
         await asyncio.sleep(1)
     vc.play(create_ffmpeg_audio_source(path))
-
-@client.event
-async def on_voice_state_update(member, before, after):
-    global voice_clients, current_speaker
-    if member.guild.id in voice_clients and voice_clients[member.guild.id].is_connected():
-        if before.channel is None and after.channel is not None:
-            # ユーザーがボイスチャンネルに参加したとき
-            if voice_clients[member.guild.id].channel == after.channel:
-                nickname = member.display_name
-                path = speak_voice(f"{nickname} さんが入室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
-                while voice_clients[member.guild.id].is_playing():
-                    await asyncio.sleep(1)
-                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
-        elif before.channel is not None and after.channel is None:
-            # ユーザーがボイスチャンネルから退出したとき
-            if voice_clients[member.guild.id].channel == before.channel:
-                nickname = member.display_name
-                path = speak_voice(f"{nickname} さんが退室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
-                while voice_clients[member.guild.id].is_playing():
-                    await asyncio.sleep(1)
-                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
-                
-                # ボイスチャンネルに誰もいなくなったら退室
-                if len(voice_clients[member.guild.id].channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
-                    await voice_clients[member.guild.id].disconnect()
-                    del voice_clients[member.guild.id]
 @tree.command(
     name="set_speaker", description="話者を選択メニューから切り替えます。"
 )
