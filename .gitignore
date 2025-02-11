@@ -36,3 +36,4 @@ docker/AivisSpeech-Engine/Models/a59cb814-0083-4369-8542-f51a29e72af7.aivmx
 docker/AivisSpeech-Engine/Logs/AivisSpeech-Engine.log
 docker/AivisSpeech-Engine/Logs/AivisSpeech-Engine-Access.log
 uuid.json
+auto_join_channels.json
