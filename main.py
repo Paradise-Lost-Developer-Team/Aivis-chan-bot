@@ -449,7 +449,7 @@ async def on_message(message):
             print(f"join_command_connected = {join_command_connected}")
             print(f"text_channels = {text_channels}")
 
-            if voice_client is not None and voice_client.is_connected() and message.channel == registered_text_channel:
+            if voice_client and voice_client.is_connected() and message.channel == registered_text_channel:
                 print("Voice client is connected and message is in the registered text channel. Handling message.")
                 asyncio.create_task(handle_message(message))
             else:
