@@ -14,7 +14,7 @@ import os
 server_statuses = {}
 
 activity = discord.Activity(name="起動中…", type=discord.ActivityType.playing)
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.message_content = True
 intents.voice_states = True
 intents.guilds = True
@@ -269,7 +269,8 @@ async def join_command(
                 current_speaker.get(interaction.guild.id, 888753760),
                 interaction.guild.id,
             )
-            await play_audio(voice_client, path)
+            await speak_voice(voice_clients[interaction.guild.id], path, interaction.guild.id)
+
         else:
             voice_clients[interaction.guild.id] = await voice_channel.connect()
             print(f"Connected to voice channel {voice_channel.id}")
@@ -281,7 +282,7 @@ async def join_command(
                 current_speaker.get(interaction.guild.id, 888753760),
                 interaction.guild.id,
             )
-            await play_audio(voice_clients[interaction.guild.id], path)
+            await speak_voice(voice_clients[interaction.guild.id], path, interaction.guild.id)
     except discord.errors.ClientException as error:
         print(f"Error: {error}")
         await interaction.response.send_message(f"エラー: {error}")
@@ -567,12 +568,14 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
         if str(after.channel.id) == voice_channel_id:
             voice_client = await ensure_voice_connection(guild_id, after.channel)
             if voice_client:
-                await play_notification(voice_client, f"{member.display_name} さんが入室しました。")
+                path = f"{member.display_name} さんが入室しました。"
+                await speak_voice(voice_clients[guild_id], path)
 
     # ユーザーがボイスチャンネルから退出
     elif before.channel is not None and after.channel is None:
         if voice_client and before.channel == voice_client.channel:
-            await play_notification(voice_client, f"{member.display_name} さんが退室しました。")
+            path = f"{member.display_name} さんが退室しました。"
+            await speak_voice(voice_clients[guild_id], path)
             # 誰もいなくなったらBOTも退室
             if len(voice_client.channel.members) == 1:
                 await voice_client.disconnect()
@@ -585,18 +588,12 @@ async def ensure_voice_connection(guild_id, channel):
     
     try:
         voice_clients[guild_id] = await channel.connect()
+        voice_client = voice_clients[guild_id]
+        await speak_voice(voice_client, "ボイスチャンネルに接続しました。")
         return voice_clients[guild_id]
     except discord.errors.ClientException as e:
         print(f"Error: ボイスチャンネルへの接続失敗 - {e}")
         return None
-
-async def play_notification(voice_client, text):
-    """ 入退室時の通知を音声で再生（仮の関数） """
-    path = speak_voice(text)  # 音声合成（実装を別途用意）
-    if path:
-        while voice_client.is_playing():
-            await asyncio.sleep(1)
-        voice_client.play(create_ffmpeg_audio_source(path))
 
 def load_auto_join_channels():
     """ 自動入室チャンネル設定をJSONからロード """
@@ -606,11 +603,6 @@ def load_auto_join_channels():
     except (FileNotFoundError, json.JSONDecodeError):
         print("Error: auto_join_channels.json の読み込みに失敗しました")
         return {}
-
-async def play_audio(vc, path):
-    while vc.is_playing():
-        await asyncio.sleep(1)
-    vc.play(create_ffmpeg_audio_source(path))
 
 @tree.command(
     name="set_speaker", description="話者を選択メニューから切り替えます。"
