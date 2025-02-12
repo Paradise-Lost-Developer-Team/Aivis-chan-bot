@@ -443,11 +443,10 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
                 while voice_clients[member.guild.id].is_playing():
                     await asyncio.sleep(1)
                 voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
-                
-                # ボイスチャンネルに誰もいなくなったら退室
-                if len(voice_clients[member.guild.id].channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
-                    await voice_clients[member.guild.id].disconnect()
-                    del voice_clients[member.guild.id]
+        # ボイスチャンネルに誰もいなくなったら退室
+        if len(voice_clients[member.guild.id].channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
+            await voice_clients[member.guild.id].disconnect()
+            del voice_clients[member.guild.id]
 
 # URL、ファイル、EMBEDを除外するための正規表現パターン
 URL_PATTERN = r"https?://[^\s]+"
