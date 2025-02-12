@@ -263,8 +263,8 @@ async def join_command(
 
     try:
         voice_client = voice_clients.get(interaction.guild.id)
-        if interaction.guild.id in voice_clients and voice_client[interaction.guild.id].is_connected():
-            await voice_client[interaction.guild.id].move_to(voice_channel)
+        if voice_client and voice_client.is_connected():
+            await voice_client.move_to(voice_channel)
             print(f"Moved to voice channel {voice_channel.id}")
             await interaction.response.send_message(
                 f"{voice_channel.name} に移動しました。\n読み上げチャンネル: {text_channel.mention}"
