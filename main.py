@@ -166,7 +166,6 @@ async def on_ready():
 
     # 15秒毎にアクティヴィティを更新します
     client.loop.create_task(fetch_uuids_periodically())  # UUID取得タスクを開始
-    client.loop.create_task(save_text_channels_task())  # テキストチャンネル保存タスクを開始
     while True:
         joinserver = len(client.guilds)
         servers = str(joinserver)
