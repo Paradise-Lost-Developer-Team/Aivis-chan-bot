@@ -43,12 +43,6 @@ class ServerStatus:
             print(f"Saving guild id: {self.guild_id}")
             await asyncio.sleep(60)  # 60秒ごとに保存
 
-async def save_text_channels_task():
-    while True:
-        save_text_channels()
-        print("Text channels saved.")
-        await asyncio.sleep(60)  # 60秒ごとに保存
-
 class AivisAdapter:
     def __init__(self):
         # APIサーバーのエンドポイントURL
@@ -160,19 +154,6 @@ def load_auto_join_channels():
 def save_auto_join_channels():
     with open(AUTO_JOIN_FILE, "w", encoding="utf-8") as file:
         json.dump(auto_join_channels, file, ensure_ascii=False, indent=4)
-
-TEXT_CHANELS_JSON = "text_channels.json"
-
-def load_text_channels():
-    try:
-        with open('text_channels.json', 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {}
-
-def save_text_channels():
-    with open(TEXT_CHANELS_JSON, 'w') as f:
-        json.dump(text_channels, f)
 
 @client.event
 async def on_ready():
