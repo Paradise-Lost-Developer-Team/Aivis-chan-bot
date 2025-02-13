@@ -90,7 +90,7 @@ def post_synthesis(audio_query: dict, speaker: int):
     return response.content
 
 voice_settings = {
-    "volume": {},  # デフォルトの音量を0.5に設定
+    "volume": {},  # デフォルトの音量を0.3に設定
     "pitch": {},
     "rate": {},
     "speed": {},
@@ -99,7 +99,7 @@ voice_settings = {
 }
 
 def adjust_audio_query(audio_query: dict, guild_id: int):
-    audio_query["volumeScale"] = voice_settings["volume"].get(guild_id, 0.5)  # デフォルトの音量を0.5に設定
+    audio_query["volumeScale"] = voice_settings["volume"].get(guild_id, 0.3)  # デフォルトの音量を0.3に設定
     audio_query["pitchScale"] = voice_settings["pitch"].get(guild_id, 0.0)
     audio_query["rateScale"] = voice_settings["rate"].get(guild_id, 1.0)
     audio_query["speedScale"] = voice_settings["speed"].get(guild_id, 1.0)
