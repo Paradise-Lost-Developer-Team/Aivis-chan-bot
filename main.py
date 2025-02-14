@@ -22,11 +22,10 @@ intents.voice_states = True
 intents.guilds = True
 client = discord.Client(intents=intents, activity=activity)
 tree = app_commands.CommandTree(client)
-join_command_connected = False
 text_channels = {} # テキストチャンネルを格納する辞書
 guild_id = {}  # ギルドIDを格納するための辞書
 voice_clients = {} # キューを格納するための辞書
-current_speaker = {}  # ギルドまたはユーザーごとの音声設定
+current_speaker = {}  # ギルドごとの話者設定
 auto_join_channels = {} # 自動入室するボイスチャンネル
 audio_queues = {}  # ギルドごとの音声キュー
 
@@ -547,7 +546,7 @@ class SpeakerSelect(Select):
         speaker_info, style_info = get_speaker_info_by_id(speaker_id)
 
         if speaker_info and style_info:
-            current_speaker[self.user_id] = speaker_id  # ユーザーごとに設定
+            current_speaker[self.guild_id] = speaker_id  # ギルドごとに設定
             await interaction.response.send_message(
                 f"✅ 話者を **{speaker_info['name']}**（スタイル: {style_info['name']}）に変更しました。",
                 ephemeral=True
