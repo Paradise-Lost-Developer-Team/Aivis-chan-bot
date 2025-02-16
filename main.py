@@ -246,6 +246,15 @@ async def join_command(
     if text_channel is None:
         text_channel = interaction.channel
 
+    # 既に他のBOTが接続しているか確認
+    for vc in voice_clients.values():
+        if vc.channel == voice_channel:
+            await interaction.response.send_message(
+                "既に他のBOTがこのボイスチャンネルに接続しています。",
+                ephemeral=True
+            )
+            return
+
     # テキストチャンネルの情報を保存する
     if guild_id not in text_channels:
         text_channels[guild_id] = {}
@@ -412,6 +421,10 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
             channel = guild.get_channel(int(channel_info["voice_channel_id"]))
             if channel and guild.id not in voice_clients:
                 if len(channel.members) > 0:  # チャンネルにメンバーがいる場合のみ接続
+                    # 既に他のBOTが接続しているか確認
+                    for vc in voice_clients.values():
+                        if vc.channel == channel:
+                            return
                     voice_clients[guild.id] = await channel.connect()
                     print(f"自動入室: ギルドID {guild_id} のチャンネル {channel.name} に接続しました。")
                     path = speak_voice(f"{channel.name} に接続しました。", current_speaker.get(guild.id, 888753760), guild.id)
@@ -475,7 +488,7 @@ async def on_message(message):
     
     global voice_clients, text_channels, current_speaker, save_text_and_voice_channels
     voice_client = voice_clients.get(message.guild.id)
-    text_channel_id = text_channels.get(message.guild.id, {}).get("text_channel")
+    text_channel_id = text_channels.get(str(message.guild.id), {}).get("text_channel")
     
     # save_text_and_voice_channelsからテキストチャンネルIDを取得
     if not text_channel_id and save_text_and_voice_channels.get("guild") == message.guild.id:
