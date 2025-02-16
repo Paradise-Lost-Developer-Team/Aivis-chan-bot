@@ -1,5 +1,6 @@
 # Aivis-chan-bot
 [![Release](https://img.shields.io/github/release/Paladise-Lost-Developer-Team/Aivis-chan-bot?include_prereleases=&sort=semver&color=blue)](https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot/releases/)
+[![Discord](https://discord.com/api/guilds/1337303326332813334/widget.png)](https://discord.gg/MPx2ny8HXT)
 
 Aivis-chan-botは、[AivisSpeech Engine](https://github.com/Aivis-Project/AivisSpeech-Engine)を使用したDiscord読み上げBotです。\
 AivisSpeechを使った、違和感のないスムーズな読み上げが可能です。
@@ -11,7 +12,7 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 - 音量、速度、ピッチ、テンポの緩急の調節
 
 ## 導入方法
-1. (導入URL)からBOTを招待する [導入URL1](https://discord.com/oauth2/authorize?client_id=1333819940645638154), [導入URL2](https://discord.com/oauth2/authorize?client_id=1334732369831268352), [導入URL3](https://discord.com/oauth2/authorize?client_id=1334734681656262770)
+1. 導入URLからBOTを招待する [導入URL1](https://discord.com/oauth2/authorize?client_id=1333819940645638154), [導入URL2](https://discord.com/oauth2/authorize?client_id=1334732369831268352), [導入URL3](https://discord.com/oauth2/authorize?client_id=1334734681656262770)
 2. 任意のVCに入った状態で`/join`コマンドを使用する
 3. メッセージを送信すると、自動的に読み上げてくれます
 4. 退出させる際は`/leave`コマンドを使用してください
