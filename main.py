@@ -154,6 +154,21 @@ def save_auto_join_channels():
     with open(AUTO_JOIN_FILE, "w", encoding="utf-8") as file:
         json.dump(auto_join_channels, file, ensure_ascii=False, indent=4)
 
+async def check_voice_clients():
+    while True:
+        for guild_id, voice_client in list(voice_clients.items()):
+            if not voice_client.is_connected():
+                try:
+                    channel_id = save_text_and_voice_channels.get("voice_channel")
+                    if channel_id:
+                        channel = client.get_channel(channel_id)
+                        if channel:
+                            voice_clients[guild_id] = await channel.connect()
+                            print(f"Reconnected to voice channel {channel_id} in guild {guild_id}")
+                except Exception as e:
+                    print(f"Error reconnecting to voice channel in guild {guild_id}: {e}")
+        await asyncio.sleep(60)  # 60秒ごとにチェック
+
 @client.event
 async def on_ready():
     print("起動完了")
@@ -165,6 +180,7 @@ async def on_ready():
 
     # 15秒毎にアクティヴィティを更新します
     client.loop.create_task(fetch_uuids_periodically())  # UUID取得タスクを開始
+    client.loop.create_task(check_voice_clients())  # ボイスクライアントの状態チェックタスクを開始
     while True:
         joinserver = len(client.guilds)
         servers = str(joinserver)
