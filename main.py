@@ -211,6 +211,10 @@ async def play_audio_queue(guild_id):
     name="join", 
     description="ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。"
 )
+@app_commands.describe(
+    voice_channel="接続するボイスチャンネルを選択してください。",
+    text_channel="読み上げるテキストチャンネルを選択してください。"
+)
 async def join_command(
     interaction: discord.Interaction, 
     voice_channel: discord.VoiceChannel = None, 
