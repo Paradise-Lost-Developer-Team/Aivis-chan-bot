@@ -893,4 +893,81 @@ async def list_words_command(interaction: discord.Interaction):
     view = DictionaryView(list(words.items()))  # 辞書のアイテムをリストに変換
     await interaction.response.send_message(embed=view.create_embed(), view=view)
 
+class HelpView(View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.current_page = 0
+        self.embeds = self.create_embeds()
+        self.update_button_state()
+
+    def create_embeds(self):
+        pages = [
+            {
+                "title": "基本コマンド",
+                "commands": [
+                    {"name": "/join", "description": "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。"},
+                    {"name": "/leave", "description": "ボイスチャンネルから切断します。"},
+                    {"name": "/ping", "description": "BOTの応答時間をテストします。"},
+                ]
+            },
+            {
+                "title": "自動入室コマンド",
+                "commands": [
+                    {"name": "/register_auto_join", "description": "BOTの自動入室機能を登録します。"},
+                    {"name": "/unregister_auto_join", "description": "自動接続の設定を解除します。"},
+                ]
+            },
+            {
+                "title": "設定コマンド",
+                "commands": [
+                    {"name": "/set_speaker", "description": "話者を選択メニューから切り替えます。"},
+                    {"name": "/set_volume", "description": "音量を設定します。"},
+                    {"name": "/set_pitch", "description": "音高を設定します。"},
+                    {"name": "/set_speed", "description": "話速を設定します。"},
+                    {"name": "/set_style_strength", "description": "スタイルの強さを設定します。"},
+                    {"name": "/set_tempo", "description": "テンポの緩急を設定します。"},
+                ]
+            },
+            {
+                "title": "辞書コマンド",
+                "commands": [
+                    {"name": "/add_word", "description": "辞書に単語を登録します。"},
+                    {"name": "/edit_word", "description": "辞書の単語を編集します。"},
+                    {"name": "/remove_word", "description": "辞書から単語を削除します。"},
+                    {"name": "/list_words", "description": "辞書の単語一覧を表示します。"},
+                ]
+            }
+        ]
+
+        embeds = []
+        for page in pages:
+            embed = discord.Embed(title=page["title"], color=discord.Color.blue())
+            for command in page["commands"]:
+                embed.add_field(name=command["name"], value=command["description"], inline=False)
+            embeds.append(embed)
+        return embeds
+
+    def update_button_state(self):
+        self.children[0].disabled = self.current_page == 0
+        self.children[1].disabled = self.current_page == len(self.embeds) - 1
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary)
+    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.current_page -= 1
+        self.update_button_state()
+        await interaction.response.edit_message(embed=self.embeds[self.current_page], view=self)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary)
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.current_page += 1
+        self.update_button_state()
+        await interaction.response.edit_message(embed=self.embeds[self.current_page], view=self)
+
+@tree.command(
+    name="help", description="利用可能なコマンドのリストを表示します。"
+)
+async def help_command(interaction: discord.Interaction):
+    view = HelpView()
+    await interaction.response.send_message(embed=view.embeds[0], view=view)
+
 client.run(TOKEN)
