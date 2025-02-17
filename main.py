@@ -154,21 +154,6 @@ def save_auto_join_channels():
     with open(AUTO_JOIN_FILE, "w", encoding="utf-8") as file:
         json.dump(auto_join_channels, file, ensure_ascii=False, indent=4)
 
-async def check_voice_clients():
-    while True:
-        for guild_id, voice_client in list(voice_clients.items()):
-            if not voice_client.is_connected():
-                try:
-                    channel_id = save_text_and_voice_channels.get("voice_channel")
-                    if channel_id:
-                        channel = client.get_channel(channel_id)
-                        if channel:
-                            voice_clients[guild_id] = await channel.connect()
-                            print(f"Reconnected to voice channel {channel_id} in guild {guild_id}")
-                except Exception as e:
-                    print(f"Error reconnecting to voice channel in guild {guild_id}: {e}")
-        await asyncio.sleep(60)  # 60秒ごとにチェック
-
 @client.event
 async def on_ready():
     print("起動完了")
@@ -180,7 +165,6 @@ async def on_ready():
 
     # 15秒毎にアクティヴィティを更新します
     client.loop.create_task(fetch_uuids_periodically())  # UUID取得タスクを開始
-    client.loop.create_task(check_voice_clients())  # ボイスクライアントの状態チェックタスクを開始
     while True:
         joinserver = len(client.guilds)
         servers = str(joinserver)
@@ -220,7 +204,7 @@ async def join_command(
     voice_channel: discord.VoiceChannel = None, 
     text_channel: discord.TextChannel = None
 ):
-    global voice_clients, text_channels # グローバル変数を使用するため宣言
+    global voice_clients, text_channels, save_text_and_voice_channels # グローバル変数を使用するため宣言
     # サーバー外では実行不可
     if interaction.guild is None:
         await interaction.response.send_message(
@@ -258,10 +242,8 @@ async def join_command(
     # テキストチャンネルの情報を保存する
     if guild_id not in text_channels:
         text_channels[guild_id] = {}
-    text_channels[guild_id]["text_channel"] = text_channel
+    text_channels[guild_id]["text_channel"] = text_channel.id
 
-
-    global save_text_and_voice_channels
     save_text_and_voice_channels = {
         "guild": interaction.guild.id,
         "voice_channel": voice_channel.id,
@@ -413,7 +395,7 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     guild_id = str(member.guild.id)
 
     # 自動入室機能の実行
-    global voice_clients, current_speaker, save_text_and_voice_channels
+    global voice_clients, current_speaker, save_text_and_voice_channels, text_channels
     auto_join_channels = load_auto_join_channels()
     for guild_id, channel_info in auto_join_channels.items():
         guild = client.get_guild(int(guild_id))
@@ -437,6 +419,10 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
                         "voice_channel": channel.id,
                         "text_channel": channel_info.get("text_channel_id")
                     }
+                    # テキストチャンネルの情報を保存する
+                    if guild_id not in text_channels:
+                        text_channels[guild_id] = {}
+                    text_channels[guild_id]["text_channel"] = client.get_channel(int(channel_info.get("text_channel_id")))
 
     if member.guild.id in voice_clients and voice_clients[member.guild.id].is_connected():
         if before.channel is None and after.channel is not None:
@@ -500,12 +486,18 @@ async def on_message(message):
     print(f"Message channel: {message.channel}")
     print(f"Text channel: {text_channel_id}")
     
-    if voice_client and voice_client.is_connected() and message.channel.id == int(text_channel_id):
+    if text_channel_id is None:
+        print("Text channel ID is None, ignoring message.")
+        return
+    
+    if isinstance(text_channel_id, discord.TextChannel):
+        text_channel_id = text_channel_id.id
+    
+    if voice_client and voice_client.is_connected() and message.channel.id == text_channel_id:
         print("Voice client is connected and message is in the correct channel, handling message.")
-        asyncio.create_task(handle_message(message, message_content, voice_client))
+        await handle_message(message, message_content, voice_client)
     else:
         print("Voice client is not connected or message is in the wrong channel, ignoring message.")
-
 
 async def handle_message(message, message_content, voice_client):
     print(f"Handling message: {message_content}")
