@@ -362,10 +362,10 @@ async def register_auto_join_command(
         f"サーバー {guild.name} の自動入室チャンネルを {channel_name} に設定しました。"
     )
 
-        # テキストチャンネルの情報を保存する
+    # テキストチャンネルの情報を保存する
     if guild_id not in text_channels:
         text_channels[guild_id] = {}
-    text_channels[guild_id]["text_channel"] = text_channel
+    text_channels[guild_id]["text_channel"] = text_channel.id if text_channel else voice_channel.id
 
 @tree.command(
     name="unregister_auto_join",
