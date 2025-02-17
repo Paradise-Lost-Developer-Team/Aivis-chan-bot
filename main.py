@@ -407,22 +407,25 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
                     for vc in voice_clients.values():
                         if vc.channel == channel:
                             return
-                    voice_clients[guild.id] = await channel.connect()
-                    print(f"自動入室: ギルドID {guild_id} のチャンネル {channel.name} に接続しました。")
-                    path = speak_voice(f"{channel.name} に接続しました。", current_speaker.get(guild.id, 888753760), guild.id)
-                    while voice_clients[guild.id].is_playing():
-                        await asyncio.sleep(1)
-                    voice_clients[guild.id].play(create_ffmpeg_audio_source(path))
-                    server_statuses[guild.id] = ServerStatus(guild.id)
-                    save_text_and_voice_channels = {
-                        "guild": guild.id,
-                        "voice_channel": channel.id,
-                        "text_channel": channel_info.get("text_channel_id")
-                    }
-                    # テキストチャンネルの情報を保存する
-                    if guild_id not in text_channels:
-                        text_channels[guild_id] = {}
-                    text_channels[guild_id]["text_channel"] = client.get_channel(int(channel_info.get("text_channel_id")))
+                    try:
+                        voice_clients[guild.id] = await channel.connect()
+                        print(f"自動入室: ギルドID {guild_id} のチャンネル {channel.name} に接続しました。")
+                        path = speak_voice(f"{channel.name} に接続しました。", current_speaker.get(guild.id, 888753760), guild.id)
+                        while voice_clients[guild.id].is_playing():
+                            await asyncio.sleep(1)
+                        voice_clients[guild.id].play(create_ffmpeg_audio_source(path))
+                        server_statuses[guild.id] = ServerStatus(guild.id)
+                        save_text_and_voice_channels = {
+                            "guild": guild.id,
+                            "voice_channel": channel.id,
+                            "text_channel": channel_info.get("text_channel_id")
+                        }
+                        # テキストチャンネルの情報を保存する
+                        if guild_id not in text_channels:
+                            text_channels[guild_id] = {}
+                        text_channels[guild_id]["text_channel"] = client.get_channel(int(channel_info.get("text_channel_id"))).id
+                    except discord.errors.ClientException as e:
+                        print(f"ClientException: {e}")
 
     if member.guild.id in voice_clients and voice_clients[member.guild.id].is_connected():
         if before.channel is None and after.channel is not None:
