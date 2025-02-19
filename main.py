@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.player import FFmpegPCMAudio
-from discord.ui import View, Select
+from discord.ui import Button, View, Select
 import requests
 import json
 import asyncio
@@ -10,32 +10,34 @@ import tempfile
 from config import TOKEN
 import re
 import os
+from numba import jit
 
-server_statuses = {} # サーバーのステータスを格納する辞書
-
-save_text_and_voice_channels = {} # テキストチャンネルとボイスチャンネルを格納する辞書
+server_statuses = {}
 
 activity = discord.Activity(name="起動中…", type=discord.ActivityType.playing)
-intents = discord.Intents.all()
+intents = discord.Intents.default()
 intents.message_content = True
 intents.voice_states = True
 intents.guilds = True
 client = discord.Client(intents=intents, activity=activity)
 tree = app_commands.CommandTree(client)
+join_command_connected = False
 text_channels = {} # テキストチャンネルを格納する辞書
 guild_id = {}  # ギルドIDを格納するための辞書
 voice_clients = {} # キューを格納するための辞書
-current_speaker = {}  # ギルドごとの話者設定
+current_speaker = {}  # ギルドまたはユーザーごとの音声設定
 auto_join_channels = {} # 自動入室するボイスチャンネル
 audio_queues = {}  # ギルドごとの音声キュー
 
 FFMPEG_PATH = "C:/ffmpeg/bin/ffmpeg.exe"
 
 class ServerStatus:
+    @jit
     def __init__(self, guild_id: int):
         self.guild_id = guild_id
-        self.task = asyncio.create_task(self.save_task())
+        asyncio.create_task(self.save_task())
     
+    @jit
     async def save_task(self):
         while True:
             # guild.idを保存するロジックをここに追加
@@ -43,12 +45,14 @@ class ServerStatus:
             await asyncio.sleep(60)  # 60秒ごとに保存
 
 class AivisAdapter:
+    @jit
     def __init__(self):
         # APIサーバーのエンドポイントURL
         self.URL = "http://127.0.0.1:10101"
         # 話者ID (話させたい音声モデルidに変更してください)
         self.speaker = {}
 
+    @jit
     def speak_voice(self, text: str, voice_client: discord.VoiceClient):
         params = {"text": text, "speaker": self.speaker}
         query_response = requests.post(f"{self.URL}/audio_query", params=params).json()
@@ -60,19 +64,17 @@ class AivisAdapter:
         )
         voice_client.play(create_ffmpeg_audio_source(io.BytesIO(audio_response.content)))
 
-def create_ffmpeg_audio_source(source):
-    if isinstance(source, str):
-        return FFmpegPCMAudio(source, executable=FFMPEG_PATH)
-    elif isinstance(source, io.BytesIO):
-        return FFmpegPCMAudio(source, pipe=True, executable=FFMPEG_PATH)
-    else:
-        raise ValueError("Unsupported audio source type")
+@jit
+def create_ffmpeg_audio_source(path: str):
+    return FFmpegPCMAudio(path, executable=FFMPEG_PATH)
 
+@jit
 def post_audio_query(text: str, speaker: int):
     params = {"text": text, "speaker": speaker}
     response = requests.post("http://127.0.0.1:10101/audio_query", params=params)
     return response.json()
 
+@jit
 def post_synthesis(audio_query: dict, speaker: int):
     response = requests.post(
         "http://127.0.0.1:10101/synthesis",
@@ -83,7 +85,7 @@ def post_synthesis(audio_query: dict, speaker: int):
     return response.content
 
 voice_settings = {
-    "volume": {},  # デフォルトの音量を0.3に設定
+    "volume": {},  # デフォルトの音量を0.2に設定
     "pitch": {},
     "rate": {},
     "speed": {},
@@ -91,8 +93,9 @@ voice_settings = {
     "tempo": {}
 }
 
+@jit
 def adjust_audio_query(audio_query: dict, guild_id: int):
-    audio_query["volumeScale"] = voice_settings["volume"].get(guild_id, 0.3)  # デフォルトの音量を0.3に設定
+    audio_query["volumeScale"] = voice_settings["volume"].get(guild_id, 0.2)  # デフォルトの音量を0.2に設定
     audio_query["pitchScale"] = voice_settings["pitch"].get(guild_id, 0.0)
     audio_query["rateScale"] = voice_settings["rate"].get(guild_id, 1.0)
     audio_query["speedScale"] = voice_settings["speed"].get(guild_id, 1.0)
@@ -111,6 +114,7 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 MAX_TEXT_LENGTH = 200  # 読み上げる文章の文字数上限
 
+@jit
 def speak_voice(text: str, speaker: int, guild_id: int):
     if len(text) > MAX_TEXT_LENGTH:
         text = text[:MAX_TEXT_LENGTH] + "..."  # 上限を超えた場合は切り捨てて "..." を追加
@@ -122,6 +126,7 @@ def speak_voice(text: str, speaker: int, guild_id: int):
         temp_audio_file_path = temp_audio_file.name
     return temp_audio_file_path
 
+@jit
 async def fetch_uuids_periodically():
     while True:
         fetch_all_uuids()
@@ -130,6 +135,7 @@ async def fetch_uuids_periodically():
 AUTO_JOIN_FILE = "auto_join_channels.json"
 auto_join_channels = {}
 
+@jit
 def load_auto_join_channels():
     try:
         with open(AUTO_JOIN_FILE, "r", encoding="utf-8") as file:
@@ -150,11 +156,28 @@ def load_auto_join_channels():
         return {}
 
 
+@jit
 def save_auto_join_channels():
     with open(AUTO_JOIN_FILE, "w", encoding="utf-8") as file:
         json.dump(auto_join_channels, file, ensure_ascii=False, indent=4)
 
+TEXT_CHANELS_JSON = "text_channels.json"
+
+@jit
+def load_text_channels():
+    try:
+        with open('text_channels.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+@jit
+def save_text_channels():
+    with open(TEXT_CHANELS_JSON, 'w') as f:
+        json.dump(text_channels, f)
+
 @client.event
+@jit
 async def on_ready():
     print("起動完了")
     try:
@@ -177,7 +200,7 @@ async def on_ready():
             activity=discord.CustomActivity(name="VC:" + vc))
         await asyncio.sleep(15)
 
-
+@jit
 async def play_audio_queue(guild_id):
     """ 音声キューを順番に再生するための処理 """
     vc = voice_clients.get(guild_id)
@@ -195,16 +218,15 @@ async def play_audio_queue(guild_id):
     name="join", 
     description="ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。"
 )
-@app_commands.describe(
-    voice_channel="接続するボイスチャンネルを選択してください。",
-    text_channel="読み上げるテキストチャンネルを選択してください。"
-)
+@jit
 async def join_command(
     interaction: discord.Interaction, 
     voice_channel: discord.VoiceChannel = None, 
     text_channel: discord.TextChannel = None
 ):
-    global voice_clients, text_channels, save_text_and_voice_channels # グローバル変数を使用するため宣言
+    global voice_clients, text_channels, join_command_connected
+    join_command_connected = True
+
     # サーバー外では実行不可
     if interaction.guild is None:
         await interaction.response.send_message(
@@ -230,26 +252,15 @@ async def join_command(
     if text_channel is None:
         text_channel = interaction.channel
 
-    # 既に他のBOTが接続しているか確認
-    for vc in voice_clients.values():
-        if vc.channel == voice_channel:
-            await interaction.response.send_message(
-                "既に他のBOTがこのボイスチャンネルに接続しています。",
-                ephemeral=True
-            )
-            return
-
     # テキストチャンネルの情報を保存する
     if guild_id not in text_channels:
         text_channels[guild_id] = {}
-    text_channels[guild_id]["text_channel"] = text_channel.id
+    text_channels[guild_id]["text_channel"] = text_channel
 
-    save_text_and_voice_channels = {
-        "guild": interaction.guild.id,
-        "voice_channel": voice_channel.id,
-        "text_channel": text_channel.id
-    }
-    print(f"Join command: guild={interaction.guild.id}, voice_channel={voice_channel.id}, text_channel={text_channel.id}")
+    print(
+        f"Join command: guild={interaction.guild.id}, "
+        f"voice_channel={voice_channel.id}, text_channel={text_channel.id}"
+    )
 
     try:
         voice_client = voice_clients.get(interaction.guild.id)
@@ -264,33 +275,27 @@ async def join_command(
                 current_speaker.get(interaction.guild.id, 888753760),
                 interaction.guild.id,
             )
-            while voice_clients[interaction.guild.id].is_playing():
-                await asyncio.sleep(1)
-            voice_clients[interaction.guild.id].play(create_ffmpeg_audio_source(path))
-
+            await play_audio(voice_client, path)
         else:
-            global server_statuses
             voice_clients[interaction.guild.id] = await voice_channel.connect()
             print(f"Connected to voice channel {voice_channel.id}")
             await interaction.response.send_message(
                 f"{voice_channel.name} に接続しました。\n読み上げチャンネル: {text_channel.mention}"
             )
-            server_statuses[interaction.guild.id] = ServerStatus(interaction.guild.id)
             path = speak_voice(
                 f"{voice_channel.name} に接続しました。",
                 current_speaker.get(interaction.guild.id, 888753760),
                 interaction.guild.id,
             )
-            while voice_clients[interaction.guild.id].is_playing():
-                await asyncio.sleep(1)
-            voice_clients[interaction.guild.id].play(create_ffmpeg_audio_source(path))
-    except discord.errors.ClientException as e:
-        print(f"ClientException: {e}")
-        await interaction.response.send_message(f"エラーが発生しました: {str(e)}", ephemeral=True)
+            await play_audio(voice_clients[interaction.guild.id], path)
+    except discord.errors.ClientException as error:
+        print(f"Error: {error}")
+        await interaction.response.send_message(f"エラー: {error}")
 
 @tree.command(
     name="leave", description="ボイスチャンネルから切断します。"
 )
+@jit
 async def leave_command(interaction: discord.Interaction):
     global voice_clients
     guild_id_int = interaction.guild.id
@@ -321,6 +326,7 @@ async def leave_command(interaction: discord.Interaction):
 @tree.command(
     name="ping", description="BOTの応答時間をテストします。"
 )
+@jit
 async def ping_command(interaction: discord.Interaction):
     text = f"Pong! BotのPing値は{round(client.latency*1000)}msです。"
     embed = discord.Embed(title="Latency", description=text)
@@ -334,6 +340,7 @@ async def ping_command(interaction: discord.Interaction):
     voice_channel="自動入室するボイスチャンネルを選択してください。",
     text_channel="通知を送るテキストチャンネルを選択してください。(任意)"
 )
+@jit
 async def register_auto_join_command(
     interaction: discord.Interaction,
     voice_channel: discord.VoiceChannel,
@@ -362,15 +369,11 @@ async def register_auto_join_command(
         f"サーバー {guild.name} の自動入室チャンネルを {channel_name} に設定しました。"
     )
 
-    # テキストチャンネルの情報を保存する
-    if guild_id not in text_channels:
-        text_channels[guild_id] = {}
-    text_channels[guild_id]["text_channel"] = text_channel.id if text_channel else voice_channel.id
-
 @tree.command(
     name="unregister_auto_join",
     description="自動接続の設定を解除します。"
 )
+@jit
 async def unregister_auto_join(interaction: discord.Interaction):
     global auto_join_channels
     guild_id = str(interaction.guild.id)
@@ -386,68 +389,7 @@ async def unregister_auto_join(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("このサーバーには登録された自動接続設定がありません。", ephemeral=True)
 
-@client.event
-async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    """ ユーザーのボイスチャンネルの入退出を処理 """
-    if member.bot:
-        return
 
-    guild_id = str(member.guild.id)
-
-    # 自動入室機能の実行
-    global voice_clients, current_speaker, save_text_and_voice_channels, text_channels
-    auto_join_channels = load_auto_join_channels()
-    for guild_id, channel_info in auto_join_channels.items():
-        guild = client.get_guild(int(guild_id))
-        if guild:
-            channel = guild.get_channel(int(channel_info["voice_channel_id"]))
-            if channel and guild.id not in voice_clients:
-                if len(channel.members) > 0:  # チャンネルにメンバーがいる場合のみ接続
-                    # 既に他のBOTが接続しているか確認
-                    for vc in voice_clients.values():
-                        if vc.channel == channel:
-                            return
-                    try:
-                        voice_clients[guild.id] = await channel.connect()
-                        print(f"自動入室: ギルドID {guild_id} のチャンネル {channel.name} に接続しました。")
-                        path = speak_voice(f"{channel.name} に接続しました。", current_speaker.get(guild.id, 888753760), guild.id)
-                        while voice_clients[guild.id].is_playing():
-                            await asyncio.sleep(1)
-                        voice_clients[guild.id].play(create_ffmpeg_audio_source(path))
-                        server_statuses[guild.id] = ServerStatus(guild.id)
-                        save_text_and_voice_channels = {
-                            "guild": guild.id,
-                            "voice_channel": channel.id,
-                            "text_channel": channel_info.get("text_channel_id")
-                        }
-                        # テキストチャンネルの情報を保存する
-                        if guild_id not in text_channels:
-                            text_channels[guild_id] = {}
-                        text_channels[guild_id]["text_channel"] = client.get_channel(int(channel_info.get("text_channel_id"))).id
-                    except discord.errors.ClientException as e:
-                        print(f"ClientException: {e}")
-
-    if member.guild.id in voice_clients and voice_clients[member.guild.id].is_connected():
-        if before.channel is None and after.channel is not None:
-            # ユーザーがボイスチャンネルに参加したとき
-            if voice_clients[member.guild.id].channel == after.channel:
-                nickname = member.display_name
-                path = speak_voice(f"{nickname} さんが入室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
-                while voice_clients[member.guild.id].is_playing():
-                    await asyncio.sleep(1)
-                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
-        elif before.channel is not None and after.channel is None:
-            # ユーザーがボイスチャンネルから退出したとき
-            if voice_clients[member.guild.id].channel == before.channel:
-                nickname = member.display_name
-                path = speak_voice(f"{nickname} さんが退室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
-                while voice_clients[member.guild.id].is_playing():
-                    await asyncio.sleep(1)
-                voice_clients[member.guild.id].play(create_ffmpeg_audio_source(path))
-        # ボイスチャンネルに誰もいなくなったら退室
-        if len(voice_clients[member.guild.id].channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
-            await voice_clients[member.guild.id].disconnect()
-            del voice_clients[member.guild.id]
 
 # URL、ファイル、EMBEDを除外するための正規表現パターン
 URL_PATTERN = r"https?://[^\s]+"
@@ -456,60 +398,112 @@ URL_PATTERN = r"https?://[^\s]+"
 CUSTOM_EMOJI_REGEX = r"<a?:\w+:\d+>"
 
 @client.event
+@jit
 async def on_message(message):
+    # BOT のメッセージは無視する
     if message.author.bot:
         print("Message is from a bot, ignoring.")
         return
-    # メッセージから絵文字、カスタム絵文字、メンション、URL、マークダウン、スポイラーを除外
-    message_content = message.content
-    message_content = re.sub(r'\|\|.*?\|\|', '', message_content)  # スポイラーを除外
-    message_content = re.sub(CUSTOM_EMOJI_REGEX, '', message_content)
-    message_content = re.sub(URL_PATTERN, '', message_content)
-    message_content = re.sub(r'<@!?[0-9]+>', '', message_content)  # ユーザー、ロールメンションを除外
-    message_content = re.sub(r'<#!?[0-9]+>', '', message_content)  # チャンネルメンションを除外
-    message_content = re.sub(r'\*|_|~|`', '', message_content)  # マークダウンを除外
-    message_content = ''.join(char for char in message_content if char not in message.guild.emojis)
-    
-    # (音量0) が文頭にある場合は読み上げない
-    if re.match(r'^\(音量0\)', message_content):
-        print("Message contains (音量0) at the beginning, ignoring.")
-        return
-    
-    global voice_clients, text_channels, current_speaker, save_text_and_voice_channels
-    voice_client = voice_clients.get(message.guild.id)
-    text_channel_id = text_channels.get(str(message.guild.id), {}).get("text_channel")
-    
-    # save_text_and_voice_channelsからテキストチャンネルIDを取得
-    if not text_channel_id and save_text_and_voice_channels.get("guild") == message.guild.id:
-        text_channel_id = save_text_and_voice_channels.get("text_channel")
-    
-    print(f"Voice client: {voice_client}")
-    print(f"Current speaker: {current_speaker}")
-    print(f"Message content: {message_content}")
-    print(f"Message channel: {message.channel}")
-    print(f"Text channel: {text_channel_id}")
-    
-    if text_channel_id is None:
-        print("Text channel ID is None, ignoring message.")
-        return
-    
-    if isinstance(text_channel_id, discord.TextChannel):
-        text_channel_id = text_channel_id.id
-    
-    if voice_client and voice_client.is_connected() and message.channel.id == text_channel_id:
-        print("Voice client is connected and message is in the correct channel, handling message.")
-        await handle_message(message, message_content, voice_client)
-    else:
-        print("Voice client is not connected or message is in the wrong channel, ignoring message.")
 
-async def handle_message(message, message_content, voice_client):
+    try:
+        # メッセージ内容の加工（スポイラー、絵文字、URL、メンション、マークダウン記法の除外）
+        message_content = message.content
+        message_content = re.sub(r'\|\|.*?\|\|', '', message_content)  # スポイラー除外
+        message_content = re.sub(CUSTOM_EMOJI_REGEX, '', message_content)
+        message_content = re.sub(URL_PATTERN, '', message_content)
+        message_content = re.sub(r'<@!?[0-9]+>', '', message_content)  # ユーザー・ロールメンション除外
+        message_content = re.sub(r'<#!?[0-9]+>', '', message_content)  # チャンネルメンション除外
+        message_content = re.sub(r'\*|_|~|`', '', message_content)  # マークダウン除外
+        
+        # 絵文字除外（必要に応じて調整）
+        emoji_strs = [str(emoji) for emoji in message.guild.emojis]
+        message_content = ''.join(char for char in message_content if char not in emoji_strs)
+
+        # メッセージ先頭に "(音量0)" がある場合は読み上げを行わない
+        if re.match(r'^\(音量0\)', message_content):
+            print("Message starts with (音量0), ignoring.")
+            return
+
+        global voice_clients, text_channels, current_speaker, join_command_connected
+
+        # on_message 内
+        guild_id = str(message.guild.id)
+        voice_client = voice_clients.get(guild_id)
+
+
+        # JSONから自動入室チャンネルの設定を読み込む
+        auto_join_channels_data = load_auto_join_channels()
+        print(f"auto_join_channels_data = {auto_join_channels_data}")
+
+        if guild_id in auto_join_channels_data:
+            auto_voice_channel_id = auto_join_channels_data[guild_id].get("voice_channel_id")
+            auto_text_channel_id = auto_join_channels_data[guild_id].get("text_channel_id")  # 必要なら取得
+            channel = client.get_channel(int(auto_voice_channel_id))
+            
+            if channel is None:
+                print(f"Error: Channel with id {auto_voice_channel_id} not found.")
+            else:
+                if channel.guild.voice_client is None:
+                    voice_client = await channel.connect()
+                else:
+                    voice_client = discord.utils.get(client.voice_clients, guild=channel.guild)
+                voice_clients[guild_id] = voice_client
+        else:
+            print(f"Guild ID {guild_id} not found in auto_join_channels_data.")
+
+
+        if join_command_connected:
+            registered_text_channel = text_channels.get(guild_id, {}).get("text_channel")
+            # ログ出力で確認
+            print(f"registered_text_channel = {registered_text_channel}")
+            print(f"voice_client = {voice_client}")
+            print(f"join_command_connected = {join_command_connected}")
+            print(f"text_channels = {text_channels}")
+
+            if voice_client is not None and voice_client.is_connected() and message.channel == registered_text_channel:
+                print("Voice client is connected and message is in the registered text channel. Handling message.")
+                asyncio.create_task(handle_message(message))
+            else:
+                print("Voice client is not connected or message is in the wrong channel (registered). Ignoring message.")
+
+        else:
+            # 自動入室設定の場合の処理
+            print(f"voice_client = {voice_client}")
+            print(f"auto_text_channel_id = {auto_text_channel_id}")
+            print(f"join_command_connected = {join_command_connected}")
+            
+            if voice_client is not None and voice_client.is_connected() and str(message.channel.id) == auto_text_channel_id:
+                print("Voice client is connected and message is in the auto-join text channel. Handling message.")
+                asyncio.create_task(handle_message(message))
+            else:
+                print("Voice client is not connected or message is in the wrong channel (auto-join). Ignoring message.")
+
+    except Exception as e:
+        print(f"An error occurred while processing the message: {e}")
+    
+@jit
+async def handle_message(message: discord.Message):
+    message_content = message.content
+    # handle_message 内
+    guild_id = str(message.guild.id)
+    voice_client = voice_clients.get(guild_id)
+
+
+    if voice_client is None:
+        print("Error: Voice client is None, skipping message processing.")
+        return
+
     print(f"Handling message: {message_content}")
-    speaker_id = current_speaker.get(message.guild.id, 888753760)  # デフォルトの話者ID
+    speaker_id = current_speaker.get(guild_id, 888753760)  # デフォルトの話者ID
     path = speak_voice(message_content, speaker_id, message.guild.id)
+
     while voice_client.is_playing():
         await asyncio.sleep(0.1)
+    
     voice_client.play(create_ffmpeg_audio_source(path))
     print(f"Finished playing message: {message_content}")
+
+
 
 # スピーカー情報を読み込む
 speakers = []
@@ -538,6 +532,7 @@ if speakers:
         if isinstance(style.get("id"), int)  # IDが整数であることを確認
     ]
 
+@jit
 def get_speaker_info_by_id(speaker_id):
     for speaker in speakers:
         for style in speaker.get("styles", []):
@@ -548,6 +543,7 @@ def get_speaker_info_by_id(speaker_id):
 class SpeakerSelect(Select):
     """ 話者を選択するためのプルダウンメニュー """
 
+    @jit
     def __init__(self, speakers, user_id, guild_id):
         options = [
             discord.SelectOption(
@@ -568,13 +564,14 @@ class SpeakerSelect(Select):
         self.user_id = user_id
         self.guild_id = guild_id
 
+    @jit
     async def callback(self, interaction: discord.Interaction):
         """ 話者を変更する処理 """
         speaker_id = int(self.values[0])
         speaker_info, style_info = get_speaker_info_by_id(speaker_id)
 
         if speaker_info and style_info:
-            current_speaker[self.guild_id] = speaker_id  # ギルドごとに設定
+            current_speaker[self.user_id] = speaker_id  # ユーザーごとに設定
             await interaction.response.send_message(
                 f"✅ 話者を **{speaker_info['name']}**（スタイル: {style_info['name']}）に変更しました。",
                 ephemeral=True
@@ -585,13 +582,102 @@ class SpeakerSelect(Select):
 
 class SpeakerSelectView(View):
     """ 選択メニューのビュー """
+    @jit
     def __init__(self, speakers, user_id, guild_id):
         super().__init__()
         self.add_item(SpeakerSelect(speakers, user_id, guild_id))
 
+@client.event
+@jit
+async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState) -> None:
+    """Handles voice state updates for members."""
+    global voice_clients, current_speaker, text_channels, join_command_connected
+
+    if member.bot:
+        return
+
+    guild_id = str(member.guild.id)
+    voice_client = voice_clients.get(guild_id)
+
+    if voice_client and voice_client.is_connected():
+        if before.channel is None and after.channel is not None:
+            # ユーザーがボイスチャンネルに参加したとき
+            if voice_client.channel == after.channel:
+                nickname = member.display_name
+                path = speak_voice(f"{nickname} さんが入室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
+                while voice_client.is_playing():
+                    await asyncio.sleep(1)
+                voice_client.play(create_ffmpeg_audio_source(path))
+        elif before.channel is not None and after.channel is None:
+            # ユーザーがボイスチャンネルから退出したとき
+            if voice_client.channel == before.channel:
+                nickname = member.display_name
+                path = speak_voice(f"{nickname} さんが退室しました。", current_speaker.get(member.guild.id, 888753760), member.guild.id)
+                while voice_client.is_playing():
+                    await asyncio.sleep(1)
+                voice_client.play(create_ffmpeg_audio_source(path))
+                
+                # ボイスチャンネルに誰もいなくなったら退室
+                if len(voice_client.channel.members) == 1:  # ボイスチャンネルにいるのがBOTだけの場合
+                    await voice_client.disconnect()
+                    del voice_clients[guild_id]
+
+    # Auto join channels handling
+    try:
+        # Load auto_join_channels data from JSON file
+        auto_join_channels_data = load_auto_join_channels()
+        print(f"Loaded auto_join_channels data: {auto_join_channels_data}")
+
+        guild_data = auto_join_channels_data.get(guild_id)
+        if not guild_data:
+            return
+        
+        voice_channel_id = str(guild_data.get("voice_channel_id"))
+        
+        # ユーザーがボイスチャンネルに参加した場合
+        if before.channel is None and after.channel is not None:
+            if voice_channel_id == str(after.channel.id):
+                if guild_id not in voice_clients or not voice_clients[guild_id].is_connected():
+                    join_command_connected = False  # ここで False にする
+                    try:
+                        voice_client = await after.channel.connect()
+                        voice_clients[guild_id] = voice_client
+                        print(f"Connected to voice channel {voice_channel_id} in guild {guild_id}")
+                        
+                        path = speak_voice("自動接続しました。", current_speaker.get(int(guild_id), 888753760), int(guild_id))
+                        await play_audio(voice_client, path)
+                    except discord.errors.ClientException as e:
+                        print(f"Error: failed to connect to voice channel - {e}")
+        
+        # ユーザーがボイスチャンネルから退出した場合
+        if before.channel is not None and after.channel is None:
+            if guild_id in voice_clients and voice_clients[guild_id].is_connected():
+                if len(voice_clients[guild_id].channel.members) == 1:
+                    try:
+                        print(f"{voice_clients[guild_id].guild.name}: Only BOT is left in the channel, disconnecting.")
+                        await voice_clients[guild_id].disconnect()
+                        del voice_clients[guild_id]
+                    except Exception as e:
+                        print(f"Error while disconnecting: {e}")
+    except FileNotFoundError:
+        print("Error: auto_join_channels.json file not found")
+    except json.JSONDecodeError:
+        print("Error: failed to parse auto_join_channels.json file")
+    except discord.errors.ClientException as error:
+        print(f"Error: failed to connect to voice channel - {error}")
+    except Exception as error:
+        print(f"Error in on_voice_state_update: {error}")
+
+@jit
+async def play_audio(vc, path):
+    while vc.is_playing():
+        await asyncio.sleep(1)
+    vc.play(create_ffmpeg_audio_source(path))
+
 @tree.command(
     name="set_speaker", description="話者を選択メニューから切り替えます。"
 )
+@jit
 async def set_speaker_command(interaction: discord.Interaction):
     """ 話者の選択メニューを表示 """
     if not speakers:
@@ -607,6 +693,7 @@ async def set_speaker_command(interaction: discord.Interaction):
 @app_commands.describe(
     volume="設定する音量を入力してください (0.0 - 2.0)。"
 )
+@jit
 async def set_volume_command(interaction: discord.Interaction, volume: float):
     if 0.0 <= volume <= 2.0:
         voice_settings["volume"][interaction.guild.id] = volume
@@ -620,6 +707,7 @@ async def set_volume_command(interaction: discord.Interaction, volume: float):
 @app_commands.describe(
     pitch="設定する音高を入力してください (-1.0 - 1.0)。"
 )
+@jit
 async def set_pitch_command(interaction: discord.Interaction, pitch: float):
     if -1.0 <= pitch <= 1.0:
         voice_settings["pitch"][interaction.guild.id] = pitch
@@ -633,6 +721,7 @@ async def set_pitch_command(interaction: discord.Interaction, pitch: float):
 @app_commands.describe(
     speed="設定する話速を入力してください (0.5 - 2.0)。"
 )
+@jit
 async def set_speed_command(interaction: discord.Interaction, speed: float):
     if 0.5 <= speed <= 2.0:
         voice_settings["speed"][interaction.guild.id] = speed
@@ -646,6 +735,7 @@ async def set_speed_command(interaction: discord.Interaction, speed: float):
 @app_commands.describe(
     style_strength="設定するスタイルの強さを入力してください (0.0 - 2.0)。"
 )
+@jit
 async def set_style_strength_command(interaction: discord.Interaction, style_strength: float):
     if 0.0 <= style_strength <= 2.0:
         voice_settings["style_strength"][interaction.guild.id] = style_strength
@@ -659,6 +749,7 @@ async def set_style_strength_command(interaction: discord.Interaction, style_str
 @app_commands.describe(
     tempo="設定するテンポの緩急を入力してください (0.5 - 2.0)。"
 )
+@jit
 async def set_tempo_command(interaction: discord.Interaction, tempo: float):
     if 0.5 <= tempo <= 2.0:
         voice_settings["tempo"][interaction.guild.id] = tempo
@@ -696,6 +787,7 @@ all_words = list(word_set)
 
 print(all_words)
 
+@jit
 def fetch_all_uuids():
     try:
         response = requests.get("http://localhost:10101/user_dict")
@@ -723,10 +815,12 @@ if uuid_list:
 else:
     print("UUID一覧が空です。")
 
+@jit
 def save_to_dictionary_file():
     with open(DICTIONARY_FILE, "w", encoding="utf-8") as file:
         json.dump(guild_dictionary, file, ensure_ascii=False, indent=4)
 
+@jit
 def update_guild_dictionary(guild_id, word, details):
     guild_id_str = str(guild_id)  # guild_idを文字列に変換
     if guild_id_str not in guild_dictionary:
@@ -744,6 +838,7 @@ def update_guild_dictionary(guild_id, word, details):
     word_type="単語の品詞を選択してください。"
 )
 @app_commands.choices(word_type=word_type_choices)
+@jit
 async def add_word_command(interaction: discord.Interaction, word: str, pronunciation: str, accent_type: int, word_type: str):
     guild_id = interaction.guild.id
     add_url = f"http://localhost:10101/user_dict_word?surface={word}&pronunciation={pronunciation}&accent_type={accent_type}&word_type={word_type}"
@@ -772,6 +867,7 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
     word_type="単語の品詞を選択してください。"
 )
 @app_commands.choices(word_type=word_type_choices)
+@jit
 async def edit_word_command(interaction: discord.Interaction, word: str, new_pronunciation: str, accent_type: int, word_type: str):
     if re.search(r'[a-zA-Z0-9!-/:-@[-`{-~]', word):
         await interaction.response.send_message("単語に半角英数字や半角記号を含めることはできません。", ephemeral=True)
@@ -806,6 +902,7 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
 @app_commands.describe(
     word="削除する単語を入力してください。"
 )
+@jit
 async def remove_word_command(interaction: discord.Interaction, word: str):
     if re.search(r'[a-zA-Z0-9!-/:-@[-`{-~]', word):
         await interaction.response.send_message("単語に半角英数字や半角記号を含めることはできません。", ephemeral=True)
@@ -832,6 +929,7 @@ async def remove_word_command(interaction: discord.Interaction, word: str):
             await interaction.response.send_message(f"単語 '{word}' のUUIDが見つかりませんでした。", ephemeral=True)
 
 class DictionaryView(View):
+    @jit
     def __init__(self, words, page=0, per_page=10):
         super().__init__(timeout=None)
         self.words = words
@@ -839,6 +937,7 @@ class DictionaryView(View):
         self.per_page = per_page
         self.update_button_state()  # ボタンの状態を更新
 
+    @jit
     def update_button_state(self):
         # すでにデコレーターで定義されたボタンに対して disabled を設定する
         for item in self.children:
@@ -848,19 +947,22 @@ class DictionaryView(View):
                 item.disabled = (self.page + 1) * self.per_page >= len(self.words)
     
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, custom_id="previous")
-    async def previous_page(self, interaction: discord.Interaction):
+    @jit
+    async def previous_page(self, interaction: discord.Interaction, button: Button):
         if self.page > 0:
             self.page -= 1
             self.update_button_state()
             await interaction.response.edit_message(embed=self.create_embed(), view=self)
     
     @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, custom_id="next")
-    async def next_page(self, interaction: discord.Interaction):
+    @jit
+    async def next_page(self, interaction: discord.Interaction, button: Button):
         if (self.page + 1) * self.per_page < len(self.words):
             self.page += 1
             self.update_button_state()
             await interaction.response.edit_message(embed=self.create_embed(), view=self)
 
+    @jit
     def create_embed(self):
         start = self.page * self.per_page
         end = start + self.per_page
@@ -873,6 +975,7 @@ class DictionaryView(View):
 @tree.command(
     name="list_words", description="辞書の単語一覧を表示します。"
 )
+@jit
 async def list_words_command(interaction: discord.Interaction):
     if interaction.guild is None:
         await interaction.response.send_message("このコマンドはサーバー内でのみ使用できます。", ephemeral=True)
@@ -895,82 +998,5 @@ async def list_words_command(interaction: discord.Interaction):
 
     view = DictionaryView(list(words.items()))  # 辞書のアイテムをリストに変換
     await interaction.response.send_message(embed=view.create_embed(), view=view)
-
-class HelpView(View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        self.current_page = 0
-        self.embeds = self.create_embeds()
-        self.update_button_state()
-
-    def create_embeds(self):
-        pages = [
-            {
-                "title": "基本コマンド",
-                "commands": [
-                    {"name": "/join", "description": "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。"},
-                    {"name": "/leave", "description": "ボイスチャンネルから切断します。"},
-                    {"name": "/ping", "description": "BOTの応答時間をテストします。"},
-                ]
-            },
-            {
-                "title": "自動入室コマンド",
-                "commands": [
-                    {"name": "/register_auto_join", "description": "BOTの自動入室機能を登録します。"},
-                    {"name": "/unregister_auto_join", "description": "自動接続の設定を解除します。"},
-                ]
-            },
-            {
-                "title": "設定コマンド",
-                "commands": [
-                    {"name": "/set_speaker", "description": "話者を選択メニューから切り替えます。"},
-                    {"name": "/set_volume", "description": "音量を設定します。"},
-                    {"name": "/set_pitch", "description": "音高を設定します。"},
-                    {"name": "/set_speed", "description": "話速を設定します。"},
-                    {"name": "/set_style_strength", "description": "スタイルの強さを設定します。"},
-                    {"name": "/set_tempo", "description": "テンポの緩急を設定します。"},
-                ]
-            },
-            {
-                "title": "辞書コマンド",
-                "commands": [
-                    {"name": "/add_word", "description": "辞書に単語を登録します。"},
-                    {"name": "/edit_word", "description": "辞書の単語を編集します。"},
-                    {"name": "/remove_word", "description": "辞書から単語を削除します。"},
-                    {"name": "/list_words", "description": "辞書の単語一覧を表示します。"},
-                ]
-            }
-        ]
-
-        embeds = []
-        for page in pages:
-            embed = discord.Embed(title=page["title"], color=discord.Color.blue())
-            for command in page["commands"]:
-                embed.add_field(name=command["name"], value=command["description"], inline=False)
-            embeds.append(embed)
-        return embeds
-
-    def update_button_state(self):
-        self.children[0].disabled = self.current_page == 0
-        self.children[1].disabled = self.current_page == len(self.embeds) - 1
-
-    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary)
-    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page -= 1
-        self.update_button_state()
-        await interaction.response.edit_message(embed=self.embeds[self.current_page], view=self)
-
-    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary)
-    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page += 1
-        self.update_button_state()
-        await interaction.response.edit_message(embed=self.embeds[self.current_page], view=self)
-
-@tree.command(
-    name="help", description="利用可能なコマンドのリストを表示します。"
-)
-async def help_command(interaction: discord.Interaction):
-    view = HelpView()
-    await interaction.response.send_message(embed=view.embeds[0], view=view)
 
 client.run(TOKEN)
