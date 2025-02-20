@@ -1,35 +1,21 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = require("dotenv");
-(0, dotenv_1.config)();
-const discord_js_1 = require("discord.js");
-const voice_1 = require("@discordjs/voice");
-const async_mutex_1 = require("async-mutex");
-const rest_1 = require("@discordjs/rest");
-const v9_1 = require("discord-api-types/v9");
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
-const os_1 = __importDefault(require("os"));
-const uuid_1 = require("uuid"); // ここで uuid モジュールをインポート
-const stream_1 = require("stream");
-const client = new discord_js_1.Client({ intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildMessages, discord_js_1.GatewayIntentBits.MessageContent, discord_js_1.GatewayIntentBits.GuildVoiceStates] });
-const rest = new rest_1.REST({ version: '9' }).setToken(process.env.TOKEN);
+import { config } from "dotenv";
+config();
+import { Client, Events, GatewayIntentBits, ActivityType, EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, StreamType, VoiceConnectionStatus } from "@discordjs/voice";
+import { Mutex } from "async-mutex";
+import { REST } from "@discordjs/rest";
+import { Routes } from "discord-api-types/v9";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { v4 as uuidv4 } from "uuid"; // ここで uuid モジュールをインポート
+import { Readable } from "stream";
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
+const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 let connection = null;
-let player = (0, voice_1.createAudioPlayer)();
+let player = createAudioPlayer();
 let subscription = null;
-const mutex = new async_mutex_1.Mutex();
+const mutex = new Mutex();
 const serverStatuses = {};
 const textChannels = {};
 const voiceClients = {};
@@ -43,19 +29,17 @@ class ServerStatus {
         this.guildId = guildId;
         this.saveTask();
     }
-    saveTask() {
-        return __awaiter(this, void 0, void 0, function* () {
-            while (true) {
-                console.log(`Saving guild id: ${this.guildId}`);
-                try {
-                    fs_1.default.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
-                    yield new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
-                }
-                catch (error) {
-                    console.error("Error saving guild id:", error);
-                }
+    async saveTask() {
+        while (true) {
+            console.log(`Saving guild id: ${this.guildId}`);
+            try {
+                fs.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
+                await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
             }
-        });
+            catch (error) {
+                console.error("Error saving guild id:", error);
+            }
+        }
     }
 }
 class AivisAdapter {
@@ -63,64 +47,58 @@ class AivisAdapter {
         this.URL = "http://127.0.0.1:10101";
         this.speaker = 0; // 話者IDを設定
     }
-    speakVoice(text, voiceClient) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const params = { text, speaker: this.speaker };
-            const queryResponse = yield axios.post(`${this.URL}/audio_query`, null, { params }).then(res => res.data);
-            const audioResponse = yield axios.post(`${this.URL}/synthesis`, queryResponse, {
-                params: { speaker: this.speaker },
-                responseType: 'arraybuffer'
-            });
-            const resource = (0, voice_1.createAudioResource)(stream_1.Readable.from(audioResponse.data), { inputType: voice_1.StreamType.Arbitrary });
-            if (player) {
-                player.play(resource);
-            }
+    async speakVoice(text, voiceClient) {
+        const params = { text, speaker: this.speaker };
+        const queryResponse = await axios.post(`${this.URL}/audio_query`, null, { params }).then(res => res.data);
+        const audioResponse = await axios.post(`${this.URL}/synthesis`, queryResponse, {
+            params: { speaker: this.speaker },
+            responseType: 'arraybuffer'
         });
+        const resource = createAudioResource(Readable.from(audioResponse.data), { inputType: StreamType.Arbitrary });
+        if (player) {
+            player.play(resource);
+        }
     }
 }
 function createFFmpegAudioSource(path) {
-    return (0, voice_1.createAudioResource)(path, { inputType: voice_1.StreamType.Arbitrary });
+    return createAudioResource(path, { inputType: StreamType.Arbitrary });
 }
-function postAudioQuery(text, speaker) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const params = new URLSearchParams({ text, speaker: speaker.toString() });
-        try {
-            const response = yield fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
-                method: 'POST'
-            });
-            if (!response.ok) {
-                throw new Error(`Error in postAudioQuery: ${response.statusText}`);
-            }
-            return yield response.json();
+async function postAudioQuery(text, speaker) {
+    const params = new URLSearchParams({ text, speaker: speaker.toString() });
+    try {
+        const response = await fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
+            method: 'POST'
+        });
+        if (!response.ok) {
+            throw new Error(`Error in postAudioQuery: ${response.statusText}`);
         }
-        catch (error) {
-            console.error("Error in postAudioQuery:", error);
-            throw error;
-        }
-    });
+        return await response.json();
+    }
+    catch (error) {
+        console.error("Error in postAudioQuery:", error);
+        throw error;
+    }
 }
-function postSynthesis(audioQuery, speaker) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // 分割推論のためのパラメータを追加
-            const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
-            const response = yield fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(audioQuery)
-            });
-            if (!response.ok) {
-                throw new Error(`Error in postSynthesis: ${response.statusText}`);
-            }
-            return yield response.arrayBuffer();
+async function postSynthesis(audioQuery, speaker) {
+    try {
+        // 分割推論のためのパラメータを追加
+        const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
+        const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(audioQuery)
+        });
+        if (!response.ok) {
+            throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-        catch (error) {
-            console.error("Error in postSynthesis:", error);
-            throw error;
-        }
-    });
+        return await response.arrayBuffer();
+    }
+    catch (error) {
+        console.error("Error in postSynthesis:", error);
+        throw error;
+    }
 }
 const voiceSettings = {
     volume: {},
@@ -142,57 +120,53 @@ function adjustAudioQuery(audioQuery, guildId) {
 const DICTIONARY_FILE = "guild_dictionaries.json";
 let guildDictionary = {};
 try {
-    guildDictionary = JSON.parse(fs_1.default.readFileSync(DICTIONARY_FILE, "utf-8"));
+    guildDictionary = JSON.parse(fs.readFileSync(DICTIONARY_FILE, "utf-8"));
 }
 catch (error) {
     guildDictionary = {};
 }
 const MAX_TEXT_LENGTH = 200;
-function speakVoice(text, speaker, guildId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (text.length > MAX_TEXT_LENGTH) {
-            text = text.substring(0, MAX_TEXT_LENGTH) + "...";
-        }
-        let audioQuery = yield postAudioQuery(text, speaker);
-        audioQuery = adjustAudioQuery(audioQuery, guildId);
-        const audioContent = yield postSynthesis(audioQuery, speaker);
-        const tempAudioFilePath = path_1.default.join(os_1.default.tmpdir(), `${(0, uuid_1.v4)()}.wav`);
-        fs_1.default.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
-        return tempAudioFilePath;
-    });
+async function speakVoice(text, speaker, guildId) {
+    if (text.length > MAX_TEXT_LENGTH) {
+        text = text.substring(0, MAX_TEXT_LENGTH) + "...";
+    }
+    let audioQuery = await postAudioQuery(text, speaker);
+    audioQuery = adjustAudioQuery(audioQuery, guildId);
+    const audioContent = await postSynthesis(audioQuery, speaker);
+    const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
+    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
+    return tempAudioFilePath;
 }
-function fetchUUIDsPeriodically() {
-    return __awaiter(this, void 0, void 0, function* () {
-        while (true) {
-            fetchAllUUIDs();
-            yield new Promise(resolve => setTimeout(resolve, 300000)); // 5分ごとに実行
-        }
-    });
+async function fetchUUIDsPeriodically() {
+    while (true) {
+        fetchAllUUIDs();
+        await new Promise(resolve => setTimeout(resolve, 300000)); // 5分ごとに実行
+    }
 }
 const AUTO_JOIN_FILE = "auto_join_channels.json";
 let autoJoinChannelsData = {};
 function loadAutoJoinChannels() {
     try {
-        return JSON.parse(fs_1.default.readFileSync(AUTO_JOIN_FILE, "utf-8"));
+        return JSON.parse(fs.readFileSync(AUTO_JOIN_FILE, "utf-8"));
     }
     catch (error) {
         return {};
     }
 }
 function saveAutoJoinChannels() {
-    fs_1.default.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
 }
 const TEXT_CHANNELS_JSON = "text_channels.json";
 function loadTextChannels() {
     try {
-        return JSON.parse(fs_1.default.readFileSync(TEXT_CHANNELS_JSON, "utf-8"));
+        return JSON.parse(fs.readFileSync(TEXT_CHANNELS_JSON, "utf-8"));
     }
     catch (error) {
         return {};
     }
 }
 function saveTextChannels() {
-    fs_1.default.writeFileSync(TEXT_CHANNELS_JSON, JSON.stringify(textChannels, null, 4), "utf-8");
+    fs.writeFileSync(TEXT_CHANNELS_JSON, JSON.stringify(textChannels, null, 4), "utf-8");
 }
 const wordTypeChoices = [
     { name: "固有名詞", value: "PROPER_NOUN" },
@@ -207,7 +181,7 @@ const wordTypeChoices = [
     { name: "語尾", value: "SUFFIX" }
 ];
 function saveToDictionaryFile() {
-    fs_1.default.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
+    fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
 }
 function updateGuildDictionary(guildId, word, details) {
     if (!guildDictionary[guildId]) {
@@ -216,10 +190,10 @@ function updateGuildDictionary(guildId, word, details) {
     guildDictionary[guildId][word] = details;
     saveToDictionaryFile();
 }
-client.once(discord_js_1.Events.ClientReady, () => __awaiter(void 0, void 0, void 0, function* () {
+client.once(Events.ClientReady, async () => {
     console.log("起動完了");
     try {
-        const guildId = fs_1.default.readFileSync('guild_id.txt', 'utf-8').trim();
+        const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
         if (!guildId) {
             throw new Error("GUILD_ID is not defined in the guild_id.txt file.");
         }
@@ -439,42 +413,42 @@ client.once(discord_js_1.Events.ClientReady, () => __awaiter(void 0, void 0, voi
                 ]
             }
         ];
-        yield rest.put(v9_1.Routes.applicationGuildCommands(client.user.id, guildId), { body: commands });
+        await rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: commands });
         console.log(`${commands.length}個のコマンドを同期しました`);
     }
     catch (error) {
         console.error(error);
     }
-    client.user.setActivity("起動中…", { type: discord_js_1.ActivityType.Playing });
-    setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+    client.user.setActivity("起動中…", { type: ActivityType.Playing });
+    setInterval(async () => {
         const joinServerCount = client.guilds.cache.size;
-        yield client.user.setActivity(`サーバー数: ${joinServerCount}`, { type: discord_js_1.ActivityType.Custom });
-        yield new Promise(resolve => setTimeout(resolve, 15000));
+        await client.user.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
+        await new Promise(resolve => setTimeout(resolve, 15000));
         const joinVCCount = client.voice.adapters.size;
-        client.user.setActivity(`VC: ${joinVCCount}`, { type: discord_js_1.ActivityType.Custom });
-        yield new Promise(resolve => setTimeout(resolve, 15000));
-    }), 30000);
+        client.user.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
+        await new Promise(resolve => setTimeout(resolve, 15000));
+    }, 30000);
     fetchUUIDsPeriodically();
     client.guilds.cache.forEach(guild => {
         new ServerStatus(guild.id); // 各ギルドのIDを保存するタスクを開始
     });
-}));
+});
 class HelpMenu {
     constructor() {
         this.pages = [
-            new discord_js_1.EmbedBuilder()
+            new EmbedBuilder()
                 .setTitle("ヘルプ - 基本コマンド")
                 .setDescription("基本的なコマンドの一覧です。")
                 .addFields({ name: "/join", value: "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。" }, { name: "/leave", value: "ボイスチャンネルから切断します。" }, { name: "/ping", value: "BOTの応答時間をテストします。" }),
-            new discord_js_1.EmbedBuilder()
+            new EmbedBuilder()
                 .setTitle("ヘルプ - 自動入室コマンド")
                 .setDescription("自動入室に関するコマンドの一覧です。")
                 .addFields({ name: "/register_auto_join", value: "BOTの自動入室機能を登録します。" }, { name: "/unregister_auto_join", value: "自動接続の設定を解除します。" }),
-            new discord_js_1.EmbedBuilder()
+            new EmbedBuilder()
                 .setTitle("ヘルプ - 音声設定コマンド")
                 .setDescription("音声設定に関するコマンドの一覧です。")
                 .addFields({ name: "/set_speaker", value: "話者を選択メニューから切り替えます。" }, { name: "/set_volume", value: "音量を設定します。" }, { name: "/set_pitch", value: "音高を設定します。" }, { name: "/set_speed", value: "話速を設定します。" }, { name: "/set_style_strength", value: "スタイルの強さを設定します。" }, { name: "/set_tempo", value: "テンポの緩急を設定します。" }),
-            new discord_js_1.EmbedBuilder()
+            new EmbedBuilder()
                 .setTitle("ヘルプ - 辞書コマンド")
                 .setDescription("辞書に関するコマンドの一覧です。")
                 .addFields({ name: "/add_word", value: "辞書に単語を登録します。" }, { name: "/edit_word", value: "辞書の単語を編集します。" }, { name: "/remove_word", value: "辞書から単語を削除します。" }, { name: "/list_words", value: "辞書の単語一覧を表示します。" })
@@ -493,49 +467,44 @@ class HelpMenu {
         return this.getCurrentPage();
     }
 }
-function streamAudio(url, voiceClient) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const response = yield fetch(url);
-            if (!response.ok) {
-                throw new Error(`Error in streamAudio: ${response.statusText}`);
-            }
-            const resource = (0, voice_1.createAudioResource)(response.body, { inputType: voice_1.StreamType.Arbitrary });
-            player.play(resource);
-            voiceClient.subscribe(player);
+async function streamAudio(url, voiceClient) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Error in streamAudio: ${response.statusText}`);
         }
-        catch (error) {
-            console.error("Error in streamAudio:", error);
-            throw error;
-        }
-    });
-}
-function play_audio(voiceClient, path) {
-    return __awaiter(this, void 0, void 0, function* () {
-        while (voiceClient.state.status === voice_1.VoiceConnectionStatus.Ready && player.state.status === voice_1.AudioPlayerStatus.Playing) {
-            yield new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        const resource = createFFmpegAudioSource(path);
+        const resource = createAudioResource(response.body, { inputType: StreamType.Arbitrary });
         player.play(resource);
         voiceClient.subscribe(player);
-    });
+    }
+    catch (error) {
+        console.error("Error in streamAudio:", error);
+        throw error;
+    }
 }
-client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+async function play_audio(voiceClient, path) {
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    const resource = createFFmpegAudioSource(path);
+    player.play(resource);
+    voiceClient.subscribe(player);
+}
+client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isCommand())
         return;
     const { commandName } = interaction;
     if (commandName === "join") {
-        let voiceChannel = (_a = interaction.options.get("voice_channel")) === null || _a === void 0 ? void 0 : _a.channel;
-        let textChannel = (_b = interaction.options.get("text_channel")) === null || _b === void 0 ? void 0 : _b.channel;
+        let voiceChannel = interaction.options.get("voice_channel")?.channel;
+        let textChannel = interaction.options.get("text_channel")?.channel;
         if (!voiceChannel) {
             // コマンド実行者が接続しているボイスチャンネルを取得
-            const member = (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.members.cache.get(interaction.user.id);
-            if (member === null || member === void 0 ? void 0 : member.voice.channel) {
+            const member = interaction.guild?.members.cache.get(interaction.user.id);
+            if (member?.voice.channel) {
                 voiceChannel = member.voice.channel;
             }
             else {
-                yield interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
+                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
                 return;
             }
         }
@@ -548,23 +517,23 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
         try {
             let voiceClient = voiceClients[guildId];
             if (voiceClient) {
-                yield voiceClient.disconnect();
+                await voiceClient.disconnect();
             }
-            voiceClient = yield (0, voice_1.joinVoiceChannel)({
+            voiceClient = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: guildId,
                 adapterCreator: interaction.guild.voiceAdapterCreator
             });
             voiceClients[guildId] = voiceClient;
-            yield interaction.reply(`${voiceChannel.name} に接続しました。`);
+            await interaction.reply(`${voiceChannel.name} に接続しました。`);
             // Botが接続した際のアナウンス
-            const path = yield speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            yield play_audio(voiceClient, path);
+            const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
+            await play_audio(voiceClient, path);
         }
         catch (error) {
             console.error(error);
             if (!interaction.replied) {
-                yield interaction.reply("ボイスチャンネルへの接続に失敗しました。");
+                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
             }
         }
     }
@@ -572,31 +541,31 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
         const guildId = interaction.guildId;
         const voiceClient = voiceClients[guildId];
         if (!voiceClient) {
-            yield interaction.reply("現在、ボイスチャンネルに接続していません。");
+            await interaction.reply("現在、ボイスチャンネルに接続していません。");
             return;
         }
         try {
-            yield voiceClient.disconnect();
+            await voiceClient.disconnect();
             delete voiceClients[guildId];
-            yield interaction.reply("ボイスチャンネルから切断しました。");
+            await interaction.reply("ボイスチャンネルから切断しました。");
         }
         catch (error) {
             console.error(error);
-            yield interaction.reply("ボイスチャンネルからの切断に失敗しました。");
+            await interaction.reply("ボイスチャンネルからの切断に失敗しました。");
         }
     }
     else if (commandName === "ping") {
         const latency = Math.round(client.ws.ping);
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setTitle("Latency")
             .setDescription(`Pong! BotのPing値は${latency}msです。`);
-        yield interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed] });
     }
     else if (commandName === "register_auto_join") {
-        const voiceChannel = (_d = interaction.options.get("voice_channel")) === null || _d === void 0 ? void 0 : _d.channel;
-        const textChannel = (_e = interaction.options.get("text_channel")) === null || _e === void 0 ? void 0 : _e.channel;
+        const voiceChannel = interaction.options.get("voice_channel")?.channel;
+        const textChannel = interaction.options.get("text_channel")?.channel;
         if (!voiceChannel) {
-            yield interaction.reply("ボイスチャンネルが指定されていません。");
+            await interaction.reply("ボイスチャンネルが指定されていません。");
             return;
         }
         loadAutoJoinChannels();
@@ -606,7 +575,7 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
             textChannelId: textChannel ? textChannel.id : voiceChannel.id
         };
         saveAutoJoinChannels(); // ここで保存
-        yield interaction.reply(`サーバー ${interaction.guild.name} の自動入室チャンネルを ${voiceChannel.name} に設定しました。`);
+        await interaction.reply(`サーバー ${interaction.guild.name} の自動入室チャンネルを ${voiceChannel.name} に設定しました。`);
     }
     else if (commandName === "unregister_auto_join") {
         const guildId = interaction.guildId;
@@ -614,70 +583,70 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
             loadAutoJoinChannels();
             delete autoJoinChannels[guildId];
             saveAutoJoinChannels(); // ここで保存
-            yield interaction.reply("自動接続設定を解除しました。");
+            await interaction.reply("自動接続設定を解除しました。");
         }
         else {
-            yield interaction.reply({ content: "このサーバーには登録された自動接続設定がありません。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "このサーバーには登録された自動接続設定がありません。", flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "set_speaker") {
-        const speakerId = (_f = interaction.options.get("speaker_id")) === null || _f === void 0 ? void 0 : _f.value;
+        const speakerId = interaction.options.get("speaker_id")?.value;
         if (speakerId !== null) {
             currentSpeaker[interaction.guildId] = speakerId;
-            yield interaction.reply(`話者をID ${speakerId} に設定しました。`);
+            await interaction.reply(`話者をID ${speakerId} に設定しました。`);
         }
         else {
-            yield interaction.reply("無効な話者IDです。");
+            await interaction.reply("無効な話者IDです。");
         }
     }
     else if (commandName === "set_volume") {
-        const volume = (_g = interaction.options.get("volume")) === null || _g === void 0 ? void 0 : _g.value;
+        const volume = interaction.options.get("volume")?.value;
         if (volume !== null && volume >= 0.0 && volume <= 2.0) {
             voiceSettings.volume[interaction.guildId] = volume;
-            yield interaction.reply(`音量を ${volume} に設定しました。`);
+            await interaction.reply(`音量を ${volume} に設定しました。`);
         }
         else {
-            yield interaction.reply({ content: "無効な音量値です。0.0から2.0の間で設定してください。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "無効な音量値です。0.0から2.0の間で設定してください。", flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "set_pitch") {
-        const pitch = (_h = interaction.options.get("pitch")) === null || _h === void 0 ? void 0 : _h.value;
+        const pitch = interaction.options.get("pitch")?.value;
         if (pitch !== null && pitch >= -1.0 && pitch <= 1.0) {
             voiceSettings.pitch[interaction.guildId] = pitch;
-            yield interaction.reply(`音高を ${pitch} に設定しました。`);
+            await interaction.reply(`音高を ${pitch} に設定しました。`);
         }
         else {
-            yield interaction.reply({ content: "無効な音高値です。-1.0から1.0の間で設定してください。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "無効な音高値です。-1.0から1.0の間で設定してください。", flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "set_speed") {
-        const speed = (_j = interaction.options.get("speed")) === null || _j === void 0 ? void 0 : _j.value;
+        const speed = interaction.options.get("speed")?.value;
         if (speed !== null && speed >= 0.5 && speed <= 2.0) {
             voiceSettings.speed[interaction.guildId] = speed;
-            yield interaction.reply(`話速を ${speed} に設定しました。`);
+            await interaction.reply(`話速を ${speed} に設定しました。`);
         }
         else {
-            yield interaction.reply({ content: "無効な話速値です。0.5から2.0の間で設定してください。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "無効な話速値です。0.5から2.0の間で設定してください。", flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "set_style_strength") {
-        const styleStrength = (_k = interaction.options.get("style_strength")) === null || _k === void 0 ? void 0 : _k.value;
+        const styleStrength = interaction.options.get("style_strength")?.value;
         if (styleStrength !== null && styleStrength >= 0.0 && styleStrength <= 2.0) {
             voiceSettings.style_strength[interaction.guildId] = styleStrength;
-            yield interaction.reply(`スタイルの強さを ${styleStrength} に設定しました。`);
+            await interaction.reply(`スタイルの強さを ${styleStrength} に設定しました。`);
         }
         else {
-            yield interaction.reply({ content: "無効なスタイルの強さです。0.0から2.0の間で設定してください。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "無効なスタイルの強さです。0.0から2.0の間で設定してください。", flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "set_tempo") {
-        const tempo = (_l = interaction.options.get("tempo")) === null || _l === void 0 ? void 0 : _l.value;
+        const tempo = interaction.options.get("tempo")?.value;
         if (tempo !== null && tempo >= 0.5 && tempo <= 2.0) {
             voiceSettings.tempo[interaction.guildId] = tempo;
-            yield interaction.reply(`テンポの緩急を ${tempo} に設定しました。`);
+            await interaction.reply(`テンポの緩急を ${tempo} に設定しました。`);
         }
         else {
-            yield interaction.reply({ content: "無効なテンポの緩急です。0.5から2.0の間で設定してください。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "無効なテンポの緩急です。0.5から2.0の間で設定してください。", flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "add_word") {
@@ -686,14 +655,14 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
         const accentType = interaction.options.getNumber("accent_type");
         const wordType = interaction.options.getString("word_type");
         const addUrl = `http://localhost:10101/user_dict_word?surface=${word}&pronunciation=${pronunciation}&accent_type=${accentType}&word_type=${wordType}`;
-        const response = yield axios.post(addUrl);
+        const response = await axios.post(addUrl);
         if (response.status === 200) {
             const details = { pronunciation, accentType, wordType };
             updateGuildDictionary(interaction.guildId, word, details);
-            yield interaction.reply(`単語 '${word}' の発音を '${pronunciation}', アクセント '${accentType}', 品詞 '${wordType}' に登録しました。`);
+            await interaction.reply(`単語 '${word}' の発音を '${pronunciation}', アクセント '${accentType}', 品詞 '${wordType}' に登録しました。`);
         }
         else {
-            yield interaction.reply({ content: `単語 '${word}' の登録に失敗しました。`, flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: `単語 '${word}' の登録に失敗しました。`, flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "edit_word") {
@@ -701,106 +670,105 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
         const newPronunciation = interaction.options.getString("new_pronunciation");
         const accentType = interaction.options.getNumber("accent_type");
         const wordType = interaction.options.getString("word_type");
-        const uuidDict = yield fetchAllUUIDs();
+        const uuidDict = await fetchAllUUIDs();
         const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
         const editUrl = `http://localhost:10101/user_dict_word/${uuid}?surface=${word}&pronunciation=${newPronunciation}&accent_type=${accentType}&word_type=${wordType}`;
         if (uuid) {
-            const response = yield axios.put(editUrl);
+            const response = await axios.put(editUrl);
             if (response.status === 204) {
                 const details = { pronunciation: newPronunciation, accentType, wordType, uuid };
                 updateGuildDictionary(interaction.guildId, word, details);
-                yield interaction.reply(`単語 '${word}' の発音を '${newPronunciation}', アクセント '${accentType}', 品詞 '${wordType}' に編集しました。`);
+                await interaction.reply(`単語 '${word}' の発音を '${newPronunciation}', アクセント '${accentType}', 品詞 '${wordType}' に編集しました。`);
             }
             else {
-                yield interaction.reply({ content: `単語 '${word}' の編集に失敗しました。`, flags: discord_js_1.MessageFlags.Ephemeral });
+                await interaction.reply({ content: `単語 '${word}' の編集に失敗しました。`, flags: MessageFlags.Ephemeral });
             }
         }
         else {
-            yield interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "remove_word") {
         const word = interaction.options.getString("word");
-        const uuidDict = yield fetchAllUUIDs();
+        const uuidDict = await fetchAllUUIDs();
         const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
         const removeUrl = `http://localhost:10101/user_dict_word/${uuid}`;
         if (uuid) {
-            const response = yield axios.delete(removeUrl);
+            const response = await axios.delete(removeUrl);
             if (response.status === 204) {
                 const guildIdStr = interaction.guildId.toString();
                 if (guildDictionary[guildIdStr] && guildDictionary[guildIdStr][word]) {
                     delete guildDictionary[guildIdStr][word];
                     saveToDictionaryFile();
                 }
-                yield interaction.reply(`単語 '${word}' を辞書から削除しました。`);
+                await interaction.reply(`単語 '${word}' を辞書から削除しました。`);
             }
             else {
-                yield interaction.reply({ content: `単語 '${word}' の削除に失敗しました。`, flags: discord_js_1.MessageFlags.Ephemeral });
+                await interaction.reply({ content: `単語 '${word}' の削除に失敗しました。`, flags: MessageFlags.Ephemeral });
             }
         }
         else {
-            yield interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: MessageFlags.Ephemeral });
         }
     }
     else if (commandName === "list_words") {
         const guildId = interaction.guildId.toString();
         const words = guildDictionary[guildId] || {};
         if (Object.keys(words).length === 0) {
-            yield interaction.reply({ content: "辞書に単語が登録されていません。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "辞書に単語が登録されていません。", flags: MessageFlags.Ephemeral });
             return;
         }
-        const embed = new discord_js_1.EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setTitle("辞書の単語一覧")
             .setDescription(Object.entries(words).map(([word, details]) => {
             const { pronunciation, accentType, wordType } = details;
             return `${word}: ${pronunciation}, アクセント: ${accentType}, 品詞: ${wordType}`;
         }).join("\n"));
-        yield interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed] });
     }
     else if (commandName === "help") {
         const helpMenu = new HelpMenu();
         const embed = helpMenu.getCurrentPage();
-        const row = new discord_js_1.ActionRowBuilder()
-            .addComponents(new discord_js_1.ButtonBuilder()
+        const row = new ActionRowBuilder()
+            .addComponents(new ButtonBuilder()
             .setCustomId('previous')
             .setLabel('Previous')
-            .setStyle(discord_js_1.ButtonStyle.Primary), new discord_js_1.ButtonBuilder()
+            .setStyle(ButtonStyle.Primary), new ButtonBuilder()
             .setCustomId('next')
             .setLabel('Next')
-            .setStyle(discord_js_1.ButtonStyle.Primary));
-        yield interaction.reply({ embeds: [embed], components: [row] });
+            .setStyle(ButtonStyle.Primary));
+        await interaction.reply({ embeds: [embed], components: [row] });
         const filter = (i) => i.customId === 'previous' || i.customId === 'next';
-        const collector = (_m = interaction.channel) === null || _m === void 0 ? void 0 : _m.createMessageComponentCollector({ filter, time: 60000 });
-        collector === null || collector === void 0 ? void 0 : collector.on('collect', (i) => __awaiter(void 0, void 0, void 0, function* () {
+        const collector = interaction.channel?.createMessageComponentCollector({ filter, time: 60000 });
+        collector?.on('collect', async (i) => {
             if (i.customId === 'previous') {
                 const embed = helpMenu.previousPage();
-                yield i.update({ embeds: [embed] });
+                await i.update({ embeds: [embed] });
             }
             else if (i.customId === 'next') {
                 const embed = helpMenu.nextPage();
-                yield i.update({ embeds: [embed] });
+                await i.update({ embeds: [embed] });
             }
-        }));
+        });
     }
     else if (commandName === "stream_audio") {
         const url = interaction.options.getString("url", true);
         const voiceClient = voiceClients[interaction.guildId];
         if (voiceClient) {
             try {
-                yield streamAudio(url, voiceClient);
-                yield interaction.reply("オーディオストリームを再生しています。");
+                await streamAudio(url, voiceClient);
+                await interaction.reply("オーディオストリームを再生しています。");
             }
             catch (error) {
-                yield interaction.reply({ content: "オーディオストリームの再生に失敗しました。", flags: discord_js_1.MessageFlags.Ephemeral });
+                await interaction.reply({ content: "オーディオストリームの再生に失敗しました。", flags: MessageFlags.Ephemeral });
             }
         }
         else {
-            yield interaction.reply({ content: "ボイスチャンネルに接続していません。", flags: discord_js_1.MessageFlags.Ephemeral });
+            await interaction.reply({ content: "ボイスチャンネルに接続していません。", flags: MessageFlags.Ephemeral });
         }
     }
-}));
-client.on(discord_js_1.Events.MessageCreate, (message) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+});
+client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) {
         console.log("Message is from a bot, ignoring.");
         return;
@@ -815,7 +783,7 @@ client.on(discord_js_1.Events.MessageCreate, (message) => __awaiter(void 0, void
         messageContent = messageContent.replace(/<#!?[0-9]+>/g, ''); // チャンネルメンション除外
         messageContent = messageContent.replace(/[*_~`]/g, ''); // マークダウン除外
         // 絵文字除外（必要に応じて調整）
-        const emojiStrs = ((_a = message.guild) === null || _a === void 0 ? void 0 : _a.emojis.cache.map(emoji => emoji.toString())) || [];
+        const emojiStrs = message.guild?.emojis.cache.map(emoji => emoji.toString()) || [];
         messageContent = [...messageContent].filter(char => !emojiStrs.includes(char)).join('');
         // メッセージ先頭に "(音量0)" がある場合は読み上げを行わない
         if (messageContent.startsWith("(音量0)")) {
@@ -835,8 +803,8 @@ client.on(discord_js_1.Events.MessageCreate, (message) => __awaiter(void 0, void
                 console.log(`Error: Channel with id ${autoVoiceChannelId} not found.`);
             }
             else {
-                if (!voiceClient || voiceClient.state.status !== voice_1.VoiceConnectionStatus.Ready) {
-                    voiceClient = yield (0, voice_1.joinVoiceChannel)({
+                if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+                    voiceClient = await joinVoiceChannel({
                         channelId: channel.id,
                         guildId: channel.guild.id,
                         adapterCreator: channel.guild.voiceAdapterCreator
@@ -848,13 +816,13 @@ client.on(discord_js_1.Events.MessageCreate, (message) => __awaiter(void 0, void
         else {
             console.log(`Guild ID ${guildId} not found in autoJoinChannelsData.`);
         }
-        if (voiceClient && voiceClient.state.status === voice_1.VoiceConnectionStatus.Ready && message.channel.id === ((_b = autoJoinChannelsData[guildId]) === null || _b === void 0 ? void 0 : _b.textChannelId)) {
+        if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready && message.channel.id === autoJoinChannelsData[guildId]?.textChannelId) {
             console.log("Voice client is connected and message is in the auto-join text channel. Handling message.");
-            yield handle_message(message);
+            await handle_message(message);
         }
-        else if (voiceClient && voiceClient.state.status === voice_1.VoiceConnectionStatus.Ready && message.channel.id === ((_c = textChannels[guildId]) === null || _c === void 0 ? void 0 : _c.id)) {
+        else if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready && message.channel.id === textChannels[guildId]?.id) {
             console.log("Voice client is connected and message is in the registered text channel. Handling message.");
-            yield handle_message(message);
+            await handle_message(message);
         }
         else {
             console.log("Voice client is not connected or message is in the wrong channel. Ignoring message.");
@@ -863,49 +831,47 @@ client.on(discord_js_1.Events.MessageCreate, (message) => __awaiter(void 0, void
     catch (error) {
         console.error(`An error occurred while processing the message: ${error}`);
     }
-}));
-function handle_message(message) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const messageContent = message.content;
-        const guildId = message.guildId;
-        const voiceClient = voiceClients[guildId];
-        if (!voiceClient) {
-            console.error("Error: Voice client is None, skipping message processing.");
-            return;
-        }
-        console.log(`Handling message: ${messageContent}`);
-        const speakerId = currentSpeaker[guildId] || 888753760; // デフォルトの話者ID
-        const path = yield speakVoice(messageContent, speakerId, guildId);
-        while (voiceClient.state.status === voice_1.VoiceConnectionStatus.Ready && player.state.status === voice_1.AudioPlayerStatus.Playing) {
-            yield new Promise(resolve => setTimeout(resolve, 100));
-        }
-        const resource = createFFmpegAudioSource(path);
-        player.play(resource);
-        voiceClient.subscribe(player); // プレイヤーをボイスクライアントにサブスクライブ
-        console.log(`Finished playing message: ${messageContent}`);
-    });
+});
+async function handle_message(message) {
+    const messageContent = message.content;
+    const guildId = message.guildId;
+    const voiceClient = voiceClients[guildId];
+    if (!voiceClient) {
+        console.error("Error: Voice client is None, skipping message processing.");
+        return;
+    }
+    console.log(`Handling message: ${messageContent}`);
+    const speakerId = currentSpeaker[guildId] || 888753760; // デフォルトの話者ID
+    const path = await speakVoice(messageContent, speakerId, guildId);
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    const resource = createFFmpegAudioSource(path);
+    player.play(resource);
+    voiceClient.subscribe(player); // プレイヤーをボイスクライアントにサブスクライブ
+    console.log(`Finished playing message: ${messageContent}`);
 }
-client.on(discord_js_1.Events.VoiceStateUpdate, (oldState, newState) => __awaiter(void 0, void 0, void 0, function* () {
+client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     const member = newState.member;
     const guildId = member.guild.id;
     const voiceClient = voiceClients[guildId];
     if (member.user.bot)
         return;
-    if (voiceClient && voiceClient.state.status === voice_1.VoiceConnectionStatus.Ready) {
+    if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
         if (!oldState.channel && newState.channel) {
             // ユーザーがボイスチャンネルに参加したとき
             if (voiceClient.joinConfig.channelId === newState.channel.id) {
                 const nickname = member.displayName;
-                const path = yield speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                yield play_audio(voiceClient, path);
+                const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                await play_audio(voiceClient, path);
             }
         }
         else if (oldState.channel && !newState.channel) {
             // ユーザーがボイスチャンネルから退出したとき
             if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                 const nickname = member.displayName;
-                const path = yield speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                yield play_audio(voiceClient, path);
+                const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                await play_audio(voiceClient, path);
                 // ボイスチャンネルに誰もいなくなったら退室
                 if (oldState.channel.members.size === 1) { // ボイスチャンネルにいるのがBOTだけの場合
                     voiceClient.disconnect();
@@ -924,17 +890,17 @@ client.on(discord_js_1.Events.VoiceStateUpdate, (oldState, newState) => __awaite
         const voiceChannelId = guildData.voiceChannelId;
         if (!oldState.channel && newState.channel) {
             if (voiceChannelId === newState.channel.id) {
-                if (!voiceClients[guildId] || voiceClients[guildId].state.status !== voice_1.VoiceConnectionStatus.Ready) {
+                if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                     try {
-                        const voiceClient = yield (0, voice_1.joinVoiceChannel)({
+                        const voiceClient = await joinVoiceChannel({
                             channelId: newState.channel.id,
                             guildId: newState.guild.id,
                             adapterCreator: newState.guild.voiceAdapterCreator
                         });
                         voiceClients[guildId] = voiceClient;
                         console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
-                        const path = yield speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-                        yield play_audio(voiceClient, path);
+                        const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
+                        await play_audio(voiceClient, path);
                     }
                     catch (error) {
                         console.error(`Error: failed to connect to voice channel - ${error}`);
@@ -943,11 +909,11 @@ client.on(discord_js_1.Events.VoiceStateUpdate, (oldState, newState) => __awaite
             }
         }
         else if (oldState.channel && !newState.channel) {
-            if (voiceClients[guildId] && voiceClients[guildId].state.status === voice_1.VoiceConnectionStatus.Ready) {
+            if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
                 if (oldState.channel.members.size === 1) {
                     try {
                         console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
-                        yield voiceClients[guildId].disconnect();
+                        await voiceClients[guildId].disconnect();
                         delete voiceClients[guildId];
                     }
                     catch (error) {
@@ -960,20 +926,18 @@ client.on(discord_js_1.Events.VoiceStateUpdate, (oldState, newState) => __awaite
     catch (error) {
         console.error(`Error in on_voice_state_update: ${error}`);
     }
-}));
+});
 client.login(process.env.TOKEN);
-function fetchAllUUIDs() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const response = yield fetch("http://localhost:10101/user_dict");
-            if (!response.ok) {
-                throw new Error(`Error fetching user dictionary: ${response.statusText}`);
-            }
-            return yield response.json();
+async function fetchAllUUIDs() {
+    try {
+        const response = await fetch("http://localhost:10101/user_dict");
+        if (!response.ok) {
+            throw new Error(`Error fetching user dictionary: ${response.statusText}`);
         }
-        catch (error) {
-            console.error("Error fetching user dictionary:", error);
-            return {};
-        }
-    });
+        return await response.json();
+    }
+    catch (error) {
+        console.error("Error fetching user dictionary:", error);
+        return {};
+    }
 }
