@@ -1,5 +1,5 @@
 {
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
     "@types/uuid": "^10.0.0",
     "async-mutex": "^0.5.0",
