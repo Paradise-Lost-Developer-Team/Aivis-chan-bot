@@ -893,18 +893,55 @@ client.on(Events.MessageCreate, async (message: Message) => {
     }
 
     try {
-        // メッセージ内容の加工（スポイラー、絵文字、URL、メンション、マークダウン記法の置換）
         let messageContent = message.content;
-        messageContent = messageContent.replace(/\|\|.*?\|\|/g, 'スポイラー省略');  // スポイラー除外
-        messageContent = messageContent.replace(/<a?:\w+:\d+>/g, '絵文字省略');  // カスタム絵文字を「絵文字」に置換
-        messageContent = messageContent.replace(/https?:\/\/\S+/g, 'リンク省略');  // URLを「リンク」に置換
-        messageContent = messageContent.replace(/<@!?[0-9]+>/g, 'メンション省略');  // ユーザー・ロールメンションを「メンション」に置換
-        messageContent = messageContent.replace(/<#!?[0-9]+>/g, 'チャンネル省略');  // チャンネルメンションを「チャンネル」に置換
-        messageContent = messageContent.replace(/[*_~`]/g, '');  // マークダウン記法を除外
 
-        // 絵文字除外（必要に応じて調整）
-        const emojiStrs = message.guild?.emojis.cache.map(emoji => emoji.toString()) || [];
-        messageContent = [...messageContent].filter(char => !emojiStrs.includes(char)).join('');
+        // スポイラー除外
+        if (messageContent.startsWith("||") && messageContent.endsWith("||")) {
+            console.log("Message contains spoiler, ignoring.");
+            return;
+        }
+
+        // カスタム絵文字を除外
+        if (messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g)) {
+            console.log("Message contains custom emoji, ignoring.");
+            return;
+        }
+
+        // URLを除外
+        if (messageContent.match(/https?:\/\/\S+/g)) {
+            console.log("Message contains URL, ignoring.");
+            return;
+        }
+
+        // ユーザー・ロールメンションを除外
+        if (messageContent.match(/<@&[0-9]+>/g)) {
+            console.log("Message contains role mention, ignoring.");
+            return;
+        }
+
+        // チャンネルメンションを除外
+        if (messageContent.match(/<#\d+>/g)) {
+            console.log("Message contains channel mention, ignoring.");
+            return;
+        }
+
+        // ユーザーメンションを除外
+        if (messageContent.match(/<@!\d+>/g)) {
+            console.log("Message contains user mention, ignoring.");
+            return;
+        }
+
+        // コードブロック除外
+        if (messageContent.match(/```[\s\S]+```/g)) {
+            console.log("Message contains code block, ignoring.");
+            return;
+        }
+
+        // マークダウン除外
+        if (messageContent.match(/[*_~`]/g)) {
+            console.log("Message contains markdown, ignoring.");
+            return;
+        }
 
         // メッセージ先頭に "(音量0)" がある場合は読み上げを行わない
         if (messageContent.startsWith("(音量0)")) {
@@ -987,12 +1024,16 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                 const nickname = member.displayName;
                 const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
                 await play_audio(voiceClient, path, guildId);
+            }
 
-                // ボイスチャンネルに誰もいなくなったら退室
-                if (oldState.channel.members.size === 1) {  // ボイスチャンネルにいるのがBOTだけの場合
-                    voiceClient.disconnect();
-                    delete voiceClients[guildId];
-                }
+        } else if (oldState.channel && oldState.channel.members.size === 1) { // ボイスチャンネルにいるのがBOTだけの場合
+            // ボイスチャンネルに誰もいなくなったら退室
+            try {
+                console.log(`${voiceClient.joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
+                voiceClient.disconnect();
+                delete voiceClients[guildId];
+            } catch (error) {
+                console.error(`Error while disconnecting: ${error}`);
             }
         }
     }
