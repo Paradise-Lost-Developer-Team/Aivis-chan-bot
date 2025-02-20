@@ -189,6 +189,7 @@ async function fetchUUIDsPeriodically() {
 
 const AUTO_JOIN_FILE = "auto_join_channels.json";
 let autoJoinChannelsData: { [key: string]: any } = {};
+autoJoinChannelsData = loadAutoJoinChannels();
 
 function loadAutoJoinChannels() {
     try {
@@ -1051,7 +1052,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                 await play_audio(voiceClient, path, guildId);
 
                 // ボイスチャンネルに誰もいなくなったら退室
-                if (oldState.channel.members.size === 1) {  // ボイスチャンネルにいるのがBOTだけの場合
+                if (oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
                     voiceClient.disconnect();
                     delete voiceClients[guildId];
                 }
@@ -1105,7 +1106,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
             }
         } else if (oldState.channel && !newState.channel) {
             if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
-                if (oldState.channel.members.size === 1) {
+                if (oldState.channel.id === voiceClients[guildId].joinConfig.channelId && oldState.channel.members.filter(member => !member.user.bot).size === 0) {
                     try {
                         console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
                         voiceClients[guildId].disconnect();
