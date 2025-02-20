@@ -38,3 +38,5 @@ docker/AivisSpeech-Engine/Logs/AivisSpeech-Engine-Access.log
 uuid.json
 auto_join_channels.json
 text_channels.json
+main.py
+config.py
