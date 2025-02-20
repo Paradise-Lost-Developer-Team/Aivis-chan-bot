@@ -1040,7 +1040,11 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                         console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
 
                         const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-                        await play_audio(voiceClient, path, guildId);
+                        if (path) {
+                            await play_audio(voiceClient, path, guildId);
+                        } else {
+                            console.error("Error: Path is undefined or null.");
+                        }
                     } catch (error) {
                         console.error(`Error: failed to connect to voice channel - ${error}`);
                     }
