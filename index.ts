@@ -78,10 +78,15 @@ function createFFmpegAudioSource(path: string) {
 }
 
 async function postAudioQuery(text: string, speaker: number) {
-    const params = { text, speaker };
+    const params = new URLSearchParams({ text, speaker: speaker.toString() });
     try {
-        const response = await axios.post("http://127.0.0.1:10101/audio_query", null, { params });
-        return response.data as { [key: string]: any };
+        const response = await fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
+            method: 'POST'
+        });
+        if (!response.ok) {
+            throw new Error(`Error in postAudioQuery: ${response.statusText}`);
+        }
+        return await response.json();
     } catch (error) {
         console.error("Error in postAudioQuery:", error);
         throw error;
@@ -90,11 +95,19 @@ async function postAudioQuery(text: string, speaker: number) {
 
 async function postSynthesis(audioQuery: any, speaker: number) {
     try {
-        const response = await axios.post("http://127.0.0.1:10101/synthesis", audioQuery, {
-            params: { speaker },
-            responseType: 'arraybuffer'
+        // 分割推論のためのパラメータを追加
+        const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
+        const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(audioQuery)
         });
-        return response.data as { [key: string]: any };
+        if (!response.ok) {
+            throw new Error(`Error in postSynthesis: ${response.statusText}`);
+        }
+        return await response.arrayBuffer();
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
@@ -162,7 +175,7 @@ function loadAutoJoinChannels() {
 }
 
 function saveAutoJoinChannels() {
-    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannelsData, null, 4), "utf-8");
+    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
 }
 
 const TEXT_CHANNELS_JSON = "text_channels.json";
@@ -515,8 +528,11 @@ class HelpMenu {
 
 async function streamAudio(url: string, voiceClient: VoiceConnection) {
     try {
-        const response = await axios.get(url, { responseType: 'stream' });
-        const resource = createAudioResource(response.data as Readable, { inputType: StreamType.Arbitrary });
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Error in streamAudio: ${response.statusText}`);
+        }
+        const resource = createAudioResource(response.body as unknown as Readable, { inputType: StreamType.Arbitrary });
         player.play(resource);
         voiceClient.subscribe(player);
     } catch (error) {
@@ -525,18 +541,38 @@ async function streamAudio(url: string, voiceClient: VoiceConnection) {
     }
 }
 
+async function play_audio(voiceClient: VoiceConnection, path: string) {
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    const resource = createFFmpegAudioSource(path);
+    player.play(resource);
+    voiceClient.subscribe(player);
+}
+
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
 
     if (commandName === "join") {
-        const voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
-        const textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
+        let voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
+        let textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
 
-        if (!voiceChannel || !textChannel) {
-            await interaction.reply("ボイスチャンネルまたはテキストチャンネルが指定されていません。");
-            return;
+        if (!voiceChannel) {
+            // コマンド実行者が接続しているボイスチャンネルを取得
+            const member = interaction.guild?.members.cache.get(interaction.user.id);
+            if (member?.voice.channel) {
+                voiceChannel = member.voice.channel as VoiceChannel;
+            } else {
+                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
+                return;
+            }
+        }
+
+        if (!textChannel) {
+            // コマンド実行チャンネルを使用
+            textChannel = interaction.channel as TextChannel;
         }
 
         const guildId = interaction.guildId!;
@@ -554,9 +590,15 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             });
             voiceClients[guildId] = voiceClient;
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
+
+            // Botが接続した際のアナウンス
+            const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
+            await play_audio(voiceClient, path);
         } catch (error) {
             console.error(error);
-            await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
+            if (!interaction.replied) {
+                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
+            }
         }
     } else if (commandName === "leave") {
         const guildId = interaction.guildId!;
@@ -590,19 +632,21 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             return;
         }
 
+        loadAutoJoinChannels();
         const guildId = interaction.guildId!;
         autoJoinChannels[guildId] = {
             voiceChannelId: voiceChannel.id,
             textChannelId: textChannel ? textChannel.id : voiceChannel.id
         };
 
-        saveAutoJoinChannels();
+        saveAutoJoinChannels();  // ここで保存
         await interaction.reply(`サーバー ${interaction.guild!.name} の自動入室チャンネルを ${voiceChannel.name} に設定しました。`);
     } else if (commandName === "unregister_auto_join") {
         const guildId = interaction.guildId!;
         if (autoJoinChannels[guildId]) {
+            loadAutoJoinChannels();
             delete autoJoinChannels[guildId];
-            saveAutoJoinChannels();
+            saveAutoJoinChannels();  // ここで保存
             await interaction.reply("自動接続設定を解除しました。");
         } else {
             await interaction.reply({ content: "このサーバーには登録された自動接続設定がありません。", flags: MessageFlags.Ephemeral });
@@ -709,10 +753,10 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
                 }
                 await interaction.reply(`単語 '${word}' を辞書から削除しました。`);
             } else {
-                await interaction.reply({ content: `単語 '${word}' の削除に失敗しました。`, ephemeral: true });
+                await interaction.reply({ content: `単語 '${word}' の削除に失敗しました。`, flags: MessageFlags.Ephemeral });
             }
         } else {
-            await interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, ephemeral: true });
+            await interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: MessageFlags.Ephemeral });
         }
     } else if (commandName === "list_words") {
         const guildId = interaction.guildId!.toString();
@@ -817,26 +861,23 @@ client.on(Events.MessageCreate, async (message: Message) => {
             if (!channel) {
                 console.log(`Error: Channel with id ${autoVoiceChannelId} not found.`);
             } else {
-                if (!channel.guild.voiceAdapterCreator) {
-                    voiceClient = joinVoiceChannel({
+                if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+                    voiceClient = await joinVoiceChannel({
                         channelId: channel.id,
                         guildId: channel.guild.id,
                         adapterCreator: channel.guild.voiceAdapterCreator as any
                     });
-                } else {
-                    voiceClient = joinVoiceChannel({
-                        channelId: channel.id,
-                        guildId: channel.guild.id,
-                        adapterCreator: channel.guild.voiceAdapterCreator as any
-                    });
+                    voiceClients[guildId] = voiceClient;
                 }
-                voiceClients[guildId] = voiceClient;
             }
         } else {
             console.log(`Guild ID ${guildId} not found in autoJoinChannelsData.`);
         }
 
-        if (voiceClient && voiceClient.state.status === "ready" && message.channel.id === textChannels[guildId]?.id) {
+        if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready && message.channel.id === autoJoinChannelsData[guildId]?.textChannelId) {
+            console.log("Voice client is connected and message is in the auto-join text channel. Handling message.");
+            await handle_message(message);
+        } else if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready && message.channel.id === textChannels[guildId]?.id) {
             console.log("Voice client is connected and message is in the registered text channel. Handling message.");
             await handle_message(message);
         } else {
@@ -846,6 +887,30 @@ client.on(Events.MessageCreate, async (message: Message) => {
         console.error(`An error occurred while processing the message: ${error}`);
     }
 });
+
+async function handle_message(message: Message) {
+    const messageContent = message.content;
+    const guildId = message.guildId!;
+    const voiceClient = voiceClients[guildId];
+
+    if (!voiceClient) {
+        console.error("Error: Voice client is None, skipping message processing.");
+        return;
+    }
+
+    console.log(`Handling message: ${messageContent}`);
+    const speakerId = currentSpeaker[guildId] || 888753760;  // デフォルトの話者ID
+    const path = await speakVoice(messageContent, speakerId, guildId);
+
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    const resource = createFFmpegAudioSource(path);
+    player.play(resource);
+    voiceClient.subscribe(player);  // プレイヤーをボイスクライアントにサブスクライブ
+    console.log(`Finished playing message: ${messageContent}`);
+}
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     const member = newState.member!;
@@ -860,26 +925,18 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
             if (voiceClient.joinConfig.channelId === newState.channel.id) {
                 const nickname = member.displayName;
                 const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                while (player.state.status === AudioPlayerStatus.Playing) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-                const resource = createFFmpegAudioSource(path);
-                player.play(resource);
+                await play_audio(voiceClient, path);
             }
         } else if (oldState.channel && !newState.channel) {
             // ユーザーがボイスチャンネルから退出したとき
             if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                 const nickname = member.displayName;
                 const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                while (player.state.status === AudioPlayerStatus.Playing) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-                const resource = createFFmpegAudioSource(path);
-                player.play(resource);
+                await play_audio(voiceClient, path);
 
                 // ボイスチャンネルに誰もいなくなったら退室
                 if (oldState.channel.members.size === 1) {  // ボイスチャンネルにいるのがBOTだけの場合
-                    await voiceClient.disconnect();
+                    voiceClient.disconnect();
                     delete voiceClients[guildId];
                 }
             }
@@ -900,7 +957,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
             if (voiceChannelId === newState.channel.id) {
                 if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                     try {
-                        const voiceClient = joinVoiceChannel({
+                        const voiceClient = await joinVoiceChannel({
                             channelId: newState.channel.id,
                             guildId: newState.guild.id,
                             adapterCreator: newState.guild.voiceAdapterCreator as any
@@ -933,52 +990,18 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     }
 });
 
-async function handle_message(message: Message) {
-    const messageContent = message.content;
-    const guildId = message.guildId!;
-    const voiceClient = voiceClients[guildId];
-
-    if (!voiceClient) {
-        console.error("Error: Voice client is None, skipping message processing.");
-        return;
-    }
-
-    console.log(`Handling message: ${messageContent}`);
-    const speakerId = currentSpeaker[guildId] || 888753760;  // デフォルトの話者ID
-    const path = await speakVoice(messageContent, speakerId, guildId);
-
-    while (voiceClient.state.status === VoiceConnectionStatus.Ready) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    const resource = createFFmpegAudioSource(path);
-    player.play(resource);
-    console.log(`Finished playing message: ${messageContent}`);
-}
-
 client.login(process.env.TOKEN);
 
 async function fetchAllUUIDs(): Promise<{ [key: string]: any }> {
     try {
-        const response = await fetch("http://localhost:10101/user_dict_words");
-        if (response.ok) {
-            return await response.json();
-        } else {
-            console.error("Failed to fetch UUIDs from the server.");
-            return {};
+        const response = await fetch("http://localhost:10101/user_dict");
+        if (!response.ok) {
+            throw new Error(`Error fetching user dictionary: ${response.statusText}`);
         }
-        const data = await response.json();
-        if (!data || !data.uuids) {
-            console.error("Failed to fetch UUIDs from the server.");
-            return {};  // 空のオブジェクトを返す
-        }
-        return data.uuids;
-        } catch (error) {
-            console.error("Error fetching UUIDs:", error);
-            return {};
-        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching user dictionary:", error);
+        return {};
     }
-function play_audio(voiceClient: VoiceConnection, path: string) {
-    throw new Error("Function not implemented.");
 }
 
