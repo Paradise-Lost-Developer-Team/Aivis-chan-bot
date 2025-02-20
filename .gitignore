@@ -40,3 +40,7 @@ auto_join_channels.json
 text_channels.json
 main.py
 config.py
+build/js/config.js
+build/js/config.js.map
+build/js/index.js
+build/js/index.js.map
