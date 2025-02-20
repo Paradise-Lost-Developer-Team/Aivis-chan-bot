@@ -912,32 +912,7 @@ client.on(Events.MessageCreate, async (message: Message) => {
         }
 
         const guildId = message.guildId!;
-        let voiceClient = voiceClients[guildId];
-
-        // JSONから自動入室チャンネルの設定を読み込む
-        const autoJoinChannelsData = loadAutoJoinChannels();
-        console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
-
-        if (autoJoinChannelsData[guildId]) {
-            const autoVoiceChannelId = autoJoinChannelsData[guildId].voiceChannelId;
-            const autoTextChannelId = autoJoinChannelsData[guildId].textChannelId;
-            const channel = client.channels.cache.get(autoVoiceChannelId) as VoiceChannel;
-
-            if (!channel) {
-                console.log(`Error: Channel with id ${autoVoiceChannelId} not found.`);
-            } else {
-                if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
-                    voiceClient = await joinVoiceChannel({
-                        channelId: channel.id,
-                        guildId: channel.guild.id,
-                        adapterCreator: channel.guild.voiceAdapterCreator as any
-                    });
-                    voiceClients[guildId] = voiceClient;
-                }
-            }
-        } else {
-            console.log(`Guild ID ${guildId} not found in autoJoinChannelsData. Skipping auto-join logic.`);
-        }
+        const voiceClient = voiceClients[guildId];
 
         if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
             if (message.channel.id === autoJoinChannelsData[guildId]?.textChannelId || message.channel.id === textChannels[guildId]?.id) {
