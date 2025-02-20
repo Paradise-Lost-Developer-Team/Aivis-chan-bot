@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, Message, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, StringSelectMenuBuilder } from "discord.js";
+import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, StringSelectMenuBuilder, Message } from "discord.js";
 import { VoiceConnection, AudioPlayer, PlayerSubscription, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, StreamType, VoiceConnectionStatus } from "@discordjs/voice";
 import { Mutex } from "async-mutex";
 import { REST } from "@discordjs/rest";
@@ -558,15 +558,24 @@ async function streamAudio(url: string, voiceClient: VoiceConnection) {
     }
 }
 
-async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string) {
+async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
     const player = getPlayer(guildId);
+    console.log(`Playing audio for guild: ${guildId}`);
+    
+    // プレイヤーがアイドル状態になったときにボイスクライアントを切断しないように修正
+    player.off(AudioPlayerStatus.Idle, () => {
+        voiceClient.disconnect();
+    });
+
     while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
+
     if (voiceClients[guildId] !== voiceClient) {
         console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
         return;
     }
+
     const resource = createFFmpegAudioSource(path);
     player.play(resource);
     voiceClient.subscribe(player);
@@ -615,7 +624,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 
             // Botが接続した際のアナウンス
             const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient, path, guildId);
+            await play_audio(voiceClient, path, guildId, interaction);
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
@@ -1040,20 +1049,22 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                 const nickname = member.displayName;
                 const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
                 await play_audio(voiceClient, path, guildId);
-            }
 
-        } else if (oldState.channel && oldState.channel.members.size === 1) { // ボイスチャンネルにいるのがBOTだけの場合
-            // ボイスチャンネルに誰もいなくなったら退室
-            const voiceClient = voiceClients[guildId];
-            if (voiceClient) {
-                try {
-                    console.log(`${voiceClient.joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
+                // ボイスチャンネルに誰もいなくなったら退室
+                if (oldState.channel.members.size === 1) {  // ボイスチャンネルにいるのがBOTだけの場合
                     voiceClient.disconnect();
                     delete voiceClients[guildId];
-                } catch (error) {
-                    console.error(`Error while disconnecting: ${error}`);
                 }
             }
+        } else if (oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
+            // ユーザーがボイスチャンネルを移動したとき
+            if (voiceClient.joinConfig.channelId === newState.channel.id) {
+                const nickname = member.displayName;
+                const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                await play_audio(voiceClient, path, guildId);
+            }
+        } else {
+            console.log("User is not joining or leaving a voice channel, ignoring.");
         }
     }
 
@@ -1092,8 +1103,18 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                     }
                 }
             }
-        } else {
-            console.log("User is not joining a voice channel, ignoring.");
+        } else if (oldState.channel && !newState.channel) {
+            if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
+                if (oldState.channel.members.size === 1) {
+                    try {
+                        console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
+                        voiceClients[guildId].disconnect();
+                        delete voiceClients[guildId];
+                    } catch (error) {
+                        console.error(`Error while disconnecting: ${error}`);
+                    }
+                }
+            }
         }
     } catch (error) {
         console.error(`Error in on_voice_state_update: ${error}`);
@@ -1102,16 +1123,21 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
 client.login(process.env.TOKEN);
 
-async function fetchAllUUIDs(): Promise<{ [key: string]: any }> {
-    try {
-        const response = await fetch("http://localhost:10101/user_dict");
-        if (!response.ok) {
-            throw new Error(`Error fetching user dictionary: ${response.statusText}`);
+async function fetchAllUUIDs(retries = 3): Promise<{ [key: string]: any }> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const response = await fetch("http://localhost:10101/user_dict");
+            if (!response.ok) {
+                throw new Error(`Error fetching user dictionary: ${response.statusText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(`Attempt ${attempt} - Error fetching user dictionary:`, error);
+            if (attempt === retries) {
+                return {};
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
         }
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching user dictionary:", error);
-        return {};
     }
+    return {};
 }
-

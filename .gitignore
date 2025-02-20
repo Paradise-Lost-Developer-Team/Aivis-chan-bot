@@ -48,3 +48,4 @@ package.json
 openapi.json
 guild_dictionaries.json
 speakers.json
+guild_id.txt
