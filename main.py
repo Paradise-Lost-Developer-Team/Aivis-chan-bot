@@ -217,7 +217,6 @@ async def play_audio_queue(guild_id):
     name="join", 
     description="ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。"
 )
-@jit
 async def join_command(
     interaction: discord.Interaction, 
     voice_channel: discord.VoiceChannel = None, 
@@ -294,7 +293,6 @@ async def join_command(
 @tree.command(
     name="leave", description="ボイスチャンネルから切断します。"
 )
-@jit
 async def leave_command(interaction: discord.Interaction):
     global voice_clients
     guild_id_int = interaction.guild.id
@@ -325,7 +323,6 @@ async def leave_command(interaction: discord.Interaction):
 @tree.command(
     name="ping", description="BOTの応答時間をテストします。"
 )
-@jit
 async def ping_command(interaction: discord.Interaction):
     text = f"Pong! BotのPing値は{round(client.latency*1000)}msです。"
     embed = discord.Embed(title="Latency", description=text)
@@ -339,7 +336,6 @@ async def ping_command(interaction: discord.Interaction):
     voice_channel="自動入室するボイスチャンネルを選択してください。",
     text_channel="通知を送るテキストチャンネルを選択してください。(任意)"
 )
-@jit
 async def register_auto_join_command(
     interaction: discord.Interaction,
     voice_channel: discord.VoiceChannel,
@@ -372,7 +368,6 @@ async def register_auto_join_command(
     name="unregister_auto_join",
     description="自動接続の設定を解除します。"
 )
-@jit
 async def unregister_auto_join(interaction: discord.Interaction):
     global auto_join_channels
     guild_id = str(interaction.guild.id)
@@ -674,7 +669,6 @@ async def play_audio(vc, path):
 @tree.command(
     name="set_speaker", description="話者を選択メニューから切り替えます。"
 )
-@jit
 async def set_speaker_command(interaction: discord.Interaction):
     """ 話者の選択メニューを表示 """
     if not speakers:
@@ -690,7 +684,6 @@ async def set_speaker_command(interaction: discord.Interaction):
 @app_commands.describe(
     volume="設定する音量を入力してください (0.0 - 2.0)。"
 )
-@jit
 async def set_volume_command(interaction: discord.Interaction, volume: float):
     if 0.0 <= volume <= 2.0:
         voice_settings["volume"][interaction.guild.id] = volume
@@ -704,7 +697,6 @@ async def set_volume_command(interaction: discord.Interaction, volume: float):
 @app_commands.describe(
     pitch="設定する音高を入力してください (-1.0 - 1.0)。"
 )
-@jit
 async def set_pitch_command(interaction: discord.Interaction, pitch: float):
     if -1.0 <= pitch <= 1.0:
         voice_settings["pitch"][interaction.guild.id] = pitch
@@ -718,7 +710,6 @@ async def set_pitch_command(interaction: discord.Interaction, pitch: float):
 @app_commands.describe(
     speed="設定する話速を入力してください (0.5 - 2.0)。"
 )
-@jit
 async def set_speed_command(interaction: discord.Interaction, speed: float):
     if 0.5 <= speed <= 2.0:
         voice_settings["speed"][interaction.guild.id] = speed
@@ -732,7 +723,6 @@ async def set_speed_command(interaction: discord.Interaction, speed: float):
 @app_commands.describe(
     style_strength="設定するスタイルの強さを入力してください (0.0 - 2.0)。"
 )
-@jit
 async def set_style_strength_command(interaction: discord.Interaction, style_strength: float):
     if 0.0 <= style_strength <= 2.0:
         voice_settings["style_strength"][interaction.guild.id] = style_strength
@@ -746,7 +736,6 @@ async def set_style_strength_command(interaction: discord.Interaction, style_str
 @app_commands.describe(
     tempo="設定するテンポの緩急を入力してください (0.5 - 2.0)。"
 )
-@jit
 async def set_tempo_command(interaction: discord.Interaction, tempo: float):
     if 0.5 <= tempo <= 2.0:
         voice_settings["tempo"][interaction.guild.id] = tempo
@@ -835,7 +824,6 @@ def update_guild_dictionary(guild_id, word, details):
     word_type="単語の品詞を選択してください。"
 )
 @app_commands.choices(word_type=word_type_choices)
-@jit
 async def add_word_command(interaction: discord.Interaction, word: str, pronunciation: str, accent_type: int, word_type: str):
     guild_id = interaction.guild.id
     add_url = f"http://localhost:10101/user_dict_word?surface={word}&pronunciation={pronunciation}&accent_type={accent_type}&word_type={word_type}"
@@ -864,7 +852,6 @@ async def add_word_command(interaction: discord.Interaction, word: str, pronunci
     word_type="単語の品詞を選択してください。"
 )
 @app_commands.choices(word_type=word_type_choices)
-@jit
 async def edit_word_command(interaction: discord.Interaction, word: str, new_pronunciation: str, accent_type: int, word_type: str):
     if re.search(r'[a-zA-Z0-9!-/:-@[-`{-~]', word):
         await interaction.response.send_message("単語に半角英数字や半角記号を含めることはできません。", ephemeral=True)
@@ -899,7 +886,6 @@ async def edit_word_command(interaction: discord.Interaction, word: str, new_pro
 @app_commands.describe(
     word="削除する単語を入力してください。"
 )
-@jit
 async def remove_word_command(interaction: discord.Interaction, word: str):
     if re.search(r'[a-zA-Z0-9!-/:-@[-`{-~]', word):
         await interaction.response.send_message("単語に半角英数字や半角記号を含めることはできません。", ephemeral=True)
@@ -972,7 +958,6 @@ class DictionaryView(View):
 @tree.command(
     name="list_words", description="辞書の単語一覧を表示します。"
 )
-@jit
 async def list_words_command(interaction: discord.Interaction):
     if interaction.guild is None:
         await interaction.response.send_message("このコマンドはサーバー内でのみ使用できます。", ephemeral=True)
