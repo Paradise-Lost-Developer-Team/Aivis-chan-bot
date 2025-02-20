@@ -1,4 +1,16 @@
 {
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "commonjs",
+      "sourceMap": true,
+      "outDir": "./build/js/",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "skipLibCheck": true
+    }
+  }
+=======
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
@@ -9,4 +21,9 @@
     "strict": true,
     "skipLibCheck": true
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 438017c866e99551c1c1be607842256179b3f55b
+>>>>>>> 7b70b601a521aeb2b96de3db8770e38bcfe90dce
