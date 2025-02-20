@@ -1057,16 +1057,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                     delete voiceClients[guildId];
                 }
             }
-        } else if (oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
-            // ユーザーがボイスチャンネルを移動したとき
-            if (voiceClient.joinConfig.channelId === newState.channel.id) {
-                const nickname = member.displayName;
-                const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                await play_audio(voiceClient, path, guildId);
-            }
-        } else {
-            console.log("User is not joining or leaving a voice channel, ignoring.");
-        }
+                }
     }
 
     // Auto join channels handling
@@ -1105,14 +1096,16 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                 }
             }
         } else if (oldState.channel && !newState.channel) {
-            if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
-                if (oldState.channel.id === voiceClients[guildId].joinConfig.channelId && oldState.channel.members.filter(member => !member.user.bot).size === 0) {
-                    try {
-                        console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
-                        voiceClients[guildId].disconnect();
-                        delete voiceClients[guildId];
-                    } catch (error) {
-                        console.error(`Error while disconnecting: ${error}`);
+            if (voiceChannelId === oldState.channel.id) {
+                if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
+                    if (oldState.channel.members.filter(member => !member.user.bot).size === 0) {
+                        try {
+                            console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
+                            voiceClients[guildId].disconnect();
+                            delete voiceClients[guildId];
+                        } catch (error) {
+                            console.error(`Error while disconnecting: ${error}`);
+                        }
                     }
                 }
             }
