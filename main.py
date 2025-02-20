@@ -32,12 +32,10 @@ audio_queues = {}  # ギルドごとの音声キュー
 FFMPEG_PATH = "C:/ffmpeg/bin/ffmpeg.exe"
 
 class ServerStatus:
-    @jit
     def __init__(self, guild_id: int):
         self.guild_id = guild_id
         asyncio.create_task(self.save_task())
     
-    @jit
     async def save_task(self):
         while True:
             # guild.idを保存するロジックをここに追加
@@ -45,14 +43,12 @@ class ServerStatus:
             await asyncio.sleep(60)  # 60秒ごとに保存
 
 class AivisAdapter:
-    @jit
     def __init__(self):
         # APIサーバーのエンドポイントURL
         self.URL = "http://127.0.0.1:10101"
         # 話者ID (話させたい音声モデルidに変更してください)
         self.speaker = {}
 
-    @jit
     def speak_voice(self, text: str, voice_client: discord.VoiceClient):
         params = {"text": text, "speaker": self.speaker}
         query_response = requests.post(f"{self.URL}/audio_query", params=params).json()
@@ -64,17 +60,14 @@ class AivisAdapter:
         )
         voice_client.play(create_ffmpeg_audio_source(io.BytesIO(audio_response.content)))
 
-@jit
 def create_ffmpeg_audio_source(path: str):
     return FFmpegPCMAudio(path, executable=FFMPEG_PATH)
 
-@jit
 def post_audio_query(text: str, speaker: int):
     params = {"text": text, "speaker": speaker}
     response = requests.post("http://127.0.0.1:10101/audio_query", params=params)
     return response.json()
 
-@jit
 def post_synthesis(audio_query: dict, speaker: int):
     response = requests.post(
         "http://127.0.0.1:10101/synthesis",
@@ -93,7 +86,6 @@ voice_settings = {
     "tempo": {}
 }
 
-@jit
 def adjust_audio_query(audio_query: dict, guild_id: int):
     audio_query["volumeScale"] = voice_settings["volume"].get(guild_id, 0.2)  # デフォルトの音量を0.2に設定
     audio_query["pitchScale"] = voice_settings["pitch"].get(guild_id, 0.0)
@@ -114,7 +106,6 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 MAX_TEXT_LENGTH = 200  # 読み上げる文章の文字数上限
 
-@jit
 def speak_voice(text: str, speaker: int, guild_id: int):
     if len(text) > MAX_TEXT_LENGTH:
         text = text[:MAX_TEXT_LENGTH] + "..."  # 上限を超えた場合は切り捨てて "..." を追加
@@ -126,7 +117,6 @@ def speak_voice(text: str, speaker: int, guild_id: int):
         temp_audio_file_path = temp_audio_file.name
     return temp_audio_file_path
 
-@jit
 async def fetch_uuids_periodically():
     while True:
         fetch_all_uuids()
@@ -135,7 +125,6 @@ async def fetch_uuids_periodically():
 AUTO_JOIN_FILE = "auto_join_channels.json"
 auto_join_channels = {}
 
-@jit
 def load_auto_join_channels():
     try:
         with open(AUTO_JOIN_FILE, "r", encoding="utf-8") as file:
@@ -156,14 +145,12 @@ def load_auto_join_channels():
         return {}
 
 
-@jit
 def save_auto_join_channels():
     with open(AUTO_JOIN_FILE, "w", encoding="utf-8") as file:
         json.dump(auto_join_channels, file, ensure_ascii=False, indent=4)
 
 TEXT_CHANELS_JSON = "text_channels.json"
 
-@jit
 def load_text_channels():
     try:
         with open('text_channels.json', 'r') as f:
@@ -171,7 +158,6 @@ def load_text_channels():
     except FileNotFoundError:
         return {}
 
-@jit
 def save_text_channels():
     with open(TEXT_CHANELS_JSON, 'w') as f:
         json.dump(text_channels, f)
@@ -199,7 +185,6 @@ async def on_ready():
             activity=discord.CustomActivity(name="VC:" + vc))
         await asyncio.sleep(15)
 
-@jit
 async def play_audio_queue(guild_id):
     """ 音声キューを順番に再生するための処理 """
     vc = voice_clients.get(guild_id)
@@ -474,7 +459,6 @@ async def on_message(message):
     except Exception as e:
         print(f"An error occurred while processing the message: {e}")
     
-@jit
 async def handle_message(message: discord.Message):
     message_content = message.content
     # handle_message 内
@@ -525,7 +509,6 @@ if speakers:
         if isinstance(style.get("id"), int)  # IDが整数であることを確認
     ]
 
-@jit
 def get_speaker_info_by_id(speaker_id):
     for speaker in speakers:
         for style in speaker.get("styles", []):
@@ -536,7 +519,6 @@ def get_speaker_info_by_id(speaker_id):
 class SpeakerSelect(Select):
     """ 話者を選択するためのプルダウンメニュー """
 
-    @jit
     def __init__(self, speakers, user_id, guild_id):
         options = [
             discord.SelectOption(
@@ -557,7 +539,6 @@ class SpeakerSelect(Select):
         self.user_id = user_id
         self.guild_id = guild_id
 
-    @jit
     async def callback(self, interaction: discord.Interaction):
         """ 話者を変更する処理 """
         speaker_id = int(self.values[0])
@@ -575,7 +556,6 @@ class SpeakerSelect(Select):
 
 class SpeakerSelectView(View):
     """ 選択メニューのビュー """
-    @jit
     def __init__(self, speakers, user_id, guild_id):
         super().__init__()
         self.add_item(SpeakerSelect(speakers, user_id, guild_id))
@@ -660,7 +640,6 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     except Exception as error:
         print(f"Error in on_voice_state_update: {error}")
 
-@jit
 async def play_audio(vc, path):
     while vc.is_playing():
         await asyncio.sleep(1)
@@ -773,7 +752,6 @@ all_words = list(word_set)
 
 print(all_words)
 
-@jit
 def fetch_all_uuids():
     try:
         response = requests.get("http://localhost:10101/user_dict")
@@ -801,12 +779,10 @@ if uuid_list:
 else:
     print("UUID一覧が空です。")
 
-@jit
 def save_to_dictionary_file():
     with open(DICTIONARY_FILE, "w", encoding="utf-8") as file:
         json.dump(guild_dictionary, file, ensure_ascii=False, indent=4)
 
-@jit
 def update_guild_dictionary(guild_id, word, details):
     guild_id_str = str(guild_id)  # guild_idを文字列に変換
     if guild_id_str not in guild_dictionary:
@@ -912,7 +888,6 @@ async def remove_word_command(interaction: discord.Interaction, word: str):
             await interaction.response.send_message(f"単語 '{word}' のUUIDが見つかりませんでした。", ephemeral=True)
 
 class DictionaryView(View):
-    @jit
     def __init__(self, words, page=0, per_page=10):
         super().__init__(timeout=None)
         self.words = words
@@ -920,7 +895,6 @@ class DictionaryView(View):
         self.per_page = per_page
         self.update_button_state()  # ボタンの状態を更新
 
-    @jit
     def update_button_state(self):
         # すでにデコレーターで定義されたボタンに対して disabled を設定する
         for item in self.children:
@@ -930,7 +904,6 @@ class DictionaryView(View):
                 item.disabled = (self.page + 1) * self.per_page >= len(self.words)
     
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary, custom_id="previous")
-    @jit
     async def previous_page(self, interaction: discord.Interaction, button: Button):
         if self.page > 0:
             self.page -= 1
@@ -938,14 +911,12 @@ class DictionaryView(View):
             await interaction.response.edit_message(embed=self.create_embed(), view=self)
     
     @discord.ui.button(label="Next", style=discord.ButtonStyle.primary, custom_id="next")
-    @jit
     async def next_page(self, interaction: discord.Interaction, button: Button):
         if (self.page + 1) * self.per_page < len(self.words):
             self.page += 1
             self.update_button_state()
             await interaction.response.edit_message(embed=self.create_embed(), view=self)
 
-    @jit
     def create_embed(self):
         start = self.page * self.per_page
         end = start + self.per_page
