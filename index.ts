@@ -27,6 +27,7 @@ const textChannels: { [key: string]: TextChannel } = {};
 const voiceClients: { [key: string]: VoiceConnection } = {};
 const currentSpeaker: { [key: string]: number } = {};
 const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+const audioQueues: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 
 class ServerStatus {
     guildId: string;
@@ -892,14 +893,14 @@ client.on(Events.MessageCreate, async (message: Message) => {
     }
 
     try {
-        // メッセージ内容の加工（スポイラー、絵文字、URL、メンション、マークダウン記法の除外）
+        // メッセージ内容の加工（スポイラー、絵文字、URL、メンション、マークダウン記法の置換）
         let messageContent = message.content;
-        messageContent = messageContent.replace(/\|\|.*?\|\|/g, '');  // スポイラー除外
-        messageContent = messageContent.replace(/<a?:\w+:\d+>/g, '');  // カスタム絵文字除外
-        messageContent = messageContent.replace(/https?:\/\/[^\s]+/g, '');  // URL除外
-        messageContent = messageContent.replace(/<@!?[0-9]+>/g, '');  // ユーザー・ロールメンション除外
-        messageContent = messageContent.replace(/<#!?[0-9]+>/g, '');  // チャンネルメンション除外
-        messageContent = messageContent.replace(/[*_~`]/g, '');  // マークダウン除外
+        messageContent = messageContent.replace(/\|\|.*?\|\|/g, 'スポイラー省略');  // スポイラー除外
+        messageContent = messageContent.replace(/<a?:\w+:\d+>/g, '絵文字省略');  // カスタム絵文字を「絵文字」に置換
+        messageContent = messageContent.replace(/https?:\/\/\S+/g, 'リンク省略');  // URLを「リンク」に置換
+        messageContent = messageContent.replace(/<@!?[0-9]+>/g, 'メンション省略');  // ユーザー・ロールメンションを「メンション」に置換
+        messageContent = messageContent.replace(/<#!?[0-9]+>/g, 'チャンネル省略');  // チャンネルメンションを「チャンネル」に置換
+        messageContent = messageContent.replace(/[*_~`]/g, '');  // マークダウン記法を除外
 
         // 絵文字除外（必要に応じて調整）
         const emojiStrs = message.guild?.emojis.cache.map(emoji => emoji.toString()) || [];
@@ -913,6 +914,10 @@ client.on(Events.MessageCreate, async (message: Message) => {
 
         const guildId = message.guildId!;
         const voiceClient = voiceClients[guildId];
+
+        // JSONから自動入室チャンネルの設定を読み込む
+        const autoJoinChannelsData = loadAutoJoinChannels();
+        console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
 
         if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
             if (message.channel.id === autoJoinChannelsData[guildId]?.textChannelId || message.channel.id === textChannels[guildId]?.id) {
@@ -1001,6 +1006,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         if (!guildData) return;
 
         const voiceChannelId = guildData.voiceChannelId;
+        const textChannelId = guildData.textChannelId;
 
         if (!oldState.channel && newState.channel) {
             if (voiceChannelId === newState.channel.id) {
@@ -1012,6 +1018,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                             adapterCreator: newState.guild.voiceAdapterCreator as any
                         });
                         voiceClients[guildId] = voiceClient;
+                        textChannels[guildId] = client.channels.cache.get(textChannelId) as TextChannel;
                         console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
 
                         const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
