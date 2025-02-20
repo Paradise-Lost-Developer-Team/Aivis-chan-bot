@@ -5,7 +5,6 @@ import { VoiceConnection, AudioPlayer, PlayerSubscription, createAudioPlayer, cr
 import { Mutex } from "async-mutex";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
-import axios from "axios";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -35,17 +34,20 @@ class ServerStatus {
     constructor(guildId: string) {
         this.guildId = guildId;
         this.saveTask();
-    }
+        }
 
     async saveTask() {
         while (true) {
             console.log(`Saving guild id: ${this.guildId}`);
-            fs.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
-            await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
+            try {
+                fs.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
+                await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
+            } catch (error: any) {
+                console.error("Error saving guild id:", error);
+            }
         }
     }
 }
-
 class AivisAdapter {
     URL: string;
     speaker: number;
@@ -958,13 +960,24 @@ client.login(process.env.TOKEN);
 
 async function fetchAllUUIDs(): Promise<{ [key: string]: any }> {
     try {
-        const response = await axios.get("http://localhost:10101/user_dict_words");
-        return response.data as { [key: string]: any };
-    } catch (error) {
-        console.error("Error in fetchAllUUIDs:", error);
-        throw error;
+        const response = await fetch("http://localhost:10101/user_dict_words");
+        if (response.ok) {
+            return await response.json();
+        } else {
+            console.error("Failed to fetch UUIDs from the server.");
+            return {};
+        }
+        const data = await response.json();
+        if (!data || !data.uuids) {
+            console.error("Failed to fetch UUIDs from the server.");
+            return {};  // 空のオブジェクトを返す
+        }
+        return data.uuids;
+        } catch (error) {
+            console.error("Error fetching UUIDs:", error);
+            return {};
+        }
     }
-}
 function play_audio(voiceClient: VoiceConnection, path: string) {
     throw new Error("Function not implemented.");
 }

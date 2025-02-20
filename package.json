@@ -5,6 +5,7 @@
     "axios": "^1.7.9",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
+    "requests": "^0.3.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
