@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, Message, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction } from "discord.js";
+import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, Message, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, SelectMenuBuilder } from "discord.js";
 import { VoiceConnection, AudioPlayer, PlayerSubscription, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, StreamType, VoiceConnectionStatus } from "@discordjs/voice";
 import { Mutex } from "async-mutex";
 import { REST } from "@discordjs/rest";
@@ -665,13 +665,30 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         } else {
             await interaction.reply({ content: "このサーバーには登録された自動接続設定がありません。", flags: MessageFlags.Ephemeral });
         }
-    } else if (commandName === "set_speaker") {
-        const speakerId = interaction.options.get("speaker_id")?.value as number;
-        if (speakerId !== null) {
-            currentSpeaker[interaction.guildId!] = speakerId;
-            await interaction.reply(`話者をID ${speakerId} に設定しました。`);
-        } else {
-            await interaction.reply("無効な話者IDです。");
+        if (!interaction.isCommand()) return;
+
+        const { commandName } = interaction;
+    
+        if (commandName === "set_speaker") {
+            if (speakers.length === 0) {
+                await interaction.reply("スピーカー情報が読み込まれていません。");
+                return;
+            }
+    
+            const options = speakers.map(speaker => ({
+                label: speaker.name,
+                value: speaker.id.toString()
+            }));
+    
+            const row = new ActionRowBuilder<SelectMenuBuilder>()
+                .addComponents(
+                    new SelectMenuBuilder()
+                        .setCustomId('select_speaker')
+                        .setPlaceholder('話者を選択してください')
+                        .addOptions(options)
+                );
+    
+            await interaction.reply({ content: "話者を選択してください:", components: [row] });
         }
     } else if (commandName === "set_volume") {
         const volume = interaction.options.get("volume")?.value as number;
@@ -780,6 +797,16 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             await interaction.reply({ content: "辞書に単語が登録されていません。", flags: MessageFlags.Ephemeral });
             return;
         }
+
+    client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+        if (!interaction.isSelectMenu()) return;
+        
+        if (interaction.customId === 'select_speaker') {
+            const selectedSpeakerId = interaction.values[0];
+            currentSpeaker[interaction.guildId!] = parseInt(selectedSpeakerId);
+            await interaction.update({ content: `話者をID ${selectedSpeakerId} に設定しました。`, components: [] });
+        }
+    });
 
         const embed = new EmbedBuilder()
             .setTitle("辞書の単語一覧")
