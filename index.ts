@@ -955,7 +955,10 @@ client.on(Events.MessageCreate, async (message: Message) => {
 });
 
 async function handle_message(message: Message) {
-    const messageContent = message.content;
+    let messageContent = message.content;
+    if (messageContent.length > MAX_TEXT_LENGTH) {
+        messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
+    }
     const guildId = message.guildId!;
     const voiceClient = voiceClients[guildId];
 
