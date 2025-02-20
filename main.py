@@ -177,7 +177,6 @@ def save_text_channels():
         json.dump(text_channels, f)
 
 @client.event
-@jit
 async def on_ready():
     print("起動完了")
     try:
@@ -398,7 +397,6 @@ URL_PATTERN = r"https?://[^\s]+"
 CUSTOM_EMOJI_REGEX = r"<a?:\w+:\d+>"
 
 @client.event
-@jit
 async def on_message(message):
     # BOT のメッセージは無視する
     if message.author.bot:
@@ -588,7 +586,6 @@ class SpeakerSelectView(View):
         self.add_item(SpeakerSelect(speakers, user_id, guild_id))
 
 @client.event
-@jit
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState) -> None:
     """Handles voice state updates for members."""
     global voice_clients, current_speaker, text_channels, join_command_connected
