@@ -15,5 +15,26 @@
     "@types/lodash.snakecase": "^4.1.9",
     "@types/node": "^22.13.4",
     "discord-api-types": "^0.37.119"
-  }
+  },
+  "name": "aivis-chan-bot",
+  "version": "1.0.0",
+  "description": "[![Release](https://img.shields.io/github/release/Paladise-Lost-Developer-Team/Aivis-chan-bot?include_prereleases=&sort=semver&color=blue)](https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot/releases/)\r [![Discord](https://discord.com/api/guilds/1337303326332813334/widget.png)](https://discord.gg/MPx2ny8HXT)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot/issues"
+  },
+  "homepage": "https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot#readme"
 }
