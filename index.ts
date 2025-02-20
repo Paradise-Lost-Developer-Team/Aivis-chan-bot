@@ -14,20 +14,12 @@ import { Readable } from "stream";
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
 
-let connection: VoiceConnection | null = null;
 let player: AudioPlayer = createAudioPlayer();
-let subscription: PlayerSubscription | null = null;
-const mutex = new Mutex();
 
-const serverStatuses: { [key: string]: ServerStatus } = {};
 const textChannels: { [key: string]: TextChannel } = {};
 const voiceClients: { [key: string]: VoiceConnection } = {};
 const currentSpeaker: { [key: string]: number } = {};
 const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
-const audioQueues: { [key: string]: string[] } = {};
-const guild_id: { [key: string]: string } = {};
-
-const FFMPEG_PATH = "C:/ffmpeg/bin/ffmpeg.exe";
 
 class ServerStatus {
     guildId: string;
@@ -146,6 +138,15 @@ function loadSpeakers() {
 }
 
 loadSpeakers();
+
+function getSpeakerOptions() {
+    return speakers.flatMap(speaker => 
+        speaker.styles.map((style: { name: string; id: { toString: () => string; }; }) => ({
+            label: `${speaker.name} - ${style.name}`,
+            value: `${speaker.name}-${style.name}-${style.id.toString()}`
+        }))
+    );
+}
 
 const DICTIONARY_FILE = "guild_dictionaries.json";
 let guildDictionary: { [key: string]: any } = {};
@@ -289,15 +290,7 @@ client.once(Events.ClientReady, async () => {
             },
             {
                 name: "set_speaker",
-                description: "話者を選択メニューから切り替えます。",
-                options: [
-                    {
-                        name: "speaker_id",
-                        type: 4, // 整数タイプ
-                        description: "設定する話者のID",
-                        required: true
-                    }
-                ]
+                description: "話者を選択メニューから切り替えます。"
             },
             {
                 name: "set_volume",
@@ -664,27 +657,21 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             await interaction.reply("自動接続設定を解除しました。");
         } else {
             await interaction.reply({ content: "このサーバーには登録された自動接続設定がありません。", flags: MessageFlags.Ephemeral });
+        } 
+    } else if (commandName === "set_speaker") {
+        if (speakers.length === 0) {
+            await interaction.reply("スピーカー情報が読み込まれていません。");
+            return;
         }
-        if (!interaction.isCommand()) return;
-        const { commandName } = interaction;
-        if (commandName === "set_speaker") {
-            if (speakers.length === 0) {
-                await interaction.reply("スピーカー情報が読み込まれていません。");
-                return;
-            }
-            const options = speakers.map(speaker => ({
-                label: speaker.name,
-                value: speaker.id.toString()
-            }));
-            const row = new ActionRowBuilder<StringSelectMenuBuilder>()
-                .addComponents(
-                    new StringSelectMenuBuilder()
-                        .setCustomId('select_speaker')
-                        .setPlaceholder('話者を選択してください')
-                        .addOptions(options)
-                );
-            await interaction.reply({ content: "話者を選択してください:", components: [row] });
-        }
+        const options = getSpeakerOptions();
+        const row = new ActionRowBuilder<StringSelectMenuBuilder>()
+            .addComponents(
+                new StringSelectMenuBuilder()
+                    .setCustomId('select_speaker')
+                    .setPlaceholder('話者を選択してください')
+                    .addOptions(options)
+            );
+        await interaction.reply({ content: "話者を選択してください:", components: [row] });
     } else if (commandName === "set_volume") {
         const volume = interaction.options.get("volume")?.value as number;
         if (volume !== null && volume >= 0.0 && volume <= 2.0) {
@@ -793,16 +780,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             return;
         }
 
-    client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-        if (!interaction.isStringSelectMenu()) return;
-        
-        if (interaction.customId === 'select_speaker') {
-            const selectedSpeakerId = interaction.values[0];
-            currentSpeaker[interaction.guildId!] = parseInt(selectedSpeakerId);
-            await interaction.update({ content: `話者をID ${selectedSpeakerId} に設定しました。`, components: [] });
-        }
-    });
-
         const embed = new EmbedBuilder()
             .setTitle("辞書の単語一覧")
             .setDescription(Object.entries(words).map(([word, details]) => {
@@ -852,6 +829,44 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             }
         } else {
             await interaction.reply({ content: "ボイスチャンネルに接続していません。", flags: MessageFlags.Ephemeral });
+        }
+    }
+});
+
+client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+    if (!interaction.isStringSelectMenu()) return;
+    
+    if (interaction.customId === 'select_speaker') {
+        if (!interaction.values || interaction.values.length === 0) {
+            console.error("Error: interaction.values is undefined or empty.");
+            await interaction.update({ content: "エラー: 話者が選択されていません。", components: [] });
+            return;
+        }
+
+        const selectedValue = interaction.values[0];
+        const [selectedSpeakerName, selectedStyleName, selectedSpeakerId] = selectedValue.split('-');
+        console.log(`Selected speaker ID: ${selectedSpeakerId}`); // デバッグ用ログ
+        console.log(`Interaction guild ID: ${interaction.guildId}`); // デバッグ用ログ
+        if (interaction.guildId) {
+            currentSpeaker[interaction.guildId] = parseInt(selectedSpeakerId);
+            console.log(`Current speaker for guild ${interaction.guildId}: ${currentSpeaker[interaction.guildId]}`); // デバッグ用ログ
+            const selectedSpeaker = speakers.find(speaker => speaker.name === selectedSpeakerName);
+            if (selectedSpeaker) {
+                const selectedStyle = selectedSpeaker.styles.find((style: { id: number; }) => style.id === parseInt(selectedSpeakerId));
+                if (selectedStyle) {
+                    await interaction.update({ content: `話者を ${selectedSpeaker.name} - ${selectedStyle.name} に設定しました。`, components: [] });
+                    return;
+                } else {
+                    console.error("Error: selectedStyle is undefined.");
+                    await interaction.update({ content: "エラー: スタイルが見つかりませんでした。", components: [] });
+                }
+            } else {
+                console.error("Error: selectedSpeaker is undefined.");
+                await interaction.update({ content: "エラー: 話者が見つかりませんでした。", components: [] });
+            }
+        } else {
+            console.error("Error: interaction.guildId is undefined.");
+            await interaction.update({ content: "エラー: ギルドIDが取得できませんでした。", components: [] });
         }
     }
 });
@@ -1013,7 +1028,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                 if (oldState.channel.members.size === 1) {
                     try {
                         console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
-                        await voiceClients[guildId].disconnect();
+                        voiceClients[guildId].disconnect();
                         delete voiceClients[guildId];
                     } catch (error) {
                         console.error(`Error while disconnecting: ${error}`);
