@@ -898,48 +898,64 @@ client.on(Events.MessageCreate, async (message: Message) => {
         // スポイラー除外
         if (messageContent.startsWith("||") && messageContent.endsWith("||")) {
             console.log("Message contains spoiler, ignoring.");
+            const path = await speakVoice('スポイラー省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
         // カスタム絵文字を除外
         if (messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g)) {
             console.log("Message contains custom emoji, ignoring.");
+            const path = await speakVoice('カスタム絵文字省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
         // URLを除外
         if (messageContent.match(/https?:\/\/\S+/g)) {
             console.log("Message contains URL, ignoring.");
+            const path = await speakVoice('URL省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
-        // ユーザー・ロールメンションを除外
+        // ロールメンションを除外
         if (messageContent.match(/<@&[0-9]+>/g)) {
             console.log("Message contains role mention, ignoring.");
+            const path = await speakVoice('ロールメンション省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
         // チャンネルメンションを除外
         if (messageContent.match(/<#\d+>/g)) {
             console.log("Message contains channel mention, ignoring.");
+            const path = await speakVoice('チャンネル省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
         // ユーザーメンションを除外
         if (messageContent.match(/<@!\d+>/g)) {
             console.log("Message contains user mention, ignoring.");
+            const path = await speakVoice('ユーザーメンション省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
         // コードブロック除外
         if (messageContent.match(/```[\s\S]+```/g)) {
             console.log("Message contains code block, ignoring.");
+            const path = await speakVoice('コードブロック省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
         // マークダウン除外
         if (messageContent.match(/[*_~`]/g)) {
             console.log("Message contains markdown, ignoring.");
+            const path = await speakVoice('マークダウン省略', 888753760, message.guildId!);
+            await play_audio(voiceClients[message.guildId!], path, message.guildId!);
             return;
         }
 
