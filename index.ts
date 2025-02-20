@@ -1044,12 +1044,15 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
         } else if (oldState.channel && oldState.channel.members.size === 1) { // ボイスチャンネルにいるのがBOTだけの場合
             // ボイスチャンネルに誰もいなくなったら退室
-            try {
-                console.log(`${voiceClient.joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
-                voiceClient.disconnect();
-                delete voiceClients[guildId];
-            } catch (error) {
-                console.error(`Error while disconnecting: ${error}`);
+            const voiceClient = voiceClients[guildId];
+            if (voiceClient) {
+                try {
+                    console.log(`${voiceClient.joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
+                    voiceClient.disconnect();
+                    delete voiceClients[guildId];
+                } catch (error) {
+                    console.error(`Error while disconnecting: ${error}`);
+                }
             }
         }
     }
