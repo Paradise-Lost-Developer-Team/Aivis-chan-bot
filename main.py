@@ -10,7 +10,6 @@ import tempfile
 from config import TOKEN
 import re
 import os
-from numba import jit
 
 server_statuses = {}
 
@@ -184,6 +183,7 @@ async def on_ready():
         await client.change_presence(
             activity=discord.CustomActivity(name="VC:" + vc))
         await asyncio.sleep(15)
+
 
 async def play_audio_queue(guild_id):
     """ 音声キューを順番に再生するための処理 """
@@ -459,6 +459,7 @@ async def on_message(message):
     except Exception as e:
         print(f"An error occurred while processing the message: {e}")
     
+
 async def handle_message(message: discord.Message):
     message_content = message.content
     # handle_message 内
