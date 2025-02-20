@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, Message, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, SelectMenuBuilder } from "discord.js";
+import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, Message, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, StringSelectMenuBuilder } from "discord.js";
 import { VoiceConnection, AudioPlayer, PlayerSubscription, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, StreamType, VoiceConnectionStatus } from "@discordjs/voice";
 import { Mutex } from "async-mutex";
 import { REST } from "@discordjs/rest";
@@ -666,28 +666,23 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             await interaction.reply({ content: "このサーバーには登録された自動接続設定がありません。", flags: MessageFlags.Ephemeral });
         }
         if (!interaction.isCommand()) return;
-
         const { commandName } = interaction;
-    
         if (commandName === "set_speaker") {
             if (speakers.length === 0) {
                 await interaction.reply("スピーカー情報が読み込まれていません。");
                 return;
             }
-    
             const options = speakers.map(speaker => ({
                 label: speaker.name,
                 value: speaker.id.toString()
             }));
-    
-            const row = new ActionRowBuilder<SelectMenuBuilder>()
+            const row = new ActionRowBuilder<StringSelectMenuBuilder>()
                 .addComponents(
-                    new SelectMenuBuilder()
+                    new StringSelectMenuBuilder()
                         .setCustomId('select_speaker')
                         .setPlaceholder('話者を選択してください')
                         .addOptions(options)
                 );
-    
             await interaction.reply({ content: "話者を選択してください:", components: [row] });
         }
     } else if (commandName === "set_volume") {
@@ -799,7 +794,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         }
 
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-        if (!interaction.isSelectMenu()) return;
+        if (!interaction.isStringSelectMenu()) return;
         
         if (interaction.customId === 'select_speaker') {
             const selectedSpeakerId = interaction.values[0];
