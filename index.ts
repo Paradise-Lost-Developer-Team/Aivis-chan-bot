@@ -1092,18 +1092,8 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                     }
                 }
             }
-        } else if (oldState.channel && !newState.channel) {
-            if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
-                if (oldState.channel.members.size === 1) {
-                    try {
-                        console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
-                        voiceClients[guildId].disconnect();
-                        delete voiceClients[guildId];
-                    } catch (error) {
-                        console.error(`Error while disconnecting: ${error}`);
-                    }
-                }
-            }
+        } else {
+            console.log("User is not joining a voice channel, ignoring.");
         }
     } catch (error) {
         console.error(`Error in on_voice_state_update: ${error}`);
