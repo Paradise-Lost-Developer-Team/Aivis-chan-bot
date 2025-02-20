@@ -9,7 +9,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid"; // ここで uuid モジュールをインポート
 import { Readable } from "stream";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
@@ -40,6 +40,7 @@ class ServerStatus {
     async saveTask() {
         while (true) {
             console.log(`Saving guild id: ${this.guildId}`);
+            fs.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
             await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
         }
     }
@@ -76,16 +77,26 @@ function createFFmpegAudioSource(path: string) {
 
 async function postAudioQuery(text: string, speaker: number) {
     const params = { text, speaker };
-    const response = await axios.post("http://127.0.0.1:10101/audio_query", null, { params });
-    return response.data as { [key: string]: any };
+    try {
+        const response = await axios.post("http://127.0.0.1:10101/audio_query", null, { params });
+        return response.data as { [key: string]: any };
+    } catch (error) {
+        console.error("Error in postAudioQuery:", error);
+        throw error;
+    }
 }
 
 async function postSynthesis(audioQuery: any, speaker: number) {
-    const response = await axios.post("http://127.0.0.1:10101/synthesis", audioQuery, {
-        params: { speaker },
-        responseType: 'arraybuffer'
-    });
-    return response.data as { [key: string]: any };
+    try {
+        const response = await axios.post("http://127.0.0.1:10101/synthesis", audioQuery, {
+            params: { speaker },
+            responseType: 'arraybuffer'
+        });
+        return response.data as { [key: string]: any };
+    } catch (error) {
+        console.error("Error in postSynthesis:", error);
+        throw error;
+    }
 }
 
 const voiceSettings: { [key: string]: any } = {
@@ -194,9 +205,230 @@ function updateGuildDictionary(guildId: string, word: string, details: any) {
 client.once(Events.ClientReady, async () => {
     console.log("起動完了");
     try {
-        const commands: any = await rest.put(
-            Routes.applicationGuildCommands(client.user!.id, process.env.GUILD_ID!),
-            { body: [] }
+        const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
+        if (!guildId) {
+            throw new Error("GUILD_ID is not defined in the guild_id.txt file.");
+        }
+        const commands = [
+            {
+                name: "join",
+                description: "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。",
+                options: [
+                    {
+                        name: "voice_channel",
+                        type: 7, // チャンネルタイプ
+                        description: "接続するボイスチャンネル",
+                        required: true
+                    },
+                    {
+                        name: "text_channel",
+                        type: 7, // チャンネルタイプ
+                        description: "読み上げるテキストチャンネル",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "leave",
+                description: "ボイスチャンネルから切断します。"
+            },
+            {
+                name: "ping",
+                description: "BOTの応答時間をテストします。"
+            },
+            {
+                name: "register_auto_join",
+                description: "BOTの自動入室機能を登録します。",
+                options: [
+                    {
+                        name: "voice_channel",
+                        type: 7, // チャンネルタイプ
+                        description: "自動入室するボイスチャンネル",
+                        required: true
+                    },
+                    {
+                        name: "text_channel",
+                        type: 7, // チャンネルタイプ
+                        description: "通知を送るテキストチャンネル (任意)",
+                        required: false
+                    }
+                ]
+            },
+            {
+                name: "unregister_auto_join",
+                description: "自動接続の設定を解除します。"
+            },
+            {
+                name: "set_speaker",
+                description: "話者を選択メニューから切り替えます。",
+                options: [
+                    {
+                        name: "speaker_id",
+                        type: 4, // 整数タイプ
+                        description: "設定する話者のID",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "set_volume",
+                description: "音量を設定します。",
+                options: [
+                    {
+                        name: "volume",
+                        type: 10, // 数値タイプ
+                        description: "設定する音量 (0.0 - 2.0)",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "set_pitch",
+                description: "音高を設定します。",
+                options: [
+                    {
+                        name: "pitch",
+                        type: 10, // 数値タイプ
+                        description: "設定する音高 (-1.0 - 1.0)",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "set_speed",
+                description: "話速を設定します。",
+                options: [
+                    {
+                        name: "speed",
+                        type: 10, // 数値タイプ
+                        description: "設定する話速 (0.5 - 2.0)",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "set_style_strength",
+                description: "スタイルの強さを設定します。",
+                options: [
+                    {
+                        name: "style_strength",
+                        type: 10, // 数値タイプ
+                        description: "設定するスタイルの強さ (0.0 - 2.0)",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "set_tempo",
+                description: "テンポの緩急を設定します。",
+                options: [
+                    {
+                        name: "tempo",
+                        type: 10, // 数値タイプ
+                        description: "設定するテンポの緩急 (0.5 - 2.0)",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "add_word",
+                description: "辞書に単語を登録します。",
+                options: [
+                    {
+                        name: "word",
+                        type: 3, // 文字列タイプ
+                        description: "登録する単語",
+                        required: true
+                    },
+                    {
+                        name: "pronunciation",
+                        type: 3, // 文字列タイプ
+                        description: "単語の発音",
+                        required: true
+                    },
+                    {
+                        name: "accent_type",
+                        type: 4, // 整数タイプ
+                        description: "アクセントの種類",
+                        required: true
+                    },
+                    {
+                        name: "word_type",
+                        type: 3, // 文字列タイプ
+                        description: "単語の品詞",
+                        required: true,
+                        choices: wordTypeChoices
+                    }
+                ]
+            },
+            {
+                name: "edit_word",
+                description: "辞書の単語を編集します。",
+                options: [
+                    {
+                        name: "word",
+                        type: 3, // 文字列タイプ
+                        description: "編集する単語",
+                        required: true
+                    },
+                    {
+                        name: "new_pronunciation",
+                        type: 3, // 文字列タイプ
+                        description: "新しい発音",
+                        required: true
+                    },
+                    {
+                        name: "accent_type",
+                        type: 4, // 整数タイプ
+                        description: "アクセントの種類",
+                        required: true
+                    },
+                    {
+                        name: "word_type",
+                        type: 3, // 文字列タイプ
+                        description: "単語の品詞",
+                        required: true,
+                        choices: wordTypeChoices
+                    }
+                ]
+            },
+            {
+                name: "remove_word",
+                description: "辞書から単語を削除します。",
+                options: [
+                    {
+                        name: "word",
+                        type: 3, // 文字列タイプ
+                        description: "削除する単語",
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: "list_words",
+                description: "辞書の単語一覧を表示します。"
+            },
+            {
+                name: "help",
+                description: "ヘルプメニューを表示します。"
+            },
+            {
+                name: "stream_audio",
+                description: "オーディオストリームを再生します。",
+                options: [
+                    {
+                        name: "url",
+                        type: 3, // 文字列タイプ
+                        description: "再生するオーディオストリームのURL",
+                        required: true
+                    }
+                ]
+            }
+        ];
+
+        await rest.put(
+            Routes.applicationGuildCommands(client.user!.id, guildId),
+            { body: commands }
         );
         console.log(`${commands.length}個のコマンドを同期しました`);
     } catch (error) {
@@ -214,6 +446,9 @@ client.once(Events.ClientReady, async () => {
     }, 30000);
 
     fetchUUIDsPeriodically();
+    client.guilds.cache.forEach(guild => {
+        new ServerStatus(guild.id); // 各ギルドのIDを保存するタスクを開始
+    });
 });
 
 class HelpMenu {
@@ -277,10 +512,15 @@ class HelpMenu {
 }
 
 async function streamAudio(url: string, voiceClient: VoiceConnection) {
-    const response = await axios.get(url, { responseType: 'stream' });
-    const resource = createAudioResource(response.data as Readable, { inputType: StreamType.Arbitrary });
-    player.play(resource);
-    voiceClient.subscribe(player);
+    try {
+        const response = await axios.get(url, { responseType: 'stream' });
+        const resource = createAudioResource(response.data as Readable, { inputType: StreamType.Arbitrary });
+        player.play(resource);
+        voiceClient.subscribe(player);
+    } catch (error) {
+        console.error("Error in streamAudio:", error);
+        throw error;
+    }
 }
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
@@ -522,8 +762,12 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         const url = (interaction.options as CommandInteractionOptionResolver).getString("url", true);
         const voiceClient = voiceClients[interaction.guildId!];
         if (voiceClient) {
-            await streamAudio(url, voiceClient);
-            await interaction.reply("オーディオストリームを再生しています。");
+            try {
+                await streamAudio(url, voiceClient);
+                await interaction.reply("オーディオストリームを再生しています。");
+            } catch (error) {
+                await interaction.reply({ content: "オーディオストリームの再生に失敗しました。", flags: MessageFlags.Ephemeral });
+            }
         } else {
             await interaction.reply({ content: "ボイスチャンネルに接続していません。", flags: MessageFlags.Ephemeral });
         }
@@ -713,8 +957,13 @@ async function handle_message(message: Message) {
 client.login(process.env.TOKEN);
 
 async function fetchAllUUIDs(): Promise<{ [key: string]: any }> {
-    const response = await axios.get("http://localhost:10101/user_dict_words");
-    return response.data as { [key: string]: any };
+    try {
+        const response = await axios.get("http://localhost:10101/user_dict_words");
+        return response.data as { [key: string]: any };
+    } catch (error) {
+        console.error("Error in fetchAllUUIDs:", error);
+        throw error;
+    }
 }
 function play_audio(voiceClient: VoiceConnection, path: string) {
     throw new Error("Function not implemented.");
