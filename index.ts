@@ -133,6 +133,20 @@ function adjustAudioQuery(audioQuery: any, guildId: string) {
     return audioQuery;
 }
 
+const SPEAKERS_FILE = "speakers.json";
+let speakers: any[] = [];
+
+function loadSpeakers() {
+    try {
+        speakers = JSON.parse(fs.readFileSync(SPEAKERS_FILE, "utf-8"));
+    } catch (error) {
+        console.error("Error loading speakers:", error);
+        speakers = [];
+    }
+}
+
+loadSpeakers();
+
 const DICTIONARY_FILE = "guild_dictionaries.json";
 let guildDictionary: { [key: string]: any } = {};
 
