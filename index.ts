@@ -14,7 +14,14 @@ import { Readable } from "stream";
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
 
-let player: AudioPlayer = createAudioPlayer();
+const players: { [key: string]: AudioPlayer } = {};
+
+function getPlayer(guildId: string): AudioPlayer {
+    if (!players[guildId]) {
+        players[guildId] = createAudioPlayer();
+    }
+    return players[guildId];
+}
 
 const textChannels: { [key: string]: TextChannel } = {};
 const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -59,7 +66,8 @@ class AivisAdapter {
         });
 
         const resource = createAudioResource(Readable.from(audioResponse.data as Buffer), { inputType: StreamType.Arbitrary });
-        if (player) {
+        if (players) {
+            const player = getPlayer(voiceClient.joinConfig.guildId);
             player.play(resource);
         }
     }
@@ -540,6 +548,7 @@ async function streamAudio(url: string, voiceClient: VoiceConnection) {
             throw new Error(`Error in streamAudio: ${response.statusText}`);
         }
         const resource = createAudioResource(response.body as unknown as Readable, { inputType: StreamType.Arbitrary });
+        const player = getPlayer(voiceClient.joinConfig.guildId);
         player.play(resource);
         voiceClient.subscribe(player);
     } catch (error) {
@@ -548,9 +557,14 @@ async function streamAudio(url: string, voiceClient: VoiceConnection) {
     }
 }
 
-async function play_audio(voiceClient: VoiceConnection, path: string) {
+async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string) {
+    const player = getPlayer(guildId);
     while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
         await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    if (voiceClients[guildId] !== voiceClient) {
+        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+        return;
     }
     const resource = createFFmpegAudioSource(path);
     player.play(resource);
@@ -600,7 +614,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 
             // Botが接続した際のアナウンス
             const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient, path);
+            await play_audio(voiceClient, path, guildId);
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
@@ -922,17 +936,18 @@ client.on(Events.MessageCreate, async (message: Message) => {
                 }
             }
         } else {
-            console.log(`Guild ID ${guildId} not found in autoJoinChannelsData.`);
+            console.log(`Guild ID ${guildId} not found in autoJoinChannelsData. Skipping auto-join logic.`);
         }
 
-        if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready && message.channel.id === autoJoinChannelsData[guildId]?.textChannelId) {
-            console.log("Voice client is connected and message is in the auto-join text channel. Handling message.");
-            await handle_message(message);
-        } else if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready && message.channel.id === textChannels[guildId]?.id) {
-            console.log("Voice client is connected and message is in the registered text channel. Handling message.");
-            await handle_message(message);
+        if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
+            if (message.channel.id === autoJoinChannelsData[guildId]?.textChannelId || message.channel.id === textChannels[guildId]?.id) {
+                console.log("Voice client is connected and message is in the correct text channel. Handling message.");
+                await handle_message(message);
+            } else {
+                console.log(`Message is not in the correct text channel. Ignoring message. Channel ID: ${message.channel.id}`);
+            }
         } else {
-            console.log("Voice client is not connected or message is in the wrong channel. Ignoring message.");
+            console.log(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
         }
     } catch (error) {
         console.error(`An error occurred while processing the message: ${error}`);
@@ -953,13 +968,18 @@ async function handle_message(message: Message) {
     const speakerId = currentSpeaker[guildId] || 888753760;  // デフォルトの話者ID
     const path = await speakVoice(messageContent, speakerId, guildId);
 
-    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && getPlayer(guildId).state.status === AudioPlayerStatus.Playing) {
         await new Promise(resolve => setTimeout(resolve, 100));
     }
 
+    if (voiceClients[guildId] !== voiceClient) {
+        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+        return;
+    }
+
     const resource = createFFmpegAudioSource(path);
-    player.play(resource);
-    voiceClient.subscribe(player);  // プレイヤーをボイスクライアントにサブスクライブ
+    getPlayer(guildId).play(resource);
+    voiceClient.subscribe(getPlayer(guildId));  // プレイヤーをボイスクライアントにサブスクライブ
     console.log(`Finished playing message: ${messageContent}`);
 }
 
@@ -976,14 +996,14 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
             if (voiceClient.joinConfig.channelId === newState.channel.id) {
                 const nickname = member.displayName;
                 const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                await play_audio(voiceClient, path);
+                await play_audio(voiceClient, path, guildId);
             }
         } else if (oldState.channel && !newState.channel) {
             // ユーザーがボイスチャンネルから退出したとき
             if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                 const nickname = member.displayName;
                 const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                await play_audio(voiceClient, path);
+                await play_audio(voiceClient, path, guildId);
 
                 // ボイスチャンネルに誰もいなくなったら退室
                 if (oldState.channel.members.size === 1) {  // ボイスチャンネルにいるのがBOTだけの場合
@@ -1017,7 +1037,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                         console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
 
                         const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-                        await play_audio(voiceClient, path);
+                        await play_audio(voiceClient, path, guildId);
                     } catch (error) {
                         console.error(`Error: failed to connect to voice channel - ${error}`);
                     }
