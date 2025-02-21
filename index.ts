@@ -203,20 +203,6 @@ function saveAutoJoinChannels() {
     fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
 }
 
-const TEXT_CHANNELS_JSON = "text_channels.json";
-
-function loadTextChannels() {
-    try {
-        return JSON.parse(fs.readFileSync(TEXT_CHANNELS_JSON, "utf-8"));
-    } catch (error) {
-        return {};
-    }
-}
-
-function saveTextChannels() {
-    fs.writeFileSync(TEXT_CHANNELS_JSON, JSON.stringify(textChannels, null, 4), "utf-8");
-}
-
 const wordTypeChoices = [
     { name: "固有名詞", value: "PROPER_NOUN" },
     { name: "地名", value: "LOCATION_NAME" },
@@ -244,6 +230,11 @@ function updateGuildDictionary(guildId: string, word: string, details: any) {
 
 client.once(Events.ClientReady, async () => {
     console.log("起動完了");
+
+    // Bot起動時にloadAutoJoinChannels()関数を実行
+    autoJoinChannelsData = loadAutoJoinChannels();
+    console.log("Auto join channels loaded:", autoJoinChannelsData);
+
     try {
         const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
         if (!guildId) {
