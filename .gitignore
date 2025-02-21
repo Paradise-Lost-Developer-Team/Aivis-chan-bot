@@ -49,3 +49,7 @@ openapi.json
 guild_dictionaries.json
 speakers.json
 guild_id.txt
+node_modules/
+build/
+.vscode/
+.venv/
