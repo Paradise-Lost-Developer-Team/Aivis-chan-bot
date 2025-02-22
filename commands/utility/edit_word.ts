@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { fetchAllUUIDs, updateGuildDictionary, wordTypeChoices } from 'dictionaries';
+import { fetchAllUUIDs, updateGuildDictionary, wordTypeChoices } from '../../dictionaries';
 import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 
 module.exports = {
