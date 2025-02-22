@@ -3,11 +3,10 @@ import { deployCommands } from "./deploy-commands"; // 相対パスを使用し�
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import { TOKEN } from "./config.json";
-import { AivisAdapter, loadAutoJoinChannels, voiceClients } from "./TTS-Engine"; // 相対パスを修正
+import { AivisAdapter, loadAutoJoinChannels } from "./TTS-Engine"; // 相対パスを修正
 import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対パスを修正
 import { MessageCreate } from "./MessageCreate";
 import { VoiceStateUpdate } from "./VoiceStateUpdate";
-import loadCommands from './load-commands';  // 追加
 import { SpeakerSelectHandler } from './SpeakerSelectHandler';  // 追加
 
 interface ExtendedClient extends Client {
@@ -15,9 +14,6 @@ interface ExtendedClient extends Client {
 }
 
 export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] }) as ExtendedClient;
-
-// 追加: コマンドコレクションを初期化し、loadCommands()から読み込む
-client.commands = loadCommands();
 
 // 追加: SpeakerSelectHandler を初期化して、selectメニューコールバックを処理
 SpeakerSelectHandler(client);
