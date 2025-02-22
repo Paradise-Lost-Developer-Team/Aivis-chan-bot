@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
-import { getSpeakerOptions, speakers, currentSpeaker, loadSpeakers } from '../../TTS-Engine';
+import { getSpeakerChoices, speakers, currentSpeaker, loadSpeakers } from '../../TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,7 +10,7 @@ module.exports = {
             option.setName('speaker')
                 .setDescription('設定する話者')
                 .setRequired(true)
-                .setChoices(getSpeakerOptions())
+                .setChoices(getSpeakerChoices())
         ),
     async execute(interaction: CommandInteraction) {
         loadSpeakers();
