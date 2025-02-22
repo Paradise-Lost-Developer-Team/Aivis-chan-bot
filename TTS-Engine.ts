@@ -46,28 +46,28 @@ export async function postAudioQuery(text: string, speaker: number) {
     }
 }
 
-export async function postSynthesis(audioQuery: any, speaker: number) {
+export async function postSynthesis(text: string, speakerId: number): Promise<string> {
     try {
-        // 分割推論のためのパラメータを追加
-        const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
-        const response = await fetch(`${TTS_API_URL}/synthesis?${params}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(audioQuery)
+        const response = await axios.post(TTS_API_URL, {
+            text: text,
+            speakerId: speakerId
         });
+
         if (response.status !== 200) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
 
         const audioPath = path.join(__dirname, 'audio', `${Date.now()}.mp3`);
-        const audioBuffer = await response.arrayBuffer();
-        fs.writeFileSync(audioPath, Buffer.from(audioBuffer), 'base64');
+        const audioContent = (response.data as { audioContent: string }).audioContent;
+        fs.writeFileSync(audioPath, audioContent, 'base64');
         return audioPath;
     } catch (error) {
         console.error('Error in postSynthesis:', error);
-        throw new Error(`Error in postSynthesis: ${(error as any).message}`);
+        if (error instanceof Error) {
+            throw new Error(`Error in postSynthesis: ${error.message}`);
+        } else {
+            throw new Error('Unknown error in postSynthesis');
+        }
     }
 }
 
