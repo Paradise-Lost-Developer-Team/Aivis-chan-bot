@@ -3,20 +3,18 @@ import { joinVoiceChannel } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
 import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from '../../TTS-Engine';
 
-
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('join')
         .setDescription('BOTをチャンネルに参加します')
         .addChannelOption(option =>
-            option.setName('VoiceChannel')
-                .setDescription('参加するチャンネル')
+            option.setName('voice_channel') // 小文字に変更
+                .setDescription('参加するボイスチャンネル')
                 .setRequired(true)
                 .addChannelTypes(ChannelType.GuildVoice))
         .addChannelOption(option =>
-            option.setName('TextChannel')
-                .setDescription('参加するチャンネル')
+            option.setName('text_channel') // 小文字に変更
+                .setDescription('参加するテキストチャンネル')
                 .setRequired(false)
                 .addChannelTypes(ChannelType.GuildText)),
     async execute(interaction: CommandInteraction) {
@@ -58,7 +56,7 @@ module.exports = {
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
-                await interaction.reply({ content: "ボイスチャンネルへの接続に失敗しました。", flags: MessageFlags.Ephemeral }); // 追加
+                await interaction.reply({ content: "ボイスチャンネルへの接続に失敗しました。", flags: MessageFlags.Ephemeral });
             }
         }
     }
