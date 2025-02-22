@@ -123,14 +123,13 @@ export function loadSpeakers() {
 
 loadSpeakers();
 
-// スピーカーリストを取得して choices に変換
-export function getSpeakerChoices() {
-    return speakers.map(speaker =>
-        speaker.styles.map((style: { name: any; id: { toString: () => any; }; }) => ({
-            name: `${speaker.name} - ${style.name}`, // 例: "Anneli - ノーマル"
-            value: style.id.toString(), // 数値ではなく文字列に変換
+export function getSpeakerOptions() {
+    return speakers.flatMap(speaker => 
+        speaker.styles.map((style: { name: string; id: { toString: () => string; }; }) => ({
+            label: `${speaker.name} - ${style.name}`,
+            value: `${speaker.name}-${style.name}-${style.id.toString()}`
         }))
-    ).flat();
+    );
 }
 
 export const DICTIONARY_FILE = "guild_dictionaries.json";
