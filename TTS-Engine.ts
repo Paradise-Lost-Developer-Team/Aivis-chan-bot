@@ -5,6 +5,7 @@ import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
 import { adjustAudioQuery } from "./set_voiceSettings";
+import axios from "axios";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
