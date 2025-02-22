@@ -5,12 +5,7 @@ import { getSpeakerOptions, speakers } from '../../TTS-Engine';
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('set_speaker')
-        .setDescription('話者を設定します')
-        .addStringOption(option =>
-            option.setName('speaker')
-                .setDescription('設定する話者')
-                .setRequired(true)
-                .addChoices(...getSpeakerOptions().map(speaker => ({ name: speaker.label, value: speaker.value })))),
+        .setDescription('話者を設定します'),
     async execute(interaction: CommandInteraction) {
         if (speakers.length === 0) {
             await interaction.reply("スピーカー情報が読み込まれていません。");
