@@ -1,8 +1,5 @@
-import { config } from "dotenv";
-config();
-import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, StringSelectMenuBuilder, Message } from "discord.js";
+import { Client, Events, GatewayIntentBits, TextChannel, VoiceChannel, ActivityType, Interaction, EmbedBuilder, MessageFlags, CommandInteractionOptionResolver, ActionRowBuilder, ButtonBuilder, ButtonStyle, ButtonInteraction, StringSelectMenuBuilder, Message, Collection } from "discord.js";
 import { VoiceConnection, AudioPlayer, PlayerSubscription, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, StreamType, VoiceConnectionStatus } from "@discordjs/voice";
-import { Mutex } from "async-mutex";
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import fs from "fs";
@@ -11,8 +8,16 @@ import os from "os";
 import { v4 as uuidv4 } from "uuid"; // ここで uuid モジュールをインポート
 import { Readable } from "stream";
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
-const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
+const configData = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+const TOKEN = configData.TOKEN;
+
+interface ExtendedClient extends Client {
+    commands: Collection<string, any>;
+}
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] }) as ExtendedClient;
+client.commands = new Collection();
+const rest = new REST({ version: '9' }).setToken(TOKEN);
 
 const players: { [key: string]: AudioPlayer } = {};
 
@@ -27,8 +32,21 @@ const textChannels: { [key: string]: TextChannel } = {};
 const voiceClients: { [key: string]: VoiceConnection } = {};
 const currentSpeaker: { [key: string]: number } = {};
 const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
-const audioQueues: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
 
+for (const folder of commandFolders) {
+    const commandFiles = fs.readdirSync(path.join(foldersPath, folder)).filter(file => file.endsWith('.ts'));
+
+    for (const file of commandFiles) {
+        const commands = require(path.join(foldersPath, folder, file));
+        if ('data' in commands && 'execute' in commands) {
+            client.commands.set(commands.data.name, commands);
+        } else {
+         console.error(`Error loading command file: ${file}`);
+        }
+    }
+}
 class ServerStatus {
     guildId: string;
     constructor(guildId: string) {
@@ -230,234 +248,6 @@ function updateGuildDictionary(guildId: string, word: string, details: any) {
 
 client.once(Events.ClientReady, async () => {
     console.log("起動完了");
-
-    // Bot起動時にloadAutoJoinChannels()関数を実行
-    autoJoinChannelsData = loadAutoJoinChannels();
-    console.log("Auto join channels loaded:", autoJoinChannelsData);
-
-    try {
-        const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
-        if (!guildId) {
-            throw new Error("GUILD_ID is not defined in the guild_id.txt file.");
-        }
-        const commands = [
-            {
-                name: "join",
-                description: "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。",
-                options: [
-                    {
-                        name: "voice_channel",
-                        type: 7, // チャンネルタイプ
-                        description: "接続するボイスチャンネル",
-                        required: true
-                    },
-                    {
-                        name: "text_channel",
-                        type: 7, // チャンネルタイプ
-                        description: "読み上げるテキストチャンネル",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "leave",
-                description: "ボイスチャンネルから切断します。"
-            },
-            {
-                name: "ping",
-                description: "BOTの応答時間をテストします。"
-            },
-            {
-                name: "register_auto_join",
-                description: "BOTの自動入室機能を登録します。",
-                options: [
-                    {
-                        name: "voice_channel",
-                        type: 7, // チャンネルタイプ
-                        description: "自動入室するボイスチャンネル",
-                        required: true
-                    },
-                    {
-                        name: "text_channel",
-                        type: 7, // チャンネルタイプ
-                        description: "通知を送るテキストチャンネル (任意)",
-                        required: false
-                    }
-                ]
-            },
-            {
-                name: "unregister_auto_join",
-                description: "自動接続の設定を解除します。"
-            },
-            {
-                name: "set_speaker",
-                description: "話者を選択メニューから切り替えます。"
-            },
-            {
-                name: "set_volume",
-                description: "音量を設定します。",
-                options: [
-                    {
-                        name: "volume",
-                        type: 10, // 数値タイプ
-                        description: "設定する音量 (0.0 - 2.0)",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "set_pitch",
-                description: "音高を設定します。",
-                options: [
-                    {
-                        name: "pitch",
-                        type: 10, // 数値タイプ
-                        description: "設定する音高 (-1.0 - 1.0)",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "set_speed",
-                description: "話速を設定します。",
-                options: [
-                    {
-                        name: "speed",
-                        type: 10, // 数値タイプ
-                        description: "設定する話速 (0.5 - 2.0)",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "set_style_strength",
-                description: "スタイルの強さを設定します。",
-                options: [
-                    {
-                        name: "style_strength",
-                        type: 10, // 数値タイプ
-                        description: "設定するスタイルの強さ (0.0 - 2.0)",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "set_tempo",
-                description: "テンポの緩急を設定します。",
-                options: [
-                    {
-                        name: "tempo",
-                        type: 10, // 数値タイプ
-                        description: "設定するテンポの緩急 (0.5 - 2.0)",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "add_word",
-                description: "辞書に単語を登録します。",
-                options: [
-                    {
-                        name: "word",
-                        type: 3, // 文字列タイプ
-                        description: "登録する単語",
-                        required: true
-                    },
-                    {
-                        name: "pronunciation",
-                        type: 3, // 文字列タイプ
-                        description: "単語の発音",
-                        required: true
-                    },
-                    {
-                        name: "accent_type",
-                        type: 4, // 整数タイプ
-                        description: "アクセントの種類",
-                        required: true
-                    },
-                    {
-                        name: "word_type",
-                        type: 3, // 文字列タイプ
-                        description: "単語の品詞",
-                        required: true,
-                        choices: wordTypeChoices
-                    }
-                ]
-            },
-            {
-                name: "edit_word",
-                description: "辞書の単語を編集します。",
-                options: [
-                    {
-                        name: "word",
-                        type: 3, // 文字列タイプ
-                        description: "編集する単語",
-                        required: true
-                    },
-                    {
-                        name: "new_pronunciation",
-                        type: 3, // 文字列タイプ
-                        description: "新しい発音",
-                        required: true
-                    },
-                    {
-                        name: "accent_type",
-                        type: 4, // 整数タイプ
-                        description: "アクセントの種類",
-                        required: true
-                    },
-                    {
-                        name: "word_type",
-                        type: 3, // 文字列タイプ
-                        description: "単語の品詞",
-                        required: true,
-                        choices: wordTypeChoices
-                    }
-                ]
-            },
-            {
-                name: "remove_word",
-                description: "辞書から単語を削除します。",
-                options: [
-                    {
-                        name: "word",
-                        type: 3, // 文字列タイプ
-                        description: "削除する単語",
-                        required: true
-                    }
-                ]
-            },
-            {
-                name: "list_words",
-                description: "辞書の単語一覧を表示します。"
-            },
-            {
-                name: "help",
-                description: "ヘルプメニューを表示します。"
-            },
-            {
-                name: "stream_audio",
-                description: "オーディオストリームを再生します。",
-                options: [
-                    {
-                        name: "url",
-                        type: 3, // 文字列タイプ
-                        description: "再生するオーディオストリームのURL",
-                        required: true
-                    }
-                ]
-            }
-        ];
-
-        await rest.put(
-            Routes.applicationGuildCommands(client.user!.id, guildId),
-            { body: commands }
-        );
-        console.log(`${commands.length}個のコマンドを同期しました`);
-    } catch (error) {
-        console.error(error);
-    }
-
     client.user!.setActivity("起動中…", { type: ActivityType.Playing });
     setInterval(async () => {
         const joinServerCount = client.guilds.cache.size;
@@ -473,82 +263,48 @@ client.once(Events.ClientReady, async () => {
         new ServerStatus(guild.id); // 各ギルドのIDを保存するタスクを開始
     });
 });
+client.commands = new Collection();
 
-class HelpMenu {
-    private pages: EmbedBuilder[];
-    private currentPage: number;
+client.on(Events.InteractionCreate, async interaction => {    
+    if (!interaction.isChatInputCommand()) return;
 
-    constructor() {
-        this.pages = [
-            new EmbedBuilder()
-                .setTitle("ヘルプ - 基本コマンド")
-                .setDescription("基本的なコマンドの一覧です。")
-                .addFields(
-                    { name: "/join", value: "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。" },
-                    { name: "/leave", value: "ボイスチャンネルから切断します。" },
-                    { name: "/ping", value: "BOTの応答時間をテストします。" }
-                ),
-            new EmbedBuilder()
-                .setTitle("ヘルプ - 自動入室コマンド")
-                .setDescription("自動入室に関するコマンドの一覧です。")
-                .addFields(
-                    { name: "/register_auto_join", value: "BOTの自動入室機能を登録します。" },
-                    { name: "/unregister_auto_join", value: "自動接続の設定を解除します。" }
-                ),
-            new EmbedBuilder()
-                .setTitle("ヘルプ - 音声設定コマンド")
-                .setDescription("音声設定に関するコマンドの一覧です。")
-                .addFields(
-                    { name: "/set_speaker", value: "話者を選択メニューから切り替えます。" },
-                    { name: "/set_volume", value: "音量を設定します。" },
-                    { name: "/set_pitch", value: "音高を設定します。" },
-                    { name: "/set_speed", value: "話速を設定します。" },
-                    { name: "/set_style_strength", value: "スタイルの強さを設定します。" },
-                    { name: "/set_tempo", value: "テンポの緩急を設定します。" }
-                ),
-            new EmbedBuilder()
-                .setTitle("ヘルプ - 辞書コマンド")
-                .setDescription("辞書に関するコマンドの一覧です。")
-                .addFields(
-                    { name: "/add_word", value: "辞書に単語を登録します。" },
-                    { name: "/edit_word", value: "辞書の単語を編集します。" },
-                    { name: "/remove_word", value: "辞書から単語を削除します。" },
-                    { name: "/list_words", value: "辞書の単語一覧を表示します。" }
-                )
-        ];
-        this.currentPage = 0;
-    }
+    // Bot起動時にloadAutoJoinChannels()関数を実行
+    autoJoinChannelsData = loadAutoJoinChannels();
+    console.log("Auto join channels loaded:", autoJoinChannelsData);
 
-    public getCurrentPage(): EmbedBuilder {
-        return this.pages[this.currentPage];
-    }
-
-    public nextPage(): EmbedBuilder {
-        this.currentPage = (this.currentPage + 1) % this.pages.length;
-        return this.getCurrentPage();
-    }
-
-    public previousPage(): EmbedBuilder {
-        this.currentPage = (this.currentPage - 1 + this.pages.length) % this.pages.length;
-        return this.getCurrentPage();
-    }
-}
-
-async function streamAudio(url: string, voiceClient: VoiceConnection) {
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Error in streamAudio: ${response.statusText}`);
+        const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
+        if (!guildId) {
+            throw new Error("GUILD_ID is not defined in the guild_id.txt file.");
         }
-        const resource = createAudioResource(response.body as unknown as Readable, { inputType: StreamType.Arbitrary });
-        const player = getPlayer(voiceClient.joinConfig.guildId);
-        player.play(resource);
-        voiceClient.subscribe(player);
+
+        const commands = (interaction.client as ExtendedClient).commands.get(interaction.commandName);
+
+        if (!commands) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            return;
+        }
+
+        try {
+            await commands.execute(interaction);
+        } catch (error) {
+            console.error(error);
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ content: 'このコマンドの実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+            } else {
+                await interaction.reply({ content: 'このコマンドの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+            }
+        }
+
+        await rest.put(
+            Routes.applicationGuildCommands(client.user!.id, guildId),
+            { body: commands }
+        );
+        console.log(`${commands.length}個のコマンドを同期しました`);
     } catch (error) {
-        console.error("Error in streamAudio:", error);
-        throw error;
+        console.error(error);
     }
-}
+});
 
 async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
     const player = getPlayer(guildId);
@@ -578,52 +334,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 
     const { commandName } = interaction;
 
-    if (commandName === "join") {
-        let voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
-        let textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
-
-        if (!voiceChannel) {
-            // コマンド実行者が接続しているボイスチャンネルを取得
-            const member = interaction.guild?.members.cache.get(interaction.user.id);
-            if (member?.voice.channel) {
-                voiceChannel = member.voice.channel as VoiceChannel;
-            } else {
-                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
-                return;
-            }
-        }
-
-        if (!textChannel) {
-            // コマンド実行チャンネルを使用
-            textChannel = interaction.channel as TextChannel;
-        }
-
-        const guildId = interaction.guildId!;
-        textChannels[guildId] = textChannel;
-
-        try {
-            let voiceClient = voiceClients[guildId];
-            if (voiceClient) {
-                await voiceClient.disconnect();
-            }
-            voiceClient = await joinVoiceChannel({
-                channelId: voiceChannel.id,
-                guildId: guildId,
-                adapterCreator: interaction.guild!.voiceAdapterCreator as any
-            });
-            voiceClients[guildId] = voiceClient;
-            await interaction.reply(`${voiceChannel.name} に接続しました。`);
-
-            // Botが接続した際のアナウンス
-            const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient, path, guildId, interaction);
-        } catch (error) {
-            console.error(error);
-            if (!interaction.replied) {
-                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
-            }
-        }
-    } else if (commandName === "leave") {
+    if (commandName === "leave") {
         const guildId = interaction.guildId!;
         const voiceClient = voiceClients[guildId];
 
@@ -804,48 +515,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             }).join("\n"));
 
         await interaction.reply({ embeds: [embed] });
-    } else if (commandName === "help") {
-        const helpMenu = new HelpMenu();
-        const embed = helpMenu.getCurrentPage();
-        const row = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('previous')
-                    .setLabel('Previous')
-                    .setStyle(ButtonStyle.Primary),
-                new ButtonBuilder()
-                    .setCustomId('next')
-                    .setLabel('Next')
-                    .setStyle(ButtonStyle.Primary)
-            );
-
-        await interaction.reply({ embeds: [embed], components: [row] });
-
-        const filter = (i: Interaction) => (i as ButtonInteraction).customId === 'previous' || (i as ButtonInteraction).customId === 'next';
-        const collector = interaction.channel?.createMessageComponentCollector({ filter, time: 60000 });
-
-        collector?.on('collect', async i => {
-            if (i.customId === 'previous') {
-                const embed = helpMenu.previousPage();
-                await i.update({ embeds: [embed] });
-            } else if (i.customId === 'next') {
-                const embed = helpMenu.nextPage();
-                await i.update({ embeds: [embed] });
-            }
-        });
-    } else if (commandName === "stream_audio") {
-        const url = (interaction.options as CommandInteractionOptionResolver).getString("url", true);
-        const voiceClient = voiceClients[interaction.guildId!];
-        if (voiceClient) {
-            try {
-                await streamAudio(url, voiceClient);
-                await interaction.reply("オーディオストリームを再生しています。");
-            } catch (error) {
-                await interaction.reply({ content: "オーディオストリームの再生に失敗しました。", flags: MessageFlags.Ephemeral });
-            }
-        } else {
-            await interaction.reply({ content: "ボイスチャンネルに接続していません。", flags: MessageFlags.Ephemeral });
-        }
     }
 });
 
