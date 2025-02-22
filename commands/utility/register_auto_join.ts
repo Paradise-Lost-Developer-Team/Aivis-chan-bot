@@ -7,12 +7,12 @@ module.exports = {
         .setName('register_auto_join')
         .setDescription('TTSエンジンの自動参加チャンネルを登録します')
         .addChannelOption(option =>
-            option.setName('VoiceChannel')
+            option.setName('voice_channel')
                 .setDescription('自動参加するチャンネル')
                 .setRequired(true)
                 .addChannelTypes(ChannelType.GuildVoice))
         .addChannelOption(option =>
-            option.setName('TextChannel')
+            option.setName('text_channel')
                 .setDescription('自動参加するチャンネル')
                 .setRequired(false)
                 .addChannelTypes(ChannelType.GuildText)),

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ActionRowBuilder, StringSelectMenuBuilder, CommandInteraction, StringSelectMenuInteraction } from 'discord.js';
-import { getSpeakerOptions, speakers } from '../../set_voiceSettings'
+import { CommandInteraction, ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { getSpeakerOptions, speakers } from '../../set_voiceSettings';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,13 +10,13 @@ module.exports = {
             option.setName('speaker')
                 .setDescription('設定する話者')
                 .setRequired(true)
-                .addChoices(...getSpeakerOptions())),
+                .addChoices(...getSpeakerOptions().map(speaker => ({ name: speaker.label, value: speaker.value })))),
     async execute(interaction: CommandInteraction) {
         if (speakers.length === 0) {
             await interaction.reply("スピーカー情報が読み込まれていません。");
             return;
         }
-        const options = getSpeakerOptions();
+        const options = getSpeakerOptions().map(speaker => ({ label: speaker.label, value: speaker.value }));
         const row = new ActionRowBuilder<StringSelectMenuBuilder>()
             .addComponents(
                 new StringSelectMenuBuilder()
