@@ -57,16 +57,21 @@ export async function postSynthesis(audioQuery: any, speaker: number) {
     try {
         // 分割推論を追加
         const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
+        const requestBody = JSON.stringify(audioQuery);
+        console.log('Sending request to synthesis API with params:', params.toString());
+        console.log('Request body:', requestBody);
+
         const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(audioQuery)
+            body: requestBody
         });
 
         if (!response.ok) {
-            throw new Error(`Error in postSynthesis: ${response.statusText}`);
+            const errorText = await response.text();
+            throw new Error(`Error in postSynthesis: ${response.statusText} - ${errorText}`);
         }
         return await response.arrayBuffer();
     } catch (error) {
@@ -94,7 +99,7 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     audioQuery = adjustAudioQuery(audioQuery, guildId);
     const audioContent = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
+    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
     return tempAudioFilePath;
 }
 
