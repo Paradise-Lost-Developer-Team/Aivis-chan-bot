@@ -1,12 +1,10 @@
 import { joinVoiceChannel } from '@discordjs/voice';
 import { VoiceChannel, TextChannel } from 'discord.js';
-import { speakVoice, play_audio } from '../index.ts';
+import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from 'TTS-Engine';
 
-const textChannels = {};
-const voiceClients = {};
-const currentSpeaker = {};
 
-module.exports = async function joinCommand(interaction) {
+
+module.exports = async function joinCommand(interaction: { commandName: string; options: { get: (arg0: string) => { (): any; new(): any; channel: VoiceChannel | TextChannel; }; }; guild: { members: { cache: { get: (arg0: any) => any; }; }; }; user: { id: any; }; reply: (arg0: string) => any; channel: TextChannel; guildId: any; replied: any; }) {
     if (interaction.commandName === "join") {
         let voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
         let textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
@@ -36,7 +34,7 @@ module.exports = async function joinCommand(interaction) {
             voiceClient = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: guildId,
-                adapterCreator: interaction.guild!.voiceAdapterCreator as any
+                adapterCreator: (interaction.guild as any).voiceAdapterCreator
             });
             voiceClients[guildId] = voiceClient;
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
