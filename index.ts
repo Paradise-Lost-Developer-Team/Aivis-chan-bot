@@ -7,7 +7,6 @@ import { AivisAdapter, loadAutoJoinChannels } from "./TTS-Engine"; // 相対パ�
 import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対パスを修正
 import { MessageCreate } from "./MessageCreate";
 import { VoiceStateUpdate } from "./VoiceStateUpdate";
-import { SpeakerSelectHandler } from './SpeakerSelectHandler';  // 追加
 
 interface ExtendedClient extends Client {
     commands: Collection<string, any>;
@@ -15,9 +14,6 @@ interface ExtendedClient extends Client {
 
 export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] }) as ExtendedClient;
 client.commands = new Collection(); // コマンド用の Collection を作成
-
-// 追加: SpeakerSelectHandler を初期化して、selectメニューコールバックを処理
-SpeakerSelectHandler(client);
 
 const rest = new REST({ version: '9' }).setToken(TOKEN);
 
