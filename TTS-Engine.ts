@@ -4,8 +4,25 @@ import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
-import { adjustAudioQuery } from "./set_voiceSettings";
+import { pipeline } from 'stream/promises';
 
+// 追加: 合成結果キャッシュの定義（TTLは10分）
+const synthesisCache = new Map<string, { path: string, timestamp: number }>();
+const CACHE_TTL = 10 * 60 * 1000;  // 10分
+
+export const voiceSettings = {
+    volume: {} as { [guildId: string]: number },
+    pitch: {} as { [guildId: string]: number },
+    rate: {} as { [guildId: string]: number },
+    speed: {} as { [guildId: string]: number },
+    style_strength: {} as { [guildId: string]: number },
+    tempo: {} as { [guildId: string]: number },
+};
+
+// 必要に応じて currentSpeaker も初期化
+export const currentSpeaker: { [guildId: string]: number } = {};
+export const SPEAKERS_FILE = "speakers.json";
+export let speakers: any[] = [];
 
 export function getPlayer(guildId: string): AudioPlayer {
     if (!players[guildId]) {
@@ -16,7 +33,6 @@ export function getPlayer(guildId: string): AudioPlayer {
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
-export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 
@@ -57,29 +73,57 @@ export async function postAudioQuery(text: string, speaker: number) {
 
 export async function postSynthesis(audioQuery: any, speaker: number) {
     try {
-        // 分割推論を追加
         const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
         const requestBody = JSON.stringify(audioQuery);
         console.log('Sending request to synthesis API with params:', params.toString());
         console.log('Request body:', requestBody);
-
         const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: requestBody
+            headers: { 'Content-Type': 'application/json' },
+            body: requestBody,
         });
-
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error in postSynthesis: ${response.statusText} - ${errorText}`);
         }
-        return await response.arrayBuffer();
+        // Return the response body as a Readable stream for streaming processing
+        return response.body;
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
     }
+}
+
+export function adjustAudioQuery(audioQuery: any, guildId: string) {
+    const speakerId = currentSpeaker[guildId] || 888753760;
+    audioQuery.speaker = speakerId;
+    audioQuery.volumeScale = voiceSettings.volume[guildId] || 0.5;
+    audioQuery.pitchScale = voiceSettings.pitch[guildId] || 0.0;
+    audioQuery.rateScale = voiceSettings.rate[guildId] || 1.0;
+    audioQuery.speedScale = voiceSettings.speed[guildId] || 1.0;
+    audioQuery.styleStrength = voiceSettings.style_strength[guildId] || 1.0;
+    audioQuery.tempoScale = voiceSettings.tempo[guildId] || 1.0;
+    return audioQuery;
+}
+
+export function loadSpeakers() {
+    try {
+        speakers = JSON.parse(fs.readFileSync(SPEAKERS_FILE, "utf-8"));
+    } catch (error) {
+        console.error("Error loading speakers:", error);
+        speakers = [];
+    }
+}
+
+loadSpeakers();
+
+export function getSpeakerOptions() {
+    return speakers.flatMap(speaker => 
+        speaker.styles.map((style: { name: string; id: { toString: () => string; }; }) => ({
+            label: `${speaker.name} - ${style.name}`,
+            value: `${speaker.name}-${style.name}-${style.id.toString()}`
+        }))
+    );
 }
 
 export const DICTIONARY_FILE = "guild_dictionaries.json";
@@ -97,11 +141,31 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     if (text.length > MAX_TEXT_LENGTH) {
         text = text.substring(0, MAX_TEXT_LENGTH) + "...";
     }
+    
+    // 追加: キャッシュキーを生成し、キャッシュチェックを行う
+    const cacheKey = `${speaker}:${text}`;
+    if (synthesisCache.has(cacheKey)) {
+        const cached = synthesisCache.get(cacheKey)!;
+        if (Date.now() - cached.timestamp < CACHE_TTL) {
+            console.log("Using cached synthesized audio");
+            return cached.path;
+        } else {
+            synthesisCache.delete(cacheKey);
+        }
+    }
+    
     let audioQuery = await postAudioQuery(text, speaker);
     audioQuery = adjustAudioQuery(audioQuery, guildId);
-    const audioContent = await postSynthesis(audioQuery, speaker);
+    const audioStream = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
+    // Pipeline the synthesis stream to a temporary file
+    if (audioStream) {
+        await pipeline(audioStream, fs.createWriteStream(tempAudioFilePath));
+    } else {
+        throw new Error("Audio stream is null");
+    }
+    // キャッシュに保存
+    synthesisCache.set(cacheKey, { path: tempAudioFilePath, timestamp: Date.now() });
     return tempAudioFilePath;
 }
 
@@ -134,7 +198,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     }
 
     export const AUTO_JOIN_FILE = "auto_join_channels.json";
-    let autoJoinChannelsData: { [key: string]: any } = {};
+    export let autoJoinChannelsData: { [key: string]: any } = {};
     autoJoinChannelsData = loadAutoJoinChannels();
     
     export function loadAutoJoinChannels() {
@@ -146,5 +210,5 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     }
     
     export function saveAutoJoinChannels() {
-        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannelsData, null, 4), "utf-8");
     }
