@@ -6,13 +6,13 @@ import os from "os";
 import { TextChannel } from "discord.js";
 import { adjustAudioQuery } from "./set_voiceSettings";
 import axios from "axios";
+import { method } from "lodash";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
-const TTS_API_URL = "http://127.0.0.1:10101";
 
 export class AivisAdapter {
         URL: string;
@@ -47,11 +47,13 @@ export async function postAudioQuery(text: string, speaker: number) {
     }
 }
 
-export async function postSynthesis(text: string, speakerId: number): Promise<string> {
+export async function postSynthesis(text: string, speaker: number): Promise<string> {
     try {
-        const response = await axios.post(TTS_API_URL, {
-            text: text,
-            speakerId: speakerId
+        // 分割推論を追加
+        const params = new URLSearchParams({ text, speaker: speaker.toString() });
+        const response = await axios.post(`http://127.0.0.1:10101/synthesis?${params}`, {
+            method: 'POST',
+            data: { text, speaker: speaker.toString() }
         });
 
         if (response.status !== 200) {
