@@ -1,6 +1,6 @@
 import { Routes } from 'discord-api-types/v9';
 import { REST } from '@discordjs/rest';
-import { clientId, TOKEN } from './config.json';
+import { clientId, TOKEN, guildId } from './config.json';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -46,8 +46,8 @@ export const deployCommands = async () => {
 
         // The put method is used to fully refresh all commands in the guild with the current set
         const data: any = await rest.put(
-            // テスト用 Routes.applicationGuildCommands(clientId, guildId),
-            Routes.applicationCommands(clientId),
+            Routes.applicationGuildCommands(clientId, guildId),
+            // 本番用Routes.applicationCommands(clientId),
             { body: commands },
         );
 
