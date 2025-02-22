@@ -1,11 +1,25 @@
+import { SlashCommandBuilder } from '@discordjs/builders';
 import { joinVoiceChannel } from '@discordjs/voice';
-import { VoiceChannel, TextChannel } from 'discord.js';
+import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
 import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from '../../TTS-Engine';
 
 
 
-module.exports = async function joinCommand(interaction: { commandName: string; options: { get: (arg0: string) => { (): any; new(): any; channel: VoiceChannel | TextChannel; }; }; guild: { members: { cache: { get: (arg0: any) => any; }; }; }; user: { id: any; }; reply: (arg0: string) => any; channel: TextChannel; guildId: any; replied: any; }) {
-    if (interaction.commandName === "join") {
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('join')
+        .setDescription('BOTをチャンネルに参加します')
+        .addChannelOption(option =>
+            option.setName('VoiceChannel')
+                .setDescription('参加するチャンネル')
+                .setRequired(true)
+                .addChannelTypes(ChannelType.GuildVoice))
+        .addChannelOption(option =>
+            option.setName('TextChannel')
+                .setDescription('参加するチャンネル')
+                .setRequired(false)
+                .addChannelTypes(ChannelType.GuildText)),
+    async execute(interaction: CommandInteraction) {
         let voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
         let textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
 
@@ -14,7 +28,7 @@ module.exports = async function joinCommand(interaction: { commandName: string; 
             if (member?.voice.channel) {
                 voiceChannel = member.voice.channel as VoiceChannel;
             } else {
-                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
+                await interaction.reply({ content: "ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。", flags: MessageFlags.Ephemeral });
                 return;
             }
         }
@@ -44,7 +58,7 @@ module.exports = async function joinCommand(interaction: { commandName: string; 
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
-                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
+                await interaction.reply({ content: "ボイスチャンネルへの接続に失敗しました。", flags: MessageFlags.Ephemeral }); // 追加
             }
         }
     }

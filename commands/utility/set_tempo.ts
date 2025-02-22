@@ -1,28 +1,25 @@
-import { CommandInteraction, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { CommandInteraction, MessageFlags, CommandInteractionOptionResolver } from 'discord.js';
 import { voiceSettings } from '../../set_voiceSettings';
 
 module.exports = {
-    data: {
-        name: "set_tempo",
-        description: "TTSエンジンのテンポを設定します",
-        options: [
-            {
-                name: "tempo",
-                type: "NUMBER",
-                description: "設定するテンポレベル (0.0から2.0)",
-                required: true
-            }
-        ]
-    },
+    data: new SlashCommandBuilder()
+        .setName('set_tempo')
+        .setDescription('TTSエンジンのテンポを設定します')
+        .addNumberOption(option =>
+            option.setName('tempo')
+                .setDescription('設定するテンポレベル (0.0から2.0)')
+                .setRequired(true)),
     async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "set_tempo") {
-            const tempo = interaction.options.get("tempo")?.value as number | undefined;
-            if (typeof tempo === 'number' && tempo >= 0.0 && tempo <= 2.0) {
-                voiceSettings.tempo[interaction.guildId!] = tempo;
-                await interaction.reply(`テンポを ${tempo} に設定しました。`);
-            } else {
-                await interaction.reply({ content: "無効なテンポ値です。0.0から2.0の間で設定してください。", flags: MessageFlags.Ephemeral });
-            }
+        const options = interaction.options as CommandInteractionOptionResolver;
+        const tempo = options.getNumber('tempo', true);
+        if (tempo >= 0.0 && tempo <= 2.0) {
+            
+            // テンポを設定する処理をここに記述
+            voiceSettings.tempo[interaction.guildId!] = tempo;
+            await interaction.reply(`テンポを ${tempo} に設定しました。`);
+        } else {
+            await interaction.reply({ content: 'テンポは 0.0 から 2.0 の間でなければなりません。', flags: MessageFlags.Ephemeral });
         }
     }
 };

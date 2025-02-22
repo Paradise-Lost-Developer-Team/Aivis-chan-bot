@@ -1,9 +1,10 @@
-import { Events, Interaction } from 'discord.js';
-import { client } from './index';
-import { currentSpeaker} from './TTS-Engine'; // Adjust the path as needed
-import { speakers } from './set_voiceSettings'; // Adjust the path as needed
+import { Client, Events, Interaction, StringSelectMenuInteraction } from 'discord.js';
+import { speakers } from 'set_voiceSettings'; // 適切なパスに置き換えてください
+import { currentSpeaker } from 'TTS-Engine'; // 適切なパスに置き換えてください
 
-export function handleSelectSpeaker(interaction: Interaction) {
+const client = new Client({ intents: [] }); // 適切なインテントを設定してください
+
+function handleSelectSpeaker(interaction: StringSelectMenuInteraction) {
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (!interaction.isStringSelectMenu()) return;
         
