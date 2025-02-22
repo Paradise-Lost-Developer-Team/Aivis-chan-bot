@@ -54,7 +54,7 @@ export async function createFFmpegAudioSource(path: string) {
 }
 
 export async function postAudioQuery(text: string, speaker: number) {
-    const params = new URLSearchParams({ text, speaker: speaker.toString() });
+    const params = new URLSearchParams({ text, speaker: speaker.toString() }).toString();
     try {
         const response = await fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
             method: 'POST'
@@ -82,9 +82,15 @@ export async function postSynthesis(audioQuery: any, speaker: number) {
             headers: { 'Content-Type': 'application/json' },
             body: requestBody,
         });
+        
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error in postSynthesis: ${response.statusText} - ${errorText}`);
+        }
+        
+        const audioStream = response.body;
+        if (!audioStream) {
+            throw new Error("Audio stream is null");
         }
         // Return the response body as a Readable stream for streaming processing
         return response.body;
@@ -152,6 +158,14 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
             synthesisCache.delete(cacheKey);
         }
     }
+    setInterval(() => {
+        const now = Date.now();
+        for (const [key, { timestamp }] of synthesisCache.entries()) {
+            if (now - timestamp > CACHE_TTL) {
+                synthesisCache.delete(key);
+            }
+        }
+    }, 60 * 1000); // 1分ごとにキャッシュをチェック
     
     let audioQuery = await postAudioQuery(text, speaker);
     audioQuery = adjustAudioQuery(audioQuery, guildId);
@@ -176,26 +190,28 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
     
-    if (player) {
-        player.off(AudioPlayerStatus.Idle, () => {
-            voiceClient.disconnect();
-        });
+    player.on(AudioPlayerStatus.Idle, async () => {
+        setTimeout(() => {
+            if (player.state.status === AudioPlayerStatus.Idle) {
+                voiceClient.disconnect();
+            }
+        }, 5000); // 5秒後に再度チェックして切断する
+    
 
-        while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        if (voiceClient.joinConfig.guildId !== guildId) {
-            console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
-            return;
-        }
-
-        const resource = await createFFmpegAudioSource(path);
-        player.play(resource);
-        voiceClient.subscribe(player);
-        }
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
+    if (voiceClient.joinConfig.guildId !== guildId) {
+        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+        return;
+    }
+
+    const resource = await createFFmpegAudioSource(path);
+    player.play(resource);
+    voiceClient.subscribe(player);
+    });
+}
     export const AUTO_JOIN_FILE = "auto_join_channels.json";
     export let autoJoinChannelsData: { [key: string]: any } = {};
     autoJoinChannelsData = loadAutoJoinChannels();

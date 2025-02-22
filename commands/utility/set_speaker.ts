@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
-import { getSpeakerOptions, speakers, currentSpeaker } from '../../TTS-Engine';
+import { getSpeakerOptions, speakers, currentSpeaker, loadSpeakers } from '../../TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -21,6 +21,7 @@ module.exports = {
         const options = interaction.options as CommandInteractionOptionResolver;
         const speaker = options.getNumber('speaker', true);
         if (speaker !== null) {
+            loadSpeakers();
             currentSpeaker[interaction.guildId!] = speaker;
             await interaction.reply(`話者を ${speakers[speaker]} に設定しました。`);
         } else {
