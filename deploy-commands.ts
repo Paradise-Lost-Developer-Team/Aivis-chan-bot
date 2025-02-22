@@ -1,5 +1,6 @@
 import { Routes } from 'discord-api-types/v9';
 import { REST } from '@discordjs/rest';
+import { client } from './index';
 import { clientId, TOKEN, guildId } from './config.json';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,14 +19,20 @@ export const deployCommands = async () => {
         // Grab all the command files from the commands directory you created earlier
         const commandsPath = path.join(foldersPath, folder);
         console.log(`commandsPath: ${commandsPath}`);
-        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js')); // .ts から .js に変更
+        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts')); 
         console.log(`commandFiles: ${commandFiles}`);
         // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
         for (const file of commandFiles) {
             const filePath = path.join(commandsPath, file);
             console.log(`filePath: ${filePath}`);
             try {
+                
+                console.log(`Trying to load command: ${filePath}`);
                 const command = require(filePath);
+                if ('data' in command && 'execute' in command) {
+                    client.commands.set(command.data.name, command); // ✅ コマンドを登録
+                }
+                console.log(`Successfully loaded: ${filePath}`);
                 if ('data' in command && 'execute' in command) {
                     commands.push(command.data.toJSON());
                     console.log(`Loaded command: ${command.data.name}`);
@@ -35,6 +42,7 @@ export const deployCommands = async () => {
             } catch (error) {
                 console.error(`Error loading command at ${filePath}:`, error);
             }
+            
         }
     }
 

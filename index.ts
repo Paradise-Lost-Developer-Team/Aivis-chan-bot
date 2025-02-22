@@ -14,6 +14,7 @@ interface ExtendedClient extends Client {
 }
 
 export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] }) as ExtendedClient;
+client.commands = new Collection(); // コマンド用の Collection を作成
 
 // 追加: SpeakerSelectHandler を初期化して、selectメニューコールバックを処理
 SpeakerSelectHandler(client);
