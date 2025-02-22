@@ -1,5 +1,5 @@
 import { Client } from "discord.js";
-import { currentSpeaker } from "./TTS-Engine";
+import { currentSpeaker, speakers } from "./TTS-Engine";
 
 export function SpeakerSelectHandler(client: Client) {
     client.on("interactionCreate", async interaction => {
@@ -9,17 +9,28 @@ export function SpeakerSelectHandler(client: Client) {
         const selectedValue = interaction.values[0];
         const guildId = interaction.guildId;
         if (!guildId) {
-            await interaction.reply({ content: "ギルド情報が取得できませんでした。", ephemeral: true });
+            await interaction.reply({ content: "ギルドIDが取得できませんでした。", components: [] });
             return;
         }
         // 値は "speakerName-styleName-123456" の形式と仮定し、最後の部分を話者IDとして取得
         const parts = selectedValue.split("-");
         const speakerId = parseInt(parts[parts.length - 1]);
-        if (isNaN(speakerId)) {
-            await interaction.reply({ content: "無効な話者IDです。", ephemeral: true });
-            return;
-        }
         currentSpeaker[guildId] = speakerId;
-        await interaction.reply({ content: `話者を ${selectedValue} に変更しました。`, ephemeral: true });
+        const selectedSpeaker = speakers.find(speaker => speaker.name === parts[0]);
+            if (guildId) {
+                if (selectedSpeaker) {
+                    const selectedStyle = selectedSpeaker.styles.find((style: { id: number; }) => style.id === speakerId);
+                    if (selectedStyle) {
+                        await interaction.update({ content: `話者を ${selectedSpeaker.name} - ${selectedStyle.name} に設定しました。`, components: [] });
+                        return;
+                    } else {
+                        await interaction.update({ content: "エラー: スタイルが見つかりませんでした。", components: [] });
+                        return;
+                    } 
+                } else {
+                    await interaction.update({ content: "エラー: 話者が見つかりませんでした。", components: [] });
+                    return;
+                }
+            }
     });
 }

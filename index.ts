@@ -8,6 +8,7 @@ import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対
 import { MessageCreate } from "./MessageCreate";
 import { VoiceStateUpdate } from "./VoiceStateUpdate";
 import loadCommands from './load-commands';  // 追加
+import { SpeakerSelectHandler } from './SpeakerSelectHandler';  // 追加
 
 interface ExtendedClient extends Client {
     commands: Collection<string, any>;
@@ -17,6 +18,9 @@ export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIn
 
 // 追加: コマンドコレクションを初期化し、loadCommands()から読み込む
 client.commands = loadCommands();
+
+// 追加: SpeakerSelectHandler を初期化して、selectメニューコールバックを処理
+SpeakerSelectHandler(client);
 
 const rest = new REST({ version: '9' }).setToken(TOKEN);
 
