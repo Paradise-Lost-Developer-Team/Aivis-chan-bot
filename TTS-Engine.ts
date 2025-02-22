@@ -121,9 +121,8 @@ export function getSpeakerOptions() {
     return speakers.flatMap(speaker => 
         speaker.styles.map((style: { name: string; id: { toString: () => string; }; }) => ({
             label: `${speaker.name} - ${style.name}`,
-            value: style.id.toString()  // value をシンプルな ID のみに変更
-        }))
-    );
+            value: parseInt(style.id.toString())  // Convert the value to a number
+        })));
 }
 
 export const DICTIONARY_FILE = "guild_dictionaries.json";
