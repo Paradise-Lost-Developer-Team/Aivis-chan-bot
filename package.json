@@ -6,6 +6,7 @@
     "axios": "^1.7.9",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
+    "install": "^0.13.0",
     "requests": "^0.3.0",
     "uuid": "^11.1.0"
   },
@@ -35,7 +36,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "tsc": "tsc",
+    "tsc": ".\\node_modules\\.bin\\tsc",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "prettier": "prettier --write .",
