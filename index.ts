@@ -20,7 +20,7 @@ const rest = new REST({ version: '9' }).setToken(TOKEN);
 
 MessageCreate();
 VoiceStateUpdate();
-AivisAdapter();
+new AivisAdapter();
 createFFmpegAudioSource('path/to/audio/file');
 postAudioQuery('text', 0);
 postSynthesis('audio_query', 0);

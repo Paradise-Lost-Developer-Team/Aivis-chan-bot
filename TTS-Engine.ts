@@ -11,9 +11,9 @@ export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
+const TTS_API_URL = "http://127.0.0.1:10101";
 
-export function AivisAdapter() {
-    class AivisAdapter {
+export class AivisAdapter {
         URL: string;
         speaker: number;
 
@@ -22,8 +22,8 @@ export function AivisAdapter() {
             this.speaker = 0; // 話者IDを設定
         }
     }
-    return new AivisAdapter();
-}
+
+export const aivisAdapter = new AivisAdapter();
 
 
 export async function createFFmpegAudioSource(path: string) {
@@ -50,20 +50,24 @@ export async function postSynthesis(audioQuery: any, speaker: number) {
     try {
         // 分割推論のためのパラメータを追加
         const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
-        const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
+        const response = await fetch(`${TTS_API_URL}/synthesis?${params}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(audioQuery)
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-        return await response.arrayBuffer();
+
+        const audioPath = path.join(__dirname, 'audio', `${Date.now()}.mp3`);
+        const audioBuffer = await response.arrayBuffer();
+        fs.writeFileSync(audioPath, Buffer.from(audioBuffer), 'base64');
+        return audioPath;
     } catch (error) {
-        console.error("Error in postSynthesis:", error);
-        throw error;
+        console.error('Error in postSynthesis:', error);
+        throw new Error(`Error in postSynthesis: ${(error as any).message}`);
     }
 }
 
@@ -86,7 +90,7 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     audioQuery = adjustAudioQuery(audioQuery, guildId);
     const audioContent = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
+    fs.writeFileSync(tempAudioFilePath, audioContent);
     return tempAudioFilePath;
 }
 
