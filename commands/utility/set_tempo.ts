@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageFlags, CommandInteractionOptionResolver } from 'discord.js';
-import { voiceSettings } from '../../set_voiceSettings';
+import { voiceSettings } from '../../TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()

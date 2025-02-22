@@ -1,9 +1,12 @@
-import { Events, Message } from 'discord.js';
+import { Events, Message, GatewayIntentBits, Client } from 'discord.js';
 import { voiceClients, loadAutoJoinChannels, textChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH } from './TTS-Engine'; // Adjust the import path as necessary
 import { AudioPlayerStatus, VoiceConnectionStatus } from '@discordjs/voice';
-import { client } from './index';
 
-export function MessageCreate() {
+interface ExtendedClient extends Client {
+    // Add any additional properties or methods if needed
+}
+
+export function MessageCreate(client: ExtendedClient) {
     client.on(Events.MessageCreate, async (message: Message) => {
         if (message.author.bot) {
             console.log("Message is from a bot, ignoring.");

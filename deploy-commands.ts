@@ -57,5 +57,3 @@ export const deployCommands = async () => {
         console.error(error);
     }
 };
-
-deployCommands();
