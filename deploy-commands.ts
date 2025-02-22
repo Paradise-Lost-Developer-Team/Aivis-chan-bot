@@ -42,7 +42,7 @@ export const deployCommands = async () => {
 
 // and deploy your commands!
     try {
-        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        console.log(`${commands.length}個のアプリケーション (/) コマンドの更新を開始しました。`);
 
         // The put method is used to fully refresh all commands in the guild with the current set
         const data: any = await rest.put(
@@ -51,7 +51,7 @@ export const deployCommands = async () => {
             { body: commands },
         );
 
-        console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        console.log(`${data.length}個のアプリケーション（/）コマンドを同期しました。`);
     } catch (error) {
         // And of course, make sure you catch and log any errors!
         console.error(error);
