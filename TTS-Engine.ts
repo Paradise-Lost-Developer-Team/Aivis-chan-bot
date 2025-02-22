@@ -46,7 +46,9 @@ export async function postAudioQuery(text: string, speaker: number) {
         if (!response.ok) {
             throw new Error(`Error in postAudioQuery: ${response.statusText}`);
         }
-        return await response.json();
+        const audioQuery = await response.json();
+        console.log('Received audioQuery:', audioQuery); // デバッグ用ログ
+        return audioQuery;
     } catch (error) {
         console.error("Error in postAudioQuery:", error);
         throw error;
