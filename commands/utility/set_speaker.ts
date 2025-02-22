@@ -4,13 +4,12 @@ import { getSpeakerChoices, speakers, currentSpeaker, loadSpeakers } from '../..
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('set_speaker')
-        .setDescription('話者を設定します')
-        .addStringOption((option) =>
-            option.setName('speaker')
-                .setDescription('設定する話者')
-                .setRequired(true)
-                .setChoices(getSpeakerChoices())
+        .setName("set_speaker")
+        .setDescription("スピーカーを設定する")
+        .addNumberOption(option => 
+        option.setName("speaker")
+            .setDescription("設定するスピーカーのID")
+            .setRequired(true)
         ),
     async execute(interaction: CommandInteraction) {
         loadSpeakers();
