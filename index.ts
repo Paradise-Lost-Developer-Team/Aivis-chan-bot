@@ -72,7 +72,6 @@ client.on(Events.InteractionCreate, async interaction => {
                 await interaction.reply({ content: 'このコマンドの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
             }
         }
-        console.log(`${command.data.name} コマンドを同期しました`);
     } catch (error) {
         console.error(error);
     }
