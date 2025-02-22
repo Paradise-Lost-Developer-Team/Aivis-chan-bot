@@ -13,6 +13,7 @@ module.exports = {
                 .setChoices(getSpeakerOptions())
         ),
     async execute(interaction: CommandInteraction) {
+        loadSpeakers();
         if (speakers.length === 0) {
             await interaction.reply("スピーカー情報が読み込まれていません。");
             return;
@@ -21,7 +22,6 @@ module.exports = {
         const options = interaction.options as CommandInteractionOptionResolver;
         const speaker = options.getNumber('speaker', true);
         if (speaker !== null) {
-            loadSpeakers();
             currentSpeaker[interaction.guildId!] = speaker;
             await interaction.reply(`話者を ${speakers[speaker]} に設定しました。`);
         } else {
