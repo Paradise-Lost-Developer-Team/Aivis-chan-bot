@@ -1,9 +1,12 @@
-import { EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { EmbedBuilder, CommandInteraction } from 'discord.js';
 
 module.exports = {
-    name: 'ping',
-    description: 'ボットのレイテンシをチェックします',
-    async execute(interaction: { reply: (arg0: { embeds: EmbedBuilder[]; }) => any; }, client: { ws: { ping: number; }; }) {
+    data: new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('BOTの応答時間をテストします。'),
+    async execute(interaction: CommandInteraction) {
+        const client = interaction.client;
         const latency = Math.round(client.ws.ping);
         const embed = new EmbedBuilder()
             .setTitle("Latency")

@@ -1,28 +1,24 @@
-import { MessageFlags, CommandInteraction } from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { MessageFlags, CommandInteraction, CommandInteractionOptionResolver } from 'discord.js';
 import { voiceSettings } from '../../set_voiceSettings';
 
 module.exports = {
-    data: {
-        name: "set_style_strength",
-        description: "TTSエンジンのスタイル強度を設定します",
-        options: [
-            {
-                name: "style_strength",
-                type: "NUMBER",
-                description: "設定するスタイル強度レベル (0.0から2.0)",
-                required: true
-            }
-        ]
-    },
+    data: new SlashCommandBuilder()
+        .setName('set_style_strength')
+        .setDescription('TTSエンジンのスタイル強度を設定します')
+        .addNumberOption(option =>
+            option.setName('style_strength')
+                .setDescription('設定するスタイル強度レベル (0.0から2.0)')
+                .setRequired(true)),
     async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "set_style_strength") {
-            const styleStrength = interaction.options.get("style_strength")?.value as number | undefined;
-            if (typeof styleStrength === 'number' && styleStrength >= 0.0 && styleStrength <= 2.0) {
-                voiceSettings.styleStrength[interaction.guildId!] = styleStrength;
-                await interaction.reply(`スタイル強度を ${styleStrength} に設定しました。`);
-            } else {
-                await interaction.reply({ content: "無効なスタイル強度値です。0.0から2.0の間で設定してください。", flags: MessageFlags.Ephemeral });
-            }
+        const options = interaction.options as CommandInteractionOptionResolver;
+        const styleStrength = options.getNumber('style_strength');
+
+        if (styleStrength !== null && styleStrength >= 0.0 && styleStrength <= 2.0) {
+            voiceSettings.style_strength[interaction.guildId!] = styleStrength;
+            await interaction.reply(`スタイル強度を ${styleStrength} に設定しました。`);
+        } else {
+            await interaction.reply({ content: 'スタイル強度は 0.0 から 2.0 の間でなければなりません。', flags: MessageFlags.Ephemeral });
         }
     }
 };

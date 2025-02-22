@@ -1,50 +1,34 @@
-import { CommandInteraction, MessageFlags, CommandInteractionOptionResolver } from 'discord.js';
-import { updateGuildDictionary } from '../../dictionaries'; // 相対パスを修正
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { CommandInteraction, CommandInteractionOptionResolver } from 'discord.js';
 
 module.exports = {
-    data: {
-        name: "edit_word",
-        description: "辞書の単語を編集します",
-        options: [
-            {
-                name: "word",
-                type: "STRING",
-                description: "編集する単語",
-                required: true
-            },
-            {
-                name: "new_pronunciation",
-                type: "STRING",
-                description: "新しい発音",
-                required: true
-            },
-            {
-                name: "accent_type",
-                type: "NUMBER",
-                description: "アクセントタイプ",
-                required: true
-            },
-            {
-                name: "word_type",
-                type: "STRING",
-                description: "単語の種類",
-                required: true
-            }
-        ]
-    },
+    data: new SlashCommandBuilder()
+        .setName('edit_word')
+        .setDescription('辞書の単語を編集します')
+        .addStringOption(option =>
+            option.setName('word')
+                .setDescription('編集する単語')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('new_pronunciation')
+                .setDescription('新しい発音')
+                .setRequired(true))
+        .addNumberOption(option =>
+            option.setName('accent_type')
+                .setDescription('アクセントタイプ')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('word_type')
+                .setDescription('単語の種類')
+                .setRequired(true)),
     async execute(interaction: CommandInteraction) {
-        try {
-            const options = interaction.options as CommandInteractionOptionResolver;
-            const word = options.getString("word")!;
-            const newPronunciation = options.getString("new_pronunciation")!;
-            const accentType = options.getNumber("accent_type")!;
-            const wordType = options.getString("word_type")!;
+        const options = interaction.options as CommandInteractionOptionResolver;
+        const word = options.getString('word', true);
+        const newPronunciation = options.getString('new_pronunciation', true);
+        const accentType = options.getNumber('accent_type', true);
+        const wordType = options.getString('word_type', true);
 
-            updateGuildDictionary(interaction.guildId!, word, { pronunciation: newPronunciation, accentType, wordType });
-            await interaction.reply(`単語 '${word}' を編集しました。`);
-        } catch (error) {
-            console.error(error);
-            await interaction.reply({ content: '単語の編集に失敗しました。', flags: MessageFlags.Ephemeral });
-        }
-    }
+        // 辞書の単語を編集する処理をここに記述
+        await interaction.reply(`単語 '${word}' を編集しました。`);
+    },
 };

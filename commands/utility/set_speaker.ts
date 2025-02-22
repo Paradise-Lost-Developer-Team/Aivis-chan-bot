@@ -1,9 +1,17 @@
-import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { getSpeakerOptions } from '../../set_voiceSettings'
-import { handleSelectSpeaker } from '../../speakers';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { ActionRowBuilder, StringSelectMenuBuilder, CommandInteraction, StringSelectMenuInteraction } from 'discord.js';
+import { getSpeakerOptions, speakers } from '../../set_voiceSettings'
 
-export async function handleSetSpeakerCommand(commandName: string, speakers: any[], interaction: any) {
-    if (commandName === "set_speaker") {
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('set_speaker')
+        .setDescription('話者を設定します')
+        .addStringOption(option =>
+            option.setName('speaker')
+                .setDescription('設定する話者')
+                .setRequired(true)
+                .addChoices(...getSpeakerOptions())),
+    async execute(interaction: CommandInteraction) {
         if (speakers.length === 0) {
             await interaction.reply("スピーカー情報が読み込まれていません。");
             return;
@@ -17,6 +25,5 @@ export async function handleSetSpeakerCommand(commandName: string, speakers: any
                     .addOptions(options)
             );
         await interaction.reply({ content: "話者を選択してください:", components: [row] });
-        handleSelectSpeaker(interaction);
     }
-}
+};

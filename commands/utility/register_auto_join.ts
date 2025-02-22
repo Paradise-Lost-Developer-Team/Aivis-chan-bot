@@ -1,9 +1,22 @@
-import { VoiceChannel, TextChannel } from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { VoiceChannel, TextChannel, CommandInteraction, ChannelType } from 'discord.js';
 import { loadAutoJoinChannels, saveAutoJoinChannels, autoJoinChannels } from '../../TTS-Engine';
 
 module.exports = {
-    name: "register_auto_join",
-    async execute(interaction: any) {
+    data: new SlashCommandBuilder()
+        .setName('register_auto_join')
+        .setDescription('TTSエンジンの自動参加チャンネルを登録します')
+        .addChannelOption(option =>
+            option.setName('VoiceChannel')
+                .setDescription('自動参加するチャンネル')
+                .setRequired(true)
+                .addChannelTypes(ChannelType.GuildVoice))
+        .addChannelOption(option =>
+            option.setName('TextChannel')
+                .setDescription('自動参加するチャンネル')
+                .setRequired(false)
+                .addChannelTypes(ChannelType.GuildText)),
+    async execute(interaction: CommandInteraction) {
         const voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
         const textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
 
