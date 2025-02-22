@@ -6,41 +6,41 @@ import path from 'node:path';
 
 console.log("Starting deploy-commands.ts");
 
-const commands: any[] = [];
-// Grab all the command folders from the commands directory you created earlier
-const foldersPath = path.join(__dirname, 'commands');
-console.log(`foldersPath: ${foldersPath}`);
-const commandFolders = fs.readdirSync(foldersPath);
-console.log(`commandFolders: ${commandFolders}`);
+export const deployCommands = async () => {
+    const commands: any[] = [];
+    // Grab all the command folders from the commands directory you created earlier
+    const foldersPath = path.join(__dirname, 'commands');
+    console.log(`foldersPath: ${foldersPath}`);
+    const commandFolders = fs.readdirSync(foldersPath);
+    console.log(`commandFolders: ${commandFolders}`);
 
-for (const folder of commandFolders) {
-    // Grab all the command files from the commands directory you created earlier
-    const commandsPath = path.join(foldersPath, folder);
-    console.log(`commandsPath: ${commandsPath}`);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js')); // .ts から .js に変更
-    console.log(`commandFiles: ${commandFiles}`);
-    // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
-    for (const file of commandFiles) {
-        const filePath = path.join(commandsPath, file);
-        console.log(`filePath: ${filePath}`);
-        try {
-            const command = require(filePath);
-            if ('data' in command && 'execute' in command) {
-                commands.push(command.data.toJSON());
-                console.log(`Loaded command: ${command.data.name}`);
-            } else {
-                console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+    for (const folder of commandFolders) {
+        // Grab all the command files from the commands directory you created earlier
+        const commandsPath = path.join(foldersPath, folder);
+        console.log(`commandsPath: ${commandsPath}`);
+        const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js')); // .ts から .js に変更
+        console.log(`commandFiles: ${commandFiles}`);
+        // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+        for (const file of commandFiles) {
+            const filePath = path.join(commandsPath, file);
+            console.log(`filePath: ${filePath}`);
+            try {
+                const command = require(filePath);
+                if ('data' in command && 'execute' in command) {
+                    commands.push(command.data.toJSON());
+                    console.log(`Loaded command: ${command.data.name}`);
+                } else {
+                    console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+                }
+            } catch (error) {
+                console.error(`Error loading command at ${filePath}:`, error);
             }
-        } catch (error) {
-            console.error(`Error loading command at ${filePath}:`, error);
         }
     }
-}
 
-const rest = new REST({ version: '9' }).setToken(TOKEN);
+    const rest = new REST({ version: '9' }).setToken(TOKEN);
 
 // and deploy your commands!
-export const deployCommands = async () => {
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
