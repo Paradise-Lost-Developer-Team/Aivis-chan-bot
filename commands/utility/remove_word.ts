@@ -1,10 +1,16 @@
+import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 import axios from 'axios';
 import { fetchAllUUIDs, guildDictionary, saveToDictionaryFile } from '../../dictionaries'; // Adjust the import paths as necessary
 
 module.exports = {
-    name: 'remove_word',
-    description: 'Remove a word from the dictionary',
+    data: new SlashCommandBuilder()
+        .setName('remove_word')
+        .setDescription('単語を削除します')
+        .addStringOption(option =>
+            option.setName('word')
+                .setDescription('削除する単語')
+                .setRequired(true)),
     async execute(interaction: CommandInteraction) {
         if (interaction.commandName === "remove_word") {
             const word = (interaction.options as CommandInteractionOptionResolver).getString("word")!;
