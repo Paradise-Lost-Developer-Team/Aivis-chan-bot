@@ -1,6 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
-import axios from 'axios';
 import { fetchAllUUIDs, guildDictionary, saveToDictionaryFile } from '../../dictionaries'; // Adjust the import paths as necessary
 
 module.exports = {
@@ -18,8 +17,8 @@ module.exports = {
             const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
             const removeUrl = `http://localhost:10101/user_dict_word/${uuid}`;
             if (uuid) {
-                const response = await axios.delete(removeUrl);
-                if (response.status === 200) {
+                const response = await fetch(removeUrl, { method: 'DELETE' });
+                if (response.status === 204) {
                     const guildIdStr = interaction.guildId!.toString();
                     delete guildDictionary[guildIdStr][word];
                     saveToDictionaryFile();

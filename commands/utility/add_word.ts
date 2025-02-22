@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, CommandInteractionOptionResolver } from 'discord.js';
+import { updateGuildDictionary, wordTypeChoices } from '../../dictionaries';
+import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,7 +21,8 @@ module.exports = {
         .addStringOption(option =>
             option.setName('word_type')
                 .setDescription('単語の種類')
-                .setRequired(true)),
+                .setRequired(true)
+                .setChoices(wordTypeChoices)),
     async execute(interaction: CommandInteraction) {
         const options = interaction.options as CommandInteractionOptionResolver;
         const word = options.getString('word', true);
@@ -28,7 +30,16 @@ module.exports = {
         const accentType = options.getNumber('accent_type', true);
         const wordType = options.getString('word_type', true);
 
+        const addUrl = `http://localhost:10101/user_dict_word?surface=${word}&pronunciation=${pronunciation}&accent_type=${accentType}&word_type=${wordType}`;
+        const response = await fetch(addUrl);
+
         // 辞書に単語を追加する処理をここに記述
-        await interaction.reply(`単語 '${word}' を辞書に追加しました。`);
-    },
-};
+        if (response.status === 200) {
+            const details = { pronunciation, accentType, wordType };
+            updateGuildDictionary(interaction.guildId!, word, details);
+            await interaction.reply(`単語 '${word}' の発音を '${pronunciation}', アクセント '${accentType}', 品詞 '${wordType}' で追加しました。`);
+        } else {
+                await interaction.reply({ content: '単語の追加に失敗しました。', flags: MessageFlags.Ephemeral });
+            }
+        },
+    };
