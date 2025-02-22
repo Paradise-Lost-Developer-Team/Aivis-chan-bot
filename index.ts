@@ -1,14 +1,12 @@
 import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection } from "discord.js";
 import { deployCommands } from "./deploy-commands"; // 相対パスを使用してインポート
 import { REST } from "@discordjs/rest";
-import { Routes } from "discord-api-types/v9";
 import * as fs from "fs";
 import { TOKEN } from "./config.json";
 import { AivisAdapter, loadAutoJoinChannels, voiceClients } from "./TTS-Engine"; // 相対パスを修正
 import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対パスを修正
 import { MessageCreate } from "./MessageCreate";
 import { VoiceStateUpdate } from "./VoiceStateUpdate";
-import path from 'path';
 import loadCommands from './load-commands';  // 追加
 
 interface ExtendedClient extends Client {
