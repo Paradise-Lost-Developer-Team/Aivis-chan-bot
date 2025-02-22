@@ -1,9 +1,11 @@
+import { SlashCommandBuilder } from '@discordjs/builders';
 import { EmbedBuilder, MessageFlags, CommandInteraction } from 'discord.js';
 import { guildDictionary } from '../../dictionaries'; // Adjust the import path as necessary
 
 module.exports = {
-    name: "list_words",
-    description: "辞書の単語一覧を表示します",
+    data: new SlashCommandBuilder()
+        .setName('list_words')
+        .setDescription('全ての登録されている単語を表示します'),
     async execute(interaction: CommandInteraction) {
         const guildId = interaction.guildId!.toString();
         const words = guildDictionary[guildId] || {};
