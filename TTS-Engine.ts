@@ -121,7 +121,7 @@ export function getSpeakerOptions() {
     return speakers.flatMap(speaker => 
         speaker.styles.map((style: { name: string; id: { toString: () => string; }; }) => ({
             label: `${speaker.name} - ${style.name}`,
-            value: `${speaker.name}-${style.name}-${style.id.toString()}`
+            value: style.id.toString()  // value をシンプルな ID のみに変更
         }))
     );
 }
