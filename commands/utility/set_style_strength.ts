@@ -1,5 +1,5 @@
 import { MessageFlags, CommandInteraction } from 'discord.js';
-import { voiceSettings } from 'set_voiceSettings';
+import { voiceSettings } from '../../set_voiceSettings';
 
 module.exports = {
     data: {

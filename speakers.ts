@@ -1,7 +1,7 @@
 import { Events, Interaction } from 'discord.js';
-import { client } from 'index';
-import { currentSpeaker} from 'TTS-Engine'; // Adjust the path as needed
-import { speakers } from 'set_voiceSettings'; // Adjust the path as needed
+import { client } from './index';
+import { currentSpeaker} from './TTS-Engine'; // Adjust the path as needed
+import { speakers } from './set_voiceSettings'; // Adjust the path as needed
 
 export function handleSelectSpeaker(interaction: Interaction) {
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {

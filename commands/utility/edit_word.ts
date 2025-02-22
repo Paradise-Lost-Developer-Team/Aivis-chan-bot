@@ -1,33 +1,50 @@
-import axios from 'axios';
-import { CommandInteractionOptionResolver, MessageFlags, CommandInteraction } from 'discord.js';
-import { fetchAllUUIDs, updateGuildDictionary } from 'dictionaries';
+import { CommandInteraction, MessageFlags, CommandInteractionOptionResolver } from 'discord.js';
+import { updateGuildDictionary } from '../../dictionaries'; // 相対パスを修正
 
 module.exports = {
-    name: 'edit_word',
-    description: 'Edit a word in the dictionary',
-    async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "edit_word") {
-            const word = (interaction.options as CommandInteractionOptionResolver).getString("word")!;
-            const newPronunciation = (interaction.options as CommandInteractionOptionResolver).getString("new_pronunciation")!;
-            const accentType = (interaction.options as CommandInteractionOptionResolver).getNumber("accent_type")!;
-            const wordType = (interaction.options as CommandInteractionOptionResolver).getString("word_type")!;
-
-            const uuidDict = await fetchAllUUIDs();
-            const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
-            const editUrl = `http://localhost:10101/user_dict_word/${uuid}?surface=${word}&pronunciation=${newPronunciation}&accent_type=${accentType}&word_type=${wordType}`;
-
-            if (uuid) {
-                const response = await axios.put(editUrl);
-                if (response.status === 204) {
-                    const details = { pronunciation: newPronunciation, accentType, wordType, uuid };
-                    updateGuildDictionary(interaction.guildId!, word, details);
-                    await interaction.reply(`単語 '${word}' の発音を '${newPronunciation}', アクセント '${accentType}', 品詞 '${wordType}' に編集しました。`);
-                } else {
-                    await interaction.reply({ content: `単語 '${word}' の編集に失敗しました。`, flags: MessageFlags.Ephemeral });
-                }
-            } else {
-                await interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: MessageFlags.Ephemeral });
+    data: {
+        name: "edit_word",
+        description: "辞書の単語を編集します",
+        options: [
+            {
+                name: "word",
+                type: "STRING",
+                description: "編集する単語",
+                required: true
+            },
+            {
+                name: "new_pronunciation",
+                type: "STRING",
+                description: "新しい発音",
+                required: true
+            },
+            {
+                name: "accent_type",
+                type: "NUMBER",
+                description: "アクセントタイプ",
+                required: true
+            },
+            {
+                name: "word_type",
+                type: "STRING",
+                description: "単語の種類",
+                required: true
             }
+        ]
+    },
+    async execute(interaction: CommandInteraction) {
+        try {
+            const options = interaction.options as CommandInteractionOptionResolver;
+            const word = options.getString("word")!;
+            const newPronunciation = options.getString("new_pronunciation")!;
+            const accentType = options.getNumber("accent_type")!;
+            const wordType = options.getString("word_type")!;
+
+            updateGuildDictionary(interaction.guildId!, word, { pronunciation: newPronunciation, accentType, wordType });
+            await interaction.reply(`単語 '${word}' を編集しました。`);
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: '単語の編集に失敗しました。', flags: MessageFlags.Ephemeral });
         }
     }
 };

@@ -1,6 +1,6 @@
 import { joinVoiceChannel } from '@discordjs/voice';
 import { VoiceChannel, TextChannel } from 'discord.js';
-import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from 'TTS-Engine';
+import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from '../../TTS-Engine';
 
 
 

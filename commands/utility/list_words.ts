@@ -1,5 +1,5 @@
 import { EmbedBuilder, MessageFlags, CommandInteraction } from 'discord.js';
-import { guildDictionary } from 'dictionaries'; // Adjust the import path as necessary
+import { guildDictionary } from '../../dictionaries'; // Adjust the import path as necessary
 
 module.exports = {
     name: "list_words",

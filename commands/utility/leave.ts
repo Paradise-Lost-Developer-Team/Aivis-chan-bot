@@ -1,5 +1,5 @@
 import { CommandInteraction } from 'discord.js';
-import { voiceClients } from 'TTS-Engine'; // Adjust the path as necessary
+import { voiceClients } from '../../TTS-Engine'; // Adjust the path as necessary
 
 export async function LeaveCommand(interaction: CommandInteraction) {
     const commandName = interaction.commandName;

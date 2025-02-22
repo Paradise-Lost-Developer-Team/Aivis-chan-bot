@@ -1,8 +1,7 @@
-import { Client, Events, Message } from 'discord.js';
+import { Events, Message } from 'discord.js';
 import { voiceClients, loadAutoJoinChannels, textChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH } from './TTS-Engine'; // Adjust the import path as necessary
 import { AudioPlayerStatus, VoiceConnectionStatus } from '@discordjs/voice';
-
-const client = new Client({ intents: ['Guilds', 'GuildMessages', 'GuildVoiceStates'] });
+import { client } from './index';
 
 export function MessageCreate() {
     client.on(Events.MessageCreate, async (message: Message) => {
