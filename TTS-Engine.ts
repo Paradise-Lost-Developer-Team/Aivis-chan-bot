@@ -5,8 +5,14 @@ import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
 import { adjustAudioQuery } from "./set_voiceSettings";
-import axios, { head } from "axios";
-import { method } from "lodash";
+
+
+export function getPlayer(guildId: string): AudioPlayer {
+    if (!players[guildId]) {
+        players[guildId] = new AudioPlayer();
+    }
+    return players[guildId];
+}
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -37,7 +43,7 @@ export async function postAudioQuery(text: string, speaker: number) {
         const response = await fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
             method: 'POST'
         });
-        if (response.status !== 200) {
+        if (!response.ok) {
             throw new Error(`Error in postAudioQuery: ${response.statusText}`);
         }
         return await response.json();
@@ -47,21 +53,22 @@ export async function postAudioQuery(text: string, speaker: number) {
     }
 }
 
-export async function postSynthesis(audioQuery: any, speaker: number){
+export async function postSynthesis(audioQuery: any, speaker: number) {
     try {
         // 分割推論を追加
-        const params = new URLSearchParams({speaker: speaker.toString(), enable_interrogative_upspeak: "true"});
-        const response = await axios.post(`http://127.0.0.1:10101/synthesis?${params}`, {
+        const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
+        const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify(audioQuery)
         });
 
-        if (response.status !== 200) {
+        if (!response.ok) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-        return response.data as string;
+        return await response.arrayBuffer();
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
@@ -85,18 +92,11 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     }
     let audioQuery = await postAudioQuery(text, speaker);
     audioQuery = adjustAudioQuery(audioQuery, guildId);
-    const audioContent: string = await postSynthesis(audioQuery, speaker);
+    const audioContent = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
+    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
     return tempAudioFilePath;
 }
-
-export function getPlayer(guildId: string): AudioPlayer | undefined {
-    // Implement the logic to get the player for the given guildId
-    // For now, return undefined to avoid errors
-    return undefined;
-}
-
 
 export function generateUUID() {
     throw new Error("Function not implemented.");
