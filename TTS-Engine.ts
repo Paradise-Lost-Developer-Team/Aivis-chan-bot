@@ -5,7 +5,7 @@ import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
 import { adjustAudioQuery } from "./set_voiceSettings";
-import axios from "axios";
+import axios, { head } from "axios";
 import { method } from "lodash";
 
 export const textChannels: { [key: string]: TextChannel } = {};
@@ -37,7 +37,7 @@ export async function postAudioQuery(text: string, speaker: number) {
         const response = await fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
             method: 'POST'
         });
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error(`Error in postAudioQuery: ${response.statusText}`);
         }
         return await response.json();
@@ -47,30 +47,24 @@ export async function postAudioQuery(text: string, speaker: number) {
     }
 }
 
-export async function postSynthesis(text: string, speaker: number): Promise<string> {
+export async function postSynthesis(audioQuery: any, speaker: number){
     try {
         // 分割推論を追加
-        const params = new URLSearchParams({ text, speaker: speaker.toString() });
+        const params = new URLSearchParams({speaker: speaker.toString(), enable_interrogative_upspeak: "true"});
         const response = await axios.post(`http://127.0.0.1:10101/synthesis?${params}`, {
             method: 'POST',
-            data: { text, speaker: speaker.toString() }
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         if (response.status !== 200) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-
-        const audioPath = path.join(__dirname, 'audio', `${Date.now()}.mp3`);
-        const audioContent = (response.data as { audioContent: string }).audioContent;
-        fs.writeFileSync(audioPath, audioContent, 'base64');
-        return audioPath;
+        return response.data as string;
     } catch (error) {
-        console.error('Error in postSynthesis:', error);
-        if (error instanceof Error) {
-            throw new Error(`Error in postSynthesis: ${error.message}`);
-        } else {
-            throw new Error('Unknown error in postSynthesis');
-        }
+        console.error("Error in postSynthesis:", error);
+        throw error;
     }
 }
 
@@ -91,9 +85,9 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     }
     let audioQuery = await postAudioQuery(text, speaker);
     audioQuery = adjustAudioQuery(audioQuery, guildId);
-    const audioContent = await postSynthesis(audioQuery, speaker);
+    const audioContent: string = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, audioContent);
+    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
     return tempAudioFilePath;
 }
 
