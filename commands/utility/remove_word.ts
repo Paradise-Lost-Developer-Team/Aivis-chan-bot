@@ -1,6 +1,6 @@
 import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 import axios from 'axios';
-import { fetchAllUUIDs, guildDictionary, saveToDictionaryFile } from 'dictionaries'; // Adjust the import paths as necessary
+import { fetchAllUUIDs, guildDictionary, saveToDictionaryFile } from '../../dictionaries'; // Adjust the import paths as necessary
 
 module.exports = {
     name: 'remove_word',

@@ -1,5 +1,5 @@
-import { CommandInteraction, MessageFlags } from 'discord.js';
-import { voiceSettings } from 'set_voiceSettings'; // Adjust the import path as necessary
+import { CommandInteraction, MessageFlags, CommandInteractionOptionResolver } from 'discord.js';
+import { voiceSettings } from '../../set_voiceSettings'; // 相対パスを修正
 
 module.exports = {
     data: {
@@ -13,16 +13,13 @@ module.exports = {
                 required: true
             }
         ]
-    }, 
+    },
     async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "set_pitch") {
-            const pitch = interaction.options.get("pitch")?.value as number;
-            if (pitch !== null && pitch >= -1.0 && pitch <= 1.0) {
-                voiceSettings.pitch[interaction.guildId!] = pitch;
-                await interaction.reply(`音高を ${pitch} に設定しました。`);
-            } else {
-                await interaction.reply({ content: "無効な音高値です。-1.0から1.0の間で設定してください。", flags: MessageFlags.Ephemeral });
-            }
+        const pitch = (interaction.options as CommandInteractionOptionResolver).getNumber("pitch", true);
+        if (pitch >= -1.0 && pitch <= 1.0) {
+            voiceSettings.pitch[interaction.guildId!] = pitch;
+        } else {
+            await interaction.reply({ content: "音高は -1.0 から 1.0 の間でなければなりません。", flags: MessageFlags.Ephemeral });
         }
     }
 };

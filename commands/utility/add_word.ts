@@ -1,27 +1,50 @@
-import axios from 'axios';
-import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
-import { updateGuildDictionary } from 'dictionaries';
+import { CommandInteraction, MessageFlags, CommandInteractionOptionResolver } from 'discord.js';
+import { updateGuildDictionary } from '../../dictionaries'; // 相対パスを修正
 
 module.exports = {
-    name: 'add_word',
-    description: 'Add a word to the dictionary',
-    async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "add_word") {
-            const word = (interaction.options as CommandInteractionOptionResolver).getString("word")!;
-            const pronunciation = (interaction.options as CommandInteractionOptionResolver).getString("pronunciation")!;
-            const accentType = (interaction.options as CommandInteractionOptionResolver).getNumber("accent_type")!;
-            const wordType = (interaction.options as CommandInteractionOptionResolver).getString("word_type")!;
-
-            const addUrl = `http://localhost:10101/user_dict_word?surface=${word}&pronunciation=${pronunciation}&accent_type=${accentType}&word_type=${wordType}`;
-            const response = await axios.post(addUrl);
-
-            if (response.status === 200) {
-                const details = { pronunciation, accentType, wordType };
-                updateGuildDictionary(interaction.guildId!, word, details);
-                await interaction.reply(`単語 '${word}' の発音を '${pronunciation}', アクセント '${accentType}', 品詞 '${wordType}' に登録しました。`);
-            } else {
-                await interaction.reply({ content: `単語 '${word}' の登録に失敗しました。`, flags: MessageFlags.Ephemeral });
+    data: {
+        name: "add_word",
+        description: "辞書に単語を追加します",
+        options: [
+            {
+                name: "word",
+                type: "STRING",
+                description: "追加する単語",
+                required: true
+            },
+            {
+                name: "pronunciation",
+                type: "STRING",
+                description: "発音",
+                required: true
+            },
+            {
+                name: "accent_type",
+                type: "NUMBER",
+                description: "アクセントタイプ",
+                required: true
+            },
+            {
+                name: "word_type",
+                type: "STRING",
+                description: "単語の種類",
+                required: true
             }
+        ]
+    },
+    async execute(interaction: CommandInteraction) {
+        try {
+            const options = interaction.options as CommandInteractionOptionResolver;
+            const word = options.getString("word")!;
+            const pronunciation = options.getString("pronunciation")!;
+            const accentType = options.getNumber("accent_type")!;
+            const wordType = options.getString("word_type")!;
+
+            updateGuildDictionary(interaction.guildId!, word, { pronunciation, accentType, wordType });
+            await interaction.reply(`単語 '${word}' を辞書に追加しました。`);
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: `単語の追加に失敗しました。`, flags: MessageFlags.Ephemeral });
         }
     }
 };

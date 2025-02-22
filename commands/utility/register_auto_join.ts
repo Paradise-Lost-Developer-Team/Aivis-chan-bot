@@ -1,5 +1,5 @@
 import { VoiceChannel, TextChannel } from 'discord.js';
-import { loadAutoJoinChannels, saveAutoJoinChannels, autoJoinChannels } from 'TTS-Engine';
+import { loadAutoJoinChannels, saveAutoJoinChannels, autoJoinChannels } from '../../TTS-Engine';
 
 module.exports = {
     name: "register_auto_join",

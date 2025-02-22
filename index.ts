@@ -1,11 +1,11 @@
 import { Client, Events, GatewayIntentBits, ActivityType, Interaction, MessageFlags, Collection } from "discord.js";
-import { deployCommands } from "deploy-commands";
+import { deployCommands } from "./deploy-commands"; // 相対パスを使用してインポート
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import * as fs from "fs";
 import { TOKEN } from "./config.json";
-import { AivisAdapter, postAudioQuery, postSynthesis, uuidv4, createFFmpegAudioSource, loadAutoJoinChannels} from "TTS-Engine";
-import { ServerStatus, fetchUUIDsPeriodically } from "dictionaries";
+import { AivisAdapter, postAudioQuery, postSynthesis, createFFmpegAudioSource, loadAutoJoinChannels } from "./TTS-Engine"; // 相対パスを修正
+import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対パスを修正
 import { MessageCreate } from "./MessageCreate";
 import { VoiceStateUpdate } from "./VoiceStateUpdate";
 
@@ -15,18 +15,17 @@ interface ExtendedClient extends Client {
 
 export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] }) as ExtendedClient;
 
+const rest = new REST({ version: '9' }).setToken(TOKEN);
+
+
 MessageCreate();
 VoiceStateUpdate();
 AivisAdapter();
 createFFmpegAudioSource('path/to/audio/file');
 postAudioQuery('text', 0);
 postSynthesis('audio_query', 0);
-uuidv4();
-deployCommands();
-
-const rest = new REST({ version: '9' }).setToken(TOKEN);
-
 client.once(Events.ClientReady, async () => {
+    await deployCommands();
     console.log("起動完了");
     client.user!.setActivity("起動中…", { type: ActivityType.Playing });
     setInterval(async () => {
@@ -86,4 +85,4 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-client.login(process.env.TOKEN);
+client.login(TOKEN);

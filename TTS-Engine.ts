@@ -1,10 +1,10 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
-import { Readable } from "stream";
+import { v4 as uuidv4 } from "uuid";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
-import { adjustAudioQuery } from "set_voiceSettings";
+import { adjustAudioQuery } from "./set_voiceSettings";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -97,7 +97,7 @@ export function getPlayer(guildId: string): AudioPlayer | undefined {
 }
 
 
-export function uuidv4() {
+export function generateUUID() {
     throw new Error("Function not implemented.");
 }
 

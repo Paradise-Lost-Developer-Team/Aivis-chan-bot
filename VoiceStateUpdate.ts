@@ -1,9 +1,8 @@
-import { Client, Events, TextChannel } from 'discord.js';
+import { Events, TextChannel } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
 import { joinVoiceChannel } from '@discordjs/voice';
 import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, textChannels, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
-
-const client = new Client({ intents: [ 'Guilds', 'GuildVoiceStates' ] }); // Add necessary intents
+import { client } from './index';
 
 export function VoiceStateUpdate() {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
