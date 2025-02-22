@@ -27,6 +27,7 @@ client.once(Events.ClientReady, async () => {
     await MessageCreate(client); // 非同期関数として呼び出す
     await VoiceStateUpdate(client); // 非同期関数として呼び出す
     console.log("起動完了");
+    console.log(client.commands);
     client.user!.setActivity("起動中…", { type: ActivityType.Playing });
     setInterval(async () => {
         const joinServerCount = client.guilds.cache.size;
