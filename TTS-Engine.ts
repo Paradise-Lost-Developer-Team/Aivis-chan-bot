@@ -191,29 +191,30 @@ export function generateUUID() {
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
-    
-    player.on(AudioPlayerStatus.Idle, async () => {
-        setTimeout(() => {
-            if (player.state.status === AudioPlayerStatus.Idle) {
-                voiceClient.disconnect();
-            }
-        }, 5000); // 5秒後に再度チェックして切断する
-    
 
-    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+    if (!player) return;
 
-    if (voiceClient.joinConfig.guildId !== guildId) {
-        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+    // 音声終了時の処理を修正
+    player.off(AudioPlayerStatus.Idle, () => {
+        console.log("Audio finished playing, disconnecting...");
+        if (voiceClients[guildId]) {
+            voiceClients[guildId].destroy();
+            delete voiceClients[guildId];
+        }
+    });
+
+    // すでに再生中なら return
+    if (player.state.status === AudioPlayerStatus.Playing) {
+        console.log("Already playing audio, skipping...");
         return;
     }
 
+    // 再生用のリソース作成
     const resource = await createFFmpegAudioSource(path);
     player.play(resource);
     voiceClient.subscribe(player);
-    });
 }
+
     export const AUTO_JOIN_FILE = "auto_join_channels.json";
     export let autoJoinChannelsData: { [key: string]: any } = {};
     autoJoinChannelsData = loadAutoJoinChannels();
