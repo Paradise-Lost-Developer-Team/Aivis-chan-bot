@@ -17,8 +17,6 @@ client.commands = new Collection(); // コマンド用の Collection を作成
 
 const rest = new REST({ version: '9' }).setToken(TOKEN);
 
-new AivisAdapter(); // AivisAdapterのインスタンスを生成
-
 client.once(Events.ClientReady, async () => {
     await deployCommands();
     await MessageCreate(client); // 非同期関数として呼び出す

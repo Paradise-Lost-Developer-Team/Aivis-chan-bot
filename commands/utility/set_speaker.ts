@@ -1,8 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, CommandInteraction, StringSelectMenuBuilder, Interaction, Events } from 'discord.js';
-import { speakers } from '../../TTS-Engine';
 import { client } from '../../index';
-import { currentSpeaker, getSpeakerOptions } from '../../TTS-Engine';
+import { currentSpeaker, getSpeakerOptions, speakers } from '../../TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,7 +41,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.guildId) {
             currentSpeaker[interaction.guildId] = parseInt(selectedSpeakerId);
             console.log(`Current speaker for guild ${interaction.guildId}: ${currentSpeaker[interaction.guildId]}`); // デバッグ用ログ
-            const selectedSpeaker = speakers.find(speaker => speaker.name === selectedSpeakerName);
+            const selectedSpeaker = speakers.find((speaker: { name: string; }) => speaker.name === selectedSpeakerName);
             if (selectedSpeaker) {
                 const selectedStyle = selectedSpeaker.styles.find((style: { id: number; }) => style.id === parseInt(selectedSpeakerId));
                 if (selectedStyle) {
