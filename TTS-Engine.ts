@@ -1,26 +1,39 @@
 import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
-import { v4 as uuidv4 } from "uuid";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
-import { adjustAudioQuery } from "./set_voiceSettings";
-
-
-export function getPlayer(guildId: string): AudioPlayer {
-    if (!players[guildId]) {
-        players[guildId] = new AudioPlayer();
-    }
-    return players[guildId];
-}
+import { adjustAudioQuery } from "set_voiceSettings";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
+export const speakers = loadSpeakers();
+export const adapter = AivisAdapter();
 
-export class AivisAdapter {
+export const SPEAKERS_FILE = "speakers.json";
+export function loadSpeakers() {
+    try {
+        const data = fs.readFileSync(SPEAKERS_FILE, "utf-8");
+        return JSON.parse(data);
+    } catch (error) {
+        return [];
+    }
+}
+
+export const voiceSettings: { [key: string]: any } = {
+    volume: {},
+    pitch: {},
+    rate: {},
+    speed: {},
+    style_strength: {},
+    tempo: {}
+};
+
+export function AivisAdapter() {
+    class AivisAdapter {
         URL: string;
         speaker: number;
 
@@ -29,8 +42,8 @@ export class AivisAdapter {
             this.speaker = 0; // 話者IDを設定
         }
     }
-
-export const aivisAdapter = new AivisAdapter();
+    return new AivisAdapter();
+}
 
 
 export async function createFFmpegAudioSource(path: string) {
@@ -46,9 +59,7 @@ export async function postAudioQuery(text: string, speaker: number) {
         if (!response.ok) {
             throw new Error(`Error in postAudioQuery: ${response.statusText}`);
         }
-        const audioQuery = await response.json();
-        console.log('Received audioQuery:', audioQuery); // デバッグ用ログ
-        return audioQuery;
+        return await response.json();
     } catch (error) {
         console.error("Error in postAudioQuery:", error);
         throw error;
@@ -57,12 +68,8 @@ export async function postAudioQuery(text: string, speaker: number) {
 
 export async function postSynthesis(audioQuery: any, speaker: number) {
     try {
-        // 分割推論を追加
+        // 分割推論のためのパラメータを追加
         const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
-        const requestBody = JSON.stringify(audioQuery);
-        console.log('Sending request to synthesis API with params:', params.toString());
-        console.log('Request body:', requestBody);
-
         const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
             method: 'POST',
             headers: {
@@ -70,10 +77,8 @@ export async function postSynthesis(audioQuery: any, speaker: number) {
             },
             body: JSON.stringify(audioQuery)
         });
-
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error in postSynthesis: ${response.statusText} - ${errorText}`);
+            throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
         return await response.arrayBuffer();
     } catch (error) {
@@ -101,11 +106,18 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     audioQuery = adjustAudioQuery(audioQuery, guildId);
     const audioContent = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent));
+    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
     return tempAudioFilePath;
 }
 
-export function generateUUID() {
+export function getPlayer(guildId: string): AudioPlayer | undefined {
+    // Implement the logic to get the player for the given guildId
+    // For now, return undefined to avoid errors
+    return undefined;
+}
+
+
+export function uuidv4() {
     throw new Error("Function not implemented.");
 }
 
@@ -148,3 +160,13 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     export function saveAutoJoinChannels() {
         fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
     }
+
+    export function getSpeakerOptions() {
+        const options = [];
+        for (const speaker of speakers) {
+            for (const style of speaker.styles) {
+                options.push({ label: `${speaker.name} - ${style.name}`, value: `${speaker.name}-${style.name}-${style.id}` });
+            }
+        }
+        return options;
+    }   
