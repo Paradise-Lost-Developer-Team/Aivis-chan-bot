@@ -42,7 +42,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         if (interaction.guildId) {
             currentSpeaker[interaction.guildId] = parseInt(selectedSpeakerId);
             console.log(`Current speaker for guild ${interaction.guildId}: ${currentSpeaker[interaction.guildId]}`); // デバッグ用ログ
-            const selectedSpeaker = speakers.find(speaker => speaker.name === selectedSpeakerName);
+            const selectedSpeaker = speakers.find((speaker: { name: string; }) => speaker.name === selectedSpeakerName);
             if (selectedSpeaker) {
                 const selectedStyle = selectedSpeaker.styles.find((style: { id: number; }) => style.id === parseInt(selectedSpeakerId));
                 if (selectedStyle) {
