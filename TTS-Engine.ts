@@ -3,7 +3,6 @@ import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
-import { adjustAudioQuery } from "set_voiceSettings";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -96,6 +95,16 @@ try {
     guildDictionary = {};
 }
 
+export function adjustAudioQuery(audioQuery: any, guildId: string) {
+    audioQuery["volumeScale"] = voiceSettings["volume"]?.[guildId] || 0.2;
+    audioQuery["pitchScale"] = voiceSettings["pitch"]?.[guildId] || 0.0;
+    audioQuery["rateScale"] = voiceSettings["rate"]?.[guildId] || 1.0;
+    audioQuery["speedScale"] = voiceSettings["speed"]?.[guildId] || 1.0;
+    audioQuery["styleStrength"] = voiceSettings["style_strength"]?.[guildId] || 1.0;
+    audioQuery["tempoScale"] = voiceSettings["tempo"]?.[guildId] || 1.0;
+    return audioQuery;
+}
+
 export const MAX_TEXT_LENGTH = 200;
 
 export async function speakVoice(text: string, speaker: number, guildId: string) {
@@ -169,4 +178,4 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
             }
         }
         return options;
-    }   
+    }
