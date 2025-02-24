@@ -21,6 +21,7 @@ export function MessageCreate(client: ExtendedClient) {
             console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
             console.log(`joinChannelsData = ${JSON.stringify(joinChannelsData)}`);
     
+<<<<<<< HEAD
             // 変更箇所：auto join 設定があれば、設定されたテキストチャンネル以外は処理しない
             if (autoJoinChannelsData[guildId]?.textChannelId) {
                 if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
@@ -33,8 +34,39 @@ export function MessageCreate(client: ExtendedClient) {
                     return;
                 }
             } else {
+=======
+            // 優先順位：join_channels.json の情報があればそちらを使用、それ以外は auto join 設定を使用
+            let configuredTextChannelId: string | undefined;
+            if (joinChannelsData[guildId]?.textChannelId) {
+                configuredTextChannelId = joinChannelsData[guildId].textChannelId;
+            } else if (autoJoinChannelsData[guildId]?.textChannelId) {
+                configuredTextChannelId = autoJoinChannelsData[guildId].textChannelId;
+            }
+    
+            if (!configuredTextChannelId) {
+>>>>>>> fd3375edd2d6295cbd62c04be3fc0e513deaf2a6
                 console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
                 return;
+            }
+            if (message.channel.id !== configuredTextChannelId) {
+                console.log(`Message is not in the configured text channel (${configuredTextChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
+                return;
+            }
+    
+            // voiceClientが未接続の場合、自動入室設定があれば接続試行
+            if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+                const guildAutoJoin = autoJoinChannelsData[guildId];
+                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
+                    console.log(`Voice client is not connected. Auto joining voice channel ${guildAutoJoin.voiceChannelId}.`);
+                    voiceClient = joinVoiceChannel({
+                        channelId: guildAutoJoin.voiceChannelId,
+                        guildId: guildId,
+                        adapterCreator: message.guild!.voiceAdapterCreator as any
+                    });
+                    voiceClients[guildId] = voiceClient;
+                } else {
+                    console.log(`No auto join configuration for guild ${guildId}. Proceeding with current channel.`);
+                }
             }
     
             // voiceClientが未接続の場合、自動入室設定があれば接続試行
