@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel, VoiceConnection } from '@discordjs/voice';
-import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
-import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from '../../TTS-Engine';
+import { joinVoiceChannel } from '@discordjs/voice';
+import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
+import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,11 +18,6 @@ module.exports = {
                 .setRequired(false)
                 .addChannelTypes(ChannelType.GuildText)),
     async execute(interaction: CommandInteraction) {
-        // deferReply で必ずインタラクションを保留状態にする
-        if (!interaction.deferred) {
-            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-        }
-
         let voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
         let textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
 
@@ -32,7 +27,7 @@ module.exports = {
             if (member?.voice.channel) {
                 voiceChannel = member.voice.channel as VoiceChannel;
             } else {
-                await interaction.editReply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
+                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
                 return;
             }
         }
@@ -56,20 +51,20 @@ module.exports = {
                 adapterCreator: interaction.guild!.voiceAdapterCreator as any
             });
             voiceClients[guildId] = voiceClient;
-            await interaction.editReply(`ボイスチャンネル ${voiceChannel.name} に接続しました。`);
-            
-            // 接続の安定化のために短いディレイを追加
-            await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Bot接続時のアナウンス
+            // 新規：取得したチャネル情報を join_channels.json に保存
+            updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+
+            await interaction.reply(`${voiceChannel.name} に接続しました。`);
+            loadJoinChannels();
+
+            // Botが接続した際のアナウンス
             const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient as VoiceConnection, path, guildId, interaction);
+            await play_audio(voiceClient, path, guildId, interaction);
         } catch (error) {
             console.error(error);
-            if (interaction.deferred || interaction.replied) {
-                await interaction.followUp({ content: 'エラーが発生しました。', flags: MessageFlags.Ephemeral });
-            } else {
-                await interaction.reply({ content: 'エラーが発生しました。', flags: MessageFlags.Ephemeral });
+            if (!interaction.replied) {
+                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
             }
         }
     }
