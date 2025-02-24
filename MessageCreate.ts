@@ -37,6 +37,20 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
     
+            // voiceClient が "Disconnected" の場合は再接続を試みる
+            if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Disconnected) {
+                console.log("Voice client is in Disconnected state. Trying to rejoin...");
+                const guildAutoJoin = autoJoinChannelsData[guildId];
+                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
+                    voiceClient = joinVoiceChannel({
+                        channelId: guildAutoJoin.voiceChannelId,
+                        guildId: guildId,
+                        adapterCreator: message.guild!.voiceAdapterCreator as any
+                    });
+                    voiceClients[guildId] = voiceClient;
+                }
+            }
+    
             let messageContent = message.content;
     
             // メッセージ内容の加工
