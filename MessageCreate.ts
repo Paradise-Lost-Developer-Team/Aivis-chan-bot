@@ -21,15 +21,15 @@ export function MessageCreate(client: ExtendedClient) {
             console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
             console.log(`joinChannelsData = ${JSON.stringify(joinChannelsData)}`);
     
-            // 変更箇所：auto join 設定があれば、設定されたテキストチャンネル以外は処理しない
-            if (autoJoinChannelsData[guildId]?.textChannelId) {
-                if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
-                    console.log(`Message is not in the configured text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
+            // ここを変更してjoinChannelsDataを先にチェックし、無い場合のみautoJoinChannelsDataを使用
+            if (joinChannelsData[guildId]?.textChannelId) {
+                if (message.channel.id !== joinChannelsData[guildId].textChannelId) {
+                    console.log(`Message is not in the joinChannelsData text channel (${joinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
                     return;
                 }
-            } else if (joinChannelsData[guildId]?.textChannelId) {
-                if (message.channel.id !== joinChannelsData[guildId].textChannelId) {
-                    console.log(`Message is not in the configured text channel (${joinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
+            } else if (autoJoinChannelsData[guildId]?.textChannelId) {
+                if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
+                    console.log(`Message is not in the autoJoinChannelsData text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
                     return;
                 }
             } else {
