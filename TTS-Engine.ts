@@ -3,6 +3,7 @@ import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
+import { randomUUID } from "crypto";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -10,7 +11,6 @@ export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 export const speakers = loadSpeakers();
-export const adapter = AivisAdapter();
 
 export const SPEAKERS_FILE = "speakers.json";
 export function loadSpeakers() {
@@ -127,11 +127,11 @@ export function getPlayer(guildId: string): AudioPlayer {
 }
 
 export function uuidv4(): string {
-    // Node.js 18以降であればcrypto.randomUUID()が使用可能
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-        return crypto.randomUUID();
+    // Node.js の randomUUID が利用可能な場合はそれを使用
+    if (typeof randomUUID === "function") {
+        return randomUUID();
     }
-    // フォールバック実装
+    // 利用できない場合は簡易実装
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -139,7 +139,7 @@ export function uuidv4(): string {
     });
 }
 
-export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
+export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
 
@@ -165,8 +165,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
 
     const resource = await createFFmpegAudioSource(path);
     player.play(resource);
-    voiceClient.subscribe(player);
-}
+    voiceClient.subscribe(player);}
 
 export const AUTO_JOIN_FILE = "auto_join_channels.json";
 let autoJoinChannelsData: { [key: string]: any } = {};
