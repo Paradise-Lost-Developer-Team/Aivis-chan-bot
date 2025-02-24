@@ -1,6 +1,6 @@
-import { Events, Message, GatewayIntentBits, Client } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, textChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH } from './TTS-Engine'; // Adjust the import path as necessary
-import { AudioPlayerStatus, VoiceConnectionStatus } from '@discordjs/voice';
+import { Events, Message, Client } from 'discord.js';
+import { voiceClients, loadAutoJoinChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
+import { AudioPlayerStatus, VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
@@ -15,16 +15,42 @@ export function MessageCreate(client: ExtendedClient) {
     
         try {
             const guildId = message.guildId!;
-            const voiceClient = voiceClients[guildId];
-    
-            // JSONから自動入室チャンネルの設定を読み込む
+            let voiceClient = voiceClients[guildId];
             const autoJoinChannelsData = loadAutoJoinChannels();
+            const joinChannelsData = loadJoinChannels();
             console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
+            console.log(`joinChannelsData = ${JSON.stringify(joinChannelsData)}`);
     
-            // BOTが監視しているテキストチャンネルかどうかを確認
-            if (message.channel.id !== autoJoinChannelsData[guildId]?.textChannelId && message.channel.id !== textChannels[guildId]?.id) {
-                console.log(`Message is not in the correct text channel. Ignoring message. Channel ID: ${message.channel.id}`);
+            // 変更箇所：auto join 設定があれば、設定されたテキストチャンネル以外は処理しない
+            if (autoJoinChannelsData[guildId]?.textChannelId) {
+                if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
+                    console.log(`Message is not in the configured text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
+                    return;
+                }
+            } else if (joinChannelsData[guildId]?.textChannelId) {
+                if (message.channel.id !== joinChannelsData[guildId].textChannelId) {
+                    console.log(`Message is not in the configured text channel (${joinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
+                    return;
+                }
+            } else {
+                console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
                 return;
+            }
+    
+            // voiceClientが未接続の場合、自動入室設定があれば接続試行
+            if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+                const guildAutoJoin = autoJoinChannelsData[guildId];
+                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
+                    console.log(`Voice client is not connected. Auto joining voice channel ${guildAutoJoin.voiceChannelId}.`);
+                    voiceClient = joinVoiceChannel({
+                        channelId: guildAutoJoin.voiceChannelId,
+                        guildId: guildId,
+                        adapterCreator: message.guild!.voiceAdapterCreator as any
+                    });
+                    voiceClients[guildId] = voiceClient;
+                } else {
+                    console.log(`No auto join configuration for guild ${guildId}. Proceeding with current channel.`);
+                }
             }
     
             let messageContent = message.content;

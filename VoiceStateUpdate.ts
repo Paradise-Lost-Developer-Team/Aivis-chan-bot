@@ -1,6 +1,5 @@
 import { Events, TextChannel, Client } from 'discord.js';
-import { VoiceConnectionStatus } from '@discordjs/voice';
-import { joinVoiceChannel } from '@discordjs/voice';
+import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
 import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, textChannels, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
 
 export function VoiceStateUpdate(client: Client) {
@@ -17,14 +16,14 @@ export function VoiceStateUpdate(client: Client) {
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
                     const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                    await play_audio(voiceClient, path, guildId);
+                    await play_audio(voiceClient, path, guildId, null);
                 }
             } else if (oldState.channel && !newState.channel) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
                     const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                    await play_audio(voiceClient, path, guildId);
+                    await play_audio(voiceClient, path, guildId, null);
     
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
@@ -61,7 +60,7 @@ export function VoiceStateUpdate(client: Client) {
     
                             const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
                             if (path) {
-                                await play_audio(voiceClient, path, guildId);
+                                await play_audio(voiceClient, path, guildId, null);
                             } else {
                                 console.error("Error: Path is undefined or null.");
                             }
