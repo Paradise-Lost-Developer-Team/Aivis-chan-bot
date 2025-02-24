@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
@@ -120,10 +120,11 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     return tempAudioFilePath;
 }
 
-export function getPlayer(guildId: string): AudioPlayer | undefined {
-    // Implement the logic to get the player for the given guildId
-    // For now, return undefined to avoid errors
-    return undefined;
+export function getPlayer(guildId: string): AudioPlayer {
+    if (!players[guildId]) {
+        players[guildId] = createAudioPlayer();
+    }
+    return players[guildId];
 }
 
 export function uuidv4(): string {
