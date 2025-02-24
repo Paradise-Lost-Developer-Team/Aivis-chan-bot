@@ -3,6 +3,7 @@ import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
+import { randomUUID } from "crypto";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -125,9 +126,17 @@ export function getPlayer(guildId: string): AudioPlayer | undefined {
     return undefined;
 }
 
-
-export function uuidv4() {
-    throw new Error("Function not implemented.");
+export function uuidv4(): string {
+    // Node.js の randomUUID が利用可能な場合はそれを使用
+    if (typeof randomUUID === "function") {
+        return randomUUID();
+    }
+    // 利用できない場合は簡易実装
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
