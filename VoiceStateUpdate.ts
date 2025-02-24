@@ -1,19 +1,16 @@
-import { Client, Events, TextChannel } from 'discord.js';
-import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
+import { Events, TextChannel, Client } from 'discord.js';
+import { VoiceConnectionStatus } from '@discordjs/voice';
+import { joinVoiceChannel } from '@discordjs/voice';
 import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, textChannels, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
 
-interface ExtendedClient extends Client {
-    // Add any additional properties or methods here if needed
-}
-
-export function VoiceStateUpdate(client: ExtendedClient) {
+export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         const member = newState.member!;
         const guildId = member.guild.id;
         const voiceClient = voiceClients[guildId];
-
+    
         if (member.user.bot) return;
-
+    
         if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
             if (!oldState.channel && newState.channel) {
                 // ユーザーがボイスチャンネルに参加したとき
@@ -28,27 +25,27 @@ export function VoiceStateUpdate(client: ExtendedClient) {
                     const nickname = member.displayName;
                     const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
                     await play_audio(voiceClient, path, guildId);
-
+    
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
                         voiceClient.disconnect();
                         delete voiceClients[guildId];
                     }
                 }
-            }
+                    }
         }
-
+    
         // Auto join channels handling
         try {
             const autoJoinChannelsData = loadAutoJoinChannels();
             console.log(`Loaded autoJoinChannels data: ${JSON.stringify(autoJoinChannelsData)}`);
-
+    
             const guildData = autoJoinChannelsData[guildId];
             if (!guildData) return;
-
+    
             const voiceChannelId = guildData.voiceChannelId;
             const textChannelId = guildData.textChannelId;
-
+    
             if (!oldState.channel && newState.channel) {
                 if (voiceChannelId === newState.channel.id) {
                     if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
@@ -61,7 +58,7 @@ export function VoiceStateUpdate(client: ExtendedClient) {
                             voiceClients[guildId] = voiceClient;
                             textChannels[guildId] = client.channels.cache.get(textChannelId) as TextChannel;
                             console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
-
+    
                             const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
                             if (path) {
                                 await play_audio(voiceClient, path, guildId);
