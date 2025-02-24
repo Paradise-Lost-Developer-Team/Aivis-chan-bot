@@ -37,22 +37,6 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
     
-            // voiceClientが未接続の場合、自動入室設定があれば接続試行
-            if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
-                const guildAutoJoin = autoJoinChannelsData[guildId];
-                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
-                    console.log(`Voice client is not connected. Auto joining voice channel ${guildAutoJoin.voiceChannelId}.`);
-                    voiceClient = joinVoiceChannel({
-                        channelId: guildAutoJoin.voiceChannelId,
-                        guildId: guildId,
-                        adapterCreator: message.guild!.voiceAdapterCreator as any
-                    });
-                    voiceClients[guildId] = voiceClient;
-                } else {
-                    console.log(`No auto join configuration for guild ${guildId}. Proceeding with current channel.`);
-                }
-            }
-
             // voiceClient が "Disconnected" の場合は再接続を試みる
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Disconnected) {
                 console.log("Voice client is in Disconnected state. Trying to rejoin...");
