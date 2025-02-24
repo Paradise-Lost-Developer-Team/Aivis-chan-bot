@@ -15,6 +15,7 @@ export function MessageCreate(client: ExtendedClient) {
     
         try {
             const guildId = message.guildId!;
+            let messageContent = message.content;
             let voiceClient = voiceClients[guildId];
             const autoJoinChannelsData = loadAutoJoinChannels();
             const joinChannelsData = loadJoinChannels();
@@ -37,6 +38,8 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
     
+            // ↓ 自動再接続を行わないように、以下の処理をコメントアウト
+            /*
             // voiceClient が "Disconnected" の場合は再接続を試みる
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Disconnected) {
                 console.log("Voice client is in Disconnected state. Trying to rejoin...");
@@ -50,9 +53,8 @@ export function MessageCreate(client: ExtendedClient) {
                     voiceClients[guildId] = voiceClient;
                 }
             }
-    
-            let messageContent = message.content;
-    
+            */
+            
             // メッセージ内容の加工
             // スポイラー除外
             if (messageContent.startsWith("||") && messageContent.endsWith("||")) {
@@ -120,6 +122,7 @@ export function MessageCreate(client: ExtendedClient) {
                 }
             }
             
+            // メッセージ読み込みだけで自動接続は行わない
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                 console.log("Voice client is connected and message is in the correct text channel. Handling message.");
                 await handle_message(message);
