@@ -19,21 +19,16 @@ export function MessageCreate(client: ExtendedClient) {
             const autoJoinChannelsData = loadAutoJoinChannels();
             console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
     
-            // auto join の設定がある場合はそのテキストチャンネルでチェック、なければ現在のチャンネルを使用
+            // 変更箇所：auto join 設定があれば、設定されたテキストチャンネル以外は処理しない
             if (autoJoinChannelsData[guildId]?.textChannelId) {
-                if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId &&
-                    message.channel.id !== textChannels[guildId]?.id) {
-                    console.log(`Message is not in the configured text channel. Ignoring message. Channel ID: ${message.channel.id}`);
+                if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
+                    console.log(`Message is not in the configured text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
                     return;
                 }
             } else {
-                // auto join 設定が無い場合は、現在のチャンネルをテキストチャンネルとして保存
-                if (message.channel.type === ChannelType.GuildText) {
-                    textChannels[guildId] = message.channel as TextChannel;
-                } else {
-                    console.log("Message is not in a text channel, ignoring.");
-                    return;
-                }
+                // auto join 設定がない場合は、関連のないチャンネルとして処理しない
+                console.log(`No auto join configuration for guild ${guildId}. Ignoring message.`);
+                return;
             }
     
             // voiceClientが未接続の場合、自動入室設定があれば接続試行
