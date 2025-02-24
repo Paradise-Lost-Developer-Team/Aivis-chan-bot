@@ -55,24 +55,10 @@ module.exports = {
             });
             voiceClients[guildId] = voiceClient;
 
-<<<<<<< HEAD
             // 新規：取得したチャネル情報を join_channels.json に保存
             updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
 
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
-=======
-            // 新規：接続が Ready になるまで待機
-            await waitForReady(voiceClient);
-
-            // 新規：取得したチャネル情報を join_channels.json に保存
-            updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
-
-            await interaction.editReply(`${voiceChannel.name} に接続しました。`);
-
-            // 短いディレイを入れる
-            await new Promise(resolve => setTimeout(resolve, 500));
-
->>>>>>> fd3375edd2d6295cbd62c04be3fc0e513deaf2a6
             loadJoinChannels();
 
             // Botが接続した際のアナウンス
