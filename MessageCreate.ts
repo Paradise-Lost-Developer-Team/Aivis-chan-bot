@@ -1,4 +1,4 @@
-import { Events, Message, Client } from 'discord.js';
+import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
 import { voiceClients, loadAutoJoinChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
 import { AudioPlayerStatus, VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
 
@@ -108,6 +108,18 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
     
+            // 以下を追加：BOTが接続しているボイスチャンネルに人がいなければ処理を中断する
+            if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
+                const voiceChannel = message.guild?.channels.cache.get(voiceClient.joinConfig.channelId!);
+                if (voiceChannel && 'members' in voiceChannel) {
+                    const membersCollection = voiceChannel.members as Collection<string, GuildMember>;
+                    if (membersCollection.filter((member) => !member.user.bot).size === 0) {
+                        console.log("No human in the voice channel. Ignoring message.");
+                        return;
+                    }
+                }
+            }
+            
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                 console.log("Voice client is connected and message is in the correct text channel. Handling message.");
                 await handle_message(message);
