@@ -125,9 +125,17 @@ export function getPlayer(guildId: string): AudioPlayer | undefined {
     return undefined;
 }
 
-
-export function uuidv4() {
-    throw new Error("Function not implemented.");
+export function uuidv4(): string {
+    // Node.js 18以降であればcrypto.randomUUID()が使用可能
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    // フォールバック実装
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
