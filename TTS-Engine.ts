@@ -1,8 +1,9 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
+import { randomUUID } from "crypto";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -10,7 +11,6 @@ export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 export const speakers = loadSpeakers();
-export const adapter = AivisAdapter();
 
 export const SPEAKERS_FILE = "speakers.json";
 export function loadSpeakers() {
@@ -119,18 +119,19 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     return tempAudioFilePath;
 }
 
-export function getPlayer(guildId: string): AudioPlayer | undefined {
-    // Implement the logic to get the player for the given guildId
-    // For now, return undefined to avoid errors
-    return undefined;
+export function getPlayer(guildId: string): AudioPlayer {
+    if (!players[guildId]) {
+        players[guildId] = createAudioPlayer();
+    }
+    return players[guildId];
 }
 
 export function uuidv4(): string {
-    // Node.js 18以降であればcrypto.randomUUID()が使用可能
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-        return crypto.randomUUID();
+    // Node.js の randomUUID が利用可能な場合はそれを使用
+    if (typeof randomUUID === "function") {
+        return randomUUID();
     }
-    // フォールバック実装
+    // 利用できない場合は簡易実装
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -138,7 +139,7 @@ export function uuidv4(): string {
     });
 }
 
-export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
+export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
 
@@ -164,8 +165,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
 
     const resource = await createFFmpegAudioSource(path);
     player.play(resource);
-    voiceClient.subscribe(player);
-}
+    voiceClient.subscribe(player);}
 
 export const AUTO_JOIN_FILE = "auto_join_channels.json";
 let autoJoinChannelsData: { [key: string]: any } = {};
@@ -191,4 +191,48 @@ export function getSpeakerOptions() {
         }
     }
     return options;
+}
+
+// 新規：取得したチャネル情報を保存する関数
+export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+    try {
+        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+        joinChannels = JSON.parse(data);
+    } catch (error) {
+        joinChannels = {};
+    }
+    joinChannels[guildId] = { voiceChannelId, textChannelId };
+    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+}
+
+// 新規：チャンネル情報を削除する関数
+export function deleteJoinChannelsConfig(guildId: string) {
+    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+    try {
+        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+        joinChannels = JSON.parse(data);
+    } catch (error) {
+        joinChannels = {};
+    }
+    delete joinChannels[guildId];
+    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+}
+
+// 新規：join_channels.json のパス設定（ルートフォルダに保存）
+const JOIN_CHANNELS_FILE = path.join(__dirname, '../../../join_channels.json');
+
+// 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
+export function loadJoinChannels() {
+    try {
+        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        return {};
+    }
+}
+
+// 新規：join_channels.json を保存する関数
+export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } }) {
+    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
 }
