@@ -52,6 +52,9 @@ module.exports = {
             });
             voiceClients[guildId] = voiceClient;
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
+            
+            // 接続の安定化のため、短いディレイを追加
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Botが接続した際のアナウンス
             const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
