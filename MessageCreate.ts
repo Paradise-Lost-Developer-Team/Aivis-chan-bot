@@ -53,6 +53,20 @@ export function MessageCreate(client: ExtendedClient) {
                     console.log(`No auto join configuration for guild ${guildId}. Proceeding with current channel.`);
                 }
             }
+
+            // voiceClient が "Disconnected" の場合は再接続を試みる
+            if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Disconnected) {
+                console.log("Voice client is in Disconnected state. Trying to rejoin...");
+                const guildAutoJoin = autoJoinChannelsData[guildId];
+                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
+                    voiceClient = joinVoiceChannel({
+                        channelId: guildAutoJoin.voiceChannelId,
+                        guildId: guildId,
+                        adapterCreator: message.guild!.voiceAdapterCreator as any
+                    });
+                    voiceClients[guildId] = voiceClient;
+                }
+            }
     
             let messageContent = message.content;
     
@@ -149,15 +163,12 @@ async function handle_message(message: Message) {
         return;
     }
 
+    // 再度 subscribe を行い、ちゃんと再生するようにする
     const resource = createFFmpegAudioSource(path);
     const player = getPlayer(guildId);
     if (player) {
         player.play(await resource);
-    } else {
-        console.error("Error: Audio player is undefined, skipping playback.");
-    }
-    if (player) {
-        voiceClient.subscribe(player);  // プレイヤーをボイスクライアントにサブスクライブ
+        voiceClient.subscribe(player);
     } else {
         console.error("Error: Audio player is undefined, cannot subscribe.");
     }
