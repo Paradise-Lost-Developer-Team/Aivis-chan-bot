@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { joinVoiceChannel } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
-import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from '../../TTS-Engine';
+import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -51,7 +51,12 @@ module.exports = {
                 adapterCreator: interaction.guild!.voiceAdapterCreator as any
             });
             voiceClients[guildId] = voiceClient;
+
+            // 新規：取得したチャネル情報を join_channels.json に保存
+            updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
+            loadJoinChannels();
 
             // Botが接続した際のアナウンス
             const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
