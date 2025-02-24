@@ -55,7 +55,6 @@ export function VoiceStateUpdate(client: Client) {
                                 adapterCreator: newState.guild.voiceAdapterCreator as any
                             });
                             voiceClients[guildId] = voiceClient;
-                            textChannels[guildId] = client.channels.cache.get(textChannelId) as TextChannel;
                             console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
     
                             const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
