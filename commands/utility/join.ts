@@ -1,7 +1,23 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel } from '@discordjs/voice';
+import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
 import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine';
+
+// 新規：接続が Ready になるまで待機する関数
+function waitForReady(connection: VoiceConnection, timeout = 30000): Promise<VoiceConnection> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        const interval = setInterval(() => {
+            if (connection.state.status === VoiceConnectionStatus.Ready) {
+                clearInterval(interval);
+                resolve(connection);
+            } else if (Date.now() - startTime > timeout) {
+                clearInterval(interval);
+                reject(new Error("VOICE_CONNECT_FAILED: Cannot connect to the voice channel after 30 seconds"));
+            }
+        }, 1000);
+    });
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -54,6 +70,9 @@ module.exports = {
                 adapterCreator: interaction.guild!.voiceAdapterCreator as any
             });
             voiceClients[guildId] = voiceClient;
+
+            // 新規：接続が Ready になるまで待機
+            await waitForReady(voiceClient);
 
             // 新規：取得したチャネル情報を join_channels.json に保存
             updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
