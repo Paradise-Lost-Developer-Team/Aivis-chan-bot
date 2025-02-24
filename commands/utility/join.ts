@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel } from '@discordjs/voice';
+import { joinVoiceChannel, VoiceConnection } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
 import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients } from '../../TTS-Engine';
 
@@ -58,7 +58,7 @@ module.exports = {
 
             // Botが接続した際のアナウンス
             const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient, path, guildId, interaction);
+            await play_audio(voiceClient as VoiceConnection, path, guildId, interaction);
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {

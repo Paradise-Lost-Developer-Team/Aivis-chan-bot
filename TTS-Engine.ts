@@ -139,7 +139,7 @@ export function uuidv4(): string {
     });
 }
 
-export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
+export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
 
@@ -165,8 +165,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
 
     const resource = await createFFmpegAudioSource(path);
     player.play(resource);
-    voiceClient.subscribe(player);
-}
+    voiceClient.subscribe(player);}
 
 export const AUTO_JOIN_FILE = "auto_join_channels.json";
 let autoJoinChannelsData: { [key: string]: any } = {};
