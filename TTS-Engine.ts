@@ -127,19 +127,11 @@ export function getPlayer(guildId: string): AudioPlayer | undefined {
 }
 
 export function uuidv4(): string {
-<<<<<<< HEAD
     // Node.js の randomUUID が利用可能な場合はそれを使用
     if (typeof randomUUID === "function") {
         return randomUUID();
     }
     // 利用できない場合は簡易実装
-=======
-    // Node.js 18以降であればcrypto.randomUUID()が使用可能
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-        return crypto.randomUUID();
-    }
-    // フォールバック実装
->>>>>>> 937777f0c1a042d08b27aefcefede88252245bea
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
