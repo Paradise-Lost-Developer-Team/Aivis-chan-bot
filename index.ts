@@ -19,8 +19,8 @@ const rest = new REST({ version: '9' }).setToken(TOKEN);
 
 client.once(Events.ClientReady, async () => {
     await deployCommands();
-    await MessageCreate(client); // 非同期関数として呼び出す
-    await VoiceStateUpdate(client); // 非同期関数として呼び出す
+    MessageCreate(client); // 非同期関数として呼び出す
+    VoiceStateUpdate(client); // 非同期関数として呼び出す
     console.log("起動完了");
     client.user!.setActivity("起動中…", { type: ActivityType.Playing });
     setInterval(async () => {
