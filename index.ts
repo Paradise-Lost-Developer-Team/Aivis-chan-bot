@@ -21,6 +21,7 @@ client.once(Events.ClientReady, async () => {
     await deployCommands();
     MessageCreate(client); // 非同期関数として呼び出す
     VoiceStateUpdate(client); // 非同期関数として呼び出す
+    AivisAdapter();
     console.log("起動完了");
     client.user!.setActivity("起動中…", { type: ActivityType.Playing });
     setInterval(async () => {
