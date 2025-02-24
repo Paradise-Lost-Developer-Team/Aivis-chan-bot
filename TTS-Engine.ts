@@ -127,11 +127,19 @@ export function getPlayer(guildId: string): AudioPlayer | undefined {
 }
 
 export function uuidv4(): string {
+<<<<<<< HEAD
     // Node.js の randomUUID が利用可能な場合はそれを使用
     if (typeof randomUUID === "function") {
         return randomUUID();
     }
     // 利用できない場合は簡易実装
+=======
+    // Node.js 18以降であればcrypto.randomUUID()が使用可能
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    // フォールバック実装
+>>>>>>> 937777f0c1a042d08b27aefcefede88252245bea
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -142,49 +150,54 @@ export function uuidv4(): string {
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction?: unknown) {
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
-    
-    if (player) {
-        player.off(AudioPlayerStatus.Idle, () => {
-            voiceClient.disconnect();
-        });
 
-        while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        if (voiceClient.joinConfig.guildId !== guildId) {
-            console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
-            return;
-        }
-
-        const resource = await createFFmpegAudioSource(path);
-        player.play(resource);
-        voiceClient.subscribe(player);
-        }
+    if (!player) {
+        console.error("Error: No audio player found for guild " + guildId);
+        return;
     }
 
-    export const AUTO_JOIN_FILE = "auto_join_channels.json";
-    let autoJoinChannelsData: { [key: string]: any } = {};
-    autoJoinChannelsData = loadAutoJoinChannels();
-    
-    export function loadAutoJoinChannels() {
-        try {
-            return JSON.parse(fs.readFileSync(AUTO_JOIN_FILE, "utf-8"));
-        } catch (error) {
-            return {};
-        }
-    }
-    
-    export function saveAutoJoinChannels() {
-        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+    // 既存のIdleイベントリスナーを解除
+    player.off(AudioPlayerStatus.Idle, () => {
+        voiceClient.disconnect();
+    });
+
+    // プレイヤーが再生中の場合は待機
+    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    export function getSpeakerOptions() {
-        const options = [];
-        for (const speaker of speakers) {
-            for (const style of speaker.styles) {
-                options.push({ label: `${speaker.name} - ${style.name}`, value: `${speaker.name}-${style.name}-${style.id}` });
-            }
-        }
-        return options;
+    if (voiceClient.joinConfig.guildId !== guildId) {
+        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+        return;
     }
+
+    const resource = await createFFmpegAudioSource(path);
+    player.play(resource);
+    voiceClient.subscribe(player);
+}
+
+export const AUTO_JOIN_FILE = "auto_join_channels.json";
+let autoJoinChannelsData: { [key: string]: any } = {};
+autoJoinChannelsData = loadAutoJoinChannels();
+
+export function loadAutoJoinChannels() {
+    try {
+        return JSON.parse(fs.readFileSync(AUTO_JOIN_FILE, "utf-8"));
+    } catch (error) {
+        return {};
+    }
+}
+
+export function saveAutoJoinChannels() {
+    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+}
+
+export function getSpeakerOptions() {
+    const options = [];
+    for (const speaker of speakers) {
+        for (const style of speaker.styles) {
+            options.push({ label: `${speaker.name} - ${style.name}`, value: `${speaker.name}-${style.name}-${style.id}` });
+        }
+    }
+    return options;
+}
