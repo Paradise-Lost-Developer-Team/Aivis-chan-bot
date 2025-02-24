@@ -11,7 +11,6 @@ export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 export const speakers = loadSpeakers();
-export const adapter = AivisAdapter();
 
 export const SPEAKERS_FILE = "speakers.json";
 export function loadSpeakers() {
