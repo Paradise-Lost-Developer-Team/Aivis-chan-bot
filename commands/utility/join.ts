@@ -56,15 +56,9 @@ module.exports = {
                 adapterCreator: interaction.guild!.voiceAdapterCreator as any
             });
             voiceClients[guildId] = voiceClient;
-<<<<<<< HEAD
             await interaction.editReply(`ボイスチャンネル ${voiceChannel.name} に接続しました。`);
             
             // 接続の安定化のために短いディレイを追加
-=======
-            await interaction.reply(`${voiceChannel.name} に接続しました。`);
-            
-            // 接続の安定化のため、短いディレイを追加
->>>>>>> ecef8dac88b1495630c8b37725afbcec1690b104
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Bot接続時のアナウンス
