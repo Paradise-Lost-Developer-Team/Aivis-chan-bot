@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageFlags } from 'discord.js';
-import { voiceClients } from '../../TTS-Engine'; // Adjust the path as necessary
+import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine'; // Adjust the path as necessary
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +18,9 @@ module.exports = {
         try {
             await voiceClient.disconnect();
             delete voiceClients[guildId];
+            deleteJoinChannelsConfig(guildId);
             await interaction.reply("ボイスチャンネルから切断しました。");
+            loadJoinChannels();
         } catch (error) {
             console.error(error);
             await interaction.reply({ content: "ボイスチャンネルからの切断に失敗しました。", flags: MessageFlags.Ephemeral });
