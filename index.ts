@@ -3,7 +3,7 @@ import { deployCommands } from "./deploy-commands"; // 相対パスを使用し�
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import { TOKEN } from "./config.json";
-import { AivisAdapter, loadAutoJoinChannels } from "./TTS-Engine"; // 相対パスを修正
+import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig } from "./TTS-Engine"; // 相対パスを修正
 import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対パスを修正
 import { MessageCreate } from "./MessageCreate";
 import { VoiceStateUpdate } from "./VoiceStateUpdate";
@@ -44,13 +44,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // Bot起動時にloadAutoJoinChannels()関数を実行
     loadAutoJoinChannels();
+    
+    const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
+    if (!guildId) {
+        throw new Error("GUILD_ID is not defined in the guild_id.txt file.");
+    }
+    deleteJoinChannelsConfig(guildId);
     console.log("Auto join channels loaded.");
 
     try {
-        const guildId = fs.readFileSync('guild_id.txt', 'utf-8').trim();
-        if (!guildId) {
-            throw new Error("GUILD_ID is not defined in the guild_id.txt file.");
-        }
 
         const command = client.commands.get(interaction.commandName);
         if (!command) {
