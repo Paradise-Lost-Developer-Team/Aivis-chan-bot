@@ -1,5 +1,5 @@
-import { Events, Message, GatewayIntentBits, Client, TextChannel, ChannelType } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, textChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH } from './TTS-Engine'; // Adjust the import path as necessary
+import { Events, Message, Client } from 'discord.js';
+import { voiceClients, loadAutoJoinChannels,  currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
 import { AudioPlayerStatus, VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
 
 interface ExtendedClient extends Client {
@@ -17,6 +17,7 @@ export function MessageCreate(client: ExtendedClient) {
             const guildId = message.guildId!;
             let voiceClient = voiceClients[guildId];
             const autoJoinChannelsData = loadAutoJoinChannels();
+            const JoinChannelsData = loadJoinChannels();
             console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
     
             // 変更箇所：auto join 設定があれば、設定されたテキストチャンネル以外は処理しない
@@ -25,10 +26,11 @@ export function MessageCreate(client: ExtendedClient) {
                     console.log(`Message is not in the configured text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
                     return;
                 }
-            } else {
-                // auto join 設定がない場合は、関連のないチャンネルとして処理しない
-                console.log(`No auto join configuration for guild ${guildId}. Ignoring message.`);
-                return;
+            } else if (JoinChannelsData[guildId]?.textChannelId) {
+                if (message.channel.id !== JoinChannelsData[guildId].textChannelId) {
+                    console.log(`Message is not in the configured text channel (${JoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
+                    return;
+                }
             }
     
             // voiceClientが未接続の場合、自動入室設定があれば接続試行
