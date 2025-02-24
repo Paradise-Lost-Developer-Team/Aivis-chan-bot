@@ -37,10 +37,6 @@
   "scripts": {
     "compile": "tsc",
     "start": "node build/js/index.js",
-    "start:pm2": "pm2 start build/js/ecosystem.config.js",
-    "stop:pm2": "pm2 stop build/js/ecosystem.config.js",
-    "restart:pm2": "pm2 restart build/js/ecosystem.config.js",
-    "logs": "pm2 logs aivis-chan-bot",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": ".\\node_modules\\.bin\\tsc",
     "lint": "eslint . --ext .ts",
