@@ -193,6 +193,21 @@ export function getSpeakerOptions() {
     return options;
 }
 
+// 新規：join_channels.json のパス設定を process.cwd() ベースに変更
+export const JOIN_CHANNELS_FILE = 'join_channels.json';
+let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+joinChannels = loadJoinChannels();
+
+// 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
+export function loadJoinChannels() {
+    try {
+        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        return {};
+    }
+}
+
 // 新規：取得したチャネル情報を保存する関数
 export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
@@ -206,6 +221,11 @@ export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string
     fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
 }
 
+// 新規：join_channels.json を保存する関数
+export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } }) {
+    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+}
+
 // 新規：チャンネル情報を削除する関数
 export function deleteJoinChannelsConfig(guildId: string) {
     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
@@ -216,23 +236,5 @@ export function deleteJoinChannelsConfig(guildId: string) {
         joinChannels = {};
     }
     delete joinChannels[guildId];
-    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-}
-
-// 新規：join_channels.json のパス設定（ルートフォルダに保存）
-const JOIN_CHANNELS_FILE = path.join(__dirname, '../../../join_channels.json');
-
-// 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
-export function loadJoinChannels() {
-    try {
-        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-        return JSON.parse(data);
-    } catch (error) {
-        return {};
-    }
-}
-
-// 新規：join_channels.json を保存する関数
-export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } }) {
     fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
 }

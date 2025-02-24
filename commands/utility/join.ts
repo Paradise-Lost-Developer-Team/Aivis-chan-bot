@@ -1,23 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
+import { joinVoiceChannel } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
 import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine';
-
-// 新規：接続が Ready になるまで待機する関数
-function waitForReady(connection: VoiceConnection, timeout = 30000): Promise<VoiceConnection> {
-    return new Promise((resolve, reject) => {
-        const startTime = Date.now();
-        const interval = setInterval(() => {
-            if (connection.state.status === VoiceConnectionStatus.Ready) {
-                clearInterval(interval);
-                resolve(connection);
-            } else if (Date.now() - startTime > timeout) {
-                clearInterval(interval);
-                reject(new Error("VOICE_CONNECT_FAILED: Cannot connect to the voice channel after 30 seconds"));
-            }
-        }, 1000);
-    });
-}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -34,9 +18,6 @@ module.exports = {
                 .setRequired(false)
                 .addChannelTypes(ChannelType.GuildText)),
     async execute(interaction: CommandInteraction) {
-        // deferReply を呼び出して応答を先延ばしにする
-        await interaction.deferReply({ ephemeral: false });
-        
         let voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
         let textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
 
@@ -46,7 +27,7 @@ module.exports = {
             if (member?.voice.channel) {
                 voiceChannel = member.voice.channel as VoiceChannel;
             } else {
-                await interaction.editReply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
+                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
                 return;
             }
         }
@@ -71,17 +52,10 @@ module.exports = {
             });
             voiceClients[guildId] = voiceClient;
 
-            // 新規：接続が Ready になるまで待機
-            await waitForReady(voiceClient);
-
             // 新規：取得したチャネル情報を join_channels.json に保存
             updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
 
-            await interaction.editReply(`${voiceChannel.name} に接続しました。`);
-
-            // 短いディレイを入れる
-            await new Promise(resolve => setTimeout(resolve, 500));
-
+            await interaction.reply(`${voiceChannel.name} に接続しました。`);
             loadJoinChannels();
 
             // Botが接続した際のアナウンス
@@ -89,7 +63,9 @@ module.exports = {
             await play_audio(voiceClient, path, guildId, interaction);
         } catch (error) {
             console.error(error);
-            await interaction.editReply("ボイスチャンネルへの接続に失敗しました。");
+            if (!interaction.replied) {
+                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
+            }
         }
     }
 };
