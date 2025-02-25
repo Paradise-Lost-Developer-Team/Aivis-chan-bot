@@ -1,6 +1,6 @@
-import { Events, TextChannel, Client } from 'discord.js';
+import { Events, Client } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
-import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, textChannels, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
+import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
 
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
