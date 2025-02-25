@@ -94,11 +94,21 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
             */
-
-            messageContent = messageContent.replace(/<@!?(\d+)>/g, (match, userId) => {
-                const user = message.guild?.members.cache.get(userId);
-                return user?.displayName || `${userId}さん`;
-            });
+            // うまく機能していない
+            const userMentions = messageContent.match(/<@!?(\d+)>/g);
+            if (userMentions) {
+                for (const mention of userMentions) {
+                    const userId = mention.match(/\d+/)![0];
+                    try {
+                        const user = await message.guild?.members.fetch(userId);
+                        const displayName = user ? user.displayName : `Unknown User (${userId})`;
+                        messageContent = messageContent.replace(mention, displayName);
+                    } catch {
+                        messageContent = messageContent.replace(mention, `Unknown User (${userId})`);
+                    }
+                }
+            }
+            
     
             // コードブロック除外
             if (messageContent.match(/```[\s\S]+```/g)) {
