@@ -98,12 +98,6 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
     
-            // マークダウン除外
-            if (messageContent.match(/[*_~`]/g)) {
-                console.log("Message contains markdown, ignoring.");
-                return;
-            }
-    
             // メッセージ先頭に "(音量0)" がある場合は読み上げを行わない
             if (messageContent.startsWith("(音量0)")) {
                 console.log("Message starts with (音量0), ignoring.");
