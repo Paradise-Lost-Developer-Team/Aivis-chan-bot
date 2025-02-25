@@ -86,11 +86,19 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
     
+            // ユーザーメンションをユーザー名に置き換える
+            /*
             // ユーザーメンションを除外
             if (messageContent.match(/<@!\d+>/g)) {
                 console.log("Message contains user mention, ignoring.");
                 return;
             }
+            */
+
+            messageContent = messageContent.replace(/<@!?(\d+)>/g, (match, userId) => {
+                const user = message.guild?.members.cache.get(userId);
+                return user?.displayName || `${userId}さん`;
+            });
     
             // コードブロック除外
             if (messageContent.match(/```[\s\S]+```/g)) {
