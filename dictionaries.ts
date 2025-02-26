@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 export const guildDictionary: { [key: string]: { [key: string]: any } } = {};
 
-const DICTIONARY_FILE = "guilddictionaries.json";
+const DICTIONARY_FILE = "guild_dictionaries.json";
 
 export function saveToDictionaryFile() {
     fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
