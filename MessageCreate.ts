@@ -67,7 +67,13 @@ export function MessageCreate(client: ExtendedClient) {
             customEmojis.forEach(emoji => {
                 messageContent = messageContent.replace(emoji, "絵文字");
             });
-    
+            
+            // 動く絵文字（アニメーション絵文字）を置換
+            const animatedEmojis = messageContent.match(/<a:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
+            animatedEmojis.forEach(emoji => {
+                messageContent = messageContent.replace(emoji, "動く絵文字");
+            });
+
             // URLを置換
             const urls = messageContent.match(/https?:\/\/\S+/g) || [];
             urls.forEach(url => {
