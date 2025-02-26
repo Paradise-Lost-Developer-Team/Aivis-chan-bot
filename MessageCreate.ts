@@ -94,11 +94,25 @@ export function MessageCreate(client: ExtendedClient) {
                 return;
             }
             */
-
-            messageContent = messageContent.replace(/<@!?(\d+)>/g, (match, userId) => {
-                const user = message.guild?.members.cache.get(userId);
-                return user?.displayName || `${userId}さん`;
+            // うまく機能していない
+            const userMentions = messageContent.match(/<@!?(\d+)>/g) || [];
+            const userPromises = userMentions.map(async (mention) => {
+                const userId = mention.match(/\d+/)![0];
+                try {
+                    const user = await client.users.fetch(userId);
+                    return { mention, username: `@${user.username}` };
+                } catch (error) {
+                    console.error(`Failed to fetch user for ID: ${userId}`, error);
+                    return { mention, username: `Unknown User (${userId})` };
+                }
             });
+
+            const resolvedMentions = await Promise.all(userPromises);
+            resolvedMentions.forEach(({ mention, username }) => {
+                messageContent = messageContent.replace(mention, username);
+            });
+            
+            
     
             // コードブロック除外
             if (messageContent.match(/```[\s\S]+```/g)) {
