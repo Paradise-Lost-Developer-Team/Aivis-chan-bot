@@ -106,10 +106,10 @@ export function MessageCreate(client: ExtendedClient) {
                     return { mention, username: `Unknown User (${userId})` };
                 }
             });
-
             const resolvedMentions = await Promise.all(userPromises);
             resolvedMentions.forEach(({ mention, username }) => {
                 messageContent = messageContent.replace(mention, username);
+
             });
             
             
@@ -141,7 +141,8 @@ export function MessageCreate(client: ExtendedClient) {
             // メッセージ読み込みだけで自動接続は行わない
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                 console.log("Voice client is connected and message is in the correct text channel. Handling message.");
-                await handle_message(message);
+            // 修正後
+            await handle_message(message, messageContent);
             } else {
                 console.log(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
             }
@@ -151,8 +152,7 @@ export function MessageCreate(client: ExtendedClient) {
     });
 }
 
-async function handle_message(message: Message) {
-    let messageContent = message.content;
+async function handle_message(message: Message, messageContent: string) {
     if (messageContent.length > MAX_TEXT_LENGTH) {
         messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
     }
