@@ -56,51 +56,68 @@ export function MessageCreate(client: ExtendedClient) {
             */
             
             // メッセージ内容の加工
-            // スポイラー除外
-            if (messageContent.startsWith("||") && messageContent.endsWith("||")) {
-                console.log("Message contains spoiler, ignoring.");
-                return;
-            }
+            // スポイラーを置換
+            const spoilers = messageContent.match(/\|\|[\s\S]+?\|\|/g) || [];
+            spoilers.forEach(spoiler => {
+                messageContent = messageContent.replace(spoiler, "ネタバレ");
+            });
+            
+            // カスタム絵文字を置換
+            const customEmojis = messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
+            customEmojis.forEach(emoji => {
+                messageContent = messageContent.replace(emoji, "絵文字");
+            });
     
-            // カスタム絵文字を除外
-            if (messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g)) {
-                console.log("Message contains custom emoji, ignoring.");
-                return;
-            }
+            // URLを置換
+            const urls = messageContent.match(/https?:\/\/\S+/g) || [];
+            urls.forEach(url => {
+                messageContent = messageContent.replace(url, "URL省略");
+            });
     
-            // URLを除外
-            if (messageContent.match(/https?:\/\/\S+/g)) {
-                console.log("Message contains URL, ignoring.");
-                return;
-            }
+            // ロールメンションを置換
+            const roleMentions = messageContent.match(/<@&(\d+)>/g) || [];
+            const rolePromises = roleMentions.map(async (mention) => {
+                const roleId = mention.match(/\d+/)![0];
+                try {
+                    const role = await message.guild!.roles.fetch(roleId);
+                    return { mention, roleName: role ? `${role.name}` : `@Unknown Role (${roleId})` };
+                } catch (error) {
+                    console.error(`Failed to fetch role for ID: ${roleId}`, error);
+                    return { mention, roleName: `@Unknown Role (${roleId})` };
+                }
+            });
+            const resolvedRoleMentions = await Promise.all(rolePromises);
+            resolvedRoleMentions.forEach(({ mention, roleName }) => {
+                messageContent = messageContent.replace(mention, roleName);
+            });
     
-            // ロールメンションを除外
-            if (messageContent.match(/<@&[0-9]+>/g)) {
-                console.log("Message contains role mention, ignoring.");
-                return;
-            }
-    
-            // チャンネルメンションを除外
-            if (messageContent.match(/<#\d+>/g)) {
-                console.log("Message contains channel mention, ignoring.");
-                return;
-            }
-    
-            // ユーザーメンションをユーザー名に置き換える
-            /*
-            // ユーザーメンションを除外
-            if (messageContent.match(/<@!\d+>/g)) {
-                console.log("Message contains user mention, ignoring.");
-                return;
-            }
-            */
-            // うまく機能していない
+            // チャンネルメンションを置換
+            const channelMentions = messageContent.match(/<#(\d+)>/g) || [];
+            const channelPromises = channelMentions.map(async (mention) => {
+                const channelId = mention.match(/\d+/)![0];
+                try {
+                    const channel = await message.guild!.channels.fetch(channelId);
+                    if (channel && 'name' in channel) {
+                        return { mention, channelName: `${channel.name}` };
+                    }
+                    return { mention, channelName: `#Unknown Channel (${channelId})` };
+                } catch (error) {
+                    console.error(`Failed to fetch channel for ID: ${channelId}`, error);
+                    return { mention, channelName: `#Unknown Channel (${channelId})` };
+                }
+            });
+            const resolvedChannelMentions = await Promise.all(channelPromises);
+            resolvedChannelMentions.forEach(({ mention, channelName }) => {
+                messageContent = messageContent.replace(mention, channelName);
+            });
+
+            // ユーザーメンションを置換
             const userMentions = messageContent.match(/<@!?(\d+)>/g) || [];
             const userPromises = userMentions.map(async (mention) => {
                 const userId = mention.match(/\d+/)![0];
                 try {
                     const user = await client.users.fetch(userId);
-                    return { mention, username: `@${user.username}` };
+                    return { mention, username: `${user.username}` };
                 } catch (error) {
                     console.error(`Failed to fetch user for ID: ${userId}`, error);
                     return { mention, username: `Unknown User (${userId})` };
