@@ -6,7 +6,7 @@ import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, upd
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('join')
-        .setDescription('BOTをチャンネルに参加します')
+        .setDescription('BOTをチャンネルに参加させます')
         .addChannelOption(option =>
             option.setName('voice_channel') // 小文字に変更
                 .setDescription('参加するボイスチャンネル')
@@ -38,13 +38,35 @@ module.exports = {
         }
 
         const guildId = interaction.guildId!;
+        
+        // 既に接続しているかチェック
+        let voiceClient = voiceClients[guildId];
+        if (voiceClient) {
+            // 現在Botが接続しているボイスチャンネルを取得
+            const currentVoiceChannel = interaction.guild?.channels.cache.find(
+                ch => ch.isVoiceBased() && ch.members.has(interaction.client.user!.id)
+            ) as VoiceChannel | undefined;
+            
+            if (currentVoiceChannel) {
+                // 既に接続しているチャンネルと指定されたチャンネルが異なる場合
+                if (currentVoiceChannel.id !== voiceChannel.id) {
+                    await interaction.reply({
+                        content: `❌ 既に別のボイスチャンネル「${currentVoiceChannel.name}」に接続しています。\n他のチャンネルに移動させるには、まず \`/leave\` コマンドで退出させてから再度呼んでください。`,
+                        flags: MessageFlags.Ephemeral
+                    });
+                    return;
+                } else {
+                    // 同じチャンネルの場合
+                    textChannels[guildId] = textChannel; // テキストチャンネルの更新のみ
+                    await interaction.reply(`✅ 既に「${currentVoiceChannel.name}」に接続しています。テキストチャンネルを「${textChannel.name}」に設定しました。`);
+                    return;
+                }
+            }
+        }
+        
         textChannels[guildId] = textChannel;
 
         try {
-            let voiceClient = voiceClients[guildId];
-            if (voiceClient) {
-                await voiceClient.disconnect();
-            }
             voiceClient = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: guildId,
