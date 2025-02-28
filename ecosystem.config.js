@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: "aivis-chan-bot",
-    script: "./dist/index.js", // TypeScriptのビルド後のファイル
+    script: "./build/js/index.js", // 正しいビルド出力先のパス
     instances: 1,
     autorestart: true,
     watch: false,
