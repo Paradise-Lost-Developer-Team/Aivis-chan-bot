@@ -92,8 +92,12 @@ module.exports = {
                 .setRequired(true)
                 .addChoices(
                     { name: '固有名詞', value: 'PROPER_NOUN' },
-                    { name: '一般名詞', value: 'COMMON_NOUN' },
+                    { name: '地名', value: 'PLACE_NAME' },
+                    { name: '組織名', value: 'ORGANIZATION_NAME' },
                     { name: '人名', value: 'PERSON_NAME' },
+                    { name: '性', value: 'PERSON_FAMILY_NAME'},
+                    { name: '名', value: 'PERSON_GIVEN_NAME' },
+                    { name: '普通名詞', value: 'COMMON_NOUN' },
                     { name: '動詞', value: 'VERB' },
                     { name: '形容詞', value: 'ADJECTIVE' },
                     { name: '語尾', value: 'SUFFIX' }
