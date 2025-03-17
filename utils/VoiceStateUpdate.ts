@@ -1,6 +1,6 @@
 import { Events, Client } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
-import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, currentSpeaker } from '../TTS-Engine'; // Adjust the import path as needed
+import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
 import { saveVoiceState } from './voiceStateManager';
 
 export function VoiceStateUpdate(client: Client) {
@@ -92,8 +92,8 @@ export function VoiceStateUpdate(client: Client) {
     // ボットのボイス状態が変わったときに保存する処理
     client.on('voiceStateUpdate', (oldState, newState) => {
         // ボットの状態が変わった場合のみ処理
-        if (oldState.member.user.bot || newState.member.user.bot) {
-            if (oldState.member.id === client.user?.id || newState.member.id === client.user?.id) {
+        if (oldState.member?.user?.bot || newState.member?.user?.bot) {
+            if (oldState.member?.id === client.user?.id || newState.member?.id === client.user?.id) {
                 // 少し遅延を入れて状態を保存（接続処理完了を待つ）
                 setTimeout(() => saveVoiceState(client), 1000);
             }
@@ -109,7 +109,7 @@ export function VoiceStateUpdate(client: Client) {
 
     // 定期的に状態を保存（念のため）
     setInterval(() => {
-        if (client.voice && client.voice.connections && client.voice.connections.size > 0) {
+        if (Object.keys(voiceClients).length > 0) {
             saveVoiceState(client);
         }
     }, 5 * 60 * 1000); // 5分ごと

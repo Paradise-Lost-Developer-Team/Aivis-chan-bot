@@ -60,30 +60,59 @@ export const loadVoiceState = (): VoiceStateData => {
 // 保存した状態に基づいてボイスチャンネルに再接続
 export const reconnectToVoiceChannels = async (client: Client): Promise<void> => {
   const voiceState = loadVoiceState();
+  let successCount = 0;
+  let failCount = 0;
   
   for (const [guildId, state] of Object.entries(voiceState)) {
     try {
       const guild = client.guilds.cache.get(guildId);
-      if (!guild) continue;
+      if (!guild) {
+        console.log(`ギルド ${guildId} が見つかりません`);
+        continue;
+      }
       
       const channel = guild.channels.cache.get(state.channelId) as VoiceChannel | undefined;
-      if (!channel || channel.type !== ChannelType.GuildVoice) continue;
+      if (!channel || channel.type !== ChannelType.GuildVoice) {
+        console.log(`${guildId} のチャンネル ${state.channelId} が見つからないか、ボイスチャンネルではありません`);
+        continue;
+      }
       
       // すでに接続されていないか確認
       const guildMember = guild.members.me;
-        console.log(`${guild.name}のチャンネル${channel.name}に再接続します...`);
-        
-        // ボイスチャンネルに接続
+      console.log(`${guild.name}のチャンネル${channel.name}に再接続します...`);
+      
+      // ボイスチャンネルに接続（retryを追加）
+      try {
         joinVoiceChannel({
           channelId: channel.id,
           guildId: guild.id,
           adapterCreator: guild.voiceAdapterCreator,
         });
         console.log(`${guild.name}のチャンネル${channel.name}に再接続しました`);
-        console.log(`${guild.name}のチャンネル${channel.name}に再接続しました`);
-      
+        successCount++;
+      } catch (joinError) {
+        console.error(`ボイスチャンネル接続エラー: ${joinError}`);
+        // 1度リトライ
+        try {
+          setTimeout(() => {
+            joinVoiceChannel({
+              channelId: channel.id,
+              guildId: guild.id,
+              adapterCreator: guild.voiceAdapterCreator,
+            });
+            console.log(`${guild.name}のチャンネル${channel.name}に再接続しました（リトライ後）`);
+            successCount++;
+          }, 2000); // 2秒後にリトライ
+        } catch (retryError) {
+          console.error(`ボイスチャンネル接続リトライエラー: ${retryError}`);
+          failCount++;
+        }
+      }
     } catch (error) {
       console.error(`${guildId}のボイスチャンネル再接続エラー:`, error);
+      failCount++;
     }
   }
+  
+  console.log(`ボイスチャンネル再接続完了: ${successCount}成功, ${failCount}失敗`);
 };

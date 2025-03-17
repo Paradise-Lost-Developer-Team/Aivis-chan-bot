@@ -58,6 +58,28 @@ client.once(Events.ClientReady, async () => {
         AivisAdapter();
         console.log("起動完了");
         client.user!.setActivity("起動中…", { type: ActivityType.Playing });
+        
+        // ボイスチャンネル再接続を先に実行する
+        console.log('ボイスチャンネルへの再接続を試みています...');
+        await reconnectToVoiceChannels(client);
+        
+        // 辞書データ関連の処理を後で行う（エラーがあっても再接続には影響しない）
+        try {
+            fetchUUIDsPeriodically();
+        } catch (dictError) {
+            console.error("辞書データ取得エラー:", dictError);
+            logError('dictionaryError', dictError instanceof Error ? dictError : new Error(String(dictError)));
+        }
+        
+        client.guilds.cache.forEach(guild => {
+            try {
+                new ServerStatus(guild.id); // 各ギルドのIDを保存するタスクを開始
+            } catch (error) {
+                console.error(`Guild ${guild.id} のステータス初期化エラー:`, error);
+                logError('serverStatusError', error instanceof Error ? error : new Error(String(error)));
+            }
+        });
+
         setInterval(async () => {
             try {
                 const joinServerCount = client.guilds.cache.size;
@@ -71,19 +93,6 @@ client.once(Events.ClientReady, async () => {
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));
             }
         }, 30000);
-
-        fetchUUIDsPeriodically();
-        client.guilds.cache.forEach(guild => {
-            try {
-                new ServerStatus(guild.id); // 各ギルドのIDを保存するタスクを開始
-            } catch (error) {
-                console.error(`Guild ${guild.id} のステータス初期化エラー:`, error);
-                logError('serverStatusError', error instanceof Error ? error : new Error(String(error)));
-            }
-        });
-
-        console.log('ボイスチャンネルへの再接続を試みています...');
-        await reconnectToVoiceChannels(client);
     } catch (error) {
         console.error("Bot起動エラー:", error);
         logError('botStartupError', error instanceof Error ? error : new Error(String(error)));
