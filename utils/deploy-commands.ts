@@ -1,7 +1,7 @@
 import { Routes } from 'discord-api-types/v9';
 import { REST } from '@discordjs/rest';
-import { client } from './index';
-import { clientId, TOKEN } from './config.json';
+import { client } from '../index';
+import { clientId, TOKEN } from '../config.json';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -10,7 +10,7 @@ console.log("Starting deploy-commands.ts");
 export const deployCommands = async () => {
     const commands: any[] = [];
     // Grab all the command folders from the commands directory you created earlier
-    const foldersPath = path.join(__dirname, 'commands');
+    const foldersPath = path.join(__dirname, '..', 'commands');
     console.log(`foldersPath: ${foldersPath}`);
     const commandFolders = fs.readdirSync(foldersPath);
     console.log(`commandFolders: ${commandFolders}`);
