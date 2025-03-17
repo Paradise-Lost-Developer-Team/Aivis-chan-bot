@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { joinVoiceChannel } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
-import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine';
+import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()

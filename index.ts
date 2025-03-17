@@ -1,13 +1,14 @@
 import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection } from "discord.js";
-import { deployCommands } from "./deploy-commands"; // 相対パスを使用してインポート
+import { deployCommands } from "./utils/deploy-commands"; // 相対パスを修正
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import { TOKEN } from "./config.json";
-import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./TTS-Engine"; // 相対パスを修正
-import { ServerStatus, fetchUUIDsPeriodically } from "./dictionaries"; // 相対パスを修正
-import { MessageCreate } from "./MessageCreate";
-import { VoiceStateUpdate } from "./VoiceStateUpdate";
+import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./utils/TTS-Engine"; // 相対パスを修正
+import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries"; // 相対パスを修正
+import { MessageCreate } from "./utils/MessageCreate";
+import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
+import { saveVoiceState, reconnectToVoiceChannels } from './utils/voiceStateManager';
 
 interface ExtendedClient extends Client {
     commands: Collection<string, any>;
@@ -80,6 +81,9 @@ client.once(Events.ClientReady, async () => {
                 logError('serverStatusError', error instanceof Error ? error : new Error(String(error)));
             }
         });
+
+        console.log('ボイスチャンネルへの再接続を試みています...');
+        await reconnectToVoiceChannels(client);
     } catch (error) {
         console.error("Bot起動エラー:", error);
         logError('botStartupError', error instanceof Error ? error : new Error(String(error)));
