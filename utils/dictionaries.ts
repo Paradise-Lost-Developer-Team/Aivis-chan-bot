@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 export const guildDictionary: { [key: string]: { [key: string]: any } } = {};
 
-const DICTIONARY_FILE = "dictionary.json";
+const DICTIONARY_FILE = "guild_dictionaries.json";
 
 export function saveToDictionaryFile() {
     fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
@@ -36,24 +36,41 @@ export async function fetchUUIDsPeriodically() {
     }
 }
 
-export async function fetchAllUUIDs(retries = 3): Promise<{ [key: string]: any }> {
-    for (let attempt = 1; attempt <= retries; attempt++) {
+// UUIDを取得する関数を修正
+export async function fetchAllUUIDs(): Promise<void> {
+    try {
+        const attempts = 1; // Initialize attempt counter
+        console.log("Attempt " + attempts + " - Fetching user dictionary...");
+        
+        // タイムアウト付きのフェッチを実装
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒でタイムアウト
+        
         try {
-            const response = await fetch("http://localhost:10101/user_dict");
-            if (!response.ok) {
-                throw new Error(`Error fetching user dictionary: ${response.statusText}`);
+            const response = await fetch('https://api.mojang.com/users/profiles/minecraft/nickname', {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId); // タイムアウトをクリア
+            
+            if (response.ok) {
+                const data = await response.json();
+                // 以降の処理...
+            } else {
+                console.log(`Error fetching user dictionary: HTTP ${response.status}`);
             }
-            return await response.json();
-        } catch (error) {
-            console.error(`Attempt ${attempt} - Error fetching user dictionary:`, error);
-            if (attempt === retries) {
-                return {};
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+        } catch (fetchError) {
+            console.log(`Attempt ${attempts} - Error fetching user dictionary: ${fetchError}`);
+            // エラーを記録するだけで中断せず処理を継続
         }
+        
+        // ...existing code...
+    } catch (error) {
+        console.error("Failed to fetch UUIDs:", error);
+        // エラーをログに記録するが、プロセスは中断しない
     }
-    return {};
 }
+
 export class ServerStatus {
     guildId: string;
     constructor(guildId: string) {

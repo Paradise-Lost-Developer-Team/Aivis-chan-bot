@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { EmbedBuilder, MessageFlags, CommandInteraction } from 'discord.js';
-import { guildDictionary } from '../../dictionaries'; // Adjust the import path as necessary
+import { guildDictionary } from '../../utils/dictionaries'; // Adjust the import path as necessary
 
 module.exports = {
     data: new SlashCommandBuilder()

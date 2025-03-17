@@ -1,34 +1,120 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
-import { fetchAllUUIDs, guildDictionary, saveToDictionaryFile } from '../../dictionaries'; // Adjust the import paths as necessary
+import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
+import fs from 'fs';
+import path from 'path';
+
+// 辞書ファイルパスを定数化
+const DICTIONARY_FILE = path.join(process.cwd(), "guild_dictionaries.json");
+
+// 辞書ファイルの読み込み
+function loadDictionaryFile() {
+    try {
+        if (fs.existsSync(DICTIONARY_FILE)) {
+            const content = fs.readFileSync(DICTIONARY_FILE, 'utf8');
+            return JSON.parse(content);
+        }
+    } catch (error) {
+        console.error("Error loading dictionary file:", error);
+    }
+    return {};
+}
+
+// 辞書の保存
+function saveToDictionaryFile(dictionaryData: any) {
+    try {
+        fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(dictionaryData, null, 2), 'utf8');
+        console.log("Dictionary saved successfully");
+        return true;
+    } catch (error) {
+        console.error("Error saving dictionary:", error);
+        return false;
+    }
+}
+
+// 単語を削除する処理
+async function removeWordFromDictionary(guildId: string, word: string) {
+    try {
+        // 辞書ファイルを読み込む
+        const dictionaryData = loadDictionaryFile();
+        
+        // ギルドIDが存在するか確認
+        if (dictionaryData[guildId] && dictionaryData[guildId][word]) {
+            // 単語情報を削除
+            delete dictionaryData[guildId][word];
+            
+            // 辞書を保存
+            return saveToDictionaryFile(dictionaryData);
+        }
+        return true; // 単語が存在しなくても成功とみなす
+    } catch (error) {
+        console.error("Error removing word from dictionary:", error);
+        return false;
+    }
+}
+
+// UUID一覧を取得
+async function fetchAllUUIDs() {
+    try {
+        const response = await fetch("http://localhost:10101/user_dict");
+        if (!response.ok) {
+            throw new Error(`Error fetching user dictionary: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching UUIDs:", error);
+        return {};
+    }
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('remove_word')
-        .setDescription('単語を削除します')
+        .setDescription('辞書から単語を削除します')
         .addStringOption(option =>
             option.setName('word')
                 .setDescription('削除する単語')
                 .setRequired(true)),
-    async execute(interaction: CommandInteraction) {
-        if (interaction.commandName === "remove_word") {
-            const word = (interaction.options as CommandInteractionOptionResolver).getString("word")!;
+
+    async execute(interaction: ChatInputCommandInteraction) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        
+        try {
+            const word = interaction.options.getString('word', true);
+            const guildId = interaction.guildId!;
+
+            // UUID一覧を取得
             const uuidDict = await fetchAllUUIDs();
             const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
-            const removeUrl = `http://localhost:10101/user_dict_word/${uuid}`;
-            if (uuid) {
-                const response = await fetch(removeUrl, { method: 'DELETE' });
-                if (response.status === 204) {
-                    const guildIdStr = interaction.guildId!.toString();
-                    delete guildDictionary[guildIdStr][word];
-                    saveToDictionaryFile();
-                    await interaction.reply(`単語 '${word}' を辞書から削除しました。`);
-                } else {
-                    await interaction.reply({ content: `単語 '${word}' の削除に失敗しました。`, flags: MessageFlags.Ephemeral });
-                }
-            } else {
-                await interaction.reply({ content: `単語 '${word}' のUUIDが見つかりませんでした。`, flags: MessageFlags.Ephemeral });
+
+            if (!uuid) {
+                await interaction.editReply(`単語 '${word}' のUUIDが見つかりませんでした。`);
+                return;
             }
+
+            const url = `http://localhost:10101/user_dict_word/${uuid}`;
+            
+            try {
+                console.log(`Sending DELETE request to: ${url}`);
+                const response = await fetch(url, { method: 'DELETE' });
+                
+                if (response.status === 204) {
+                    // 辞書から削除
+                    const dictionaryResult = await removeWordFromDictionary(guildId, word);
+                    
+                    if (dictionaryResult) {
+                        await interaction.editReply(`単語 '${word}' を辞書から削除しました。`);
+                    } else {
+                        await interaction.editReply(`VOICEVOXからの削除は成功しましたが、辞書ファイルの更新に失敗しました。`);
+                    }
+                } else {
+                    await interaction.editReply(`単語 '${word}' の削除に失敗しました。ステータスコード: ${response.status}`);
+                }
+            } catch (error) {
+                console.error("Error removing word:", error);
+                await interaction.editReply(`単語の削除中にエラーが発生しました。`);
+            }
+        } catch (error) {
+            console.error("Command execution error:", error);
+            await interaction.editReply("単語の削除中にエラーが発生しました。");
         }
-    }
+    },
 };
