@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageFlags } from 'discord.js';
-import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine'; // Adjust the path as necessary
+import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine'; // Adjust the path as necessary
 
 module.exports = {
     data: new SlashCommandBuilder()

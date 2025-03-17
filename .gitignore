@@ -54,3 +54,4 @@ build/
 .vscode/
 .venv/
 config.json
+join_channels.json

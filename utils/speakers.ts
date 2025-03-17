@@ -1,5 +1,5 @@
 import { Client, Events, Interaction, StringSelectMenuInteraction } from 'discord.js';
-import { currentSpeaker, speakers } from 'TTS-Engine'; // 適切なパスに置き換えてください
+import { currentSpeaker, speakers } from 'utils/TTS-Engine'; // 適切なパスに置き換えてください
 
 const client = new Client({ intents: [] }); // 適切なインテントを設定してください
 
