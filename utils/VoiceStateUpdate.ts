@@ -50,7 +50,9 @@ export function VoiceStateUpdate(client: Client) {
                 if (voiceChannelId === newState.channel.id) {
                     if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                         try {
-                            const voiceClient = await joinVoiceChannel({
+                            // 接続インスタンスを作成
+                            console.log(`ボイスチャンネル ${newState.channel.name} に接続を開始します...`);
+                            const voiceClient = joinVoiceChannel({
                                 channelId: newState.channel.id,
                                 guildId: newState.guild.id,
                                 adapterCreator: newState.guild.voiceAdapterCreator as any,
@@ -62,6 +64,7 @@ export function VoiceStateUpdate(client: Client) {
                             await new Promise<void>((resolve) => {
                                 const onReady = () => {
                                     voiceClient.removeListener('error', onError);
+                                    console.log(`ボイスチャンネル接続完了: ${newState.channel?.name}`);
                                     resolve();
                                 };
                                 
@@ -77,6 +80,7 @@ export function VoiceStateUpdate(client: Client) {
                                 // 既に接続済みの場合
                                 if (voiceClient.state.status === VoiceConnectionStatus.Ready) {
                                     voiceClient.removeListener('error', onError);
+                                    console.log(`既に接続済み: ${newState.channel?.name}`);
                                     resolve();
                                 }
                                 
@@ -84,6 +88,7 @@ export function VoiceStateUpdate(client: Client) {
                                 setTimeout(() => {
                                     voiceClient.removeListener('ready', onReady);
                                     voiceClient.removeListener('error', onError);
+                                    console.log(`接続タイムアウト: ${newState.channel?.name}`);
                                     resolve();
                                 }, 5000);
                             });
@@ -91,13 +96,18 @@ export function VoiceStateUpdate(client: Client) {
                             voiceClients[guildId] = voiceClient;
                             console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
 
+                            // 安定するまで少し待機
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
                             // ボイスチャンネル参加アナウンス
                             try {
                                 const speakerId = currentSpeaker[guildId] || 888753760;
+                                console.log(`自動接続アナウンス生成開始: ${guildId}`);
                                 const audioPath = await speakVoice("自動接続しました。", speakerId, guildId);
                                 if (audioPath) {
-                                    console.log(`自動接続アナウンスを再生します: ${guildId}`);
+                                    console.log(`自動接続アナウンス音声生成成功: ${audioPath}`);
                                     await play_audio(voiceClient, audioPath, guildId, null);
+                                    console.log(`自動接続アナウンス再生完了: ${guildId}`);
                                 } else {
                                     console.error("アナウンス生成失敗: 音声ファイルパスがnullです");
                                 }

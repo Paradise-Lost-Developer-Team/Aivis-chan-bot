@@ -197,12 +197,22 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
             voiceClients[guildId] = connection;
             console.log(`ギルド ${guildId} の接続をvoiceClientsに登録しました`);
 
+            // 安定するまで少し待機
+            await wait(1000);
+
             // 再接続アナウンスを流す
             try {
+              console.log(`${guild.name}のチャンネルに再接続アナウンスを送信します...`);
               const speakerId = currentSpeaker[guildId] || 888753760;
               const audioPath = await speakVoice('再起動後の再接続が完了しました', speakerId, guildId);
-              await play_audio(connection, audioPath, guildId, null);
-              console.log(`${guild.name}のチャンネル${channel.name}に再接続アナウンスを送信しました`);
+              if (audioPath) {
+                // 音声ファイル生成成功
+                console.log(`再接続アナウンス音声ファイル生成成功: ${audioPath}`);
+                await play_audio(connection, audioPath, guildId, null);
+                console.log(`${guild.name}のチャンネルに再接続アナウンスを送信しました`);
+              } else {
+                console.error(`再接続アナウンス音声ファイル生成失敗`);
+              }
             } catch (audioError) {
               console.error(`再接続アナウンス送信エラー: ${audioError}`);
             }
@@ -271,14 +281,24 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
               voiceClients[guildId] = retryConnection;
               console.log(`ギルド ${guildId} の接続をvoiceClientsに登録しました（リトライ後）`);
               
+              // 安定するまで少し待機
+              await wait(1000);
+              
               // リトライ後も再接続アナウンスを流す
               try {
+                console.log(`${guild.name}のチャンネルにリトライ後の再接続アナウンスを送信します...`);
                 const speakerId = currentSpeaker[guildId] || 888753760;
                 const audioPath = await speakVoice('再起動後の再接続が完了しました', speakerId, guildId);
-                await play_audio(retryConnection, audioPath, guildId, null);
-                console.log(`${guild.name}のチャンネル${channel.name}に再接続アナウンスを送信しました（リトライ後）`);
+                if (audioPath) {
+                  // 音声ファイル生成成功
+                  console.log(`リトライ後の再接続アナウンス音声ファイル生成成功: ${audioPath}`);
+                  await play_audio(retryConnection, audioPath, guildId, null);
+                  console.log(`${guild.name}のチャンネルにリトライ後の再接続アナウンスを送信しました`);
+                } else {
+                  console.error(`リトライ後の再接続アナウンス音声ファイル生成失敗`);
+                }
               } catch (audioError) {
-                console.error(`再接続アナウンス送信エラー（リトライ後）: ${audioError}`);
+                console.error(`リトライ後の再接続アナウンス送信エラー: ${audioError}`);
               }
               
               resolve();
