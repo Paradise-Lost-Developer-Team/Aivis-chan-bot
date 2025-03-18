@@ -1,13 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Client, Guild, VoiceChannel, ChannelType } from 'discord.js';
+import { Client, Guild, VoiceChannel, ChannelType, TextChannel } from 'discord.js';
 import { joinVoiceChannel, VoiceConnection, getVoiceConnection } from '@discordjs/voice';
 
 const VOICE_STATE_PATH = path.join(__dirname, '..', 'data', 'voice_state.json');
 
+// テキストチャンネルIDも保存できるように拡張
 interface VoiceStateData {
   [guildId: string]: {
     channelId: string;
+    textChannelId?: string; // テキストチャンネルID（省略可）
   };
 }
 
@@ -19,22 +21,61 @@ const ensureDataDirExists = (): void => {
   }
 };
 
+// グローバル変数で関連テキストチャンネルのマッピングを保持
+const guildTextChannels: { [guildId: string]: string } = {};
+
+// テキストチャンネルのIDを保存する関数
+export const setTextChannelForGuild = (guildId: string, textChannelId: string): void => {
+  guildTextChannels[guildId] = textChannelId;
+  saveVoiceState(null); // clientを渡さない場合は現在の状態からのみ保存
+};
+
+// テキストチャンネルのIDを取得する関数
+export const getTextChannelForGuild = (guildId: string): string | undefined => {
+  return guildTextChannels[guildId];
+};
+
 // 音声接続状態を保存
-export const saveVoiceState = (client: Client): void => {
+export const saveVoiceState = (client: Client | null): void => {
   ensureDataDirExists();
   
   const voiceState: VoiceStateData = {};
   
-  // クライアントの各ボイス接続を確認
-  client.guilds.cache.forEach(guild => {
-    // Check if the bot is connected to a voice channel in this guild
-    const me = guild.members.cache.get(client.user?.id || '');
-    if (me && me.voice.channel) {
-      voiceState[guild.id] = {
-        channelId: me.voice.channel.id
+  // 既存の保存データがあれば読み込む（テキストチャンネル情報を引き継ぐため）
+  const existingState = loadVoiceState();
+  
+  // クライアントが提供されている場合は、現在の接続状態を追跡
+  if (client) {
+    client.guilds.cache.forEach(guild => {
+      // ボットがボイスチャンネルに接続しているか確認
+      const me = guild.members.cache.get(client.user?.id || '');
+      if (me && me.voice.channel) {
+        voiceState[guild.id] = {
+          channelId: me.voice.channel.id,
+          // 保存されているテキストチャンネルIDをセット、なければグローバル変数から取得
+          textChannelId: existingState[guild.id]?.textChannelId || guildTextChannels[guild.id]
+        };
+      }
+    });
+  } else {
+    // クライアントが提供されていない場合は、グローバル変数とexistingStateを使用
+    Object.keys(existingState).forEach(guildId => {
+      voiceState[guildId] = {
+        channelId: existingState[guildId].channelId,
+        textChannelId: existingState[guildId].textChannelId || guildTextChannels[guildId]
       };
-    }
-  });
+    });
+    
+    // グローバル変数にあるがexistingStateにないものを追加
+    Object.keys(guildTextChannels).forEach(guildId => {
+      if (!voiceState[guildId] && existingState[guildId]) {
+        voiceState[guildId] = {
+          channelId: existingState[guildId].channelId,
+          textChannelId: guildTextChannels[guildId]
+        };
+      }
+    });
+  }
   
   // JSONとして保存
   fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(voiceState, null, 2));
@@ -48,7 +89,16 @@ export const loadVoiceState = (): VoiceStateData => {
   try {
     if (fs.existsSync(VOICE_STATE_PATH)) {
       const data = fs.readFileSync(VOICE_STATE_PATH, 'utf8');
-      return JSON.parse(data) as VoiceStateData;
+      const parsedData = JSON.parse(data) as VoiceStateData;
+      
+      // グローバル変数にテキストチャンネル情報を読み込む
+      Object.keys(parsedData).forEach(guildId => {
+        if (parsedData[guildId].textChannelId) {
+          guildTextChannels[guildId] = parsedData[guildId].textChannelId!;
+        }
+      });
+      
+      return parsedData;
     }
   } catch (error) {
     console.error('ボイス状態の読み込みエラー:', error);
@@ -78,6 +128,17 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       if (!channel || channel.type !== ChannelType.GuildVoice) {
         console.log(`${guildId} のチャンネル ${state.channelId} が見つからないか、ボイスチャンネルではありません`);
         continue;
+      }
+      
+      // テキストチャンネル情報があれば、グローバル変数に格納
+      if (state.textChannelId) {
+        const textChannel = guild.channels.cache.get(state.textChannelId) as TextChannel | undefined;
+        if (textChannel && textChannel.type === ChannelType.GuildText) {
+          guildTextChannels[guildId] = state.textChannelId;
+          console.log(`${guild.name}のテキストチャンネル${textChannel.name}を関連付けしました`);
+        } else {
+          console.log(`${guildId} のテキストチャンネル ${state.textChannelId} が見つからないか、テキストチャンネルではありません`);
+        }
       }
       
       console.log(`${guild.name}のチャンネル${channel.name}に再接続します...`);

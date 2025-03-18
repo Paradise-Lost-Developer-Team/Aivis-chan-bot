@@ -1,7 +1,7 @@
-import { Events, Client } from 'discord.js';
+import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
 import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
-import { saveVoiceState } from './voiceStateManager';
+import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
@@ -90,13 +90,36 @@ export function VoiceStateUpdate(client: Client) {
     });
 
     // ボットのボイス状態が変わったときに保存する処理
-    client.on('voiceStateUpdate', (oldState, newState) => {
+    client.on('voiceStateUpdate', (oldState: VoiceState, newState: VoiceState) => {
         // ボットの状態が変わった場合のみ処理
-        if (oldState.member?.user?.bot || newState.member?.user?.bot) {
+        if (oldState.member?.user.bot || newState.member?.user.bot) {
             if (oldState.member?.id === client.user?.id || newState.member?.id === client.user?.id) {
                 // 少し遅延を入れて状態を保存（接続処理完了を待つ）
                 setTimeout(() => saveVoiceState(client), 1000);
             }
+        }
+        
+        // ボットがボイスチャンネルに参加した場合（存在しなかった→存在する）
+        if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
+            // 最後に対話のあったチャンネルをテキストチャンネルとして記録する処理をここに追加できる
+            // 例えば、最後のメッセージの受信チャンネルを関連テキストチャンネルとして設定する
+        }
+    });
+
+    // テキストチャンネルからのメッセージを受信したときに、関連ボイスチャンネルが存在すれば、そのテキストチャンネルを記録
+    client.on('messageCreate', message => {
+        if (message.author.bot) return;
+        
+        // メッセージを受け取ったギルドでボットがボイスチャンネルに接続している場合
+        const guild = message.guild;
+        if (!guild) return;
+        
+        const me = guild.members.cache.get(client.user?.id || '');
+        if (me?.voice.channel) {
+            // このテキストチャンネルをボイスチャンネルに関連付け
+            setTextChannelForGuild(guild.id, message.channel.id);
+            // 状態を保存
+            saveVoiceState(client);
         }
     });
 
