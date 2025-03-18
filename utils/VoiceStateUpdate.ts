@@ -57,14 +57,52 @@ export function VoiceStateUpdate(client: Client) {
                                 selfDeaf: true,   // スピーカーはOFF（聞こえない）
                                 selfMute: false   // マイクはON（話せる）
                             });
+                            
+                            // 接続が安定するまで待機
+                            await new Promise<void>((resolve) => {
+                                const onReady = () => {
+                                    voiceClient.removeListener('error', onError);
+                                    resolve();
+                                };
+                                
+                                const onError = (error: Error) => {
+                                    voiceClient.removeListener('ready', onReady);
+                                    console.error(`接続エラー: ${error.message}`);
+                                    resolve(); // エラーでも進行
+                                };
+                                
+                                voiceClient.once('ready', onReady);
+                                voiceClient.once('error', onError);
+                                
+                                // 既に接続済みの場合
+                                if (voiceClient.state.status === VoiceConnectionStatus.Ready) {
+                                    voiceClient.removeListener('error', onError);
+                                    resolve();
+                                }
+                                
+                                // タイムアウト
+                                setTimeout(() => {
+                                    voiceClient.removeListener('ready', onReady);
+                                    voiceClient.removeListener('error', onError);
+                                    resolve();
+                                }, 5000);
+                            });
+                            
                             voiceClients[guildId] = voiceClient;
                             console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
-    
-                            const path = await speakVoice("自動接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-                            if (path) {
-                                await play_audio(voiceClient, path, guildId, null);
-                            } else {
-                                console.error("Error: Path is undefined or null.");
+
+                            // ボイスチャンネル参加アナウンス
+                            try {
+                                const speakerId = currentSpeaker[guildId] || 888753760;
+                                const audioPath = await speakVoice("自動接続しました。", speakerId, guildId);
+                                if (audioPath) {
+                                    console.log(`自動接続アナウンスを再生します: ${guildId}`);
+                                    await play_audio(voiceClient, audioPath, guildId, null);
+                                } else {
+                                    console.error("アナウンス生成失敗: 音声ファイルパスがnullです");
+                                }
+                            } catch (audioError) {
+                                console.error(`自動接続アナウンス再生エラー: ${audioError}`);
                             }
                         } catch (error) {
                             console.error(`Error: failed to connect to voice channel - ${error}`);
