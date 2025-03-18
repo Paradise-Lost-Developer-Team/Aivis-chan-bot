@@ -10,7 +10,7 @@ import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
 
-interface ExtendedClient extends Client {
+export interface ExtendedClient extends Client {
     commands: Collection<string, any>;
 }
 
@@ -52,7 +52,7 @@ async function gracefulShutdown() {
 
 client.once(Events.ClientReady, async () => {
     try {
-        await deployCommands();
+        await deployCommands(client);
         console.log("コマンドのデプロイ完了");
         
         // ボイスチャンネル再接続を先に実行し、完全に完了するまで待機
