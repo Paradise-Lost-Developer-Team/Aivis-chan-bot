@@ -4,6 +4,7 @@ import path from "path";
 import os from "os";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
+import { getTextChannelForGuild } from './voiceStateManager';
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -165,7 +166,8 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
 
     const resource = await createFFmpegAudioSource(path);
     player.play(resource);
-    voiceClient.subscribe(player);}
+    voiceClient.subscribe(player);
+}
 
 export const AUTO_JOIN_FILE = "auto_join_channels.json";
 let autoJoinChannelsData: { [key: string]: any } = {};
@@ -237,4 +239,11 @@ export function deleteJoinChannelsConfig(guildId: string) {
     }
     delete joinChannels[guildId];
     fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+}
+
+// メッセージ送信先を決定する関数
+export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
+  // 保存されたテキストチャンネルIDを優先
+  const savedTextChannelId = getTextChannelForGuild(guildId);
+  return savedTextChannelId || defaultChannelId;
 }
