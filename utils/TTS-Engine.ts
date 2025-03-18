@@ -264,47 +264,77 @@ export function isVoiceClientConnected(guildId: string): boolean {
 }
 
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
-    const player = getPlayer(guildId);
-    console.log(`Playing audio for guild: ${guildId}`);
+    try {
+        const player = getPlayer(guildId);
+        console.log(`Playing audio for guild: ${guildId}, file: ${path}`);
 
-    if (!player) {
-        console.error("Error: No audio player found for guild " + guildId);
-        return;
-    }
-
-    // 接続チェック
-    if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
-        console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
-        
-        // getVoiceConnection関数で再確認
-        const reconnectedClient = getVoiceConnection(guildId);
-        if (reconnectedClient && reconnectedClient.state.status === VoiceConnectionStatus.Ready) {
-            console.log(`接続を回復しました。ギルドID: ${guildId}`);
-            voiceClient = reconnectedClient;
-            voiceClients[guildId] = reconnectedClient; // voiceClientsを更新
-        } else {
-            return; // 接続できなければ終了
+        if (!player) {
+            console.error("Error: No audio player found for guild " + guildId);
+            return;
         }
+
+        // 接続チェック
+        if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+            console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+            
+            // getVoiceConnection関数で再確認
+            const reconnectedClient = getVoiceConnection(guildId);
+            if (reconnectedClient && reconnectedClient.state.status === VoiceConnectionStatus.Ready) {
+                console.log(`接続を回復しました。ギルドID: ${guildId}`);
+                voiceClient = reconnectedClient;
+                voiceClients[guildId] = reconnectedClient; // voiceClientsを更新
+            } else {
+                return; // 接続できなければ終了
+            }
+        }
+
+        // 既存のIdleイベントリスナーを解除
+        player.off(AudioPlayerStatus.Idle, () => {
+            voiceClient.disconnect();
+        });
+
+        // プレイヤーが再生中の場合は待機
+        let waitCount = 0;
+        while (voiceClient.state.status === VoiceConnectionStatus.Ready && 
+               player.state.status === AudioPlayerStatus.Playing) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitCount++;
+            if (waitCount > 300) { // 30秒以上待っている場合はタイムアウト
+                console.log(`再生待機がタイムアウトしました。次の音声を強制的に再生します。`);
+                break;
+            }
+        }
+
+        if (voiceClient.joinConfig.guildId !== guildId) {
+            console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+            return;
+        }
+
+        console.log(`音声リソース作成中: ${path}`);
+        const resource = await createFFmpegAudioSource(path);
+        console.log(`音声再生開始: ${path}`);
+        player.play(resource);
+        voiceClient.subscribe(player);
+        
+        // 再生完了を監視（デバッグ用）
+        return new Promise<void>((resolve) => {
+            const onIdle = () => {
+                console.log(`音声再生完了: ${path}`);
+                player.off(AudioPlayerStatus.Idle, onIdle);
+                resolve();
+            };
+            player.once(AudioPlayerStatus.Idle, onIdle);
+            
+            // 15秒後にタイムアウト
+            setTimeout(() => {
+                player.off(AudioPlayerStatus.Idle, onIdle);
+                console.log(`音声再生タイムアウト: ${path}`);
+                resolve();
+            }, 15000);
+        });
+    } catch (error) {
+        console.error(`音声再生エラー: ${error}`);
     }
-
-    // 既存のIdleイベントリスナーを解除
-    player.off(AudioPlayerStatus.Idle, () => {
-        voiceClient.disconnect();
-    });
-
-    // プレイヤーが再生中の場合は待機
-    while (voiceClient.state.status === VoiceConnectionStatus.Ready && player.state.status === AudioPlayerStatus.Playing) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    if (voiceClient.joinConfig.guildId !== guildId) {
-        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
-        return;
-    }
-
-    const resource = await createFFmpegAudioSource(path);
-    player.play(resource);
-    voiceClient.subscribe(player);
 }
 
 let autoJoinChannelsData: { [key: string]: any } = {};
