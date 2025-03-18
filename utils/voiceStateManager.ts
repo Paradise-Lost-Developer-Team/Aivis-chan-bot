@@ -4,7 +4,23 @@ import { Client, Guild, VoiceChannel, ChannelType, TextChannel } from 'discord.j
 import { joinVoiceChannel, VoiceConnection, getVoiceConnection } from '@discordjs/voice';
 import { speakVoice, voiceClients, play_audio, currentSpeaker } from './TTS-Engine'; // play_audioもインポート
 
-const VOICE_STATE_PATH = path.join(__dirname, '..', 'data', 'voice_state.json');
+// プロジェクトルートディレクトリへのパスを取得する関数
+function getProjectRoot(): string {
+    const currentDir = __dirname;
+    
+    if (currentDir.includes('build/js/utils') || currentDir.includes('build\\js\\utils')) {
+        return path.resolve(path.join(currentDir, '..', '..', '..'));
+    } else if (currentDir.includes('/utils') || currentDir.includes('\\utils')) {
+        return path.resolve(path.join(currentDir, '..'));
+    } else {
+        return process.cwd();
+    }
+}
+
+// dataディレクトリを確実にプロジェクトルート下に作成
+const PROJECT_ROOT = getProjectRoot();
+const DATA_DIR = path.join(PROJECT_ROOT, 'data');
+const VOICE_STATE_PATH = path.join(DATA_DIR, 'voice_state.json');
 
 // テキストチャンネルIDも保存できるように拡張
 interface VoiceStateData {
@@ -16,9 +32,9 @@ interface VoiceStateData {
 
 // データフォルダが存在しない場合は作成
 const ensureDataDirExists = (): void => {
-  const dataDir = path.join(__dirname, '..', 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    console.log(`データディレクトリを作成しました: ${DATA_DIR}`);
   }
 };
 
@@ -79,8 +95,12 @@ export const saveVoiceState = (client: Client | null): void => {
   }
   
   // JSONとして保存
-  fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(voiceState, null, 2));
-  console.log('ボイス接続状態を保存しました');
+  try {
+    fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(voiceState, null, 2));
+    console.log(`ボイス接続状態を保存しました: ${VOICE_STATE_PATH}`);
+  } catch (error) {
+    console.error(`ボイス接続状態の保存に失敗しました: ${error}`);
+  }
 };
 
 // 音声接続状態を読み込み
