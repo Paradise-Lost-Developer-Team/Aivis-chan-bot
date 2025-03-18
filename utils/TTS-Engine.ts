@@ -11,17 +11,97 @@ export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
 export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
-export const speakers = loadSpeakers();
 
-export const SPEAKERS_FILE = "speakers.json";
+// デフォルトのスピーカー設定
+const DEFAULT_SPEAKERS = [
+  {
+    "name": "Anneli",
+    "speaker_uuid": "e756b8e4-b606-4e15-99b1-3f9c6a1b2317",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 888753760,
+        "type": "talk"
+      },
+      {
+        "name": "通常",
+        "id": 888753761,
+        "type": "talk"
+      },
+      {
+        "name": "テンション高め",
+        "id": 888753762,
+        "type": "talk"
+      },
+      {
+        "name": "落ち着き",
+        "id": 888753763,
+        "type": "talk"
+      },
+      {
+        "name": "上機嫌",
+        "id": 888753764,
+        "type": "talk"
+      },
+      {
+        "name": "怒り・悲しみ",
+        "id": 888753765,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "Anneli (NSFW)",
+    "speaker_uuid": "9c3114d0-59ce-4576-8110-a6671d3930e1",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 1196801504,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  }
+];
+
+export const SPEAKERS_FILE = path.join(__dirname, "..", "speakers.json");
 export function loadSpeakers() {
     try {
+        // 親ディレクトリにあるspeakers.jsonファイルへのパスを正しく設定
+        console.log(`スピーカー情報ファイルを読み込みます: ${SPEAKERS_FILE}`);
+        
+        if (!fs.existsSync(SPEAKERS_FILE)) {
+            console.log("speakers.jsonファイルが見つかりません。デフォルト設定を使用します。");
+            // デフォルト設定を保存
+            fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(DEFAULT_SPEAKERS, null, 2), "utf-8");
+            console.log("デフォルトのspeakers.jsonファイルを作成しました。");
+            return DEFAULT_SPEAKERS;
+        }
+        
         const data = fs.readFileSync(SPEAKERS_FILE, "utf-8");
-        return JSON.parse(data);
+        const speakers = JSON.parse(data);
+        
+        if (!Array.isArray(speakers) || speakers.length === 0) {
+            console.log("speakers.jsonの形式が不正です。デフォルト設定を使用します。");
+            return DEFAULT_SPEAKERS;
+        }
+        
+        console.log(`スピーカー情報を読み込みました: ${speakers.length}件のスピーカーが見つかりました`);
+        return speakers;
     } catch (error) {
-        return [];
+        console.error("スピーカー情報の読み込みでエラーが発生しました:", error);
+        return DEFAULT_SPEAKERS;
     }
 }
+
+export const speakers = loadSpeakers();
 
 export const voiceSettings: { [key: string]: any } = {
     volume: {},
@@ -87,12 +167,19 @@ export async function postSynthesis(audioQuery: any, speaker: number) {
     }
 }
 
-export const DICTIONARY_FILE = "guild_dictionaries.json";
+export const DICTIONARY_FILE = path.join(__dirname, "..", "guild_dictionaries.json");
 let guildDictionary: { [key: string]: any } = {};
 
 try {
-    guildDictionary = JSON.parse(fs.readFileSync(DICTIONARY_FILE, "utf-8"));
+    if (fs.existsSync(DICTIONARY_FILE)) {
+        guildDictionary = JSON.parse(fs.readFileSync(DICTIONARY_FILE, "utf-8"));
+    } else {
+        guildDictionary = {};
+        // 新規作成
+        fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 2), "utf-8");
+    }
 } catch (error) {
+    console.error("辞書ファイル読み込みエラー:", error);
     guildDictionary = {};
 }
 
@@ -194,76 +281,140 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     voiceClient.subscribe(player);
 }
 
-export const AUTO_JOIN_FILE = "auto_join_channels.json";
+export const AUTO_JOIN_FILE = path.join(__dirname, "..", "auto_join_channels.json");
 let autoJoinChannelsData: { [key: string]: any } = {};
 autoJoinChannelsData = loadAutoJoinChannels();
 
 export function loadAutoJoinChannels() {
     try {
-        return JSON.parse(fs.readFileSync(AUTO_JOIN_FILE, "utf-8"));
+        if (fs.existsSync(AUTO_JOIN_FILE)) {
+            return JSON.parse(fs.readFileSync(AUTO_JOIN_FILE, "utf-8"));
+        }
     } catch (error) {
-        return {};
+        console.error("自動参加チャンネル設定読み込みエラー:", error);
     }
+    return {};
 }
 
 export function saveAutoJoinChannels() {
-    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+    try {
+        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+    } catch (error) {
+        console.error("自動参加チャンネル設定保存エラー:", error);
+    }
 }
 
 export function getSpeakerOptions() {
-    const options = [];
-    for (const speaker of speakers) {
-        for (const style of speaker.styles) {
-            options.push({ label: `${speaker.name} - ${style.name}`, value: `${speaker.name}-${style.name}-${style.id}` });
+    try {
+        if (!Array.isArray(speakers)) {
+            console.error("スピーカー情報が配列ではありません");
+            return DEFAULT_SPEAKERS[0].styles.map(style => ({
+                label: `${DEFAULT_SPEAKERS[0].name} - ${style.name}`,
+                value: `${DEFAULT_SPEAKERS[0].name}-${style.name}-${style.id}`
+            }));
         }
+
+        const options = [];
+        
+        for (const speaker of speakers) {
+            if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
+                for (const style of speaker.styles) {
+                    if (style && style.name && style.id !== undefined) {
+                        options.push({
+                            label: `${speaker.name} - ${style.name}`,
+                            value: `${speaker.name}-${style.name}-${style.id}`
+                        });
+                    }
+                }
+            }
+        }
+        
+        if (options.length === 0) {
+            console.error("スピーカーオプションが生成できませんでした");
+            // デフォルトのオプションを追加
+            return [{
+                label: "Anneli - ノーマル",
+                value: "Anneli-ノーマル-888753760"
+            }];
+        }
+        
+        return options;
+    } catch (error) {
+        console.error("スピーカーオプション生成エラー:", error);
+        return [{
+            label: "Anneli - ノーマル",
+            value: "Anneli-ノーマル-888753760"
+        }];
     }
-    return options;
 }
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
-export const JOIN_CHANNELS_FILE = 'join_channels.json';
+export const JOIN_CHANNELS_FILE = path.join(__dirname, "..", "join_channels.json");
 let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 joinChannels = loadJoinChannels();
 
 // 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
 export function loadJoinChannels() {
     try {
-        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-        return JSON.parse(data);
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            return JSON.parse(data);
+        }
     } catch (error) {
-        return {};
+        console.error("参加チャンネル設定読み込みエラー:", error);
     }
+    return {};
 }
 
 // 新規：取得したチャネル情報を保存する関数
 export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
     try {
-        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-        joinChannels = JSON.parse(data);
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            joinChannels = JSON.parse(data);
+        }
     } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
         joinChannels = {};
     }
+    
     joinChannels[guildId] = { voiceChannelId, textChannelId };
-    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    try {
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error("参加チャンネル設定保存エラー:", error);
+    }
 }
 
 // 新規：join_channels.json を保存する関数
 export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } }) {
-    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    try {
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error("参加チャンネル設定保存エラー:", error);
+    }
 }
 
 // 新規：チャンネル情報を削除する関数
 export function deleteJoinChannelsConfig(guildId: string) {
     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
     try {
-        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-        joinChannels = JSON.parse(data);
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            joinChannels = JSON.parse(data);
+        }
     } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
         joinChannels = {};
     }
+    
     delete joinChannels[guildId];
-    fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    try {
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error("参加チャンネル設定保存エラー:", error);
+    }
 }
 
 // メッセージ送信先を決定する関数

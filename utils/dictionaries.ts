@@ -1,11 +1,15 @@
 import * as fs from 'fs';
+import * as path from 'path';
+import { DICTIONARY_FILE } from './TTS-Engine';
 
 export const guildDictionary: { [key: string]: { [key: string]: any } } = {};
 
-const DICTIONARY_FILE = "guild_dictionaries.json";
-
 export function saveToDictionaryFile() {
-    fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
+    try {
+        fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
+    } catch (error) {
+        console.error("辞書ファイル保存エラー:", error);
+    }
 }
 
 export function updateGuildDictionary(guildId: string, word: string, details: any) {
@@ -78,16 +82,20 @@ export async function fetchAllUUIDs(): Promise<void> {
 
 export class ServerStatus {
     guildId: string;
+    // guild_id保存先のファイルパス
+    private GUILD_ID_FILE: string;
+    
     constructor(guildId: string) {
         this.guildId = guildId;
+        this.GUILD_ID_FILE = path.join(__dirname, "..", "guild_id.txt");
         this.saveTask();
-        }
+    }
 
     async saveTask() {
         while (true) {
             console.log(`Saving guild id: ${this.guildId}`);
             try {
-                fs.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
+                fs.writeFileSync(this.GUILD_ID_FILE, this.guildId); // guild_id をファイルに保存
                 await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
             } catch (error: any) {
                 console.error("Error saving guild id:", error);
