@@ -8,7 +8,7 @@ import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries"; // 
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
-import { saveVoiceState, reconnectToVoiceChannels } from './utils/voiceStateManager';
+import { reconnectToVoiceChannels } from './utils/voiceStateManager';
 
 interface ExtendedClient extends Client {
     commands: Collection<string, any>;

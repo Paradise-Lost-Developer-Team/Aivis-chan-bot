@@ -1,6 +1,6 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
 import { voiceClients, loadAutoJoinChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
-import { AudioPlayerStatus, VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
+import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
@@ -156,6 +156,22 @@ export function MessageCreate(client: ExtendedClient) {
                     const membersCollection = voiceChannel.members as Collection<string, GuildMember>;
                     if (membersCollection.filter((member) => !member.user.bot).size === 0) {
                         console.log("No human in the voice channel. Ignoring message.");
+                        return;
+                    }
+                }
+            }
+            
+            // メッセージを処理する前にボイスクライアントの接続を確認
+            if (voiceClient) {
+                // 接続状態を確認し、接続が切れていたら再取得
+                if (voiceClient.state.status !== 'ready') {
+                    const reconnectedClient = getVoiceConnection(guildId);
+                    if (reconnectedClient) {
+                        voiceClients[guildId] = reconnectedClient;
+                        voiceClient = reconnectedClient;
+                        console.log(`ギルド ${guildId} の接続を回復しました`);
+                    } else {
+                        console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
                         return;
                     }
                 }

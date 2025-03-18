@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Client, Guild, VoiceChannel, ChannelType, TextChannel } from 'discord.js';
 import { joinVoiceChannel, VoiceConnection, getVoiceConnection } from '@discordjs/voice';
+import { speakVoice, voiceClients, play_audio, currentSpeaker } from './TTS-Engine'; // play_audioもインポート
 
 const VOICE_STATE_PATH = path.join(__dirname, '..', 'data', 'voice_state.json');
 
@@ -148,6 +149,11 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       if (existingConnection) {
         existingConnection.destroy();
         await wait(1000); // 切断処理を待機
+        
+        // voiceClientsからも削除
+        if (voiceClients[guildId]) {
+          delete voiceClients[guildId];
+        }
       }
       
       // ボイスチャンネルに接続
@@ -163,9 +169,24 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
         // 接続が確立されるまで待機
         await new Promise<void>((resolve, reject) => {
           // 成功したとき
-          const onReady = () => {
+          const onReady = async () => {
             connection.removeListener('error', onError);
             console.log(`${guild.name}のチャンネル${channel.name}に再接続しました`);
+            
+            // 重要: voiceClientsオブジェクトに接続を登録
+            voiceClients[guildId] = connection;
+            console.log(`ギルド ${guildId} の接続をvoiceClientsに登録しました`);
+
+            // 再接続アナウンスを流す
+            try {
+              const speakerId = currentSpeaker[guildId] || 888753760;
+              const audioPath = await speakVoice('再起動後の再接続が完了しました', speakerId, guildId);
+              await play_audio(connection, audioPath, guildId, null);
+              console.log(`${guild.name}のチャンネル${channel.name}に再接続アナウンスを送信しました`);
+            } catch (audioError) {
+              console.error(`再接続アナウンス送信エラー: ${audioError}`);
+            }
+            
             resolve();
           };
           
@@ -222,9 +243,24 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
               reject(new Error('リトライ接続タイムアウト'));
             }, 10000);
             
-            retryConnection.once('ready', () => {
+            retryConnection.once('ready', async () => {
               clearTimeout(timeout);
               console.log(`${guild.name}のチャンネル${channel.name}に再接続しました（リトライ後）`);
+              
+              // 重要: リトライ後もvoiceClientsオブジェクトに接続を登録
+              voiceClients[guildId] = retryConnection;
+              console.log(`ギルド ${guildId} の接続をvoiceClientsに登録しました（リトライ後）`);
+              
+              // リトライ後も再接続アナウンスを流す
+              try {
+                const speakerId = currentSpeaker[guildId] || 888753760;
+                const audioPath = await speakVoice('再起動後の再接続が完了しました', speakerId, guildId);
+                await play_audio(retryConnection, audioPath, guildId, null);
+                console.log(`${guild.name}のチャンネル${channel.name}に再接続アナウンスを送信しました（リトライ後）`);
+              } catch (audioError) {
+                console.error(`再接続アナウンス送信エラー（リトライ後）: ${audioError}`);
+              }
+              
               resolve();
             });
             

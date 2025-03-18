@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, getVoiceConnection } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
@@ -140,6 +140,16 @@ export function uuidv4(): string {
     });
 }
 
+// ボイスクライアント接続チェックを行う関数を追加
+export function isVoiceClientConnected(guildId: string): boolean {
+    if (!voiceClients[guildId]) {
+        return false;
+    }
+    
+    // VoiceConnectionStatusがReadyであるか確認
+    return voiceClients[guildId].state.status === VoiceConnectionStatus.Ready;
+}
+
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
     const player = getPlayer(guildId);
     console.log(`Playing audio for guild: ${guildId}`);
@@ -147,6 +157,21 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     if (!player) {
         console.error("Error: No audio player found for guild " + guildId);
         return;
+    }
+
+    // 接続チェック
+    if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+        console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+        
+        // getVoiceConnection関数で再確認
+        const reconnectedClient = getVoiceConnection(guildId);
+        if (reconnectedClient && reconnectedClient.state.status === VoiceConnectionStatus.Ready) {
+            console.log(`接続を回復しました。ギルドID: ${guildId}`);
+            voiceClient = reconnectedClient;
+            voiceClients[guildId] = reconnectedClient; // voiceClientsを更新
+        } else {
+            return; // 接続できなければ終了
+        }
     }
 
     // 既存のIdleイベントリスナーを解除
