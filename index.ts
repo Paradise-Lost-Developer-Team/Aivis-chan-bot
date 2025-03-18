@@ -53,15 +53,19 @@ async function gracefulShutdown() {
 client.once(Events.ClientReady, async () => {
     try {
         await deployCommands();
-        MessageCreate(client); // 非同期関数として呼び出す
-        VoiceStateUpdate(client); // 非同期関数として呼び出す
-        AivisAdapter();
-        console.log("起動完了");
-        client.user!.setActivity("起動中…", { type: ActivityType.Playing });
+        console.log("コマンドのデプロイ完了");
         
-        // ボイスチャンネル再接続を先に実行する
+        // ボイスチャンネル再接続を先に実行し、完全に完了するまで待機
         console.log('ボイスチャンネルへの再接続を試みています...');
         await reconnectToVoiceChannels(client);
+        console.log('ボイスチャンネル再接続処理が完了しました');
+        
+        // 再接続が完了した後で他の機能を初期化
+        MessageCreate(client);
+        VoiceStateUpdate(client);
+        AivisAdapter();
+        console.log("起動完了");
+        client.user!.setActivity("起動完了", { type: ActivityType.Playing });
         
         // 辞書データ関連の処理を後で行う（エラーがあっても再接続には影響しない）
         try {

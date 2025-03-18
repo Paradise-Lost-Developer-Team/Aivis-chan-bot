@@ -49,15 +49,20 @@ export async function fetchAllUUIDs(): Promise<void> {
         try {
             const response = await fetch('https://api.mojang.com/users/profiles/minecraft/nickname', {
                 signal: controller.signal
+            }).catch(err => {
+                console.log(`Fetch error caught: ${err.message}`);
+                return null; // エラー時にnullを返してフローを継続
             });
             
             clearTimeout(timeoutId); // タイムアウトをクリア
             
-            if (response.ok) {
+            if (response && response.ok) {
                 const data = await response.json();
-                // 以降の処理...
-            } else {
+                // 処理を続行...
+            } else if (response) {
                 console.log(`Error fetching user dictionary: HTTP ${response.status}`);
+            } else {
+                console.log(`Failed to fetch user dictionary (null response)`);
             }
         } catch (fetchError) {
             console.log(`Attempt ${attempts} - Error fetching user dictionary: ${fetchError}`);
