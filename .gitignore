@@ -55,3 +55,4 @@ build/
 .venv/
 config.json
 join_channels.json
+data/voice_state.json
