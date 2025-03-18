@@ -53,7 +53,9 @@ export function VoiceStateUpdate(client: Client) {
                             const voiceClient = await joinVoiceChannel({
                                 channelId: newState.channel.id,
                                 guildId: newState.guild.id,
-                                adapterCreator: newState.guild.voiceAdapterCreator as any
+                                adapterCreator: newState.guild.voiceAdapterCreator as any,
+                                selfDeaf: true,   // スピーカーはOFF（聞こえない）
+                                selfMute: false   // マイクはON（話せる）
                             });
                             voiceClients[guildId] = voiceClient;
                             console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);

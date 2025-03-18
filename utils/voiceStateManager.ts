@@ -162,8 +162,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
           channelId: channel.id,
           guildId: guild.id,
           adapterCreator: guild.voiceAdapterCreator,
-          selfDeaf: false,
-          selfMute: false
+          selfDeaf: true,     // スピーカーはOFF（聞こえない）
+          selfMute: false     // マイクはON（話せる）
         });
         
         // 接続が確立されるまで待機
@@ -233,8 +233,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
             channelId: channel.id,
             guildId: guild.id,
             adapterCreator: guild.voiceAdapterCreator,
-            selfDeaf: false,
-            selfMute: false
+            selfDeaf: true,   // スピーカーはOFF（聞こえない）
+            selfMute: false   // マイクはON（話せる）
           });
           
           // リトライの接続が確立されるまで待機

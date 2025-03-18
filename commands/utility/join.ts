@@ -70,7 +70,9 @@ module.exports = {
             voiceClient = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: guildId,
-                adapterCreator: interaction.guild!.voiceAdapterCreator as any
+                adapterCreator: interaction.guild!.voiceAdapterCreator as any,
+                selfDeaf: true, // スピーカーはOFF（聞こえない）
+                selfMute: false // マイクはON（話せる）
             });
             voiceClients[guildId] = voiceClient;
 
