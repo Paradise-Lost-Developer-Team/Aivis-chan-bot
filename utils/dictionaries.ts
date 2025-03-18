@@ -114,7 +114,6 @@ export class ServerStatus {
 
     async saveTask() {
         while (true) {
-            console.log(`Saving guild id: ${this.guildId}`);
             try {
                 // ディレクトリ存在確認
                 const dirname = path.dirname(this.GUILD_ID_FILE);
