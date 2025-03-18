@@ -2,7 +2,8 @@ import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collecti
 import { deployCommands } from "./utils/deploy-commands"; // 相対パスを修正
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
-import { TOKEN } from "./config.json";
+import * as path from "path";
+import { TOKEN } from "./config.json"; // configファイルのインポートはそのまま
 import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./utils/TTS-Engine"; // 相対パスを修正
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries"; // 相対パスを修正
 import { MessageCreate } from "./utils/MessageCreate";
