@@ -1,15 +1,19 @@
 import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection } from "discord.js";
-import { deployCommands } from "./utils/deploy-commands"; // 相対パスを修正
+import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { TOKEN } from "./config.json"; // configファイルのインポートはそのまま
-import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./utils/TTS-Engine"; // 相対パスを修正
-import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries"; // 相対パスを修正
+import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./utils/TTS-Engine";
+import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
+
+// configファイルのパスを正しく設定
+const CONFIG_PATH = path.join(__dirname, "config.json");
+const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+const { TOKEN } = CONFIG;
 
 export interface ExtendedClient extends Client {
     commands: Collection<string, any>;

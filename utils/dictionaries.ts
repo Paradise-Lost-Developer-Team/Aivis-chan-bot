@@ -6,9 +6,16 @@ export const guildDictionary: { [key: string]: { [key: string]: any } } = {};
 
 export function saveToDictionaryFile() {
     try {
+        // ディレクトリ存在確認
+        const dirname = path.dirname(DICTIONARY_FILE);
+        if (!fs.existsSync(dirname)) {
+            fs.mkdirSync(dirname, { recursive: true });
+        }
+        
         fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
+        console.log(`辞書ファイルを保存しました: ${DICTIONARY_FILE}`);
     } catch (error) {
-        console.error("辞書ファイル保存エラー:", error);
+        console.error(`辞書ファイル保存エラー (${DICTIONARY_FILE}):`, error);
     }
 }
 
@@ -87,7 +94,21 @@ export class ServerStatus {
     
     constructor(guildId: string) {
         this.guildId = guildId;
-        this.GUILD_ID_FILE = path.join(__dirname, "..", "guild_id.txt");
+        
+        // プロジェクトルートディレクトリへのパスを取得
+        const currentDir = __dirname;
+        let projectRoot: string;
+        
+        if (currentDir.includes('build/js/utils') || currentDir.includes('build\\js\\utils')) {
+            projectRoot = path.resolve(path.join(currentDir, '..', '..', '..'));
+        } else if (currentDir.includes('/utils') || currentDir.includes('\\utils')) {
+            projectRoot = path.resolve(path.join(currentDir, '..'));
+        } else {
+            projectRoot = process.cwd();
+        }
+        
+        this.GUILD_ID_FILE = path.join(projectRoot, "guild_id.txt");
+        console.log(`Guild ID ファイルパス: ${this.GUILD_ID_FILE}`);
         this.saveTask();
     }
 
@@ -95,10 +116,16 @@ export class ServerStatus {
         while (true) {
             console.log(`Saving guild id: ${this.guildId}`);
             try {
-                fs.writeFileSync(this.GUILD_ID_FILE, this.guildId); // guild_id をファイルに保存
+                // ディレクトリ存在確認
+                const dirname = path.dirname(this.GUILD_ID_FILE);
+                if (!fs.existsSync(dirname)) {
+                    fs.mkdirSync(dirname, { recursive: true });
+                }
+                
+                fs.writeFileSync(this.GUILD_ID_FILE, this.guildId);
                 await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
-            } catch (error: any) {
-                console.error("Error saving guild id:", error);
+            } catch (error) {
+                console.error(`Error saving guild id to ${this.GUILD_ID_FILE}:`, error);
             }
         }
     }
