@@ -18,6 +18,13 @@ body {
   line-height: 1.6;
 }
 
+/* メイン要素のスタイル追加 */
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
 .site-header {
   border-top: 5px solid #424242;
   border-bottom: 1px solid #e8e8e8;
@@ -359,5 +366,185 @@ blockquote {
       padding: 5px 10px;
       margin-left: 20px;
     }
+  }
+}
+
+/* コマンドセクションのスタイル */
+.commands-section {
+  padding: 2rem 0;
+}
+
+.commands-section .section-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.commands-table {
+  width: 100%;
+}
+
+.commands-table table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.commands-table th {
+  background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 1rem;
+  text-align: left;
+}
+
+.commands-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.commands-table tr:last-child td {
+  border-bottom: none;
+}
+
+.commands-table tr:nth-child(even) {
+  background-color: rgba(0,0,0,0.02);
+}
+
+.commands-note {
+  text-align: center;
+  margin-top: 1rem;
+  font-style: italic;
+  color: #666;
+}
+
+/* よくある質問セクションのスタイル */
+.faq-section {
+  padding: 2rem 0;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.faq-section .section-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.faq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.faq-question {
+  font-size: 1.2rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.faq-answer {
+  margin: 0;
+  color: #555;
+}
+
+/* サブスクリプションバナーのスタイル */
+.subscription-banner {
+  background: linear-gradient(120deg, var(--secondary-color), var(--primary-color));
+  color: #fff;
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  margin: 3rem 0;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.subscription-banner h2 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.subscription-banner p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.banner-button {
+  display: inline-block;
+  background-color: #fff;
+  color: var(--primary-color);
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: bold;
+  text-decoration: none;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.banner-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* サポートセクションのスタイル */
+.support-section {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.support-section .section-title {
+  margin-bottom: 1rem;
+}
+
+.support-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.support-button {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  color: var(--text-color);
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.support-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.support-icon {
+  font-size: 1.3rem;
+  margin-right: 0.6rem;
+}
+
+/* レスポンシブ対応 */
+@media screen and (max-width: 768px) {
+  .support-buttons {
+    flex-direction: column;
+    align-items: center;
   }
 }
