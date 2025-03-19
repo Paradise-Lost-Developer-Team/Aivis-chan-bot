@@ -7,6 +7,7 @@ import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvailable, isProFeatureAvailable } from './subscription';
 import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
+import { getVoiceEffectSettings } from './pro-features';
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -212,7 +213,7 @@ try {
 }
 
 export function adjustAudioQuery(audioQuery: any, guildId: string) {
-    audioQuery["volumeScale"] = voiceSettings["volume"]?.[guildId] || 0.2;
+    audioQuery["volumeScale"] = voiceSettings["volume"]?.[guildId] || 0.5;
     audioQuery["pitchScale"] = voiceSettings["pitch"]?.[guildId] || 0.0;
     audioQuery["rateScale"] = voiceSettings["rate"]?.[guildId] || 1.0;
     audioQuery["speedScale"] = voiceSettings["speed"]?.[guildId] || 1.0;
@@ -228,7 +229,7 @@ export function getMaxTextLength(guildId: string): number {
     return getSubscriptionMaxTextLength(guildId);
 }
 
-export async function speakVoice(text: string, speaker: number, guildId: string) {
+export async function speakVoice(text: string, speaker: number, guildId: string): Promise<string> {
     // 最大文字数をサブスクリプションベースで取得
     const maxLength = getMaxTextLength(guildId);
     
@@ -275,7 +276,8 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
             // 履歴保存の失敗は音声生成には影響させない
         }
         
-        return tempAudioFilePath;
+        return tempAudioFilePath; // エフェクト適用を削除し、生成されたファイルパスをそのまま返す
+        
     } catch (error) {
         console.error(`音声生成エラー: ${error}`);
         throw error; // エラーを上位に伝播させる
@@ -315,16 +317,16 @@ export function isVoiceClientConnected(guildId: string): boolean {
 export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
     try {
         const player = getPlayer(guildId);
-        console.log(`Playing audio for guild: ${guildId}, file: ${path}`);
+        console.log(`ギルド: ${guildId} の音声を再生中, ファイル: ${path}`);
 
         if (!player) {
-            console.error("Error: No audio player found for guild " + guildId);
+            console.error("エラー: ギルド " + guildId + " のオーディオプレイヤーが見つかりませんでした");
             return;
         }
 
         // 接続チェック
         if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
-            console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+            console.error(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
             
             // getVoiceConnection関数で再確認
             const reconnectedClient = getVoiceConnection(guildId);

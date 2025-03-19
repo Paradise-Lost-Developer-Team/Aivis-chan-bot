@@ -1,8 +1,11 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, play_audio } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { enqueueText, Priority } from './VoiceQueue';
 import { logError } from './errorLogger';
+import { findMatchingResponse, processResponse } from './custom-responses';
+import { generateSmartSpeech, getSmartTTSSettings } from './smart-tts';
+import { isProFeatureAvailable } from './subscription';
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
@@ -189,6 +192,30 @@ export function MessageCreate(client: ExtendedClient) {
                 
             } else {
                 console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
+            }
+
+            const match = findMatchingResponse(guildId, message.content);
+            if (match) {
+                // カスタム応答のテキストを生成
+                const replyText = processResponse(match, message.content, message.author.username);
+                if (message.channel.isTextBased() && 'send' in message.channel) {
+                    await message.channel.send(replyText);
+                }
+
+                // ボイスチャンネルに接続中ならTTSを試みる
+                if (voiceClient) {
+                    try {
+                        let audioPath: string;
+                        if (isProFeatureAvailable(guildId)) {
+                            audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
+                        } else {
+                            audioPath = await speakVoice(replyText, 888753760, guildId);
+                        }
+                        await play_audio(voiceClient, audioPath, guildId, null);
+                    } catch (error) {
+                        console.error('カスタム応答TTSエラー:', error);
+                    }
+                }
             }
         } catch (error) {
             console.error(`メッセージの処理中にエラーが発生しました: ${error}`);

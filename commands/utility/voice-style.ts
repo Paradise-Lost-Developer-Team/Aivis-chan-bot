@@ -10,6 +10,7 @@ import {
     applyStyle,
     getCurrentStyle
 } from '../../utils/voiceStyles';
+import { addSpeaker } from '../../utils/speakerManager';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -64,6 +65,8 @@ module.exports = {
         } else if (subcommand === 'advanced') {
             await handleAdvanced(interaction, guildId);
         }
+        // style適用が完了したら話者リストに追加例
+        // 例: addSpeaker(guildId, 999999, 'anime', 'アニメ風話者');
     }
 };
 
