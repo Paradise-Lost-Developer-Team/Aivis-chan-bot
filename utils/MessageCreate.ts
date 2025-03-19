@@ -1,6 +1,9 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
 import { voiceClients, loadAutoJoinChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
+import { isProFeatureAvailable } from './subscription';
+import { saveVoiceHistoryItem } from './voiceHistory';
+import { addToQueue, getNextMessage, setProcessing, isProcessing } from './priorityQueue';
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
@@ -180,8 +183,14 @@ export function MessageCreate(client: ExtendedClient) {
             // メッセージ読み込みだけで自動接続は行わない
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                 console.log("Voice client is connected and message is in the correct text channel. Handling message.");
-            // 修正後
-            await handle_message(message, messageContent);
+                
+                // 優先キュー処理を使用
+                addToQueue(message, messageContent);
+                
+                // キュー処理が実行中でなければ開始
+                if (!isProcessing(guildId)) {
+                    processNextMessage(guildId);
+                }
             } else {
                 console.log(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
             }
@@ -189,6 +198,27 @@ export function MessageCreate(client: ExtendedClient) {
             console.error(`An error occurred while processing the message: ${error}`);
         }
     });
+    
+    // キューの次のメッセージを処理
+    async function processNextMessage(guildId: string): Promise<void> {
+        try {
+            setProcessing(guildId, true);
+            
+            const next = getNextMessage(guildId);
+            if (!next) {
+                setProcessing(guildId, false);
+                return;
+            }
+            
+            await handle_message(next.message, next.text);
+            
+            // 次のメッセージがあれば処理
+            setTimeout(() => processNextMessage(guildId), 100);
+        } catch (error) {
+            console.error(`メッセージ処理エラー: ${error}`);
+            setProcessing(guildId, false);
+        }
+    }
 }
 
 async function handle_message(message: Message, messageContent: string) {
@@ -205,6 +235,26 @@ async function handle_message(message: Message, messageContent: string) {
 
     console.log(`Handling message: ${messageContent}`);
     const speakerId = currentSpeaker[guildId] || 888753760;  // デフォルトの話者ID
+    
+    // Pro版の場合、履歴に保存
+    try {
+        if (isProFeatureAvailable(guildId)) {
+            const historyItem = {
+                timestamp: new Date().toISOString(),
+                text: messageContent,
+                userId: message.author.id,
+                username: message.member?.displayName || message.author.username,
+                speakerId: speakerId,
+                channelId: message.channel.id,
+                channelName: 'name' in message.channel ? message.channel.name || 'Unknown Channel' : 'Direct Message'
+            };
+            
+            saveVoiceHistoryItem(guildId, historyItem);
+        }
+    } catch (error) {
+        console.error('読み上げ履歴の保存に失敗:', error);
+    }
+    
     const path = await speakVoice(messageContent, speakerId, guildId);
 
     while (voiceClient.state.status === VoiceConnectionStatus.Ready && getPlayer(guildId)?.state.status === AudioPlayerStatus.Playing) {

@@ -1,0 +1,17 @@
+title: Aivis-chan Bot
+description: Discord読み上げBot「Aivis-chan」の公式サイト
+theme: jekyll-theme-primer
+lang: ja
+
+# ナビゲーション
+nav:
+  - name: ホーム
+    url: /
+  - name: Pro版/Premium版
+    url: /subscription
+  - name: 利用規約
+    url: /Term-of-Service
+  - name: プライバシーポリシー
+    url: /Privacy-Policy
+  - name: サポートサーバー
+    url: https://discord.gg/MPx2ny8HXT

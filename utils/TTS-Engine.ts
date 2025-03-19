@@ -5,6 +5,8 @@ import os from "os";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
+import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvailable, isProFeatureAvailable } from './subscription';
+import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -221,15 +223,54 @@ export function adjustAudioQuery(audioQuery: any, guildId: string) {
 
 export const MAX_TEXT_LENGTH = 200;
 
+// 最大読み上げ文字数の修正（サブスクリプションに基づく）
+export function getMaxTextLength(guildId: string): number {
+    return getSubscriptionMaxTextLength(guildId);
+}
+
 export async function speakVoice(text: string, speaker: number, guildId: string) {
-    if (text.length > MAX_TEXT_LENGTH) {
-        text = text.substring(0, MAX_TEXT_LENGTH) + "...";
+    // 最大文字数をサブスクリプションベースで取得
+    const maxLength = getMaxTextLength(guildId);
+    
+    // 文字数制限
+    const originalText = text; // 履歴用に元のテキストを保存
+    if (text.length > maxLength) {
+        text = text.substring(0, maxLength) + "...";
     }
+    
     let audioQuery = await postAudioQuery(text, speaker);
     audioQuery = adjustAudioQuery(audioQuery, guildId);
     const audioContent = await postSynthesis(audioQuery, speaker);
     const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
     fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
+    
+    // Pro版以上の場合、履歴に保存（ユーザー情報がない場合はスキップ）
+    try {
+        if (isProFeatureAvailable(guildId)) {
+            // システムメッセージかどうかを簡易的に判定
+            const isSystemMessage = text.includes('接続しました') || 
+                                  text.includes('入室しました') || 
+                                  text.includes('退室しました');
+            
+            if (!isSystemMessage) {
+                const historyItem: VoiceHistoryItem = {
+                    timestamp: new Date().toISOString(),
+                    text: originalText,
+                    userId: 'system', // または特定のユーザーID（メッセージ元から取得）
+                    username: 'システム', // または特定のユーザー名
+                    speakerId: speaker,
+                    channelId: '', // 利用可能ならチャンネルID
+                    channelName: '' // 利用可能ならチャンネル名
+                };
+                
+                saveVoiceHistoryItem(guildId, historyItem);
+            }
+        }
+    } catch (error) {
+        console.error('読み上げ履歴の保存に失敗:', error);
+        // 履歴保存の失敗は音声生成には影響させない
+    }
+    
     return tempAudioFilePath;
 }
 
