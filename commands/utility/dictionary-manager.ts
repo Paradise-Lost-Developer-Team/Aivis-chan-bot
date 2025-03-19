@@ -5,7 +5,8 @@ import {
     ActionRowBuilder, 
     ButtonBuilder, 
     ButtonStyle,
-    AttachmentBuilder
+    AttachmentBuilder,
+    MessageFlags
 } from 'discord.js';
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/subscription';
 import { getMaxDictionaryEntries } from '../../utils/pro-features';
@@ -38,7 +39,7 @@ module.exports = {
         if (!isProFeatureAvailable(guildId)) {
             await interaction.reply({
                 content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
             return;
         }
@@ -118,7 +119,7 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
     if (!isPremiumFeatureAvailable(guildId)) {
         await interaction.reply({
             content: '辞書インポートはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。',
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
         return;
     }

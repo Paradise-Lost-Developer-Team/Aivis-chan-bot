@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/subscription';
 import { 
     getAvailableVoiceEffectPresets,
@@ -39,7 +39,7 @@ module.exports = {
         if (!isProFeatureAvailable(guildId)) {
             await interaction.reply({
                 content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
             return;
         }
@@ -52,7 +52,7 @@ module.exports = {
         if (!availablePresets.includes(presetName)) {
             await interaction.reply({
                 content: `お使いのプランでは「${presetName}」エフェクトは利用できません。Premium版へのアップグレードをご検討ください。`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
             return;
         }
