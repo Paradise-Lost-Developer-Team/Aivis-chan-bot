@@ -1,9 +1,8 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
+import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { isProFeatureAvailable } from './subscription';
-import { saveVoiceHistoryItem } from './voiceHistory';
-import { addToQueue, getNextMessage, setProcessing, isProcessing } from './priorityQueue';
+import { enqueueText, Priority } from './VoiceQueue';
+import { logError } from './errorLogger';
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
@@ -40,23 +39,6 @@ export function MessageCreate(client: ExtendedClient) {
                 console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
                 return;
             }
-    
-            // ↓ 自動再接続を行わないように、以下の処理をコメントアウト
-            /*
-            // voiceClient が "Disconnected" の場合は再接続を試みる
-            if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Disconnected) {
-                console.log("Voice client is in Disconnected state. Trying to rejoin...");
-                const guildAutoJoin = autoJoinChannelsData[guildId];
-                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
-                    voiceClient = joinVoiceChannel({
-                        channelId: guildAutoJoin.voiceChannelId,
-                        guildId: guildId,
-                        adapterCreator: message.guild!.voiceAdapterCreator as any
-                    });
-                    voiceClients[guildId] = voiceClient;
-                }
-            }
-            */
             
             // メッセージ内容の加工
             // スポイラーを置換
@@ -135,11 +117,8 @@ export function MessageCreate(client: ExtendedClient) {
             const resolvedMentions = await Promise.all(userPromises);
             resolvedMentions.forEach(({ mention, username }) => {
                 messageContent = messageContent.replace(mention, username);
-
             });
             
-            
-    
             // コードブロック除外
             if (messageContent.match(/```[\s\S]+```/g)) {
                 console.log("Message contains code block, ignoring.");
@@ -184,96 +163,43 @@ export function MessageCreate(client: ExtendedClient) {
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                 console.log("Voice client is connected and message is in the correct text channel. Handling message.");
                 
-                // 優先キュー処理を使用
-                addToQueue(message, messageContent);
-                
-                // キュー処理が実行中でなければ開始
-                if (!isProcessing(guildId)) {
-                    processNextMessage(guildId);
+                // 文字数制限
+                if (messageContent.length > MAX_TEXT_LENGTH) {
+                    messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
                 }
+                
+                // ユーザー名を付加
+                const username = message.member?.displayName || message.author.username;
+                messageContent = `${username}さん、${messageContent}`;
+                
+                // 優先度の決定
+                let priority = Priority.NORMAL;
+                
+                // システム通知やコマンド応答などは優先度高
+                if (messageContent.includes('接続しました') || 
+                    messageContent.includes('入室しました') || 
+                    messageContent.includes('退室しました')) {
+                    priority = Priority.HIGH;
+                }
+                
+                // 長いメッセージやURLが多いメッセージは優先度低
+                if (messageContent.length > 100 || messageContent.includes('URL省略')) {
+                    priority = Priority.LOW;
+                }
+                
+                // キューにメッセージを追加
+                enqueueText(guildId, messageContent, priority, message);
+                console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
+                
             } else {
                 console.log(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
             }
         } catch (error) {
             console.error(`An error occurred while processing the message: ${error}`);
+            logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
         }
     });
-    
-    // キューの次のメッセージを処理
-    async function processNextMessage(guildId: string): Promise<void> {
-        try {
-            setProcessing(guildId, true);
-            
-            const next = getNextMessage(guildId);
-            if (!next) {
-                setProcessing(guildId, false);
-                return;
-            }
-            
-            await handle_message(next.message, next.text);
-            
-            // 次のメッセージがあれば処理
-            setTimeout(() => processNextMessage(guildId), 100);
-        } catch (error) {
-            console.error(`メッセージ処理エラー: ${error}`);
-            setProcessing(guildId, false);
-        }
-    }
 }
 
-async function handle_message(message: Message, messageContent: string) {
-    if (messageContent.length > MAX_TEXT_LENGTH) {
-        messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
-    }
-    const guildId = message.guildId!;
-    const voiceClient = voiceClients[guildId];
-
-    if (!voiceClient) {
-        console.error("Error: Voice client is None, skipping message processing.");
-        return;
-    }
-
-    console.log(`Handling message: ${messageContent}`);
-    const speakerId = currentSpeaker[guildId] || 888753760;  // デフォルトの話者ID
-    
-    // Pro版の場合、履歴に保存
-    try {
-        if (isProFeatureAvailable(guildId)) {
-            const historyItem = {
-                timestamp: new Date().toISOString(),
-                text: messageContent,
-                userId: message.author.id,
-                username: message.member?.displayName || message.author.username,
-                speakerId: speakerId,
-                channelId: message.channel.id,
-                channelName: 'name' in message.channel ? message.channel.name || 'Unknown Channel' : 'Direct Message'
-            };
-            
-            saveVoiceHistoryItem(guildId, historyItem);
-        }
-    } catch (error) {
-        console.error('読み上げ履歴の保存に失敗:', error);
-    }
-    
-    const path = await speakVoice(messageContent, speakerId, guildId);
-
-    while (voiceClient.state.status === VoiceConnectionStatus.Ready && getPlayer(guildId)?.state.status === AudioPlayerStatus.Playing) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    if (voiceClients[guildId] !== voiceClient) {
-        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
-        return;
-    }
-
-    // 再度 subscribe を行い、ちゃんと再生するようにする
-    const resource = createFFmpegAudioSource(path);
-    const player = getPlayer(guildId);
-    if (player) {
-        player.play(await resource);
-        voiceClient.subscribe(player);
-    } else {
-        console.error("Error: Audio player is undefined, cannot subscribe.");
-    }
-    console.log(`Finished playing message: ${messageContent}`);
-}
+// 古い関数は削除（キュー処理に置き換えたため）
+// async function handle_message(message: Message, messageContent: string) { ... }
