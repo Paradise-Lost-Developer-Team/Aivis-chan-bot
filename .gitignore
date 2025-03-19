@@ -55,3 +55,4 @@ data/voice_state.json
 data/
 voice_styles.json
 build/
+custom_responses.json

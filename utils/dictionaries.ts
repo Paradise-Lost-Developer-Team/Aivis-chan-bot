@@ -108,7 +108,6 @@ export class ServerStatus {
         }
         
         this.GUILD_ID_FILE = path.join(projectRoot, "guild_id.txt");
-        console.log(`Guild ID ファイルパス: ${this.GUILD_ID_FILE}`);
         this.saveTask();
     }
 
