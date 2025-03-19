@@ -5,7 +5,8 @@ import {
     ActionRowBuilder, 
     ButtonBuilder, 
     ButtonStyle, 
-    ButtonInteraction 
+    ButtonInteraction,
+    MessageFlags
 } from 'discord.js';
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/subscription';
 import { 
@@ -55,7 +56,7 @@ module.exports = {
         if (!isProFeatureAvailable(guildId)) {
             await interaction.reply({
                 content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
             return;
         }
@@ -76,7 +77,7 @@ module.exports = {
             console.error('履歴コマンド実行エラー:', error);
             await interaction.reply({
                 content: '履歴の取得中にエラーが発生しました。',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
     },
@@ -91,7 +92,7 @@ async function handleListCommand(interaction: ChatInputCommandInteraction) {
     if (history.length === 0) {
         await interaction.reply({
             content: '読み上げ履歴がありません。',
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
         return;
     }
@@ -123,7 +124,7 @@ async function handleListCommand(interaction: ChatInputCommandInteraction) {
     await interaction.reply({
         embeds: [embed],
         components,
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
     });
 }
 
@@ -137,7 +138,7 @@ async function handleSearchCommand(interaction: ChatInputCommandInteraction) {
     if (searchResults.length === 0) {
         await interaction.reply({
             content: `「${query}」に一致する履歴が見つかりませんでした。`,
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
         return;
     }
@@ -148,7 +149,7 @@ async function handleSearchCommand(interaction: ChatInputCommandInteraction) {
     
     await interaction.reply({
         embeds: [embed],
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
     });
 }
 
@@ -176,7 +177,7 @@ async function handleUserCommand(interaction: ChatInputCommandInteraction) {
     
     await interaction.reply({
         embeds: [embed],
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
     });
 }
 
@@ -186,7 +187,7 @@ async function handleClearCommand(interaction: ChatInputCommandInteraction, guil
     if (!isPremiumFeatureAvailable(guildId)) {
         await interaction.reply({
             content: '履歴のクリアはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。',
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
         return;
     }
@@ -206,7 +207,7 @@ async function handleClearCommand(interaction: ChatInputCommandInteraction, guil
     const response = await interaction.reply({
         content: '⚠️ **注意**: このサーバーの読み上げ履歴をすべて削除します。この操作は元に戻せません。続行しますか？',
         components: [confirmRow],
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
     });
     
     try {

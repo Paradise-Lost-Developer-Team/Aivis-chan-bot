@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/subscription';
 import {
     getGuildStyles,
@@ -47,7 +47,7 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId || '';
         if (!isProFeatureAvailable(guildId)) {
-            await interaction.reply({ content: 'このコマンドはPro版限定です', ephemeral: true });
+            await interaction.reply({ content: 'このコマンドはPro版限定です', flags: MessageFlags.Ephemeral });
             return;
         }
         const subcommand = interaction.options.getSubcommand();
@@ -76,31 +76,31 @@ async function handleCreate(interaction: ChatInputCommandInteraction, guildId: s
     const description = interaction.options.getString('description') || '';
     const styles = getGuildStyles(guildId);
     if (styles.find(s => s.name.toLowerCase() === name.toLowerCase())) {
-        await interaction.reply({ content: '同名スタイルが存在します', ephemeral: true });
+        await interaction.reply({ content: '同名スタイルが存在します', flags: MessageFlags.Ephemeral });
         return;
     }
     const max = getMaxStylesCount(guildId);
     if (styles.length >= max) {
-        await interaction.reply({ content: `スタイル数が上限(${max})に達しています`, ephemeral: true });
+        await interaction.reply({ content: `スタイル数が上限(${max})に達しています`, flags: MessageFlags.Ephemeral });
         return;
     }
     const created = createStyle(guildId, name, { volume, pitch, speed, description, createdBy: interaction.user.id });
     if (!created) {
-        await interaction.reply({ content: '作成失敗', ephemeral: true });
+        await interaction.reply({ content: '作成失敗', flags: MessageFlags.Ephemeral });
         return;
     }
-    await interaction.reply({ content: `スタイル「${name}」を作成しました`, ephemeral: true });
+    await interaction.reply({ content: `スタイル「${name}」を作成しました`, flags: MessageFlags.Ephemeral });
 }
 
 async function handleList(interaction: ChatInputCommandInteraction, guildId: string) {
     // ...existing code...
     const styles = getGuildStyles(guildId);
     if (!styles.length) {
-        await interaction.reply({ content: 'スタイルがありません', ephemeral: true });
+        await interaction.reply({ content: 'スタイルがありません', flags: MessageFlags.Ephemeral });
         return;
     }
     const info = styles.map(s => `${s.name}${s.isDefault ? '(デフォルト)' : ''}`).join(', ');
-    await interaction.reply({ content: `登録スタイル: ${info}`, ephemeral: true });
+    await interaction.reply({ content: `登録スタイル: ${info}`, flags: MessageFlags.Ephemeral });
 }
 
 async function handleApply(interaction: ChatInputCommandInteraction, guildId: string) {
@@ -108,11 +108,11 @@ async function handleApply(interaction: ChatInputCommandInteraction, guildId: st
     const name = interaction.options.getString('name', true);
     const style = findStyleByName(guildId, name);
     if (!style) {
-        await interaction.reply({ content: 'スタイルが見つかりません', ephemeral: true });
+        await interaction.reply({ content: 'スタイルが見つかりません', flags: MessageFlags.Ephemeral });
         return;
     }
     applyStyle(guildId, style.id);
-    await interaction.reply({ content: `「${style.name}」を適用しました`, ephemeral: true });
+    await interaction.reply({ content: `「${style.name}」を適用しました`, flags: MessageFlags.Ephemeral });
 }
 
 async function handleDelete(interaction: ChatInputCommandInteraction, guildId: string) {
@@ -120,21 +120,21 @@ async function handleDelete(interaction: ChatInputCommandInteraction, guildId: s
     const name = interaction.options.getString('name', true);
     const style = findStyleByName(guildId, name);
     if (!style) {
-        await interaction.reply({ content: 'スタイルが見つかりません', ephemeral: true });
+        await interaction.reply({ content: 'スタイルが見つかりません', flags: MessageFlags.Ephemeral });
         return;
     }
     if (!deleteStyle(guildId, style.id)) {
-        await interaction.reply({ content: '削除失敗', ephemeral: true });
+        await interaction.reply({ content: '削除失敗', flags: MessageFlags.Ephemeral });
         return;
     }
-    await interaction.reply({ content: `「${name}」を削除しました`, ephemeral: true });
+    await interaction.reply({ content: `「${name}」を削除しました`, flags: MessageFlags.Ephemeral });
 }
 
 async function handleInfo(interaction: ChatInputCommandInteraction, guildId: string) {
     // ...existing code...
     const style = getCurrentStyle(guildId);
     if (!style) {
-        await interaction.reply({ content: '現在のスタイルがありません', ephemeral: true });
+        await interaction.reply({ content: '現在のスタイルがありません', flags: MessageFlags.Ephemeral });
         return;
     }
     await interaction.reply({
@@ -146,19 +146,19 @@ async function handleInfo(interaction: ChatInputCommandInteraction, guildId: str
 async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId: string) {
     // ...existing code...
     if (!isPremiumFeatureAvailable(guildId)) {
-        await interaction.reply({ content: 'Premium版のみ利用できます', ephemeral: true });
+        await interaction.reply({ content: 'Premium版のみ利用できます', flags: MessageFlags.Ephemeral });
         return;
     }
     const style = getCurrentStyle(guildId);
     if (!style) {
-        await interaction.reply({ content: 'スタイルがありません', ephemeral: true });
+        await interaction.reply({ content: 'スタイルがありません', flags: MessageFlags.Ephemeral });
         return;
     }
     const intonation = interaction.options.getNumber('intonation');
     const emphasis = interaction.options.getNumber('emphasis');
     const formant = interaction.options.getNumber('formant');
     if (intonation === null && emphasis === null && formant === null) {
-        await interaction.reply({ content: 'パラメータを指定してください', ephemeral: true });
+        await interaction.reply({ content: 'パラメータを指定してください', flags: MessageFlags.Ephemeral });
         return;
     }
     const newName = `${style.name}_adv_${Date.now()}`;
@@ -173,9 +173,9 @@ async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId:
         createdBy: interaction.user.id
     });
     if (!newStyle) {
-        await interaction.reply({ content: '高度設定スタイル作成失敗', ephemeral: true });
+        await interaction.reply({ content: '高度設定スタイル作成失敗', flags: MessageFlags.Ephemeral });
         return;
     }
     applyStyle(guildId, newStyle.id);
-    await interaction.reply({ content: `高度設定スタイル「${newName}」を作成・適用しました`, ephemeral: true });
+    await interaction.reply({ content: `高度設定スタイル「${newName}」を作成・適用しました`, flags: MessageFlags.Ephemeral });
 }

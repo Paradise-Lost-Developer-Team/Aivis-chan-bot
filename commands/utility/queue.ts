@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, ChatInputCommandInteraction } from 'discord.js';
+import { CommandInteraction, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { getQueueStatus, clearQueue } from '../../utils/VoiceQueue';
 
 module.exports = {
@@ -17,7 +17,7 @@ module.exports = {
     
     async execute(interaction: ChatInputCommandInteraction) {
         if (!interaction.guildId) {
-            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', ephemeral: true });
+            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', flags: MessageFlags.Ephemeral });
             return;
         }
         
@@ -27,14 +27,14 @@ module.exports = {
             const status = getQueueStatus(interaction.guildId);
             await interaction.reply({
                 content: `現在のキュー状態:\n▶️ 待機中メッセージ数: ${status.length}\n▶️ 処理中: ${status.processing ? 'はい' : 'いいえ'}`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
         else if (subcommand === 'clear') {
             const clearedCount = clearQueue(interaction.guildId);
             await interaction.reply({
                 content: `読み上げキューをクリアしました。${clearedCount}件のメッセージが削除されました。`,
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
     }

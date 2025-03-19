@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { getSubscriptionInfo, SubscriptionTier } from '../../utils/subscription';
 
 module.exports = {
@@ -13,13 +13,13 @@ module.exports = {
     
     async execute(interaction: ChatInputCommandInteraction) {
         if (!interaction.guildId) {
-            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', ephemeral: true });
+            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', flags: MessageFlags.Ephemeral });
             return;
         }
         
         const subcommand = interaction.options.getSubcommand();
         
-        if (subcommand === 'info') {
+        if (subcommand === 'manage') {
             const info = getSubscriptionInfo(interaction.guildId);
             
             let subscriptionName: string;
@@ -58,7 +58,7 @@ module.exports = {
                 embed.addFields({ name: '有効期限', value: `${(info.expiresAt as Date).toLocaleDateString()} (残り ${info.daysLeft} 日)` });
             }
             
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
     }
 };
