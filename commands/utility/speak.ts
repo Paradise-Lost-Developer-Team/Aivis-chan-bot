@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, ChatInputCommandInteraction } from 'discord.js';
-import { voiceClients, currentSpeaker } from '../utils/TTS-Engine';
-import { enqueueText, Priority } from '../utils/VoiceQueue';
+import { voiceClients, currentSpeaker } from '../../utils/TTS-Engine';
+import { enqueueText, Priority } from '../../utils/VoiceQueue';
 
 module.exports = {
     data: new SlashCommandBuilder()
