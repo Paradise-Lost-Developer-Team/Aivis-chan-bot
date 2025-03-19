@@ -65,10 +65,15 @@ client.once(Events.ClientReady, async () => {
         await reconnectToVoiceChannels(client);
         console.log('ボイスチャンネル再接続処理が完了しました');
         
+        // TTS関連の初期化を先に実行
+        loadAutoJoinChannels();
+        loadJoinChannels();
+        AivisAdapter();
+        console.log("TTS初期化完了");
+        
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
         VoiceStateUpdate(client);
-        AivisAdapter();
         console.log("起動完了");
         client.user!.setActivity("起動完了", { type: ActivityType.Playing });
         

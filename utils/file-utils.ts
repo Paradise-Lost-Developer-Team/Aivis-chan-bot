@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs';
 
 /**
  * プロジェクトルートのパスを取得する
@@ -24,7 +25,6 @@ export function getProjectRoot(): string {
  * ディレクトリの存在を確認し、存在しなければ作成する
  */
 export function ensureDirectoryExists(dirPath: string): void {
-    const fs = require('fs');
     if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
     }
