@@ -89,7 +89,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setTitle('音声エフェクト設定完了')
                 .setDescription(`エフェクト「${getPresetDisplayName(presetName)}」を適用しました。`)
-                .setColor('#00FF00');
+                .setColor('#00dd00');
             
             if (Object.keys(preset).length > 0) {
                 embed.addFields(
