@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection } from "discord.js";
+import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
@@ -141,6 +141,40 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     } catch (error) {
         console.error(error);
+    }
+});
+
+client.on(Events.GuildCreate, async (guild) => {
+    try {
+        const embed = new EmbedBuilder()
+            .setTitle('Aivis-chan Botが導入されました！')
+            .setDescription('Aivis-chan Botを導入いただきありがとうございます。Discordサーバーにてメッセージ読み上げ等を行う便利BOTです。')
+            .addFields(
+                { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
+                { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
+                { name: '基本コマンド', value: '• /help\n• /tts\n• /join\n• /leave' }
+            )
+            .setFooter({ text: 'Powered by AivisSpeech' })
+            .setColor(0x00AAFF);
+
+        const row = new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('利用規約')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://example.com/Term-of-Service.html'),
+                new ButtonBuilder()
+                    .setLabel('プライバシーポリシー')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://example.com/Privacy-Policy.html')
+            );
+
+        const systemChannel = guild.systemChannel;
+        if (systemChannel && systemChannel.isTextBased()) {
+            await systemChannel.send({ embeds: [embed], components: [row] });
+        }
+    } catch (error) {
+        console.error('Error sending welcome embed:', error);
     }
 });
 
