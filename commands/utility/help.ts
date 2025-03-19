@@ -124,16 +124,26 @@ module.exports = {
         .setName('help')
         .setDescription('利用可能なコマンドの一覧を表示します。'),
     async execute(interaction: ChatInputCommandInteraction) {
-        const helpText = [
-            '■ /set_speaker: 読み上げ話者を設定',
-            '■ /voice-style: 読み上げスタイルの作成、適用、削除',
-            '■ /smart-tts: AIスマート読み上げ設定(Pro/Premium版)',
-            '■ 他にも対応コマンドがあります。詳細は各コマンドの説明をご参照ください。'
-        ].join('\n');
-
+        const helpMenu = new HelpMenu();
+        const helpText = helpMenu.getCurrentPage().data.description ?? '';
+        const helpEmbed = helpMenu.getCurrentPage();
+        const actionRow = new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('previous')
+                    .setLabel('前のページ')
+                    .setStyle(ButtonStyle.Primary)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('next')
+                    .setLabel('次のページ')
+                    .setStyle(ButtonStyle.Primary)
+            );
         await interaction.reply({
-            content: `利用可能なコマンド:\n${helpText}`,
-            flags: MessageFlags.Ephemeral
+            content: helpText,
+            embeds: [helpEmbed],
+            components: [actionRow]
         });
     }
 };
