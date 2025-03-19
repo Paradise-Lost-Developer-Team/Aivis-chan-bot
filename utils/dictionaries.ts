@@ -4,6 +4,21 @@ import { DICTIONARY_FILE } from './TTS-Engine';
 
 export const guildDictionary: { [key: string]: { [key: string]: any } } = {};
 
+export function loadToDictionaryFile() {
+    try {
+        if (fs.existsSync(DICTIONARY_FILE)) {
+            const data = fs.readFileSync(DICTIONARY_FILE, "utf-8");
+            const parsed = JSON.parse(data);
+            Object.assign(guildDictionary, parsed);
+            console.log(`辞書ファイルを読み込みました: ${DICTIONARY_FILE}`);
+        } else {
+            console.log(`辞書ファイルが存在しません: ${DICTIONARY_FILE}`);
+        }
+    } catch (error) {
+        console.error(`辞書ファイル読み込みエラー (${DICTIONARY_FILE}):`, error);
+    }
+}
+
 export function saveToDictionaryFile() {
     try {
         // ディレクトリ存在確認
