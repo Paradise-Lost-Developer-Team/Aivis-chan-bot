@@ -76,7 +76,7 @@ module.exports = {
         // 設定完了を通知
         await interaction.reply({
             embeds: [embed],
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
         
         // テスト再生
