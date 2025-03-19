@@ -251,6 +251,72 @@ blockquote {
   }
 }
 
+/* 使い方セクションのスタイル */
+.styled-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.styled-usage .step {
+  display: flex;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  transition: transform var(--transition-speed);
+}
+
+.styled-usage .step:hover {
+  transform: translateY(-3px);
+}
+
+.styled-usage .step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.styled-usage .step-content {
+  flex: 1;
+}
+
+.styled-usage .step-content h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+.styled-usage .step-content code {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* モバイル対応 */
+@media screen and (max-width: 600px) {
+  .styled-usage .step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .styled-usage .step-number {
+    margin-bottom: 10px;
+  }
+}
+
 /* モバイル対応 */
 
 @media screen and (max-width: 600px) {
