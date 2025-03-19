@@ -12,7 +12,10 @@ module.exports = {
             .setDescription('現在のサブスクリプション状態を確認します'))
         .addSubcommand(subcommand =>
             subcommand.setName('purchase')
-            .setDescription('Pro版/Premium版の購入方法を表示します')),
+            .setDescription('Pro版/Premium版の購入方法を表示します'))
+        .addSubcommand(subcommand =>
+            subcommand.setName('manage')
+            .setDescription('サブスクリプションの管理情報を表示します')),
     
     async execute(interaction: ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
