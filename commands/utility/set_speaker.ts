@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ActionRowBuilder, ChatInputCommandInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
+import { ActionRowBuilder, ChatInputCommandInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder, ComponentType, MessageFlags } from 'discord.js';
 import { getSpeakerOptions, currentSpeaker } from '../../utils/TTS-Engine';
 
 module.exports = {
@@ -11,7 +11,7 @@ module.exports = {
             if (!interaction.guild) {
                 await interaction.reply({
                     content: 'このコマンドはサーバー内でのみ使用できます。',
-                    ephemeral: true
+                    flags: MessageFlags.Ephemeral
                 });
                 return;
             }
@@ -25,7 +25,7 @@ module.exports = {
             if (!speakerOptions || speakerOptions.length === 0) {
                 await interaction.reply({
                     content: 'スピーカー情報が読み込まれていません。設定ファイルを確認してください。',
-                    ephemeral: true
+                   flags: MessageFlags.Ephemeral
                 });
                 return;
             }
@@ -50,7 +50,7 @@ module.exports = {
             const response = await interaction.reply({
                 content: '読み上げに使用する話者を選択してください：',
                 components: [row],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
             
             // インタラクションコレクター
@@ -115,7 +115,7 @@ module.exports = {
             console.error('スピーカー設定エラー:', error);
             await interaction.reply({
                 content: 'エラーが発生しました。話者情報の読み込みに問題がある可能性があります。',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
     },

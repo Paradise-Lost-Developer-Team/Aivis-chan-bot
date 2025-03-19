@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ButtonInteraction, Interaction } from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ButtonInteraction, Interaction, MessageFlags } from "discord.js";
 
 class HelpMenu {
     private pages: EmbedBuilder[];
@@ -65,7 +65,8 @@ class HelpMenu {
                     { name: "/voice-history search", value: "Pro版: 履歴をキーワードで検索します。" },
                     { name: "/voice-history user", value: "Pro版: 特定ユーザーの履歴を表示します。" },
                     { name: "/voice-history clear", value: "Premium版: 履歴をクリアします。" },
-                    { name: "/subscription info", value: "サブスクリプション情報を確認します。" }
+                    { name: "/subscription info", value: "サブスクリプション情報を確認します。" },
+                    { name: "/subscription purchase", value: "サブスクリプションを購入します。" }
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
@@ -121,84 +122,18 @@ class HelpMenu {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('help')
-        .setDescription('ヘルプメニューを表示します'),
-        
+        .setDescription('利用可能なコマンドの一覧を表示します。'),
     async execute(interaction: ChatInputCommandInteraction) {
-        const helpMenu = new HelpMenu();
-        const embed = helpMenu.getCurrentPage();
-        
-        // ページ情報を埋め込みに追加
-        embed.setFooter({ 
-            text: `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()} • Aivis-chan` 
-        });
-        
-        const row = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('previous')
-                    .setLabel('前へ')
-                    .setStyle(ButtonStyle.Primary),
-                new ButtonBuilder()
-                    .setCustomId('next')
-                    .setLabel('次へ')
-                    .setStyle(ButtonStyle.Primary)
-            );
+        const helpText = [
+            '■ /set_speaker: 読み上げ話者を設定',
+            '■ /voice-style: 読み上げスタイルの作成、適用、削除',
+            '■ /smart-tts: AIスマート読み上げ設定(Pro/Premium版)',
+            '■ 他にも対応コマンドがあります。詳細は各コマンドの説明をご参照ください。'
+        ].join('\n');
 
-        const response = await interaction.reply({ 
-            embeds: [embed], 
-            components: [row],
-            fetchReply: true
-        });
-
-        const filter = (i: Interaction) => {
-            if (i.user.id !== interaction.user.id) return false;
-            return (i as ButtonInteraction).customId === 'previous' || (i as ButtonInteraction).customId === 'next';
-        };
-        
-        const collector = response.createMessageComponentCollector({ 
-            filter, 
-            time: 300000 // 5分間有効
-        });
-
-        collector.on('collect', async (i: ButtonInteraction) => {
-            if (i.customId === 'previous') {
-                const newEmbed = helpMenu.previousPage();
-                // ページ情報を更新
-                newEmbed.setFooter({ 
-                    text: `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()} • Aivis-chan` 
-                });
-                await i.update({ embeds: [newEmbed] });
-            } else if (i.customId === 'next') {
-                const newEmbed = helpMenu.nextPage();
-                // ページ情報を更新
-                newEmbed.setFooter({ 
-                    text: `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()} • Aivis-chan` 
-                });
-                await i.update({ embeds: [newEmbed] });
-            }
-        });
-
-        collector.on('end', async () => {
-            // ボタンを無効化
-            const disabledRow = new ActionRowBuilder<ButtonBuilder>()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('previous')
-                        .setLabel('前へ')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true),
-                    new ButtonBuilder()
-                        .setCustomId('next')
-                        .setLabel('次へ')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true)
-                );
-            
-            try {
-                await interaction.editReply({ components: [disabledRow] });
-            } catch (error) {
-                console.error('ヘルプメニューのボタンを無効化できませんでした:', error);
-            }
+        await interaction.reply({
+            content: `利用可能なコマンド:\n${helpText}`,
+            flags: MessageFlags.Ephemeral
         });
     }
 };

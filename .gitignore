@@ -40,17 +40,13 @@ auto_join_channels.json
 text_channels.json
 main.py
 config.py
-build/js/config.js
-build/js/config.js.map
-build/js/index.js
-build/js/index.js.map
 package.json
 openapi.json
 guild_dictionaries.json
 speakers.json
 guild_id.txt
 node_modules/
-build/
+build/js/config.json
 .vscode/
 .venv/
 config.json
@@ -58,3 +54,4 @@ join_channels.json
 data/voice_state.json
 data/
 voice_styles.json
+build/

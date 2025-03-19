@@ -1,4 +1,3 @@
-import { VoiceConnection } from '@discordjs/voice';
 import { getGuildSubscriptionTier, SubscriptionTier, isProFeatureAvailable, isPremiumFeatureAvailable } from './subscription';
 import { speakVoice } from './TTS-Engine';
 
@@ -14,21 +13,11 @@ export interface AdvancedVoiceSettings {
     autoEmotionDetect?: boolean; // 自動感情検出
 }
 
-// 音声効果プリセット
-export const VOICE_EFFECT_PRESETS = {
-    none: {},
-    concert: { reverbLevel: 0.7, echoAmount: 0.3 },
-    robot: { formantShift: 1.5, pitchVariation: 0.5 },
-    whisper: { reverbLevel: 0.2, pitchVariation: -0.3, formantShift: -0.5 },
-    stadium: { reverbLevel: 0.9, echoAmount: 0.6 },
-    underwater: { formantShift: -1.0, reverbLevel: 0.4 },
-    phone: { pitchVariation: 0.2, formantShift: 0.3 },
-    chipmunk: { pitchVariation: 0.8, formantShift: 1.0 },
-    deep: { pitchVariation: -0.5, formantShift: -0.7 }
-};
-
 // サーバーごとのPro設定を保存
 const proSettings: { [guildId: string]: AdvancedVoiceSettings } = {};
+
+// ギルドごとのエフェクト設定を保存するオブジェクト
+const guildVoiceEffects: { [guildId: string]: any } = {};
 
 // Pro版の高度な音声設定を取得
 export function getProVoiceSettings(guildId: string): AdvancedVoiceSettings {
@@ -54,38 +43,78 @@ export function getProVoiceSettings(guildId: string): AdvancedVoiceSettings {
     return proSettings[guildId];
 }
 
-// Pro版の高度な音声設定を更新
-export function updateProVoiceSettings(
-    guildId: string, 
-    settings: Partial<AdvancedVoiceSettings>
-): boolean {
-    // Pro版ではない場合は更新不可
-    if (!isProFeatureAvailable(guildId)) {
-        return false;
+// エフェクト設定を更新
+export function updateProVoiceSettings(guildId: string, effectSettings: any): void {
+    console.log(`サーバーID ${guildId} のエフェクト設定を更新:`, effectSettings);
+    
+    // none設定の場合は空のオブジェクトを保存
+    if (effectSettings.preset === 'none') {
+        guildVoiceEffects[guildId] = {};
+        console.log(`サーバーID ${guildId} のエフェクトをクリアしました`);
+        return;
     }
     
-    // 初期化
-    if (!proSettings[guildId]) {
-        proSettings[guildId] = {
-            reverbLevel: 0,
-            chorusEffect: false,
-            pitchVariation: 0,
-            voiceQuality: 'standard',
-            harmonyLevel: 0,
-            echoAmount: 0,
-            formantShift: 0,
-            autoEmotionDetect: false
-        };
-    }
-    
-    // 設定を更新
-    proSettings[guildId] = {
-        ...proSettings[guildId],
-        ...settings
+    guildVoiceEffects[guildId] = {
+        ...effectSettings,
+        updatedAt: new Date().toISOString()
     };
     
-    return true;
+    console.log(`サーバーID ${guildId} のエフェクト設定が保存されました:`, guildVoiceEffects[guildId]);
 }
+
+// エフェクト設定を取得
+export function getVoiceEffectSettings(guildId: string): any {
+    const settings = guildVoiceEffects[guildId] || {};
+    console.log(`サーバーID ${guildId} のエフェクト設定を取得:`, settings);
+    return settings;
+}
+
+// プリセット定義
+export const VOICE_EFFECT_PRESETS: { [key: string]: any } = {
+    none: {
+        preset: 'none'
+    },
+    concert: {
+        preset: 'concert',
+        reverbLevel: 0.7,  // 0.5から0.7に増加 - より強いリバーブ
+        echoAmount: 0.4   // 0.2から0.4に増加
+    },
+    robot: {
+        preset: 'robot',
+        formantShift: 0.15, // 0.1から0.15に増加
+        echoAmount: 0.3    // 0.2から0.3に増加
+    },
+    whisper: {
+        preset: 'whisper',
+        pitchVariation: 0.1,
+        echoAmount: 0.15   // 0.05から0.15に増加
+    },
+    stadium: {
+        preset: 'stadium',
+        reverbLevel: 0.8,  // 0.6から0.8に増加
+        echoAmount: 0.5   // 0.3から0.5に増加
+    },
+    underwater: {
+        preset: 'underwater',
+        reverbLevel: 0.4,  // 0.3から0.4に増加
+        echoAmount: 0.6   // 0.4から0.6に増加
+    },
+    phone: {
+        preset: 'phone',
+        pitchVariation: 0.1,
+        echoAmount: 0.25  // 0.2から0.25に増加
+    },
+    chipmunk: {
+        preset: 'chipmunk',
+        pitchVariation: 0.3,
+        formantShift: 0.2
+    },
+    deep: {
+        preset: 'deep',
+        pitchVariation: -0.2,
+        formantShift: -0.1
+    }
+};
 
 // Pro版の特殊効果付き読み上げ
 export async function speakWithEffects(
@@ -93,18 +122,18 @@ export async function speakWithEffects(
     speaker: number,
     guildId: string,
     effects?: Partial<AdvancedVoiceSettings>
-): Promise<string> {
+): Promise<void> {
     // Pro版ではない場合は通常の読み上げ
     if (!isProFeatureAvailable(guildId)) {
-        return await speakVoice(text, speaker, guildId);
+        await speakVoice(text, speaker, guildId);
+        return;
     }
     
     // 使用する効果を取得
     const settingsToUse = effects || getProVoiceSettings(guildId);
     
-    // 将来的に効果を適用するコードを実装
-    // 現段階では通常の音声を返す
-    return await speakVoice(text, speaker, guildId);
+    // エフェクト適用処理を削除
+    await speakVoice(text, speaker, guildId);
 }
 
 // Pro版のプラン情報を取得
