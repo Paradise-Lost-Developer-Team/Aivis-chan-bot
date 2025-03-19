@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { Client, Guild } from 'discord.js';
+import { client } from '../index';
 
 // プロジェクトルートディレクトリを取得
 function getProjectRoot(): string {
@@ -12,6 +14,29 @@ function getProjectRoot(): string {
         return process.cwd();
     }
 }
+
+export enum SubscriptionType {
+    FREE = 'FREE',
+    PRO = 'PRO',
+    PREMIUM = 'PREMIUM'
+  }
+  
+export function getSubscriptionInfo(guildId: string) {
+    const subscriptionType = getGuildSubscriptionTier(guildId);
+    const isOwnedByBotOwner = isOwnerGuild(guildId);
+    const expiresAt = null;
+    const daysLeft = null;
+  
+    return {
+      type: subscriptionType,
+      isOwnerGuild: isOwnedByBotOwner,
+      expiresAt,
+      daysLeft
+    };
+  }
+
+// BOT作者のユーザーID
+const BOT_OWNER_ID = '809627147333140531';
 
 // サブスクリプションデータファイルパス
 const PROJECT_ROOT = getProjectRoot();
@@ -88,6 +113,12 @@ export function getUserSubscription(userId: string): Subscription | null {
 
 // ギルドのサブスクリプション情報を取得する
 export function getGuildSubscriptionTier(guildId: string): SubscriptionTier {
+    // 作者が管理するサーバーかどうかを確認
+    if (isOwnerGuild(guildId)) {
+        console.log(`作者が管理するサーバー ${guildId} にPremium特権を付与`);
+        return SubscriptionTier.PREMIUM;
+    }
+
     // すべてのサブスクリプションを検索
     for (const userId in subscriptions) {
         const subscription = subscriptions[userId];
@@ -164,6 +195,35 @@ export function isProFeatureAvailable(guildId: string): boolean {
 
 // Premium版機能が利用可能かチェック
 export function isPremiumFeatureAvailable(guildId: string): boolean {
+    // 作者が管理するサーバーの場合は常にtrue
+    if (isOwnerGuild(guildId)) {
+        return true;
+    }
+
     const tier = getGuildSubscriptionTier(guildId);
     return tier === SubscriptionTier.PREMIUM;
+}
+
+// 指定したギルドがBOT作者の管理下にあるかどうかを確認する
+function isOwnerGuild(guildId: string): boolean {
+    try {
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return false;
+        
+        // ギルドのオーナーがBOT作者の場合
+        if (guild.ownerId === BOT_OWNER_ID) {
+            return true;
+        }
+        
+        // BOT作者がギルドの管理者権限を持っている場合も含める
+        const ownerMember = guild.members.cache.get(BOT_OWNER_ID);
+        if (ownerMember && ownerMember.permissions.has('Administrator')) {
+            return true;
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('オーナーギルドチェックエラー:', error);
+        return false;
+    }
 }
