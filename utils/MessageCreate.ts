@@ -168,10 +168,6 @@ export function MessageCreate(client: ExtendedClient) {
                     messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
                 }
                 
-                // ユーザー名を付加
-                const username = message.member?.displayName || message.author.username;
-                messageContent = `${username}さん、${messageContent}`;
-                
                 // 優先度の決定
                 let priority = Priority.NORMAL;
                 
@@ -192,10 +188,10 @@ export function MessageCreate(client: ExtendedClient) {
                 console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
                 
             } else {
-                console.log(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+                console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
             }
         } catch (error) {
-            console.error(`An error occurred while processing the message: ${error}`);
+            console.error(`メッセージの処理中にエラーが発生しました: ${error}`);
             logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
         }
     });
