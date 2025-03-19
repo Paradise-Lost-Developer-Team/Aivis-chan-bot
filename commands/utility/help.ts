@@ -13,7 +13,18 @@ class HelpMenu {
                     { name: "/join", value: "ボイスチャンネルに接続し、指定したテキストチャンネルのメッセージを読み上げます。" },
                     { name: "/leave", value: "ボイスチャンネルから切断します。" },
                     { name: "/ping", value: "BOTの応答時間をテストします。" },
-                    { name: "/invite", value: "BOTの招待リンクを表示します。" }
+                    { name: "/invite", value: "BOTの招待リンクを表示します。" },
+                    { name: "/status", value: "BOTの現在の状態と接続情報を表示します。" },
+                    { name: "/help", value: "このヘルプメニューを表示します。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
+                .setTitle("ヘルプ - 読み上げコマンド")
+                .setDescription("読み上げ機能に関するコマンドです。")
+                .addFields(
+                    { name: "/speak", value: "テキストを直接読み上げます。オプションで優先度を設定可能です。" },
+                    { name: "/queue status", value: "現在の読み上げキューの状態を表示します。" },
+                    { name: "/queue clear", value: "読み上げキューをクリアします。" }
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
@@ -47,6 +58,27 @@ class HelpMenu {
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
+                .setTitle("ヘルプ - Premium機能")
+                .setDescription("有料プランで利用できる機能の一覧です。")
+                .addFields(
+                    { name: "/voice-history list", value: "Pro版: 最近の読み上げ履歴を表示します。" },
+                    { name: "/voice-history search", value: "Pro版: 履歴をキーワードで検索します。" },
+                    { name: "/voice-history user", value: "Pro版: 特定ユーザーの履歴を表示します。" },
+                    { name: "/voice-history clear", value: "Premium版: 履歴をクリアします。" },
+                    { name: "/subscription info", value: "サブスクリプション情報を確認します。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
+                .setTitle("ヘルプ - キュー処理と読み上げ優先度")
+                .setDescription("読み上げメッセージは優先度に基づいてキュー処理されます。")
+                .addFields(
+                    { name: "優先度：高", value: "システム通知や優先コマンドは他のメッセージより先に読み上げられます。" },
+                    { name: "優先度：通常", value: "一般的なメッセージは通常の優先度で処理されます。" },
+                    { name: "優先度：低", value: "長文やURLを多く含むメッセージは低優先度で処理されます。" },
+                    { name: "キューの管理", value: "/queue コマンドでキューの状態確認やクリアができます。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
                 .setTitle("ヘルプ - その他の機能")
                 .setDescription("その他の便利な機能の説明です。")
                 .addFields(
@@ -54,7 +86,8 @@ class HelpMenu {
                     { name: "URL省略", value: "URLは「URL省略」と読み上げられます。" },
                     { name: "スポイラー省略", value: "スポイラータグは「ネタバレ」と読み上げられます。" },
                     { name: "絵文字変換", value: "カスタム絵文字は「絵文字」と読み上げられます。" },
-                    { name: "読み上げ停止", value: "メッセージ冒頭に「(音量0)」と付けると読み上げません。" }
+                    { name: "読み上げ停止", value: "メッセージ冒頭に「(音量0)」と付けると読み上げません。" },
+                    { name: "コードブロック", value: "コードブロック（```で囲まれた部分）は読み上げられません。" }
                 )
                 .setColor(0x3498db)
         ];
