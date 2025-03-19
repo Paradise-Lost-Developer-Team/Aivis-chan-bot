@@ -1,22 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { isProFeatureAvailable, isPremiumFeatureAvailable } from './subscription';
-
-// プロジェクトルートディレクトリを取得
-function getProjectRoot(): string {
-    const currentDir = __dirname;
-    if (currentDir.includes('build/js/utils') || currentDir.includes('build\\js\\utils')) {
-        return path.resolve(path.join(currentDir, '..', '..', '..'));
-    } else if (currentDir.includes('/utils') || currentDir.includes('\\utils')) {
-        return path.resolve(path.join(currentDir, '..'));
-    } else {
-        return process.cwd();
-    }
-}
-
-// 履歴データファイルパス
-const PROJECT_ROOT = getProjectRoot();
-const HISTORY_DIR = path.join(PROJECT_ROOT, 'voiceHistories');
+import { getProjectRoot } from './file-utils';
 
 // 履歴アイテムの型定義
 export interface VoiceHistoryItem {
@@ -29,112 +13,59 @@ export interface VoiceHistoryItem {
     channelName: string;
 }
 
-// 履歴データを保存
-export function saveVoiceHistoryItem(guildId: string, item: VoiceHistoryItem): boolean {
-    // Pro版以上でないなら履歴を保存しない
-    if (!isProFeatureAvailable(guildId)) {
-        return false;
-    }
-    
+// 履歴データのルートディレクトリ
+const HISTORY_ROOT = path.join(getProjectRoot(), 'data', 'history');
+
+/**
+ * 音声履歴アイテムを保存する
+ */
+export async function saveVoiceHistoryItem(guildId: string, item: VoiceHistoryItem): Promise<void> {
     try {
-        // ディレクトリ確認
-        if (!fs.existsSync(HISTORY_DIR)) {
-            fs.mkdirSync(HISTORY_DIR, { recursive: true });
+        // 保存先ディレクトリの確認・作成
+        const guildDir = path.join(HISTORY_ROOT, guildId);
+        if (!fs.existsSync(guildDir)) {
+            fs.mkdirSync(guildDir, { recursive: true });
         }
         
-        const guildHistoryFile = path.join(HISTORY_DIR, `${guildId}.json`);
+        // 年月ごとのファイル名を生成
+        const date = new Date(item.timestamp);
+        const fileName = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}.json`;
+        const filePath = path.join(guildDir, fileName);
         
-        // 既存データの読み込み
-        let history: VoiceHistoryItem[] = [];
-        if (fs.existsSync(guildHistoryFile)) {
-            const data = fs.readFileSync(guildHistoryFile, 'utf8');
-            history = JSON.parse(data);
+        // 既存のデータを読み込むか、新規作成
+        let historyData: VoiceHistoryItem[] = [];
+        if (fs.existsSync(filePath)) {
+            const fileContent = fs.readFileSync(filePath, 'utf-8');
+            historyData = JSON.parse(fileContent);
         }
         
         // 新しいアイテムを追加
-        history.push(item);
+        historyData.push(item);
         
-        // 履歴の長さ制限 (Pro: 100件, Premium: 500件)
-        const maxHistoryLength = isPremiumFeatureAvailable(guildId) ? 500 : 100;
-        if (history.length > maxHistoryLength) {
-            history = history.slice(history.length - maxHistoryLength);
-        }
-        
-        // ファイルに保存
-        fs.writeFileSync(guildHistoryFile, JSON.stringify(history, null, 2), 'utf8');
-        return true;
+        // ファイルに書き込み
+        fs.writeFileSync(filePath, JSON.stringify(historyData, null, 2), 'utf-8');
     } catch (error) {
-        console.error('履歴保存エラー:', error);
-        return false;
+        console.error('音声履歴の保存に失敗しました:', error);
+        // エラーはログするだけで、呼び出し元には伝播させない
     }
 }
 
-// 履歴データを取得
-export function getVoiceHistory(guildId: string): VoiceHistoryItem[] {
-    // Pro版以上でないなら空の履歴を返す
-    if (!isProFeatureAvailable(guildId)) {
-        return [];
-    }
-    
+/**
+ * 指定したギルドの音声履歴を取得する
+ */
+export function getVoiceHistory(guildId: string, year: number, month: number): VoiceHistoryItem[] {
     try {
-        const guildHistoryFile = path.join(HISTORY_DIR, `${guildId}.json`);
+        const fileName = `${year}-${String(month).padStart(2, '0')}.json`;
+        const filePath = path.join(HISTORY_ROOT, guildId, fileName);
         
-        if (!fs.existsSync(guildHistoryFile)) {
+        if (!fs.existsSync(filePath)) {
             return [];
         }
         
-        const data = fs.readFileSync(guildHistoryFile, 'utf8');
-        return JSON.parse(data);
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(fileContent);
     } catch (error) {
-        console.error('履歴読み込みエラー:', error);
+        console.error('音声履歴の取得に失敗しました:', error);
         return [];
     }
-}
-
-// 履歴を検索
-export function searchVoiceHistory(guildId: string, query: string): VoiceHistoryItem[] {
-    const history = getVoiceHistory(guildId);
-    if (!query) return history;
-    
-    const lowerQuery = query.toLowerCase();
-    return history.filter(item => 
-        item.text.toLowerCase().includes(lowerQuery) || 
-        item.username.toLowerCase().includes(lowerQuery)
-    );
-}
-
-// 特定ユーザーの履歴を取得
-export function getUserVoiceHistory(guildId: string, userId: string): VoiceHistoryItem[] {
-    const history = getVoiceHistory(guildId);
-    return history.filter(item => item.userId === userId);
-}
-
-// 履歴を削除
-export function clearVoiceHistory(guildId: string): boolean {
-    try {
-        const guildHistoryFile = path.join(HISTORY_DIR, `${guildId}.json`);
-        
-        if (fs.existsSync(guildHistoryFile)) {
-            fs.unlinkSync(guildHistoryFile);
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('履歴削除エラー:', error);
-        return false;
-    }
-}
-
-// 時間範囲で履歴をフィルタリング
-export function getVoiceHistoryByTimeRange(
-    guildId: string, 
-    startTime: Date, 
-    endTime: Date
-): VoiceHistoryItem[] {
-    const history = getVoiceHistory(guildId);
-    
-    return history.filter(item => {
-        const itemTime = new Date(item.timestamp);
-        return itemTime >= startTime && itemTime <= endTime;
-    });
 }

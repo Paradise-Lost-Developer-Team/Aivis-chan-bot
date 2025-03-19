@@ -238,40 +238,48 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
         text = text.substring(0, maxLength) + "...";
     }
     
-    let audioQuery = await postAudioQuery(text, speaker);
-    audioQuery = adjustAudioQuery(audioQuery, guildId);
-    const audioContent = await postSynthesis(audioQuery, speaker);
-    const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-    fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
-    
-    // Pro版以上の場合、履歴に保存（ユーザー情報がない場合はスキップ）
     try {
-        if (isProFeatureAvailable(guildId)) {
-            // システムメッセージかどうかを簡易的に判定
-            const isSystemMessage = text.includes('接続しました') || 
-                                  text.includes('入室しました') || 
-                                  text.includes('退室しました');
-            
-            if (!isSystemMessage) {
-                const historyItem: VoiceHistoryItem = {
-                    timestamp: new Date().toISOString(),
-                    text: originalText,
-                    userId: 'system', // または特定のユーザーID（メッセージ元から取得）
-                    username: 'システム', // または特定のユーザー名
-                    speakerId: speaker,
-                    channelId: '', // 利用可能ならチャンネルID
-                    channelName: '' // 利用可能ならチャンネル名
-                };
+        let audioQuery = await postAudioQuery(text, speaker);
+        audioQuery = adjustAudioQuery(audioQuery, guildId);
+        const audioContent = await postSynthesis(audioQuery, speaker);
+        const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
+        fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
+        
+        // 成功時に最終発話時間を更新
+        updateLastSpeechTime();
+        
+        // Pro版以上の場合、履歴に保存（ユーザー情報がない場合はスキップ）
+        try {
+            if (isProFeatureAvailable(guildId)) {
+                // システムメッセージかどうかを簡易的に判定
+                const isSystemMessage = text.includes('接続しました') || 
+                                      text.includes('入室しました') || 
+                                      text.includes('退室しました');
                 
-                saveVoiceHistoryItem(guildId, historyItem);
+                if (!isSystemMessage) {
+                    const historyItem: VoiceHistoryItem = {
+                        timestamp: new Date().toISOString(),
+                        text: originalText,
+                        userId: 'system', // または特定のユーザーID（メッセージ元から取得）
+                        username: 'システム', // または特定のユーザー名
+                        speakerId: speaker,
+                        channelId: '', // 利用可能ならチャンネルID
+                        channelName: '' // 利用可能ならチャンネル名
+                    };
+                    
+                    saveVoiceHistoryItem(guildId, historyItem);
+                }
             }
+        } catch (error) {
+            console.error('読み上げ履歴の保存に失敗:', error);
+            // 履歴保存の失敗は音声生成には影響させない
         }
+        
+        return tempAudioFilePath;
     } catch (error) {
-        console.error('読み上げ履歴の保存に失敗:', error);
-        // 履歴保存の失敗は音声生成には影響させない
+        console.error(`音声生成エラー: ${error}`);
+        throw error; // エラーを上位に伝播させる
     }
-    
-    return tempAudioFilePath;
 }
 
 export function getPlayer(guildId: string): AudioPlayer {
@@ -330,9 +338,12 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
         }
 
         // 既存のIdleイベントリスナーを解除
-        player.off(AudioPlayerStatus.Idle, () => {
-            voiceClient.disconnect();
-        });
+        player.off(AudioPlayerStatus.Idle, () => {});
+        player.off(AudioPlayerStatus.Playing, () => {});
+        player.off(AudioPlayerStatus.AutoPaused, () => {});
+        player.off(AudioPlayerStatus.Buffering, () => {});
+        player.off(AudioPlayerStatus.Paused, () => {});
+        player.off('error', () => {});
 
         // プレイヤーが再生中の場合は待機
         let waitCount = 0;
@@ -342,6 +353,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
             waitCount++;
             if (waitCount > 300) { // 30秒以上待っている場合はタイムアウト
                 console.log(`再生待機がタイムアウトしました。次の音声を強制的に再生します。`);
+                player.stop(true); // 強制停止
                 break;
             }
         }
@@ -354,27 +366,74 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
         console.log(`音声リソース作成中: ${path}`);
         const resource = await createFFmpegAudioSource(path);
         console.log(`音声再生開始: ${path}`);
+        
+        // エラー検出用リスナーを追加
+        const errorHandler = (error: Error) => {
+            console.error(`音声再生エラー(player): ${error}`);
+            cleanupFile(); // エラー時もファイル削除
+        };
+        player.once('error', errorHandler);
+        
         player.play(resource);
         voiceClient.subscribe(player);
         
-        // 再生完了を監視（デバッグ用）
+        // ファイル削除関数
+        const cleanupFile = () => {
+            try {
+                // 再生終了後、一時ファイルを削除
+                if (fs.existsSync(path)) {
+                    fs.unlinkSync(path);
+                    console.log(`一時ファイルを削除しました: ${path}`);
+                }
+            } catch (cleanupError) {
+                console.error(`一時ファイル削除エラー: ${cleanupError}`);
+            }
+        };
+        
+        // 再生完了を監視（タイムアウト時間を60秒に延長）
         return new Promise<void>((resolve) => {
             const onIdle = () => {
                 console.log(`音声再生完了: ${path}`);
                 player.off(AudioPlayerStatus.Idle, onIdle);
+                player.off('error', errorHandler);
+                cleanupFile();
+                
+                // 最終発話時間を更新
+                updateLastSpeechTime();
+                
                 resolve();
             };
+            
             player.once(AudioPlayerStatus.Idle, onIdle);
             
-            // 15秒後にタイムアウト
+            // タイムアウトを60秒に延長
             setTimeout(() => {
                 player.off(AudioPlayerStatus.Idle, onIdle);
+                player.off('error', errorHandler);
                 console.log(`音声再生タイムアウト: ${path}`);
+                
+                // タイムアウト時に強制停止を試みる
+                try {
+                    player.stop(true);
+                } catch (stopError) {
+                    console.error(`プレイヤー停止エラー: ${stopError}`);
+                }
+                
+                cleanupFile();
                 resolve();
-            }, 15000);
+            }, 60000); // 60秒に延長
         });
     } catch (error) {
-        console.error(`音声再生エラー: ${error}`);
+        console.error(`音声再生エラー(全体): ${error}`);
+        // エラーが発生した場合もファイル削除を試みる
+        try {
+            if (fs.existsSync(path)) {
+                fs.unlinkSync(path);
+                console.log(`エラー後、一時ファイルを削除しました: ${path}`);
+            }
+        } catch (cleanupError) {
+            console.error(`一時ファイル削除エラー: ${cleanupError}`);
+        }
     }
 }
 
@@ -533,4 +592,84 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
   // 保存されたテキストチャンネルIDを優先
   const savedTextChannelId = getTextChannelForGuild(guildId);
   return savedTextChannelId || defaultChannelId;
+}
+
+/**
+ * TTSエンジンの健全性をチェックする
+ * @returns TTSエンジンが正常に動作している場合はtrue、そうでない場合はfalse
+ */
+export function checkTTSHealth(): boolean {
+    try {
+        // TTSエンジンの状態チェックロジック
+        // 例: 必要なリソースにアクセスできるか、最後の発話時間が異常に長くないかなど
+        
+        // このチェックロジックは実際のTTS実装に合わせて調整してください
+        const lastSpeechTime = getLastSpeechTime();
+        const currentTime = Date.now();
+        
+        // 最後の発話から30分以上経っていて、ボイスチャンネルに接続している場合は異常と見なす
+        if (currentTime - lastSpeechTime > 30 * 60 * 1000 && isConnectedToVoiceChannels()) {
+            console.log(`TTSが${(currentTime - lastSpeechTime) / 60000}分間発話していません。状態を確認してください。`);
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('TTSエンジン健全性チェックエラー:', error);
+        return false;
+    }
+}
+
+/**
+ * 最後の発話時刻を取得する
+ */
+let _lastSpeechTime = Date.now();
+export function getLastSpeechTime(): number {
+    return _lastSpeechTime;
+}
+
+/**
+ * 発話が行われた際に最終発話時刻を更新する
+ */
+export function updateLastSpeechTime(): void {
+    _lastSpeechTime = Date.now();
+}
+
+/**
+ * ボイスチャンネルに接続しているかチェックする
+ */
+function isConnectedToVoiceChannels(): boolean {
+    // voiceClientsオブジェクトの中に有効な接続があるかをチェック
+    for (const guildId in voiceClients) {
+        if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * TTSエンジンをリセットする
+ */
+export function resetTTSEngine(): void {
+    try {
+        // 現在のTTS状態をクリア
+        console.log('TTSエンジンをリセットしています...');
+        
+        // 必要に応じて既存のリソースをクリーンアップ
+        // ...
+        
+        // 各種初期化関数を再実行
+        loadAutoJoinChannels();
+        loadJoinChannels();
+        AivisAdapter();
+        
+        // 最終発話時刻をリセット
+        _lastSpeechTime = Date.now();
+        
+        console.log('TTSエンジンのリセット完了');
+    } catch (error) {
+        console.error('TTSエンジンのリセット中にエラーが発生しました:', error);
+        throw error;
+    }
 }
