@@ -33,64 +33,124 @@ module.exports = {
                 .setRequired(false)),
 
     async execute(interaction: ChatInputCommandInteraction) {
-        const guildId = interaction.guildId!;
-        
-        // Pro版か確認
-        if (!isProFeatureAvailable(guildId)) {
+        try {
+            console.log('voice-effect コマンド実行開始');
+            const guildId = interaction.guildId!;
+            console.log(`サーバーID: ${guildId}`);
+            
+            // Pro版か確認
+            console.log('Pro機能利用可能か確認中...');
+            if (!isProFeatureAvailable(guildId)) {
+                console.log('Pro機能は利用できません');
+                await interaction.reply({
+                    content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
+                    flags: MessageFlags.Ephemeral
+                });
+                return;
+            }
+            console.log('Pro機能は利用可能です');
+            
+            const presetName = interaction.options.getString('preset', true);
+            const testPlay = interaction.options.getBoolean('test') ?? false;
+            console.log(`選択されたプリセット: ${presetName}, テスト再生: ${testPlay}`);
+            
+            // プリセットが利用可能か確認
+            console.log('利用可能なプリセットを取得中...');
+            const availablePresets = getAvailableVoiceEffectPresets(guildId);
+            console.log(`利用可能なプリセット: ${availablePresets.join(', ')}`);
+            
+            if (!availablePresets.includes(presetName)) {
+                console.log(`プリセット ${presetName} は利用できません`);
+                await interaction.reply({
+                    content: `お使いのプランでは「${presetName}」エフェクトは利用できません。Premium版へのアップグレードをご検討ください。`,
+                    flags: MessageFlags.Ephemeral
+                });
+                return;
+            }
+            
+            // プリセットを適用
+            console.log(`プリセット ${presetName} を適用中...`);
+            const preset = VOICE_EFFECT_PRESETS[presetName as keyof typeof VOICE_EFFECT_PRESETS] || {};
+            console.log('適用するプリセット設定:', preset);
+            
+            try {
+                updateProVoiceSettings(guildId, preset);
+                console.log('プリセットの適用が完了しました');
+            } catch (error) {
+                console.error('プリセット適用エラー:', error);
+                await interaction.reply({
+                    content: `エフェクト適用中にエラーが発生しました: ${error}`,
+                    flags: MessageFlags.Ephemeral
+                });
+                return;
+            }
+            
+            // 応答用のEmbedを作成
+            const embed = new EmbedBuilder()
+                .setTitle('音声エフェクト設定完了')
+                .setDescription(`エフェクト「${getPresetDisplayName(presetName)}」を適用しました。`)
+                .setColor('#00FF00');
+            
+            if (Object.keys(preset).length > 0) {
+                embed.addFields(
+                    { name: '適用された効果', value: formatEffectDetails(preset) }
+                );
+            }
+            
+            // 設定完了を通知
             await interaction.reply({
-                content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
+                embeds: [embed],
                 flags: MessageFlags.Ephemeral
             });
-            return;
-        }
-        
-        const presetName = interaction.options.getString('preset', true);
-        const testPlay = interaction.options.getBoolean('test') ?? false;
-        
-        // プリセットが利用可能か確認
-        const availablePresets = getAvailableVoiceEffectPresets(guildId);
-        if (!availablePresets.includes(presetName)) {
-            await interaction.reply({
-                content: `お使いのプランでは「${presetName}」エフェクトは利用できません。Premium版へのアップグレードをご検討ください。`,
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
-        
-        // プリセットを適用
-        const preset = VOICE_EFFECT_PRESETS[presetName as keyof typeof VOICE_EFFECT_PRESETS] || {};
-        updateProVoiceSettings(guildId, preset);
-        
-        // 応答用のEmbedを作成
-        const embed = new EmbedBuilder()
-            .setTitle('音声エフェクト設定完了')
-            .setDescription(`エフェクト「${getPresetDisplayName(presetName)}」を適用しました。`)
-            .setColor('#00FF00');
-        
-        if (Object.keys(preset).length > 0) {
-            embed.addFields(
-                { name: '適用された効果', value: formatEffectDetails(preset) }
-            );
-        }
-        
-        // 設定完了を通知
-        await interaction.reply({
-            embeds: [embed],
-            flags: MessageFlags.Ephemeral
-        });
-        
-        // テスト再生
-        if (testPlay) {
-            const voiceClient = voiceClients[guildId];
-            if (voiceClient) {
-                try {
-                    const speakerId = currentSpeaker[guildId] || 888753760;
-                    const testMessage = `「${getPresetDisplayName(presetName)}」エフェクトのテスト音声です。`;
-                    const audioPath = await speakVoice(testMessage, speakerId, guildId);
-                    await play_audio(voiceClient, audioPath, guildId, null);
-                } catch (error) {
-                    console.error('テスト再生エラー:', error);
+            
+            // テスト再生
+            if (testPlay) {
+                console.log('テスト再生を実行します');
+                const voiceClient = voiceClients[guildId];
+                if (voiceClient) {
+                    try {
+                        console.log('ボイスクライアントが見つかりました');
+                        const speakerId = currentSpeaker[guildId] || 888753760;
+                        console.log(`使用するスピーカーID: ${speakerId}`);
+                        
+                        const testMessage = `「${getPresetDisplayName(presetName)}」エフェクトのテスト音声です。`;
+                        console.log(`テスト文: "${testMessage}"`);
+                        
+                        console.log('音声ファイルを生成中...');
+                        const audioPath = await speakVoice(testMessage, speakerId, guildId);
+                        console.log(`生成された音声ファイル: ${audioPath}`);
+                        
+                        console.log('音声を再生中...');
+                        await play_audio(voiceClient, audioPath, guildId, null);
+                        console.log('再生完了');
+                    } catch (error) {
+                        console.error('テスト再生エラー:', error);
+                        // テスト再生のエラーはユーザーに通知せず、ログだけ残す
+                    }
+                } else {
+                    console.log('ボイスクライアントが見つかりません。ボイスチャンネルに接続されていない可能性があります。');
+                    await interaction.followUp({
+                        content: 'テスト再生にはボイスチャンネルに接続している必要があります。`/join` コマンドで接続してください。',
+                        flags: MessageFlags.Ephemeral
+                    });
                 }
+            }
+            
+        } catch (error) {
+            console.error('voice-effectコマンド実行エラー:', error);
+            // すでに応答済みでなければエラー応答を送信
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({
+                    content: '音声エフェクト設定中にエラーが発生しました。',
+                    flags: MessageFlags.Ephemeral
+                });
+            } else if (interaction.deferred) {
+                await interaction.editReply('音声エフェクト設定中にエラーが発生しました。');
+            } else {
+                await interaction.followUp({
+                    content: '音声エフェクト設定中にエラーが発生しました。',
+                    flags: MessageFlags.Ephemeral
+                });
             }
         }
     },
