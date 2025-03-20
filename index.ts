@@ -147,8 +147,8 @@ client.on(Events.InteractionCreate, async interaction => {
 client.on(Events.GuildCreate, async (guild) => {
     try {
         const embed = new EmbedBuilder()
-            .setTitle('Aivis-chan Botが導入されました！')
-            .setDescription('Aivis-chan Botを導入いただきありがとうございます。Discordサーバーにてメッセージ読み上げ等を行う便利BOTです。')
+            .setTitle('Aivis Chan Botが導入されました！')
+            .setDescription('Aivis Chan Botを導入いただきありがとうございます。Discordサーバーにてメッセージ読み上げ等を行う便利BOTです。')
             .addFields(
                 { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
                 { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
