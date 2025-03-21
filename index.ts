@@ -163,15 +163,15 @@ client.on(Events.GuildCreate, async (guild) => {
                 new ButtonBuilder()
                     .setLabel('利用規約')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://example.com/Term-of-Service.html'),
+                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Term-of-Service'),
                 new ButtonBuilder()
                     .setLabel('プライバシーポリシー')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://example.com/Privacy-Policy.html'),
+                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy'),
                 new ButtonBuilder()
                     .setLabel('購読プラン')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://example.com/subscription-plans.html')
+                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Subscription')
             );
 
         const systemChannel = guild.systemChannel;
