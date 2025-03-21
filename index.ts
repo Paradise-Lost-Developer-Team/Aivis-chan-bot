@@ -177,7 +177,11 @@ client.on(Events.GuildCreate, async (guild) => {
                 new ButtonBuilder()
                     .setLabel('Patreonで支援する')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://www.patreon.com/c/AlcJP02')
+                    .setURL('https://www.patreon.com/c/AlcJP02'),
+                new ButtonBuilder()
+                    .setLabel('サポートサーバー')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://discord.gg/8Y3hYF2')
             );
 
         const systemChannel = guild.systemChannel;
