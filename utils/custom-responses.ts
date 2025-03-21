@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getGuildSubscriptionTier, SubscriptionTier } from './subscription';
+import { getGuildSubscriptionTier, SubscriptionType } from './subscription';
 
 // カスタム応答のインターフェース
 export interface CustomResponse {
@@ -176,11 +176,11 @@ export function processResponse(response: CustomResponse, message: string, usern
 export function getMaxCustomResponses(guildId: string): number {
     const tier = getGuildSubscriptionTier(guildId);
     switch (tier) {
-        case SubscriptionTier.PREMIUM:
+        case SubscriptionType.PREMIUM:
             return 50;
-        case SubscriptionTier.PRO:
+        case SubscriptionType.PRO:
             return 20;
-        case SubscriptionTier.FREE:
+        case SubscriptionType.FREE:
         default:
             return 5;
     }
