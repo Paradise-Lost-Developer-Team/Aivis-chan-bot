@@ -11,6 +11,13 @@ import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
 import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
 
+// データディレクトリの存在確認
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+    console.log(`データディレクトリを作成します: ${DATA_DIR}`);
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
 // configファイルのパスを正しく設定
 const CONFIG_PATH = path.join(__dirname, "config.json");
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
