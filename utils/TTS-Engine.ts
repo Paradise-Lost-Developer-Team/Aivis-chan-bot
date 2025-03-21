@@ -5,7 +5,7 @@ import os from "os";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
-import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvailable, isProFeatureAvailable } from './subscription';
+import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvailable, isProFeatureAvailable, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 import { getVoiceEffectSettings } from './pro-features';
 
@@ -674,4 +674,113 @@ export function resetTTSEngine(): void {
         console.error('TTSエンジンのリセット中にエラーが発生しました:', error);
         throw error;
     }
+}
+
+// 読み上げ優先度の確認関数
+export function getTTSPriority(guildId: string): number {
+    const subscriptionType = getSubscription(guildId);
+    // 優先度が高いほど、キュー内で先に処理される
+    return subscriptionType === SubscriptionType.PREMIUM ? 2 :
+           subscriptionType === SubscriptionType.PRO ? 1 : 0;
+}
+
+// 音声品質の確認関数
+export function getVoiceQuality(guildId: string): string {
+    return checkSubscriptionFeature(guildId, 'highQualityVoice') ? 'high' : 'standard';
+}
+
+// 全ての声優を取得する関数
+function getAllVoices() {
+    const voices = [];
+    
+    // speakersデータから声優情報を抽出
+    for (const speaker of speakers) {
+        if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
+            for (const style of speaker.styles) {
+                if (style && style.name && style.id !== undefined) {
+                    // 声優のティア（無料、Pro、Premium）を決定
+                    // NSFWを含む名前はPremium、他は基本無料として例示
+                    const tier = speaker.name.includes('NSFW') ? 'premium' : 'free';
+                    
+                    voices.push({
+                        name: `${speaker.name} - ${style.name}`,
+                        id: style.id,
+                        speakerName: speaker.name,
+                        styleName: style.name,
+                        tier: tier
+                    });
+                }
+            }
+        }
+    }
+    
+    return voices;
+}
+
+// 利用可能な声優数の確認
+export function getAvailableVoices(guildId: string): string[] {
+    const subscriptionType = getSubscription(guildId);
+    const allVoices = getAllVoices();
+    
+    // 基本的な声優リスト
+    const freeVoices = allVoices.filter(voice => voice.tier === 'free');
+    
+    // Proプラン用の声優
+    if (subscriptionType === SubscriptionType.PRO) {
+        const proVoices = allVoices.filter(voice => 
+            voice.tier === 'free' || voice.tier === 'pro'
+        );
+        return proVoices
+            .slice(0, getSubscriptionLimit(guildId, 'maxVoices'))
+            .map(voice => voice.name);
+    }
+    
+    // Premiumプラン用の声優
+    if (subscriptionType === SubscriptionType.PREMIUM) {
+        return allVoices
+            .slice(0, getSubscriptionLimit(guildId, 'maxVoices'))
+            .map(voice => voice.name);
+    }
+    
+    // 無料プラン
+    return freeVoices
+        .slice(0, getSubscriptionLimit(guildId, 'maxVoices'))
+        .map(voice => voice.name);
+}
+
+// メッセージ長の確認
+export function validateMessageLength(guildId: string, message: string): boolean {
+    const maxLength = getSubscriptionLimit(guildId, 'maxMessageLength');
+    return message.length <= maxLength;
+}
+
+// 既存のTTS処理関数を拡張
+export function processMessage(guildId: string, message: string, options: any) {
+    // メッセージ長チェック
+    if (!validateMessageLength(guildId, message)) {
+        throw new Error(`メッセージが長すぎます。現在のプランでは${getSubscriptionLimit(guildId, 'maxMessageLength')}文字までです。`);
+    }
+    
+    // 音声品質の設定
+    options.quality = getVoiceQuality(guildId);
+    
+    // 優先度の設定
+    options.priority = getTTSPriority(guildId);
+    
+    // Premiumユーザー向けの特殊機能
+    if (checkSubscriptionFeature(guildId, 'textTransformationEffects')) {
+        message = applyTextTransformations(message, options);
+    }
+    
+    // 既存の処理を続ける
+    // ...
+}
+
+// テキスト変換エフェクト (Premiumのみ)
+function applyTextTransformations(message: string, options: any): string {
+    // 実装例: 特殊なマークアップを処理
+    // 例: *強調*、#タグ、@メンション など
+    
+    // この関数ではテキストの変換処理を行う
+    return message; // 変換後のテキストを返す
 }
