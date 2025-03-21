@@ -160,7 +160,7 @@ client.on(Events.GuildCreate, async (guild) => {
             .addFields(
                 { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
                 { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
-                { name: '基本コマンド', value: '• /help\n• /tts\n• /join\n• /leave' },
+                { name: '基本コマンド', value: '• /help\n• /join\n• /leave' },
                 { name: '🌟 プレミアムプラン', value: '• Pro版: 追加の声優、優先キュー、高品質音声\n• Premium版: 独占ボイス、無制限辞書、優先サポート\n• 詳細は `/subscription info` で確認' },
                 { name: '💰 Patreon連携', value: 'PatreonでBot開発をサポートすると、Pro版やPremium版の特典が自動で適用されます！\n• `/patreon link` コマンドでPatreonアカウントを連携\n• 支援Tierに応じて特典が自動有効化' }
             )
