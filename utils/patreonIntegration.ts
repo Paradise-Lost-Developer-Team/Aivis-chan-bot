@@ -12,8 +12,9 @@ const CLIENT_ID = PATREON.CLIENT_ID;
 const CLIENT_SECRET = PATREON.CLIENT_SECRET;
 const REDIRECT_URI = PATREON.REDIRECT_URI;
 
-// ユーザーデータを保存するファイルパス
-const PATREON_USERS_PATH = path.join(__dirname, '../data/patreon-users.json');
+// データディレクトリとユーザーデータファイルのパスを設定
+const DATA_DIR = path.join(__dirname, '../data');
+const PATREON_USERS_PATH = path.join(DATA_DIR, 'patreon-users.json');
 
 // ユーザータイプの定義
 interface PatreonUser {
@@ -28,26 +29,45 @@ interface PatreonUser {
 // ユーザーデータ操作
 let patreonUsers: Record<string, PatreonUser> = {};
 
+// データディレクトリの存在確認と作成
+function ensureDataDirectoryExists() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      console.log(`データディレクトリが存在しません。作成します: ${DATA_DIR}`);
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (error) {
+    console.error('データディレクトリの作成に失敗しました:', error);
+    throw new Error(`データディレクトリの作成に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 // 初期化時にユーザーデータをロード
 function loadPatreonUsers() {
   try {
+    // まずデータディレクトリの存在を確認
+    ensureDataDirectoryExists();
+    
     if (fs.existsSync(PATREON_USERS_PATH)) {
       patreonUsers = JSON.parse(fs.readFileSync(PATREON_USERS_PATH, 'utf8'));
       console.log('Patreonユーザーデータを読み込みました');
     } else {
       // ファイルが存在しない場合は作成
-      fs.mkdirSync(path.dirname(PATREON_USERS_PATH), { recursive: true });
       fs.writeFileSync(PATREON_USERS_PATH, JSON.stringify({}), 'utf8');
       console.log('Patreonユーザーデータファイルを作成しました');
     }
   } catch (error) {
     console.error('Patreonユーザーデータの読み込みエラー:', error);
+    // エラーが発生しても、空のオブジェクトで初期化
+    patreonUsers = {};
   }
 }
 
 // ユーザーデータを保存
 function savePatreonUsers() {
   try {
+    // 保存前にディレクトリを確認
+    ensureDataDirectoryExists();
     fs.writeFileSync(PATREON_USERS_PATH, JSON.stringify(patreonUsers, null, 2), 'utf8');
   } catch (error) {
     console.error('Patreonユーザーデータの保存エラー:', error);

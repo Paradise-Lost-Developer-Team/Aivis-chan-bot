@@ -1,5 +1,17 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits } from '../../utils/subscription';
+import path from 'path';
+import fs from 'fs';
+
+// データディレクトリの確認と作成
+function ensureDataDirectoryExists() {
+    const dataDir = path.join(__dirname, '../data');
+    if (!fs.existsSync(dataDir)) {
+      console.log(`データディレクトリを作成します: ${dataDir}`);
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    return dataDir;
+  }
 
 export default {
     data: new SlashCommandBuilder()
