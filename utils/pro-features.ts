@@ -1,4 +1,4 @@
-import { getGuildSubscriptionTier, SubscriptionTier, isProFeatureAvailable, isPremiumFeatureAvailable } from './subscription';
+import { getGuildSubscriptionTier, SubscriptionType, isProFeatureAvailable, isPremiumFeatureAvailable } from './subscription';
 import { speakVoice } from './TTS-Engine';
 
 // Pro版の高度な音声設定
@@ -141,11 +141,11 @@ export function getProPlanInfo(guildId: string): string {
     const tier = getGuildSubscriptionTier(guildId);
     
     switch (tier) {
-        case SubscriptionTier.PREMIUM:
+        case SubscriptionType.PREMIUM:
             return "【Premium】800文字まで読み上げ可能、全ての機能が使用可能、無制限のカスタム辞書";
-        case SubscriptionTier.PRO:
+        case SubscriptionType.PRO:
             return "【Pro】400文字まで読み上げ可能、高度な音声設定が使用可能、100個までのカスタム辞書";
-        case SubscriptionTier.FREE:
+        case SubscriptionType.FREE:
         default:
             return "【無料版】200文字まで読み上げ可能、基本機能のみ、30個までのカスタム辞書";
     }
@@ -202,11 +202,11 @@ export function getMaxDictionaryEntries(guildId: string): number {
     const tier = getGuildSubscriptionTier(guildId);
     
     switch (tier) {
-        case SubscriptionTier.PREMIUM:
+        case SubscriptionType.PREMIUM:
             return Infinity; // 無制限
-        case SubscriptionTier.PRO:
+        case SubscriptionType.PRO:
             return 100; // Pro版は100エントリーまで
-        case SubscriptionTier.FREE:
+        case SubscriptionType.FREE:
         default:
             return 30; // 無料版は30エントリーまで
     }
@@ -217,11 +217,11 @@ export function getSpeakPriority(guildId: string): number {
     const tier = getGuildSubscriptionTier(guildId);
     
     switch (tier) {
-        case SubscriptionTier.PREMIUM:
+        case SubscriptionType.PREMIUM:
             return 100; // Premium版は最優先
-        case SubscriptionTier.PRO:
+        case SubscriptionType.PRO:
             return 50;  // Pro版は中優先
-        case SubscriptionTier.FREE:
+        case SubscriptionType.FREE:
         default:
             return 10;  // 無料版は低優先
     }
@@ -232,11 +232,11 @@ export function getAvailableVoiceQualityOptions(guildId: string): string[] {
     const tier = getGuildSubscriptionTier(guildId);
     
     switch (tier) {
-        case SubscriptionTier.PREMIUM:
+        case SubscriptionType.PREMIUM:
             return ['standard', 'high', 'ultra']; // Premiumは全品質利用可能
-        case SubscriptionTier.PRO:
+        case SubscriptionType.PRO:
             return ['standard', 'high']; // Proは標準と高品質のみ
-        case SubscriptionTier.FREE:
+        case SubscriptionType.FREE:
         default:
             return ['standard']; // 無料版は標準品質のみ
     }
@@ -246,10 +246,10 @@ export function getAvailableVoiceQualityOptions(guildId: string): string[] {
 export function getAvailableVoiceEffectPresets(guildId: string): string[] {
     const tier = getGuildSubscriptionTier(guildId);
     
-    if (tier === SubscriptionTier.PREMIUM) {
+    if (tier === SubscriptionType.PREMIUM) {
         // Premiumはすべての効果が利用可能
         return Object.keys(VOICE_EFFECT_PRESETS);
-    } else if (tier === SubscriptionTier.PRO) {
+    } else if (tier === SubscriptionType.PRO) {
         // Proは基本的な効果が利用可能
         return ['none', 'concert', 'robot', 'whisper'];
     } else {
@@ -263,13 +263,13 @@ export function checkFeatureAvailability(guildId: string): Record<string, boolea
     const tier = getGuildSubscriptionTier(guildId);
     
     return {
-        advancedVoiceSettings: tier !== SubscriptionTier.FREE,
-        customEffects: tier !== SubscriptionTier.FREE,
-        voiceHistory: tier !== SubscriptionTier.FREE,
-        priorityQueue: tier !== SubscriptionTier.FREE,
-        ultrahighQuality: tier === SubscriptionTier.PREMIUM,
-        customVoiceStyles: tier === SubscriptionTier.PREMIUM,
-        autoPronunciation: tier === SubscriptionTier.PREMIUM,
-        bulkDictionary: tier === SubscriptionTier.PREMIUM
+        advancedVoiceSettings: tier !== SubscriptionType.FREE,
+        customEffects: tier !== SubscriptionType.FREE,
+        voiceHistory: tier !== SubscriptionType.FREE,
+        priorityQueue: tier !== SubscriptionType.FREE,
+        ultrahighQuality: tier === SubscriptionType.PREMIUM,
+        customVoiceStyles: tier === SubscriptionType.PREMIUM,
+        autoPronunciation: tier === SubscriptionType.PREMIUM,
+        bulkDictionary: tier === SubscriptionType.PREMIUM
     };
 }
