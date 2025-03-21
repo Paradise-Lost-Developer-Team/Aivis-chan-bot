@@ -152,7 +152,8 @@ client.on(Events.GuildCreate, async (guild) => {
             .addFields(
                 { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
                 { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
-                { name: '基本コマンド', value: '• /help\n• /tts\n• /join\n• /leave' }
+                { name: '基本コマンド', value: '• /help\n• /tts\n• /join\n• /leave' },
+                { name: '🌟 プレミアムプラン', value: '• Pro版: 追加の声優、優先キュー、高品質音声\n• Premium版: 独占ボイス、無制限辞書、優先サポート\n• 詳細は `/subscription info` で確認' }
             )
             .setFooter({ text: 'Powered by AivisSpeech' })
             .setColor(0x00AAFF);
@@ -166,7 +167,11 @@ client.on(Events.GuildCreate, async (guild) => {
                 new ButtonBuilder()
                     .setLabel('プライバシーポリシー')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://example.com/Privacy-Policy.html')
+                    .setURL('https://example.com/Privacy-Policy.html'),
+                new ButtonBuilder()
+                    .setLabel('購読プラン')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://example.com/subscription-plans.html')
             );
 
         const systemChannel = guild.systemChannel;

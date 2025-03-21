@@ -1,167 +1,103 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
-import { getGuildSubscriptionTier, SubscriptionTier, getUserSubscription, isProFeatureAvailable, getSubscriptionInfo } from '../../utils/subscription';
-import { getProPlanInfo } from '../../utils/pro-features';
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits } from '../../utils/subscription';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('subscription')
-        .setDescription('サブスクリプション情報の確認と購入')
+        .setDescription('サブスクリプション関連のコマンド')
         .addSubcommand(subcommand =>
-            subcommand.setName('info')
-            .setDescription('現在のサブスクリプション状態を確認します'))
+            subcommand
+                .setName('info')
+                .setDescription('現在のサブスクリプション情報を表示します'))
         .addSubcommand(subcommand =>
-            subcommand.setName('purchase')
-            .setDescription('Pro版/Premium版の購入方法を表示します'))
-        .addSubcommand(subcommand =>
-            subcommand.setName('manage')
-            .setDescription('サブスクリプションの管理情報を表示します')),
-    
-    async execute(interaction: ChatInputCommandInteraction) {
+            subcommand
+                .setName('set')
+                .setDescription('サブスクリプションを設定します (管理者のみ)')
+                .addStringOption(option =>
+                    option.setName('type')
+                        .setDescription('サブスクリプションタイプ')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: '無料', value: 'free' },
+                            { name: 'Pro', value: 'pro' },
+                            { name: 'Premium', value: 'premium' }
+                        ))
+                .addIntegerOption(option =>
+                    option.setName('days')
+                        .setDescription('期間（日数）')
+                        .setRequired(true)
+                        .setMinValue(1)
+                        .setMaxValue(365)))
+        .setDMPermission(false),
+
+    async execute(interaction: { options: { getSubcommand: () => any; getString: (arg0: string) => SubscriptionType; getInteger: (arg0: string) => any; }; guildId: any; reply: (arg0: { embeds?: EmbedBuilder[]; ephemeral: boolean; content?: string; }) => any; memberPermissions: { has: (arg0: bigint) => any; }; }) {
         const subcommand = interaction.options.getSubcommand();
-        const guildId = interaction.guild?.id;
-        
-        if (!guildId) {
-            await interaction.reply({
-                content: 'このコマンドはサーバー内でのみ使用できます。',
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
-        
+
         if (subcommand === 'info') {
-            await handleInfoCommand(interaction, guildId);
-        } else if (subcommand === 'purchase') {
-            await handlePurchaseCommand(interaction);
-        } else if (subcommand === 'manage') {
-            await handleManageCommand(interaction, guildId);
+            const guildId = interaction.guildId;
+            const subscriptionType = getSubscription(guildId);
+            const benefits = SubscriptionBenefits[subscriptionType];
+            
+            const subscriptionNames = {
+                [SubscriptionType.FREE]: '無料プラン',
+                [SubscriptionType.PRO]: 'Proプラン',
+                [SubscriptionType.PREMIUM]: 'Premiumプラン'
+            };
+            
+            const embed = new EmbedBuilder()
+                .setTitle('サブスクリプション情報')
+                .setDescription(`現在のプラン: **${subscriptionNames[subscriptionType]}**`)
+                .setColor(
+                    subscriptionType === SubscriptionType.FREE ? 0x808080 :
+                    subscriptionType === SubscriptionType.PRO ? 0x00AAFF :
+                    0xFFD700
+                )
+                .addFields(
+                    { name: '利用可能な声優数', value: `${benefits.maxVoices}`, inline: true },
+                    { name: '辞書登録上限', value: `${benefits.maxDictionaries === 999999 ? '無制限' : benefits.maxDictionaries}`, inline: true },
+                    { name: 'メッセージ最大長', value: `${benefits.maxMessageLength}文字`, inline: true }
+                );
+                
+            // 特典詳細の追加
+            if (subscriptionType === SubscriptionType.PRO) {
+                embed.addFields({ 
+                    name: 'Pro特典',
+                    value: '• 高品質音声\n• 追加エフェクト\n• 優先キュー' 
+                });
+            } else if (subscriptionType === SubscriptionType.PREMIUM) {
+                embed.addFields({ 
+                    name: 'Premium特典',
+                    value: '• 高品質音声\n• 追加エフェクト\n• 独占声優\n• 優先キュー\n• 優先サポート\n• テキスト変換エフェクト\n• 読み上げ中の声優切り替え' 
+                });
+            }
+            
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+            
+        } else if (subcommand === 'set') {
+            // 管理者権限確認
+            if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+                return interaction.reply({ 
+                    content: 'このコマンドは管理者のみ使用できます。',
+                    ephemeral: true 
+                });
+            }
+            
+            const type = interaction.options.getString('type') as SubscriptionType;
+            const days = interaction.options.getInteger('days');
+            const guildId = interaction.guildId;
+            
+            setSubscription(guildId, type, days);
+            
+            const planNames = {
+                [SubscriptionType.FREE]: '無料プラン',
+                [SubscriptionType.PRO]: 'Proプラン', 
+                [SubscriptionType.PREMIUM]: 'Premiumプラン'
+            };
+            
+            await interaction.reply({ 
+                content: `サブスクリプションを **${planNames[type]}** に設定しました。期間: ${days}日間`,
+                ephemeral: true 
+            });
         }
-    }
+    },
 };
-
-async function handleInfoCommand(interaction: ChatInputCommandInteraction, guildId: string) {
-    const tier = getGuildSubscriptionTier(guildId);
-    const planInfo = getProPlanInfo(guildId);
-    
-    const embed = new EmbedBuilder()
-        .setTitle('サブスクリプション情報')
-        .setDescription(`このサーバーのサブスクリプション状態: ${planInfo}`)
-        .setColor(tier === SubscriptionTier.FREE ? '#808080' : 
-                 tier === SubscriptionTier.PRO ? '#FFD700' : '#FF4500')
-        .addFields(
-            { name: '現在のプラン', value: tier.toUpperCase() },
-            { name: '機能制限', value: getFeatureLimitInfo(tier) }
-        )
-        .setFooter({ text: 'Aivis-chan Bot Pro版の詳細は /subscription purchase で確認できます' });
-    
-    // 自分のサブスクリプション情報があれば追加
-    const userSubscription = getUserSubscription(interaction.user.id);
-    if (userSubscription && userSubscription.active) {
-        embed.addFields(
-            { name: 'あなたのサブスクリプション', value: `プラン: ${userSubscription.tier.toUpperCase()}` },
-            { name: '有効期限', value: new Date(userSubscription.endDate).toLocaleDateString() }
-        );
-    } 
-    
-    await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral
-    });
-}
-
-async function handlePurchaseCommand(interaction: ChatInputCommandInteraction) {
-    const embed = new EmbedBuilder()
-        .setTitle('Pro版/Premium版の購入')
-        .setDescription('Aivis-chan Bot Pro版/Premium版は以下の特典があります。')
-        .setColor('#FFD700')
-        .addFields(
-            { name: 'Pro版特典', value: 
-                '- 読み上げ文字数制限400文字\n' + 
-                '- Pro版専用の追加音声\n' +
-                '- 優先サポート\n' +
-                '価格: 月額500円 または 年額5,000円'
-            },
-            { name: 'Premium版特典', value: 
-                '- 読み上げ文字数制限800文字\n' + 
-                '- Premium版専用の追加音声\n' +
-                '- すべてのPro版特典を含む\n' +
-                '- 最優先サポート\n' +
-                '価格: 月額1,000円 または 年額10,000円'
-            },
-            { name: '購入方法', value: '下記リンクから購入手続きを行ってください。' }
-        );
-    
-    const row = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(
-            new ButtonBuilder()
-                .setLabel('Pro版を購入')
-                .setURL('https://aivis-bot.example.com/purchase/pro')
-                .setStyle(ButtonStyle.Link),
-            new ButtonBuilder()
-                .setLabel('Premium版を購入')
-                .setURL('https://aivis-bot.example.com/purchase/premium')
-                .setStyle(ButtonStyle.Link)
-        );
-    
-    await interaction.reply({
-        embeds: [embed],
-        components: [row],
-        flags: MessageFlags.Ephemeral
-    });
-}
-
-async function handleManageCommand(interaction: ChatInputCommandInteraction, guildId: string) {
-    const info = getSubscriptionInfo(guildId);
-                    
-    let subscriptionName: string;
-    let color: number;
-    let features: string;
-        
-    switch (info.type) {
-        case SubscriptionTier.PREMIUM:
-            subscriptionName = 'Premium';
-            color = 0xFFD700; // ゴールド
-            features = '- すべての機能が利用可能\n- 500文字までの読み上げ\n- 音声履歴の保存と検索\n- 履歴クリア機能\n- 優先サポート';
-            break;
-        case SubscriptionTier.PRO:
-            subscriptionName = 'Pro';
-            color = 0xC0C0C0; // シルバー
-            features = '- 300文字までの読み上げ\n- 音声履歴の保存と検索';
-            break;
-        default:
-            subscriptionName = '無料版';
-            color = 0x808080; // グレー
-            features = '- 200文字までの読み上げ\n- 基本的な読み上げ機能';
-    }
-        
-    const embed = new EmbedBuilder()
-        .setTitle('サブスクリプション情報')
-        .setDescription(`このサーバーは現在 **${subscriptionName}** を利用中です。`)
-        .setColor(color)
-        .addFields({ name: '利用可能な機能', value: features });
-        
-    // BOT作者のギルドの場合は特別メッセージを表示
-    if (info.isOwnerGuild) {
-        embed.addFields({ name: '特記事項', value: 'このサーバーはBOT作者のサーバーのため、自動的にPremium特権が付与されています。' });
-    }
-    // 期限がある場合は表示
-    else if (info.expiresAt) {
-        embed.addFields({ name: '有効期限', value: `${(info.expiresAt as Date).toLocaleDateString()} (残り ${info.daysLeft} 日)` });
-    }
-        
-    await interaction.reply({ 
-        embeds: [embed], 
-        flags: MessageFlags.Ephemeral 
-    });
-}
-
-function getFeatureLimitInfo(tier: SubscriptionTier): string {
-    switch (tier) {
-        case SubscriptionTier.PREMIUM:
-            return '読み上げ: 800文字まで / すべての機能が利用可能';
-        case SubscriptionTier.PRO:
-            return '読み上げ: 400文字まで / 高度な音声設定が利用可能';
-        default:
-            return '読み上げ: 200文字まで / 基本機能のみ利用可能';
-    }
-}

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Client, Guild } from 'discord.js';
 import { client } from '../index';
+import { logError } from './errorLogger';
 
 // プロジェクトルートディレクトリを取得
 function getProjectRoot(): string {
@@ -16,24 +17,125 @@ function getProjectRoot(): string {
 }
 
 export enum SubscriptionType {
-    FREE = 'FREE',
-    PRO = 'PRO',
-    PREMIUM = 'PREMIUM'
-  }
-  
-export function getSubscriptionInfo(guildId: string) {
-    const subscriptionType = getGuildSubscriptionTier(guildId);
-    const isOwnedByBotOwner = isOwnerGuild(guildId);
-    const expiresAt = null;
-    const daysLeft = null;
-  
-    return {
-      type: subscriptionType,
-      isOwnerGuild: isOwnedByBotOwner,
-      expiresAt,
-      daysLeft
+    FREE = 'free',
+    PRO = 'pro',
+    PREMIUM = 'premium'
+}
+
+// サブスクリプションの特典
+export const SubscriptionBenefits = {
+    [SubscriptionType.FREE]: {
+        maxVoices: 5,
+        maxDictionaries: 10,
+        maxMessageLength: 200,
+        priority: 0
+    },
+    [SubscriptionType.PRO]: {
+        maxVoices: 15,
+        maxDictionaries: 50,
+        maxMessageLength: 500,
+        priority: 1,
+        highQualityVoice: true,
+        additionalEffects: true
+    },
+    [SubscriptionType.PREMIUM]: {
+        maxVoices: 30,
+        maxDictionaries: 999999, // 実質無制限
+        maxMessageLength: 1000,
+        priority: 2,
+        highQualityVoice: true,
+        additionalEffects: true,
+        exclusiveVoices: true,
+        voiceChangeDuringPlayback: true,
+        prioritySupport: true,
+        textTransformationEffects: true
+    }
+};
+
+// サブスクリプション情報の型
+interface SubscriptionData {
+    [guildId: string]: {
+        type: SubscriptionType;
+        expiresAt: number; // UTCタイムスタンプ
     };
-  }
+}
+
+const SUBSCRIPTION_FILE_PATH = path.join(__dirname, '..', 'data', 'subscriptions.json');
+
+// サブスクリプションデータのロード
+export function loadSubscriptions(): SubscriptionData {
+    try {
+        // data ディレクトリが存在しない場合は作成
+        const dataDir = path.join(__dirname, '..', 'data');
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+        
+        // ファイルが存在しない場合は空のJSONを作成
+        if (!fs.existsSync(SUBSCRIPTION_FILE_PATH)) {
+            fs.writeFileSync(SUBSCRIPTION_FILE_PATH, JSON.stringify({}, null, 2));
+            return {};
+        }
+        
+        const data = fs.readFileSync(SUBSCRIPTION_FILE_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('サブスクリプションデータ読み込みエラー:', error);
+        logError('subscriptionLoadError', error instanceof Error ? error : new Error(String(error)));
+        return {};
+    }
+}
+
+// サブスクリプションデータの保存
+export function saveSubscriptions(data: SubscriptionData): void {
+    try {
+        fs.writeFileSync(SUBSCRIPTION_FILE_PATH, JSON.stringify(data, null, 2));
+    } catch (error) {
+        console.error('サブスクリプションデータ保存エラー:', error);
+        logError('subscriptionSaveError', error instanceof Error ? error : new Error(String(error)));
+    }
+}
+
+// サブスクリプションの取得
+export function getSubscription(guildId: string): SubscriptionType {
+    const subscriptions = loadSubscriptions();
+    const guildSubscription = subscriptions[guildId];
+    
+    // サブスクリプションがない、または期限切れの場合
+    if (!guildSubscription || guildSubscription.expiresAt < Date.now()) {
+        return SubscriptionType.FREE;
+    }
+    
+    return guildSubscription.type;
+}
+
+// サブスクリプションの設定
+export function setSubscription(guildId: string, type: SubscriptionType, durationDays: number): void {
+    const subscriptions = loadSubscriptions();
+    
+    subscriptions[guildId] = {
+        type,
+        expiresAt: Date.now() + (durationDays * 24 * 60 * 60 * 1000)
+    };
+    
+    saveSubscriptions(subscriptions);
+}
+
+// サブスクリプションの特典チェック
+export function checkSubscriptionFeature(guildId: string, feature: string): boolean {
+    const subscriptionType = getSubscription(guildId);
+    const benefits = SubscriptionBenefits[subscriptionType];
+    
+    return feature in benefits && !!benefits[feature as keyof typeof benefits];
+}
+
+// サブスクリプション数値特典の取得
+export function getSubscriptionLimit(guildId: string, limitType: string): number {
+    const subscriptionType = getSubscription(guildId);
+    const benefits = SubscriptionBenefits[subscriptionType];
+    
+    return benefits[limitType as keyof typeof benefits] as number || 0;
+}
 
 // BOT作者のユーザーID
 const BOT_OWNER_ID = '809627147333140531';
@@ -42,20 +144,13 @@ const BOT_OWNER_ID = '809627147333140531';
 const PROJECT_ROOT = getProjectRoot();
 const SUBSCRIPTION_FILE = path.join(PROJECT_ROOT, 'subscriptions.json');
 
-// サブスクリプションの種類
-export enum SubscriptionTier {
-    FREE = 'free',
-    PRO = 'pro',
-    PREMIUM = 'premium'
-}
-
 // サブスクリプション情報の型定義
 export interface Subscription {
     userId: string;          // Discord User ID
     guildIds: string[];      // 適用するサーバーID一覧
     startDate: string;       // 開始日 (ISO文字列)
     endDate: string;         // 終了日 (ISO文字列)
-    tier: SubscriptionTier;  // サブスクリプションのティア
+    tier: SubscriptionType;  // サブスクリプションのティア
     active: boolean;         // 有効状態
 }
 
@@ -65,7 +160,7 @@ interface SubscriptionsData {
 }
 
 // サブスクリプションデータを読み込む
-function loadSubscriptions(): SubscriptionsData {
+function loadSubscriptionsOld(): SubscriptionsData {
     try {
         if (fs.existsSync(SUBSCRIPTION_FILE)) {
             const data = fs.readFileSync(SUBSCRIPTION_FILE, 'utf8');
@@ -78,7 +173,7 @@ function loadSubscriptions(): SubscriptionsData {
 }
 
 // サブスクリプションデータを保存する
-function saveSubscriptions(subscriptions: SubscriptionsData): void {
+function saveSubscriptionsOld(subscriptions: SubscriptionsData): void {
     try {
         // ディレクトリ確認
         const dir = path.dirname(SUBSCRIPTION_FILE);
@@ -92,7 +187,7 @@ function saveSubscriptions(subscriptions: SubscriptionsData): void {
 }
 
 // 全てのサブスクリプションデータ
-const subscriptions = loadSubscriptions();
+const subscriptions = loadSubscriptionsOld();
 
 // ユーザーのサブスクリプション情報を取得する
 export function getUserSubscription(userId: string): Subscription | null {
@@ -105,18 +200,18 @@ export function getUserSubscription(userId: string): Subscription | null {
     // 有効期限切れの確認
     if (subscription.active && new Date(subscription.endDate) < new Date()) {
         subscription.active = false;
-        saveSubscriptions(subscriptions);
+        saveSubscriptionsOld(subscriptions);
     }
     
     return subscription;
 }
 
 // ギルドのサブスクリプション情報を取得する
-export function getGuildSubscriptionTier(guildId: string): SubscriptionTier {
+export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
     // 作者が管理するサーバーかどうかを確認
     if (isOwnerGuild(guildId)) {
         console.log(`作者が管理するサーバー ${guildId} にPremium特権を付与`);
-        return SubscriptionTier.PREMIUM;
+        return SubscriptionType.PREMIUM;
     }
 
     // すべてのサブスクリプションを検索
@@ -131,19 +226,19 @@ export function getGuildSubscriptionTier(guildId: string): SubscriptionTier {
             } else {
                 // 期限切れなら更新
                 subscription.active = false;
-                saveSubscriptions(subscriptions);
+                saveSubscriptionsOld(subscriptions);
             }
         }
     }
     
     // 該当するサブスクリプションがなければFREE
-    return SubscriptionTier.FREE;
+    return SubscriptionType.FREE;
 }
 
 // 新しいサブスクリプションを追加する
 export function addSubscription(subscription: Subscription): void {
     subscriptions[subscription.userId] = subscription;
-    saveSubscriptions(subscriptions);
+    saveSubscriptionsOld(subscriptions);
 }
 
 // サブスクリプションを更新する
@@ -157,7 +252,7 @@ export function updateSubscription(userId: string, updates: Partial<Subscription
         ...updates
     };
     
-    saveSubscriptions(subscriptions);
+    saveSubscriptionsOld(subscriptions);
     return true;
 }
 
@@ -168,7 +263,7 @@ export function cancelSubscription(userId: string): boolean {
     }
     
     subscriptions[userId].active = false;
-    saveSubscriptions(subscriptions);
+    saveSubscriptionsOld(subscriptions);
     return true;
 }
 
@@ -177,11 +272,11 @@ export function getMaxTextLength(guildId: string): number {
     const tier = getGuildSubscriptionTier(guildId);
     
     switch (tier) {
-        case SubscriptionTier.PREMIUM:
+        case SubscriptionType.PREMIUM:
             return 800; // Premium: 800文字まで
-        case SubscriptionTier.PRO:
+        case SubscriptionType.PRO:
             return 400; // Pro: 400文字まで
-        case SubscriptionTier.FREE:
+        case SubscriptionType.FREE:
         default:
             return 200; // Free: 200文字まで
     }
@@ -190,7 +285,7 @@ export function getMaxTextLength(guildId: string): number {
 // Pro版機能が利用可能かチェック
 export function isProFeatureAvailable(guildId: string): boolean {
     const tier = getGuildSubscriptionTier(guildId);
-    return tier === SubscriptionTier.PRO || tier === SubscriptionTier.PREMIUM;
+    return tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM;
 }
 
 // Premium版機能が利用可能かチェック
@@ -201,7 +296,7 @@ export function isPremiumFeatureAvailable(guildId: string): boolean {
     }
 
     const tier = getGuildSubscriptionTier(guildId);
-    return tier === SubscriptionTier.PREMIUM;
+    return tier === SubscriptionType.PREMIUM;
 }
 
 // 指定したギルドがBOT作者の管理下にあるかどうかを確認する
