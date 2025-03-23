@@ -1,5 +1,8 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ButtonInteraction, Interaction, MessageFlags } from "discord.js";
 
+// アクティブなヘルプメニューを追跡するためのMap
+const activeHelpMenus = new Map<string, HelpMenu>();
+
 class HelpMenu {
     private pages: EmbedBuilder[];
     private currentPage: number;
@@ -124,26 +127,122 @@ module.exports = {
         .setName('help')
         .setDescription('利用可能なコマンドの一覧を表示します。'),
     async execute(interaction: ChatInputCommandInteraction) {
-        const helpMenu = new HelpMenu();
-        const helpText = helpMenu.getCurrentPage().data.description ?? '';
-        const helpEmbed = helpMenu.getCurrentPage();
-        const actionRow = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('previous')
-                    .setLabel('前のページ')
-                    .setStyle(ButtonStyle.Primary)
-            )
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('next')
-                    .setLabel('次のページ')
-                    .setStyle(ButtonStyle.Primary)
-            );
-        await interaction.reply({
-            content: helpText,
-            embeds: [helpEmbed],
-            components: [actionRow]
-        });
+        try {
+            const helpMenu = new HelpMenu();
+            const helpEmbed = helpMenu.getCurrentPage();
+            const pageInfo = `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()}`;
+            
+            // 一意なIDを生成
+            const messageKey = `help_${Date.now()}`;
+            activeHelpMenus.set(messageKey, helpMenu);
+            
+            const actionRow = new ActionRowBuilder<ButtonBuilder>()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`previous_${messageKey}`)
+                        .setLabel('前のページ')
+                        .setStyle(ButtonStyle.Primary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`next_${messageKey}`)
+                        .setLabel('次のページ')
+                        .setStyle(ButtonStyle.Primary)
+                );
+                
+            await interaction.reply({
+                content: pageInfo,
+                embeds: [helpEmbed],
+                components: [actionRow]
+            });
+            
+            // 10分後にヘルプメニューをMapから削除
+            setTimeout(() => {
+                activeHelpMenus.delete(messageKey);
+            }, 10 * 60 * 1000);
+        } catch (error) {
+            console.error("helpコマンド実行エラー:", error);
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ 
+                    content: "ヘルプメニューの表示中にエラーが発生しました。", 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+        }
+    },
+    
+    // ボタンインタラクションハンドラ
+    async buttonHandler(interaction: ButtonInteraction) {
+        try {
+            // カスタムIDからアクションとメッセージキーを抽出
+            const customId = interaction.customId;
+            let action: string, messageKey: string;
+            
+            if (customId.startsWith('previous_')) {
+                action = 'previous';
+                messageKey = customId.replace('previous_', '');
+            } else if (customId.startsWith('next_')) {
+                action = 'next';
+                messageKey = customId.replace('next_', '');
+            } else {
+                console.error(`不明なボタンID: ${customId}`);
+                return;
+            }
+            
+            console.log(`ボタンハンドラー呼び出し: ${action}, ${messageKey}`);
+            
+            // 該当するヘルプメニューを取得
+            const helpMenu = activeHelpMenus.get(messageKey);
+            if (!helpMenu) {
+                return await interaction.reply({
+                    content: 'このヘルプメニューは期限切れです。もう一度 /help コマンドを実行してください。',
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+            
+            // ボタンのアクションに応じてページを変更
+            if (action === 'previous') {
+                helpMenu.previousPage();
+            } else if (action === 'next') {
+                helpMenu.nextPage();
+            }
+            
+            const helpEmbed = helpMenu.getCurrentPage();
+            const pageInfo = `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()}`;
+            
+            const actionRow = new ActionRowBuilder<ButtonBuilder>()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`previous_${messageKey}`)
+                        .setLabel('前のページ')
+                        .setStyle(ButtonStyle.Primary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`next_${messageKey}`)
+                        .setLabel('次のページ')
+                        .setStyle(ButtonStyle.Primary)
+                );
+            
+            // インタラクションを更新
+            await interaction.update({
+                content: pageInfo,
+                embeds: [helpEmbed],
+                components: [actionRow]
+            });
+        } catch (error) {
+            console.error("ボタンハンドラーエラー:", error);
+            // インタラクションが既に処理されていない場合のみ応答
+            if (!interaction.replied && !interaction.deferred) {
+                try {
+                    await interaction.reply({
+                        content: "ページ切り替え中にエラーが発生しました。",
+                        flags: MessageFlags.Ephemeral
+                    });
+                } catch (e) {
+                    console.error("エラー応答中にさらにエラー:", e);
+                }
+            }
+        }
     }
 };

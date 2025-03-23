@@ -121,34 +121,56 @@ client.once(Events.ClientReady, async () => {
     }
 });
 
-client.on(Events.InteractionCreate, async interaction => {    
-    if (!interaction.isChatInputCommand()) return;
-
-    // Bot起動時にloadAutoJoinChannels()関数を実行
-    loadAutoJoinChannels();
-    loadJoinChannels();
-    console.log("Auto join channels loaded.");
-
+client.on(Events.InteractionCreate, async interaction => {
     try {
-
-        const command = client.commands.get(interaction.commandName);
-        if (!command) {
-            console.error(`No command matching ${interaction.commandName} was found.`);
-            return;
-        }
-
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'このコマンドの実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
-            } else {
-                await interaction.reply({ content: 'このコマンドの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+        // スラッシュコマンド処理
+        if (interaction.isChatInputCommand()) {
+            const command = client.commands.get(interaction.commandName);
+            if (!command) return;
+            
+            try {
+                await command.execute(interaction);
+            } catch (error) {
+                console.error(`コマンド実行エラー (${interaction.commandName}):`, error);
+                
+                // インタラクションの応答状態に基づいて適切に対応
+                if (interaction.replied || interaction.deferred) {
+                    try {
+                        await interaction.followUp({ 
+                            content: 'コマンド実行時にエラーが発生しました', 
+                            flags: MessageFlags.Ephemeral 
+                        });
+                    } catch (e: any) {
+                        if (e.code !== 10062) // Unknown interaction以外のエラーのみログ
+                            console.error("FollowUp失敗:", e);
+                    }
+                } else {
+                    try {
+                        await interaction.reply({ 
+                            content: 'コマンド実行時にエラーが発生しました', 
+                            flags: MessageFlags.Ephemeral 
+                        });
+                    } catch (e: any) {
+                        if (e.code !== 10062) // Unknown interaction以外のエラーのみログ
+                            console.error("Reply失敗:", e);
+                    }
+                }
             }
         }
+        
+        // ボタンインタラクション処理
+        else if (interaction.isButton()) {
+            console.log(`ボタン押下: ${interaction.customId}`);
+            
+            // helpコマンドのボタン処理
+            if (interaction.customId.startsWith('previous_') || interaction.customId.startsWith('next_')) {
+                const helpCommand = require('./commands/utility/help');
+                await helpCommand.buttonHandler(interaction);
+            }
+            // 他のボタンハンドラーはここに追加
+        }
     } catch (error) {
-        console.error(error);
+        console.error('インタラクション処理エラー:', error);
     }
 });
 
