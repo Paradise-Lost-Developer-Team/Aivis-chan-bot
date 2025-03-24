@@ -12,7 +12,7 @@ import { getVoiceEffectSettings } from './pro-features';
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
-export const autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 
 // デフォルトのスピーカー設定
@@ -339,13 +339,8 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
             }
         }
 
-        // 既存のIdleイベントリスナーを解除
-        player.off(AudioPlayerStatus.Idle, () => {});
-        player.off(AudioPlayerStatus.Playing, () => {});
-        player.off(AudioPlayerStatus.AutoPaused, () => {});
-        player.off(AudioPlayerStatus.Buffering, () => {});
-        player.off(AudioPlayerStatus.Paused, () => {});
-        player.off('error', () => {});
+        // 既存のイベントリスナーを解除 (メモリリークと重複イベント防止)
+        player.removeAllListeners();
 
         // プレイヤーが再生中の場合は待機
         let waitCount = 0;
@@ -369,16 +364,6 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
         const resource = await createFFmpegAudioSource(path);
         console.log(`音声再生開始: ${path}`);
         
-        // エラー検出用リスナーを追加
-        const errorHandler = (error: Error) => {
-            console.error(`音声再生エラー(player): ${error}`);
-            cleanupFile(); // エラー時もファイル削除
-        };
-        player.once('error', errorHandler);
-        
-        player.play(resource);
-        voiceClient.subscribe(player);
-        
         // ファイル削除関数
         const cleanupFile = () => {
             try {
@@ -391,39 +376,115 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                 console.error(`一時ファイル削除エラー: ${cleanupError}`);
             }
         };
+
+        // 音声再生監視用タイマーと状態変数
+        let playbackFinished = false;
+        let playbackTimeout: NodeJS.Timeout | null = null;
         
-        // 再生完了を監視（タイムアウト時間を60秒に延長）
-        return new Promise<void>((resolve) => {
-            const onIdle = () => {
-                console.log(`音声再生完了: ${path}`);
-                player.off(AudioPlayerStatus.Idle, onIdle);
-                player.off('error', errorHandler);
+        // 短い音声でも確実に完了を検出するために全ての状態変化を監視
+        const onStateChange = (oldState: any, newState: any) => {
+            // 状態の変化をログに記録（デバッグ用）
+            console.log(`プレイヤー状態変化: ${oldState.status} -> ${newState.status}`);
+            
+            // 再生が完了またはエラーで停止した場合
+            if (
+                (oldState.status !== AudioPlayerStatus.Idle && newState.status === AudioPlayerStatus.Idle) ||
+                newState.status === AudioPlayerStatus.AutoPaused
+            ) {
+                if (!playbackFinished) {
+                    playbackFinished = true;
+                    console.log(`音声再生完了検出: ${path} (${newState.status})`);
+                    
+                    // タイムアウトをクリア
+                    if (playbackTimeout) {
+                        clearTimeout(playbackTimeout);
+                        playbackTimeout = null;
+                    }
+                    
+                    player.removeAllListeners();
+                    cleanupFile();
+                    updateLastSpeechTime();
+                }
+            }
+        };
+
+        // エラー検出用リスナーを追加
+        const errorHandler = (error: Error) => {
+            console.error(`音声再生エラー(player): ${error}`);
+            if (!playbackFinished) {
+                playbackFinished = true;
+                
+                // タイムアウトをクリア
+                if (playbackTimeout) {
+                    clearTimeout(playbackTimeout);
+                    playbackTimeout = null;
+                }
+                
+                player.removeAllListeners();
                 cleanupFile();
-                
-                // 最終発話時間を更新
-                updateLastSpeechTime();
-                
-                resolve();
+            }
+        };
+
+        // 状態変化とエラーを監視
+        player.on('stateChange', onStateChange);
+        player.on('error', errorHandler);
+        
+        // 音声を再生
+        player.play(resource);
+        voiceClient.subscribe(player);
+        
+        // 音声ファイルのサイズに基づいて適切なタイムアウト時間を設定
+        const stats = fs.statSync(path);
+        // 通常、WAVファイルのサイズは1秒あたり約172KB (44.1kHz, 16bit, stereo)
+        // 最小再生時間は1秒、最大は30秒に設定
+        const estimatedDuration = Math.max(1, Math.min(30, stats.size / 172000));
+        // 推定時間 + バッファ(2秒)でタイムアウトを設定
+        const timeoutDuration = (estimatedDuration + 2) * 1000;
+        
+        console.log(`音声再生推定時間: ${estimatedDuration.toFixed(1)}秒, タイムアウト: ${timeoutDuration}ms`);
+        
+        // 再生完了を監視（ファイルサイズに基づく動的タイムアウト）
+        return new Promise<void>((resolve) => {
+            // プレイヤーがIdleに遷移した場合の完了ハンドラー
+            const onIdle = () => {
+                if (!playbackFinished) {
+                    playbackFinished = true;
+                    console.log(`音声再生完了 (Idle): ${path}`);
+                    
+                    // タイムアウトをクリア
+                    if (playbackTimeout) {
+                        clearTimeout(playbackTimeout);
+                        playbackTimeout = null;
+                    }
+                    
+                    player.removeAllListeners();
+                    cleanupFile();
+                    updateLastSpeechTime();
+                    resolve();
+                }
             };
             
             player.once(AudioPlayerStatus.Idle, onIdle);
             
-            // タイムアウトを60秒に延長
-            setTimeout(() => {
-                player.off(AudioPlayerStatus.Idle, onIdle);
-                player.off('error', errorHandler);
-                console.log(`音声再生タイムアウト: ${path}`);
-                
-                // タイムアウト時に強制停止を試みる
-                try {
-                    player.stop(true);
-                } catch (stopError) {
-                    console.error(`プレイヤー停止エラー: ${stopError}`);
+            // タイムアウト設定
+            playbackTimeout = setTimeout(() => {
+                if (!playbackFinished) {
+                    playbackFinished = true;
+                    console.log(`音声再生タイムアウト: ${path} (${timeoutDuration}ms経過)`);
+                    
+                    player.removeAllListeners();
+                    
+                    // タイムアウト時に強制停止を試みる
+                    try {
+                        player.stop(true);
+                    } catch (stopError) {
+                        console.error(`プレイヤー停止エラー: ${stopError}`);
+                    }
+                    
+                    cleanupFile();
+                    resolve();
                 }
-                
-                cleanupFile();
-                resolve();
-            }, 60000); // 60秒に延長
+            }, timeoutDuration);
         });
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
@@ -440,13 +501,21 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
 }
 
 let autoJoinChannelsData: { [key: string]: any } = {};
-autoJoinChannelsData = loadAutoJoinChannels();
+// 初期化時に既存のデータを読み込む
+autoJoinChannels = loadAutoJoinChannels();
 
 export function loadAutoJoinChannels() {
     try {
         if (fs.existsSync(AUTO_JOIN_FILE)) {
             console.log(`自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
-            return JSON.parse(fs.readFileSync(AUTO_JOIN_FILE, "utf-8"));
+            const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
+            const loadedData = JSON.parse(data);
+            
+            // 読み込んだデータが有効なオブジェクトであることを確認
+            if (loadedData && typeof loadedData === 'object') {
+                // 既存のautoJoinChannelsにデータをマージ
+                return loadedData;
+            }
         }
     } catch (error) {
         console.error("自動参加チャンネル設定読み込みエラー:", error);
@@ -454,21 +523,58 @@ export function loadAutoJoinChannels() {
     return {};
 }
 
+export function saveAutoJoinChannels() {
+    try {
+        // 既存のデータを読み込む
+        let existingData = {};
+        if (fs.existsSync(AUTO_JOIN_FILE)) {
+            try {
+                const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
+                existingData = JSON.parse(data);
+            } catch (readError) {
+                console.error(`既存の自動参加チャンネル設定読み込みエラー: ${readError}`);
+                // 読み込みエラーの場合は空のオブジェクトで続行
+                existingData = {};
+            }
+        }
+
+        // autoJoinChannelsの内容を既存データとマージ
+        const mergedData = { ...existingData, ...autoJoinChannels };
+        
+        // マージしたデータを保存
+        ensureDirectoryExists(AUTO_JOIN_FILE);
+        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(mergedData, null, 4), "utf-8");
+        console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
+        
+        // グローバル変数も更新
+        Object.assign(autoJoinChannels, mergedData);
+    } catch (error) {
+        console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
+    }
+}
+
+// 新規：特定のギルドの自動参加設定を更新/追加する関数
+export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string) {
+    // 既存の設定を保持したまま特定のギルドの設定だけを更新
+    autoJoinChannels[guildId] = { voiceChannelId, textChannelId };
+    saveAutoJoinChannels();
+}
+
+// 新規：特定のギルドの自動参加設定を削除する関数
+export function removeAutoJoinChannel(guildId: string) {
+    if (autoJoinChannels[guildId]) {
+        delete autoJoinChannels[guildId];
+        saveAutoJoinChannels();
+        return true;
+    }
+    return false;
+}
+
 // ファイル書き込み時にパスの存在チェックと親ディレクトリ作成を行う関数
 function ensureDirectoryExists(filePath: string): void {
     const dirname = path.dirname(filePath);
     if (!fs.existsSync(dirname)) {
         fs.mkdirSync(dirname, { recursive: true });
-    }
-}
-
-export function saveAutoJoinChannels() {
-    try {
-        ensureDirectoryExists(AUTO_JOIN_FILE);
-        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
-        console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
-    } catch (error) {
-        console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
     }
 }
 
