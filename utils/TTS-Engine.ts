@@ -592,8 +592,8 @@ export function deleteJoinChannelsConfig(guildId: string) {
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
   // 保存されたテキストチャンネルIDを優先
-  const savedTextChannelId = getTextChannelForGuild(guildId);
-  return savedTextChannelId || defaultChannelId;
+    const savedTextChannelId = getTextChannelForGuild(guildId);
+    return savedTextChannelId || defaultChannelId;
 }
 
 /**
@@ -681,7 +681,7 @@ export function getTTSPriority(guildId: string): number {
     const subscriptionType = getSubscription(guildId);
     // 優先度が高いほど、キュー内で先に処理される
     return subscriptionType === SubscriptionType.PREMIUM ? 2 :
-           subscriptionType === SubscriptionType.PRO ? 1 : 0;
+    subscriptionType === SubscriptionType.PRO ? 1 : 0;
 }
 
 // 音声品質の確認関数
