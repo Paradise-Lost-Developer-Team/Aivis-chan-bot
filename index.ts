@@ -210,7 +210,7 @@ client.on(Events.GuildCreate, async (guild) => {
                 new ButtonBuilder()
                     .setLabel('サポートサーバー')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://discord.gg/8Y3hYF2')
+                    .setURL('https://discord.gg/c4TrxUD5XX')
             );
 
         const systemChannel = guild.systemChannel;
