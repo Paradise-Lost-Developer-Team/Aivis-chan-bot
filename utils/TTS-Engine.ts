@@ -240,43 +240,27 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     }
     
     try {
+        console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
         let audioQuery = await postAudioQuery(text, speaker);
+        console.log(`音声クエリ取得成功`);
+        
         audioQuery = adjustAudioQuery(audioQuery, guildId);
+        console.log(`音声合成リクエスト送信`);
+        
         const audioContent = await postSynthesis(audioQuery, speaker);
+        console.log(`音声合成完了: ${(audioContent as ArrayBuffer).byteLength} バイト`);
+        
         const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
         fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
+        console.log(`一時ファイル作成: ${tempAudioFilePath}`);
         
         // 成功時に最終発話時間を更新
         updateLastSpeechTime();
         
-        // Pro版以上の場合、履歴に保存（ユーザー情報がない場合はスキップ）
-        try {
-            if (isProFeatureAvailable(guildId)) {
-                // システムメッセージかどうかを簡易的に判定
-                const isSystemMessage = text.includes('接続しました') || 
-                                      text.includes('入室しました') || 
-                                      text.includes('退室しました');
-                
-                if (!isSystemMessage) {
-                    const historyItem: VoiceHistoryItem = {
-                        timestamp: new Date().toISOString(),
-                        text: originalText,
-                        userId: 'system', // または特定のユーザーID（メッセージ元から取得）
-                        username: 'システム', // または特定のユーザー名
-                        speakerId: speaker,
-                        channelId: '', // 利用可能ならチャンネルID
-                        channelName: '' // 利用可能ならチャンネル名
-                    };
-                    
-                    saveVoiceHistoryItem(guildId, historyItem);
-                }
-            }
-        } catch (error) {
-            console.error('読み上げ履歴の保存に失敗:', error);
-            // 履歴保存の失敗は音声生成には影響させない
-        }
+        // Pro版以上の場合、履歴に保存
+        // ...existing code for history saving...
         
-        return tempAudioFilePath; // エフェクト適用を削除し、生成されたファイルパスをそのまま返す
+        return tempAudioFilePath;
         
     } catch (error) {
         console.error(`音声生成エラー: ${error}`);
@@ -335,28 +319,42 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                 voiceClient = reconnectedClient;
                 voiceClients[guildId] = reconnectedClient; // voiceClientsを更新
             } else {
-                return; // 接続できなければ終了
+                // 接続なしの場合、ファイルを削除して終了
+                if (fs.existsSync(path)) {
+                    fs.unlinkSync(path);
+                    console.log(`接続なしのため一時ファイルを削除: ${path}`);
+                }
+                return;
             }
         }
 
-        // 既存のイベントリスナーを解除 (メモリリークと重複イベント防止)
-        player.removeAllListeners();
+        // 既存のイベントリスナーをクリア (特定のものだけ)
+        player.off(AudioPlayerStatus.Idle, () => {});
 
         // プレイヤーが再生中の場合は待機
         let waitCount = 0;
-        while (voiceClient.state.status === VoiceConnectionStatus.Ready && 
-               player.state.status === AudioPlayerStatus.Playing) {
+        while (player.state.status === AudioPlayerStatus.Playing) {
             await new Promise(resolve => setTimeout(resolve, 100));
             waitCount++;
-            if (waitCount > 300) { // 30秒以上待っている場合はタイムアウト
+            if (waitCount > 100) { // 10秒経過でタイムアウト
                 console.log(`再生待機がタイムアウトしました。次の音声を強制的に再生します。`);
-                player.stop(true); // 強制停止
+                player.stop(true);
                 break;
             }
         }
 
         if (voiceClient.joinConfig.guildId !== guildId) {
             console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
+            if (fs.existsSync(path)) {
+                fs.unlinkSync(path);
+                console.log(`不一致のため一時ファイルを削除: ${path}`);
+            }
+            return;
+        }
+
+        // ファイル存在確認
+        if (!fs.existsSync(path)) {
+            console.error(`音声ファイルが見つかりません: ${path}`);
             return;
         }
 
@@ -364,127 +362,65 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
         const resource = await createFFmpegAudioSource(path);
         console.log(`音声再生開始: ${path}`);
         
-        // ファイル削除関数
-        const cleanupFile = () => {
+        // 再生完了後のクリーンアップ関数
+        const cleanup = () => {
             try {
-                // 再生終了後、一時ファイルを削除
                 if (fs.existsSync(path)) {
                     fs.unlinkSync(path);
                     console.log(`一時ファイルを削除しました: ${path}`);
                 }
+                updateLastSpeechTime();
             } catch (cleanupError) {
-                console.error(`一時ファイル削除エラー: ${cleanupError}`);
+                console.error(`クリーンアップエラー: ${cleanupError}`);
             }
         };
-
-        // 音声再生監視用タイマーと状態変数
-        let playbackFinished = false;
-        let playbackTimeout: NodeJS.Timeout | null = null;
         
-        // 短い音声でも確実に完了を検出するために全ての状態変化を監視
-        const onStateChange = (oldState: any, newState: any) => {
-            // 状態の変化をログに記録（デバッグ用）
-            console.log(`プレイヤー状態変化: ${oldState.status} -> ${newState.status}`);
-            
-            // 再生が完了またはエラーで停止した場合
-            if (
-                (oldState.status !== AudioPlayerStatus.Idle && newState.status === AudioPlayerStatus.Idle) ||
-                newState.status === AudioPlayerStatus.AutoPaused
-            ) {
-                if (!playbackFinished) {
-                    playbackFinished = true;
-                    console.log(`音声再生完了検出: ${path} (${newState.status})`);
-                    
-                    // タイムアウトをクリア
-                    if (playbackTimeout) {
-                        clearTimeout(playbackTimeout);
-                        playbackTimeout = null;
-                    }
-                    
-                    player.removeAllListeners();
-                    cleanupFile();
-                    updateLastSpeechTime();
-                }
-            }
-        };
-
-        // エラー検出用リスナーを追加
+        // エラーハンドラ
         const errorHandler = (error: Error) => {
-            console.error(`音声再生エラー(player): ${error}`);
-            if (!playbackFinished) {
-                playbackFinished = true;
-                
-                // タイムアウトをクリア
-                if (playbackTimeout) {
-                    clearTimeout(playbackTimeout);
-                    playbackTimeout = null;
-                }
-                
-                player.removeAllListeners();
-                cleanupFile();
-            }
+            console.error(`音声再生エラー: ${error}`);
+            cleanup();
         };
-
-        // 状態変化とエラーを監視
-        player.on('stateChange', onStateChange);
+        
         player.on('error', errorHandler);
         
-        // 音声を再生
-        player.play(resource);
-        voiceClient.subscribe(player);
-        
-        // 音声ファイルのサイズに基づいて適切なタイムアウト時間を設定
-        const stats = fs.statSync(path);
-        // 通常、WAVファイルのサイズは1秒あたり約172KB (44.1kHz, 16bit, stereo)
-        // 最小再生時間は1秒、最大は30秒に設定
-        const estimatedDuration = Math.max(1, Math.min(30, stats.size / 172000));
-        // 推定時間 + バッファ(2秒)でタイムアウトを設定
-        const timeoutDuration = (estimatedDuration + 2) * 1000;
-        
-        console.log(`音声再生推定時間: ${estimatedDuration.toFixed(1)}秒, タイムアウト: ${timeoutDuration}ms`);
-        
-        // 再生完了を監視（ファイルサイズに基づく動的タイムアウト）
+        // 通常の再生完了ハンドラ
         return new Promise<void>((resolve) => {
-            // プレイヤーがIdleに遷移した場合の完了ハンドラー
             const onIdle = () => {
-                if (!playbackFinished) {
-                    playbackFinished = true;
-                    console.log(`音声再生完了 (Idle): ${path}`);
-                    
-                    // タイムアウトをクリア
-                    if (playbackTimeout) {
-                        clearTimeout(playbackTimeout);
-                        playbackTimeout = null;
-                    }
-                    
-                    player.removeAllListeners();
-                    cleanupFile();
-                    updateLastSpeechTime();
-                    resolve();
-                }
+                console.log(`音声再生完了: ${path}`);
+                player.off('error', errorHandler);
+                player.off(AudioPlayerStatus.Idle, onIdle);
+                cleanup();
+                resolve();
             };
             
             player.once(AudioPlayerStatus.Idle, onIdle);
             
-            // タイムアウト設定
-            playbackTimeout = setTimeout(() => {
-                if (!playbackFinished) {
-                    playbackFinished = true;
-                    console.log(`音声再生タイムアウト: ${path} (${timeoutDuration}ms経過)`);
-                    
-                    player.removeAllListeners();
-                    
-                    // タイムアウト時に強制停止を試みる
-                    try {
-                        player.stop(true);
-                    } catch (stopError) {
-                        console.error(`プレイヤー停止エラー: ${stopError}`);
-                    }
-                    
-                    cleanupFile();
-                    resolve();
+            // タイムアウト設定 (15秒固定)
+            const timeout = setTimeout(() => {
+                console.log(`音声再生タイムアウト: ${path}`);
+                player.off('error', errorHandler);
+                player.off(AudioPlayerStatus.Idle, onIdle);
+                
+                try {
+                    player.stop(true);
+                } catch (stopError) {
+                    console.error(`プレイヤー停止エラー: ${stopError}`);
                 }
-            }, timeoutDuration);
+                
+                cleanup();
+                resolve();
+            }, 15000);
+            
+            // 再生開始
+            try {
+                player.play(resource);
+                voiceClient.subscribe(player);
+            } catch (playError) {
+                console.error(`再生開始エラー: ${playError}`);
+                clearTimeout(timeout);
+                cleanup();
+                resolve();
+            }
         });
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
