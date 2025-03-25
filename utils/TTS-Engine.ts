@@ -328,8 +328,8 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
             }
         }
 
-        // 既存のイベントリスナーをクリア (特定のものだけ)
-        player.off(AudioPlayerStatus.Idle, () => {});
+        // 既存の全てのイベントリスナーをクリア
+        player.removeAllListeners();
 
         // プレイヤーが再生中の場合は待機
         let waitCount = 0;
@@ -362,76 +362,96 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
         const resource = await createFFmpegAudioSource(path);
         console.log(`音声再生開始: ${path}`);
         
-        // 再生完了後のクリーンアップ関数
+        // 処理完了フラグ（二重実行防止用）
+        let isProcessingComplete = false;
+        let timeoutId: NodeJS.Timeout | null = null;
+        
+        // クリーンアップ関数
         const cleanup = () => {
+            // 既に処理済みなら何もしない
+            if (isProcessingComplete) return;
+            
+            // フラグを立てて二重実行を防止
+            isProcessingComplete = true;
+            
+            // タイムアウトをクリア
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            
+            // イベントリスナーを削除
+            player.removeAllListeners();
+            
+            // ファイル削除
             try {
                 if (fs.existsSync(path)) {
                     fs.unlinkSync(path);
                     console.log(`一時ファイルを削除しました: ${path}`);
                 }
-                updateLastSpeechTime();
             } catch (cleanupError) {
-                console.error(`クリーンアップエラー: ${cleanupError}`);
+                console.error(`ファイル削除エラー: ${cleanupError}`);
             }
+            
+            // 最終発話時間を更新
+            updateLastSpeechTime();
         };
         
-        // エラーハンドラ
-        const errorHandler = (error: Error) => {
-            console.error(`音声再生エラー: ${error}`);
-            cleanup();
-        };
-        
-        player.on('error', errorHandler);
-        
-        // 通常の再生完了ハンドラ
         return new Promise<void>((resolve) => {
-            const onIdle = () => {
-                console.log(`音声再生完了: ${path}`);
-                player.off('error', errorHandler);
-                player.off(AudioPlayerStatus.Idle, onIdle);
-                cleanup();
-                resolve();
+            // 完了ハンドラー（処理を一度だけ実行するためのラッパー）
+            const completeHandler = () => {
+                if (!isProcessingComplete) {
+                    cleanup();
+                    resolve();
+                }
             };
             
-            player.once(AudioPlayerStatus.Idle, onIdle);
+            // エラーハンドラー
+            player.once('error', (error) => {
+                console.error(`音声再生エラー: ${error}`);
+                completeHandler();
+            });
             
-            // タイムアウト設定 (15秒固定)
-            const timeout = setTimeout(() => {
+            // 再生完了リスナー
+            player.once(AudioPlayerStatus.Idle, () => {
+                console.log(`音声再生完了: ${path}`);
+                completeHandler();
+            });
+            
+            // 安全のためタイムアウトも設定（短め）
+            timeoutId = setTimeout(() => {
                 console.log(`音声再生タイムアウト: ${path}`);
-                player.off('error', errorHandler);
-                player.off(AudioPlayerStatus.Idle, onIdle);
                 
                 try {
-                    player.stop(true);
+                    if (!isProcessingComplete) {
+                        player.stop(true);
+                    }
                 } catch (stopError) {
                     console.error(`プレイヤー停止エラー: ${stopError}`);
                 }
                 
-                cleanup();
-                resolve();
-            }, 15000);
+                completeHandler();
+            }, 10000); // 10秒タイムアウト
             
-            // 再生開始
             try {
+                // 音声の再生を開始
                 player.play(resource);
                 voiceClient.subscribe(player);
             } catch (playError) {
                 console.error(`再生開始エラー: ${playError}`);
-                clearTimeout(timeout);
-                cleanup();
-                resolve();
+                completeHandler();
             }
         });
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
         // エラーが発生した場合もファイル削除を試みる
-        try {
-            if (fs.existsSync(path)) {
+        if (fs.existsSync(path)) {
+            try {
                 fs.unlinkSync(path);
                 console.log(`エラー後、一時ファイルを削除しました: ${path}`);
+            } catch (cleanupError) {
+                console.error(`一時ファイル削除エラー: ${cleanupError}`);
             }
-        } catch (cleanupError) {
-            console.error(`一時ファイル削除エラー: ${cleanupError}`);
         }
     }
 }
