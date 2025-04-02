@@ -417,11 +417,13 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                 console.log(`音声再生完了: ${path}`);
                 completeHandler();
             });
+            // 例: 動的にタイムアウトを設定（最低10秒、テキスト長に応じて延長）
+            const baseTimeout = 10000; // 最低10秒
+            const additionalTimeout = text.length * 100; // 1文字あたり100msを加算（適宜調整してください）
+            const dynamicTimeout = Math.max(baseTimeout, additionalTimeout);
             
-            // 安全のためタイムアウトも設定（短め）
             timeoutId = setTimeout(() => {
                 console.log(`音声再生タイムアウト: ${path}`);
-                
                 try {
                     if (!isProcessingComplete) {
                         player.stop(true);
@@ -429,19 +431,8 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                 } catch (stopError) {
                     console.error(`プレイヤー停止エラー: ${stopError}`);
                 }
-                
                 completeHandler();
-            }, 10000); // 10秒タイムアウト
-            
-            try {
-                // 音声の再生を開始
-                player.play(resource);
-                voiceClient.subscribe(player);
-            } catch (playError) {
-                console.error(`再生開始エラー: ${playError}`);
-                completeHandler();
-            }
-        });
+            }, dynamicTimeout);            
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
         // エラーが発生した場合もファイル削除を試みる
