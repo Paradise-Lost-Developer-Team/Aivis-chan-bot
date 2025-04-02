@@ -10,6 +10,14 @@ import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 import { getVoiceEffectSettings } from './pro-features';
 import { text } from "stream/consumers";
 
+// TTS設定のデフォルト値（config.jsonに依存しない）
+const TTS_HOST = "127.0.0.1";
+const TTS_PORT = 10101;
+const TTS_BASE_URL = `http://${TTS_HOST}:${TTS_PORT}`;
+const TTS_TIMEOUT = 15000; // 15秒
+const TTS_MAX_RETRIES = 3;
+const TTS_RETRY_DELAY = 1000;
+
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
@@ -149,13 +157,75 @@ export function AivisAdapter() {
         speaker: number;
 
         constructor() {
-            this.URL = "http://127.0.0.1:10101";
+            this.URL = TTS_BASE_URL;
             this.speaker = 0; // 話者IDを設定
+            
+            // 起動時にTTSサービス状態を確認
+            this.checkServiceHealth()
+                .then(isHealthy => {
+                    if (isHealthy) {
+                        console.log(`TTSサービスに正常に接続しました: ${this.URL}`);
+                    } else {
+                        console.warn(`TTSサービス(${this.URL})への接続に失敗しました。発話機能が利用できない可能性があります。`);
+                    }
+                })
+                .catch(error => {
+                    console.error(`TTSサービス接続確認中にエラーが発生しました: ${error.message}`);
+                });
+        }
+        
+        // TTSサービスの健全性チェック
+        async checkServiceHealth(): Promise<boolean> {
+            try {
+                const response = await fetchWithTimeout(`${this.URL}/speakers`, {
+                    method: 'GET',
+                }, 5000);
+                return response.ok;
+            } catch (error) {
+                console.error(`TTSサービス健全性チェックエラー: ${error instanceof Error ? error.message : error}`);
+                return false;
+            }
         }
     }
     return new AivisAdapter();
 }
 
+// タイムアウト付きfetch関数
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout: number = TTS_TIMEOUT): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        return response;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+// リトライ機能付きfetch関数
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries: number = TTS_MAX_RETRIES): Promise<Response> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            if (attempt > 0) {
+                console.log(`TTSリクエストリトライ (${attempt}/${retries}): ${url}`);
+                await new Promise(resolve => setTimeout(resolve, TTS_RETRY_DELAY));
+            }
+            
+            return await fetchWithTimeout(url, options);
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            console.error(`TTSリクエスト失敗 (${attempt}/${retries}): ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    
+    throw lastError || new Error('リトライ回数を超過しました');
+}
 
 export async function createFFmpegAudioSource(path: string) {
     return createAudioResource(path, { inputType: StreamType.Arbitrary });
@@ -164,9 +234,11 @@ export async function createFFmpegAudioSource(path: string) {
 export async function postAudioQuery(text: string, speaker: number) {
     const params = new URLSearchParams({ text, speaker: speaker.toString() });
     try {
-        const response = await fetch(`http://127.0.0.1:10101/audio_query?${params}`, {
+        // リトライ機能を追加
+        const response = await fetchWithRetry(`${TTS_BASE_URL}/audio_query?${params}`, {
             method: 'POST'
         });
+        
         if (!response.ok) {
             throw new Error(`Error in postAudioQuery: ${response.statusText}`);
         }
@@ -179,15 +251,16 @@ export async function postAudioQuery(text: string, speaker: number) {
 
 export async function postSynthesis(audioQuery: any, speaker: number) {
     try {
-        // 分割推論のためのパラメータを追加
+        // リトライ機能を追加
         const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
-        const response = await fetch(`http://127.0.0.1:10101/synthesis?${params}`, {
+        const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(audioQuery)
         });
+        
         if (!response.ok) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
@@ -242,6 +315,14 @@ export async function speakVoice(text: string, speaker: number, guildId: string)
     
     try {
         console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
+        
+        // サービス健全性チェック
+        const adapter = AivisAdapter() as any;
+        const isHealthy = await adapter.checkServiceHealth();
+        if (!isHealthy) {
+            throw new Error(`TTSサービスが応答していません: ${TTS_BASE_URL}`);
+        }
+        
         let audioQuery = await postAudioQuery(text, speaker);
         console.log(`音声クエリ取得成功`);
         
@@ -418,11 +499,29 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                 console.log(`音声再生完了: ${path}`);
                 completeHandler();
             });
-            // 例: 動的にタイムアウトを設定（最低10秒、テキスト長に応じて延長）
-            const baseTimeout = 10000; // 最低10秒
-            const additionalTimeout = text.length * 100; // 1文字あたり100msを加算（適宜調整してください）
-            const dynamicTimeout = Math.max(baseTimeout, additionalTimeout);
             
+            // ファイルサイズから再生時間を推定
+            let estimatedDuration = 10000; // デフォルトは10秒
+            try {
+                if (fs.existsSync(path)) {
+                    const stats = fs.statSync(path);
+                    // WAVファイルの場合、おおよそ1秒あたり48000バイト（48kHz、16bit、モノラル）
+                    // 安全マージンとして2倍の時間を設定
+                    estimatedDuration = Math.max(10000, Math.ceil(stats.size / 48000) * 2000);
+                }
+            } catch (error) {
+                console.error(`ファイルサイズ取得エラー: ${error}`);
+                // エラー時はデフォルトのタイムアウトを使用
+                estimatedDuration = 30000;
+            }
+            
+            console.log(`音声再生タイムアウト設定: ${estimatedDuration}ms`);
+            
+            // プレイヤーに音声をセット
+            voiceClient.subscribe(player);
+            player.play(resource);
+            
+            // 動的なタイムアウト設定
             timeoutId = setTimeout(() => {
                 console.log(`音声再生タイムアウト: ${path}`);
                 try {
@@ -433,7 +532,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                     console.error(`プレイヤー停止エラー: ${stopError}`);
                 }
                 completeHandler();
-            }, dynamicTimeout);
+            }, estimatedDuration);
         });
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
