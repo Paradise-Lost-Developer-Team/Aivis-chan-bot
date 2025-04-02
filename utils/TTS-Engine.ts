@@ -8,6 +8,7 @@ import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvailable, isProFeatureAvailable, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 import { getVoiceEffectSettings } from './pro-features';
+import { text } from "stream/consumers";
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -432,7 +433,8 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                     console.error(`プレイヤー停止エラー: ${stopError}`);
                 }
                 completeHandler();
-            }, dynamicTimeout);            
+            }, dynamicTimeout);
+        });
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
         // エラーが発生した場合もファイル削除を試みる
@@ -837,3 +839,5 @@ function applyTextTransformations(message: string, options: any): string {
     // この関数ではテキストの変換処理を行う
     return message; // 変換後のテキストを返す
 }
+
+
