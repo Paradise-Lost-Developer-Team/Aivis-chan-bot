@@ -3,7 +3,7 @@ import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./utils/TTS-Engine";
+import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -74,9 +74,24 @@ client.once("ready", async () => {
         console.log('ボイスチャンネル再接続処理が完了しました');
         
         // TTS関連の初期化を先に実行
+        console.log("TTS初期化中...");
         loadAutoJoinChannels();
         loadJoinChannels();
-        AivisAdapter();
+        const ttsAdapter = AivisAdapter();
+        
+        // TTSサービスの健全性チェック
+        try {
+            // @ts-ignore: AivisAdapter型のプロパティアクセス
+            const isHealthy = await ttsAdapter.checkServiceHealth();
+            if (isHealthy) {
+                console.log("TTSサービスに正常に接続しました");
+            } else {
+                console.warn("TTSサービスへの接続に失敗しました。発話機能が利用できない可能性があります。");
+            }
+        } catch (ttsError) {
+            console.error("TTSサービス接続確認エラー:", ttsError);
+        }
+        
         console.log("TTS初期化完了");
         
         // 再接続が完了した後で他の機能を初期化
