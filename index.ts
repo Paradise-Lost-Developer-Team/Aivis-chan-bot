@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { Client, GatewayIntentBits, ActivityType, MessageFlags, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
@@ -63,7 +63,7 @@ async function gracefulShutdown() {
     process.exit(0);
 }
 
-client.once(Events.ClientReady, async () => {
+client.once("ready", async () => {
     try {
         await deployCommands(client);
         console.log("コマンドのデプロイ完了");
@@ -121,7 +121,7 @@ client.once(Events.ClientReady, async () => {
     }
 });
 
-client.on(Events.InteractionCreate, async interaction => {
+client.on("interactionCreate", async interaction => {
     try {
         // スラッシュコマンド処理
         if (interaction.isChatInputCommand()) {
@@ -174,7 +174,7 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-client.on(Events.GuildCreate, async (guild) => {
+client.on("guildCreate", async (guild) => {
     try {
         const embed = new EmbedBuilder()
             .setTitle('Aivis Chan Botが導入されました！')
