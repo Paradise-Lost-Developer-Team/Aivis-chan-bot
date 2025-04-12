@@ -47,7 +47,7 @@ module.exports = {
         try {
             // Pro版以上が必要
             const guildId = interaction.guildId!;
-            if (!isProFeatureAvailable(guildId)) {
+            if (!isProFeatureAvailable(guildId, 'smart-tts')) {
                 await interaction.reply({
                     content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
                     ephemeral: true
@@ -74,7 +74,7 @@ module.exports = {
 
 async function handleSettingsSubcommand(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId!;
-    const isPremium = isPremiumFeatureAvailable(guildId);
+    const isPremium = isPremiumFeatureAvailable(guildId, 'smart-tts');
     
     // 現在の設定を取得
     const currentSettings = getSmartTTSSettings(guildId);
