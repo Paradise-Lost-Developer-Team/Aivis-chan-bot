@@ -47,7 +47,7 @@ module.exports = {
 
     async execute(interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId || '';
-        if (!isProFeatureAvailable(guildId)) {
+        if (!isProFeatureAvailable(guildId, 'voice-style')) {
             await interaction.reply({ content: 'このコマンドはPro版限定です', flags: MessageFlags.Ephemeral });
             return;
         }
@@ -148,7 +148,7 @@ async function handleInfo(interaction: ChatInputCommandInteraction, guildId: str
 
 async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId: string) {
     // ...existing code...
-    if (!isPremiumFeatureAvailable(guildId)) {
+    if (!isPremiumFeatureAvailable(guildId, 'voice-style-advanced')) {
         await interaction.reply({ content: 'Premium版のみ利用できます', flags: MessageFlags.Ephemeral });
         return;
     }

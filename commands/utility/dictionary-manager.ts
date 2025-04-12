@@ -36,7 +36,7 @@ module.exports = {
         const guildId = interaction.guildId!;
         
         // Pro版以上か確認
-        if (!isProFeatureAvailable(guildId)) {
+        if (!isProFeatureAvailable(guildId, 'dictionary-manager')) {
             await interaction.reply({
                 content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
                 flags: MessageFlags.Ephemeral
@@ -116,7 +116,7 @@ async function handleExportCommand(interaction: ChatInputCommandInteraction, gui
 // 辞書インポートコマンド
 async function handleImportCommand(interaction: ChatInputCommandInteraction, guildId: string) {
     // Premium版限定機能
-    if (!isPremiumFeatureAvailable(guildId)) {
+    if (!isPremiumFeatureAvailable(guildId, 'dictionary-manager')) {
         await interaction.reply({
             content: '辞書インポートはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。',
             flags: MessageFlags.Ephemeral
@@ -239,7 +239,7 @@ async function handleStatsCommand(interaction: ChatInputCommandInteraction, guil
             { name: '登録単語数', value: `${entries.length} / ${maxEntries === Infinity ? '無制限' : maxEntries}` },
             { name: '単語タイプ別', value: typeStats || 'データなし' }
         )
-        .setFooter({ text: `サブスクリプションタイプ: ${isPremiumFeatureAvailable(guildId) ? 'Premium' : isProFeatureAvailable(guildId) ? 'Pro' : '無料'}` })
+        .setFooter({ text: `サブスクリプションタイプ: ${isPremiumFeatureAvailable(guildId, 'dictionary-manager') ? 'Premium' : isProFeatureAvailable(guildId, 'dictionary-manager') ? 'Pro' : '無料'}` })
         .setTimestamp();
     
     await interaction.reply({
