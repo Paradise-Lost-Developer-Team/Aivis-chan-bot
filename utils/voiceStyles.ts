@@ -104,9 +104,9 @@ export function getGuildStyles(guildId: string): VoiceStyle[] {
 
 // サーバーのスタイル最大数を取得
 export function getMaxStylesCount(guildId: string): number {
-    if (isPremiumFeatureAvailable(guildId)) {
+    if (isPremiumFeatureAvailable(guildId, 'voice-style')) {
         return 10; // Premium版は10個まで
-    } else if (isProFeatureAvailable(guildId)) {
+    } else if (isProFeatureAvailable(guildId, 'voice-style')) {
         return 3;  // Pro版は3個まで
     } else {
         return 1;  // 無料版は1個（デフォルトのみ）
@@ -129,7 +129,7 @@ export function createStyle(
     }
 ): VoiceStyle | null {
     // Pro版以上が必要
-    if (!isProFeatureAvailable(guildId)) {
+    if (!isProFeatureAvailable(guildId, 'voice-style')) {
         return null;
     }
     
@@ -150,7 +150,7 @@ export function createStyle(
     const styleId = `style_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     
     // Premium版のみ利用可能な設定をチェック
-    const premiumOptions = isPremiumFeatureAvailable(guildId) 
+    const premiumOptions = isPremiumFeatureAvailable(guildId, 'voice-style') 
         ? { 
             intonation: options.intonation,
             emphasis: options.emphasis,
@@ -227,7 +227,7 @@ export function applyStyle(guildId: string, styleId: string): VoiceStyle | null 
     voiceSettings.speed[guildId] = style.speed;
     
     // Premium版の追加設定
-    if (isPremiumFeatureAvailable(guildId)) {
+    if (isPremiumFeatureAvailable(guildId, 'voice-style')) {
         if (style.intonation !== undefined) {
             voiceSettings.rate[guildId] = style.intonation;
         }

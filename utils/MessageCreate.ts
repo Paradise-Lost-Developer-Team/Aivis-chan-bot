@@ -206,7 +206,7 @@ export function MessageCreate(client: ExtendedClient) {
                 if (voiceClient) {
                     try {
                         let audioPath: string;
-                        if (isProFeatureAvailable(guildId)) {
+                        if (isProFeatureAvailable(guildId, 'smart-tts')) {
                             audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
                             audioPath = await speakVoice(replyText, 888753760, guildId);
