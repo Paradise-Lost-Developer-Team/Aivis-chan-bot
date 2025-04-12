@@ -68,8 +68,18 @@ class HelpMenu {
                     { name: "/voice-history search", value: "Pro版: 履歴をキーワードで検索します。" },
                     { name: "/voice-history user", value: "Pro版: 特定ユーザーの履歴を表示します。" },
                     { name: "/voice-history clear", value: "Premium版: 履歴をクリアします。" },
-                    { name: "/subscription info", value: "サブスクリプション情報を確認します。" },
+                    { name: "/subscription info", value: "サブスクリプション情報を表示します。" },
                     { name: "/subscription purchase", value: "サブスクリプションを購入します。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
+                .setTitle("ヘルプ - Premium特典")
+                .setDescription("各プランで利用できる特典の詳細です。")
+                .addFields(
+                    { name: "Pro特典", value: "読み上げ履歴保存(500件)、広告非表示、優先サポート、音声プリセット3つまで" },
+                    { name: "Premium特典", value: "Pro特典に加え、カスタム音声作成、履歴無制限、API連携、優先処理キュー、サポートサーバーでのVIPロール" },
+                    { name: "​​プラン比較", value: "/subscription compare コマンドで各プランの詳細な比較表を表示できます。" },
+                    { name: "サポート", value: "有料プランに関するお問い合わせは /support premium で専用サポートを受けられます。" }
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
@@ -92,6 +102,40 @@ class HelpMenu {
                     { name: "絵文字変換", value: "カスタム絵文字は「絵文字」と読み上げられます。" },
                     { name: "読み上げ停止", value: "メッセージ冒頭に「(音量0)」と付けると読み上げません。" },
                     { name: "コードブロック", value: "コードブロック（```で囲まれた部分）は読み上げられません。" }
+                )
+                .setColor(0x3498db),
+            // 以下、新しいEmbedページの追加
+            new EmbedBuilder()
+                .setTitle("ヘルプ - stats-command")
+                .setDescription("システム利用状況や統計情報を表示します。")
+                .addFields(
+                    { name: "/stats", value: "システム全体の利用状況、使用統計、アップタイムを表示します。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
+                .setTitle("ヘルプ - voice-style")
+                .setDescription("カスタム音声スタイルに関するコマンドの一覧です。")
+                .addFields(
+                    { name: "/voice-style list", value: "利用可能なカスタム音声スタイルを一覧表示します。" },
+                    { name: "/voice-style set", value: "指定した音声スタイルに変更します。" },
+                    { name: "/voice-style reset", value: "デフォルトの音声スタイルにリセットします。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
+                .setTitle("ヘルプ - patreon")
+                .setDescription("Patreon連携機能に関するコマンドの一覧です。")
+                .addFields(
+                    { name: "/patreon link", value: "DiscordアカウントとPatreonアカウントを連携します。" },
+                    { name: "/patreon benefits", value: "Patreon支援者向けの特典一覧を表示します。" }
+                )
+                .setColor(0x3498db),
+            new EmbedBuilder()
+                .setTitle("ヘルプ - reminder-command")
+                .setDescription("リマインダー機能に関するコマンドの一覧です。")
+                .addFields(
+                    { name: "/reminder set", value: "指定した日時にリマインダーを設定します。" },
+                    { name: "/reminder list", value: "設定済みリマインダーの一覧を表示します。" },
+                    { name: "/reminder cancel", value: "指定したリマインダーをキャンセルします。" }
                 )
                 .setColor(0x3498db)
         ];
