@@ -10,6 +10,12 @@ import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
 import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
+import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
+import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
+import { initSentry } from './utils/sentry';
+
+// アプリケーション起動の最初にSentryを初期化
+initSentry();
 
 // データディレクトリの存在確認
 const DATA_DIR = path.join(__dirname, 'data');
@@ -73,24 +79,22 @@ client.once("ready", async () => {
         await reconnectToVoiceChannels(client);
         console.log('ボイスチャンネル再接続処理が完了しました');
         
+        // 会話統計トラッキングサービスの初期化
+        console.log("会話分析サービスを初期化しています...");
+        const conversationTrackingService = ConversationTrackingService.getInstance(client);
+        conversationTrackingService.setupEventListeners();
+        console.log("会話分析サービスの初期化が完了しました");
+        
+        // ボイススタンプ機能の初期化
+        console.log("ボイススタンプ機能を初期化しています...");
+        const voiceStampManager = VoiceStampManager.getInstance(client);
+        setupVoiceStampEvents(client);
+        console.log("ボイススタンプ機能の初期化が完了しました");
+        
         // TTS関連の初期化を先に実行
         console.log("TTS初期化中...");
         loadAutoJoinChannels();
         loadJoinChannels();
-        const ttsAdapter = AivisAdapter();
-        
-        // TTSサービスの健全性チェック
-        try {
-            // @ts-ignore: AivisAdapter型のプロパティアクセス
-            const isHealthy = await ttsAdapter.checkServiceHealth();
-            if (isHealthy) {
-                console.log("TTSサービスに正常に接続しました");
-            } else {
-                console.warn("TTSサービスへの接続に失敗しました。発話機能が利用できない可能性があります。");
-            }
-        } catch (ttsError) {
-            console.error("TTSサービス接続確認エラー:", ttsError);
-        }
         
         console.log("TTS初期化完了");
         

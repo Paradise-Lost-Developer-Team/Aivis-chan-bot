@@ -283,13 +283,13 @@ export function getMaxTextLength(guildId: string): number {
 }
 
 // Pro版機能が利用可能かチェック
-export function isProFeatureAvailable(guildId: string): boolean {
+export function isProFeatureAvailable(guildId: string, p0: string): boolean {
     const tier = getGuildSubscriptionTier(guildId);
     return tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM;
 }
 
 // Premium版機能が利用可能かチェック
-export function isPremiumFeatureAvailable(guildId: string): boolean {
+export function isPremiumFeatureAvailable(guildId: string, p0: string): boolean {
     // 作者が管理するサーバーの場合は常にtrue
     if (isOwnerGuild(guildId)) {
         return true;
