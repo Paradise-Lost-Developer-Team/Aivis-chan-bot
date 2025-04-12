@@ -125,7 +125,7 @@ async function processQueue(guildId: string): Promise<void> {
                 updateLastSpeechTime();
 
                 // Pro版ユーザーの場合、履歴に保存
-                if (item.originalMessage && isProFeatureAvailable(guildId)) {
+                if (item.originalMessage && isProFeatureAvailable(guildId, 'voice-history')) {
                     try {
                         const historyItem: VoiceHistoryItem = {
                             timestamp: new Date().toISOString(),

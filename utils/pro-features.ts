@@ -22,7 +22,7 @@ const guildVoiceEffects: { [guildId: string]: any } = {};
 // Pro版の高度な音声設定を取得
 export function getProVoiceSettings(guildId: string): AdvancedVoiceSettings {
     // Pro版ではない場合は空のオブジェクトを返す
-    if (!isProFeatureAvailable(guildId)) {
+    if (!isProFeatureAvailable(guildId, 'voice-settings')) {
         return {};
     }
     
@@ -124,7 +124,7 @@ export async function speakWithEffects(
     effects?: Partial<AdvancedVoiceSettings>
 ): Promise<void> {
     // Pro版ではない場合は通常の読み上げ
-    if (!isProFeatureAvailable(guildId)) {
+    if (!isProFeatureAvailable(guildId, 'voice-effects')) {
         await speakVoice(text, speaker, guildId);
         return;
     }
@@ -154,7 +154,7 @@ export function getProPlanInfo(guildId: string): string {
 // 利用可能なPro版音声モデル一覧を取得
 export function getAvailableProVoices(guildId: string): string[] {
     // Premium版の場合
-    if (isPremiumFeatureAvailable(guildId)) {
+    if (isPremiumFeatureAvailable(guildId, 'premium-voices')) {
         return [
             "Anneli - ノーマル",
             "Anneli - テンション高め",
@@ -172,7 +172,7 @@ export function getAvailableProVoices(guildId: string): string[] {
     }
     
     // Pro版の場合
-    if (isProFeatureAvailable(guildId)) {
+    if (isProFeatureAvailable(guildId, 'pro-voices')) {
         return [
             "Anneli - ノーマル",
             "Anneli - テンション高め",
