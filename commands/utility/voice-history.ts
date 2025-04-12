@@ -53,7 +53,7 @@ module.exports = {
         const guildId = interaction.guildId!;
         
         // Pro版以上か確認
-        if (!isProFeatureAvailable(guildId)) {
+        if (!isProFeatureAvailable(guildId, 'voice-history')) {
             await interaction.reply({
                 content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
                 flags: MessageFlags.Ephemeral
@@ -104,7 +104,7 @@ async function handleListCommand(interaction: ChatInputCommandInteraction) {
     
     // ページネーションボタンを作成 (Premium版のみ)
     let components = [];
-    if (isPremiumFeatureAvailable(guildId) && history.length > count) {
+    if (isPremiumFeatureAvailable(guildId, 'voice-history') && history.length > count) {
         const row = new ActionRowBuilder<ButtonBuilder>()
             .addComponents(
                 new ButtonBuilder()
@@ -184,7 +184,7 @@ async function handleUserCommand(interaction: ChatInputCommandInteraction) {
 // 履歴クリアコマンド
 async function handleClearCommand(interaction: ChatInputCommandInteraction, guildId: string) {
     // Premium版限定機能
-    if (!isPremiumFeatureAvailable(guildId)) {
+    if (!isPremiumFeatureAvailable(guildId, 'voice-history')) {
         await interaction.reply({
             content: '履歴のクリアはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。',
             flags: MessageFlags.Ephemeral
