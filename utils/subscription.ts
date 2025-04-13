@@ -208,9 +208,9 @@ export function getUserSubscription(userId: string): Subscription | null {
 
 // ギルドのサブスクリプション情報を取得する
 export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
-    // 作者が管理するサーバーかどうかを確認
+    // Bot製作者が管理するサーバーかどうかを確認
     if (isOwnerGuild(guildId)) {
-        console.log(`作者が管理するサーバー ${guildId} にPremium特権を付与`);
+        console.log(`Bot製作者が管理するサーバー ${guildId} にPremium特権を付与`);
         return SubscriptionType.PREMIUM;
     }
 
