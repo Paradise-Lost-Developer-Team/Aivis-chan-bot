@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
-import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits } from '../../utils/subscription';
+import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits, getGuildSubscriptionTier } from '../../utils/subscription';
 import path from 'path';
 import fs from 'fs';
 
@@ -42,7 +42,7 @@ export async function execute(interaction: {
 
     if (subcommand === 'info') {
         const guildId = interaction.guildId;
-        const subscriptionType = getSubscription(guildId);
+        let subscriptionType = getGuildSubscriptionTier(guildId) || getSubscription(guildId);
         const benefits = SubscriptionBenefits[subscriptionType];
         
         const subscriptionNames = {
