@@ -27,7 +27,7 @@ export function VoiceStateUpdate(client: Client) {
                     await play_audio(voiceClient, path, guildId, null);
     
                     // ボイスチャンネルに誰もいなくなったら退室
-                    if (oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
+                    if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
                         voiceClient.disconnect();
                         delete voiceClients[guildId];
                     }
@@ -122,7 +122,7 @@ export function VoiceStateUpdate(client: Client) {
             } else if (oldState.channel && !newState.channel) {
                 if (voiceChannelId === oldState.channel.id) {
                     if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
-                        if (oldState.channel.members.filter(member => !member.user.bot).size === 0) {
+                        if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {
                             try {
                                 console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
                                 voiceClients[guildId].disconnect();
