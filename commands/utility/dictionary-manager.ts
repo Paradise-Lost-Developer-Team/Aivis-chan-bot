@@ -58,7 +58,7 @@ module.exports = {
             console.error('辞書管理コマンド実行エラー:', error);
             await interaction.reply({
                 content: '辞書操作中にエラーが発生しました。',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
     },
@@ -66,7 +66,7 @@ module.exports = {
 
 // 辞書エクスポートコマンド
 async function handleExportCommand(interaction: ChatInputCommandInteraction, guildId: string) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     
     // このサーバーの辞書エントリを取得
     const dictionary = guildDictionary[guildId] || {};
@@ -124,7 +124,7 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
         return;
     }
     
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     
     const file = interaction.options.getAttachment('file');
     if (!file || !file.url || !file.name.endsWith('.csv')) {
@@ -244,6 +244,6 @@ async function handleStatsCommand(interaction: ChatInputCommandInteraction, guil
     
     await interaction.reply({
         embeds: [embed],
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
     });
 }

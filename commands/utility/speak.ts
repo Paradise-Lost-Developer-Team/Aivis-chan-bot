@@ -9,12 +9,12 @@ module.exports = {
         .setDescription('テキストを読み上げます')
         .addStringOption(option => 
             option.setName('text')
-                  .setDescription('読み上げるテキスト')
-                  .setRequired(true))
+                    .setDescription('読み上げるテキスト')
+                    .setRequired(true))
         .addBooleanOption(option =>
             option.setName('priority')
-                  .setDescription('優先的に読み上げるかどうか')
-                  .setRequired(false)),
+                    .setDescription('優先的に読み上げるかどうか')
+                    .setRequired(false)),
     
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ ephemeral: true });

@@ -70,8 +70,8 @@ export async function execute(interaction: CommandInteraction) {
   try {
     if (!interaction.guild) {
       await interaction.reply({ 
-        content: 'この機能はサーバー内でのみ使用できます。', 
-        ephemeral: true 
+        content: 'この機能はサーバー内でのみ使用できます。',
+        flags: MessageFlags.Ephemeral
       });
       return;
     }
@@ -79,15 +79,18 @@ export async function execute(interaction: CommandInteraction) {
     const premiumService = PremiumUtils.getInstance();
     const userId = interaction.user.id;
     
-    // プレミアム機能のアクセスチェック
-    const featureAccess = premiumService.checkFeatureAccess(userId, 'conversation-stats');
-    
-    if (!featureAccess.hasAccess) {
-      await interaction.reply({ 
-        content: featureAccess.message || 'この機能はプレミアム会員専用です。', 
-        ephemeral: true 
-      });
-      return;
+    // Bot製作者の管理サーバーの場合は常にプレミアム機能を許可
+    if (interaction.guild.id !== 'YOUR_DEVELOPER_SERVER_ID') {
+      // プレミアム機能のアクセスチェック
+      const featureAccess = premiumService.checkFeatureAccess(userId, 'conversation-stats');
+      
+      if (!featureAccess.hasAccess) {
+        await interaction.reply({ 
+          content: featureAccess.message || 'この機能はプレミアム会員専用です。',
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
     }
     
     // ...existing code...
@@ -97,13 +100,13 @@ export async function execute(interaction: CommandInteraction) {
     
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ 
-        content: '統計データの取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', 
-        ephemeral: true 
+        content: '統計データの取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。',
+        flags: MessageFlags.Ephemeral
       });
     } else {
       await interaction.reply({ 
-        content: '統計データの取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。', 
-        ephemeral: true 
+        content: '統計データの取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。',
+        flags: MessageFlags.Ephemeral
       });
     }
   }
