@@ -105,11 +105,11 @@ function getProjectRoot(): string {
 const PROJECT_ROOT = getProjectRoot();
 console.log(`プロジェクトルートディレクトリ: ${PROJECT_ROOT}`);
 
-// 各JSONファイルのパスを確実にプロジェクトルートに設定
-export const SPEAKERS_FILE = path.join(PROJECT_ROOT, "speakers.json");
-export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "guild_dictionaries.json");
-export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "auto_join_channels.json");
-export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "join_channels.json");
+// 各JSONファイルのパスを確実にプロジェクトルート/dataに設定
+export const SPEAKERS_FILE = path.join(PROJECT_ROOT, "data", "speakers.json");
+export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "data", "guild_dictionaries.json");
+export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "data", "auto_join_channels.json");
+export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels.json");
 
 export function loadSpeakers() {
     try {
