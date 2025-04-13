@@ -247,7 +247,7 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
             }
           }, 10000);
         });
-        
+
         successCount++;
         // 接続完了後、少し待機して状態が安定するのを確認
         await wait(2000);
