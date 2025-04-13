@@ -146,6 +146,7 @@ const SUBSCRIPTION_FILE = path.join(PROJECT_ROOT, 'subscriptions.json');
 
 // サブスクリプション情報の型定義
 export interface Subscription {
+    isPremium: any;
     userId: string;          // Discord User ID
     guildIds: string[];      // 適用するサーバーID一覧
     startDate: string;       // 開始日 (ISO文字列)
