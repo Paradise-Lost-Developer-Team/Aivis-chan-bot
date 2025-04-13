@@ -10,10 +10,9 @@ import {
   AttachmentBuilder
 } from 'discord.js';
 import { ConversationTrackingService } from '../../utils/conversation-tracking-service';
-import { PremiumUtils } from '../../utils/premium-utils';
-import { UserConversationStats, TimeRangeFilter } from '../../utils/conversation-stats';
 import { logError } from '../../utils/errorLogger';
 import { createCanvas } from 'canvas';
+import { getGuildSubscriptionTier, getUserSubscription } from '../../utils/subscription';
 
 export const data = new SlashCommandBuilder()
   .setName('統計')
@@ -76,17 +75,16 @@ export async function execute(interaction: CommandInteraction) {
       return;
     }
     
-    const premiumService = PremiumUtils.getInstance();
     const userId = interaction.user.id;
     
     // Bot製作者の管理サーバーの場合は常にプレミアム機能を許可
     if (interaction.guild.id !== 'YOUR_DEVELOPER_SERVER_ID') {
-      // プレミアム機能のアクセスチェック
-      const featureAccess = premiumService.checkFeatureAccess(userId, 'conversation-stats');
+      const guildTier = await getGuildSubscriptionTier(interaction.guild.id);
+      const userSubscription = await getUserSubscription(userId);
       
-      if (!featureAccess.hasAccess) {
+      if (guildTier !== 'premium' && (!userSubscription || !userSubscription.isPremium)) {
         await interaction.reply({ 
-          content: featureAccess.message || 'この機能はプレミアム会員専用です。',
+          content: 'この機能はプレミアム会員専用です。',
           flags: MessageFlags.Ephemeral
         });
         return;
