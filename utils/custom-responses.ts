@@ -20,7 +20,7 @@ const guildResponses: { [guildId: string]: CustomResponse[] } = {};
 const lastResponseTime: { [guildId: string]: { [responseId: string]: number } } = {};
 
 // 設定ファイルのパス
-const CUSTOM_RESPONSES_FILE = path.join(process.cwd(), 'custom_responses.json');
+const CUSTOM_RESPONSES_FILE = path.join(process.cwd(), 'data', 'custom_responses.json');
 
 // カスタム応答をロード
 export function loadCustomResponses(): void {
