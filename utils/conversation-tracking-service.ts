@@ -493,3 +493,13 @@ export class ConversationTrackingService {
     this.saveStats();
   }
 }
+
+function updateChannelStat(channelStat: any, userId: string, message: string) {
+  // messageByUsersがMapでない場合、Mapへ変換（freeプランではオブジェクトになっている可能性があるため）
+  if (!(channelStat.messageByUsers instanceof Map)) {
+    channelStat.messageByUsers = new Map(Object.entries(channelStat.messageByUsers || {}));
+  }
+  
+  const userCount = channelStat.messageByUsers.get(userId) || 0;
+  channelStat.messageByUsers.set(userId, userCount + 1);
+}

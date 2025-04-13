@@ -214,24 +214,6 @@ export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
         console.log(`Bot製作者が管理するサーバー ${guildId} にPremium特権を付与`);
         return SubscriptionType.PREMIUM;
     }
-
-    // すべてのサブスクリプションを検索
-    for (const userId in subscriptions) {
-        const subscription = subscriptions[userId];
-        
-        // 有効なサブスクリプションで、指定されたギルドが含まれているか確認
-        if (subscription.active && subscription.guildIds.includes(guildId)) {
-            // 有効期限チェック
-            if (new Date(subscription.endDate) >= new Date()) {
-                return subscription.tier;
-            } else {
-                // 期限切れなら更新
-                subscription.active = false;
-                saveSubscriptionsOld(subscriptions);
-            }
-        }
-    }
-    
     // 該当するサブスクリプションがなければFREE
     return SubscriptionType.FREE;
 }
