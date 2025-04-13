@@ -5,6 +5,16 @@ import { UserConversationStats, ServerConversationStats, ChannelStats } from './
 import { logError } from './errorLogger';
 
 export class ConversationTrackingService {
+  async getUserConversationStats(userId: string): Promise<{ messageCount: number }> {
+    let totalMessages = 0;
+    // 全サーバーでこのユーザーの統計を集計
+    for (const [, userMap] of this.userStats) {
+      if (userMap.has(userId)) {
+        totalMessages += userMap.get(userId)!.totalMessages;
+      }
+    }
+    return { messageCount: totalMessages };
+  }
   private static instance: ConversationTrackingService;
   private client: Client;
   private userStats: Map<string, Map<string, UserConversationStats>> = new Map(); // サーバーID -> ユーザーID -> 統計

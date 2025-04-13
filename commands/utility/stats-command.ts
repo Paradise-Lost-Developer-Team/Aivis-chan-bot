@@ -78,20 +78,28 @@ export async function execute(interaction: CommandInteraction) {
     const userId = interaction.user.id;
     
     // Bot製作者の管理サーバーの場合は常にプレミアム機能を許可
-    if (interaction.guild.id !== 'YOUR_DEVELOPER_SERVER_ID') {
+    if (interaction.guild.id !== process.env.DEVELOPER_SERVER_ID) {
       const guildTier = await getGuildSubscriptionTier(interaction.guild.id);
       const userSubscription = await getUserSubscription(userId);
       
       if (guildTier !== 'premium' && (!userSubscription || !userSubscription.isPremium)) {
-        await interaction.reply({ 
-          content: 'この機能はプレミアム会員専用です。',
-          flags: MessageFlags.Ephemeral
-        });
-        return;
+      await interaction.reply({ 
+        content: 'この機能はプレミアム会員専用です。',
+        flags: MessageFlags.Ephemeral
+      });
+      return;
       }
     }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const trackingService = ConversationTrackingService.getInstance(interaction.client);
+    const userStats = await trackingService.getUserConversationStats(userId) as unknown as { messageCount: number };
     
-    // ...existing code...
+    const embed = new EmbedBuilder()
+      .setTitle('会話統計')
+      .setDescription(`あなたの発言数: ${userStats?.messageCount ?? 0}`);
+    
+    await interaction.editReply({ embeds: [embed] });
+    
   } catch (error) {
     console.error('統計コマンドエラー:', error);
     logError('statsCommandError', error instanceof Error ? error : new Error(String(error)));
