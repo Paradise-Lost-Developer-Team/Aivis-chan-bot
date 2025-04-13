@@ -161,7 +161,7 @@ export function AivisAdapter() {
             this.speaker = 0; // 話者IDを設定
             
             // 起動時にTTSサービス状態を確認
-            this.CheckServiceHealth()
+            this.checkServiceHealth()
                 .then(isHealthy => {
                     if (isHealthy) {
                         console.log(`TTSサービスに正常に接続しました: ${this.URL}`);
@@ -175,7 +175,7 @@ export function AivisAdapter() {
         }
         
         // TTSサービスの健全性チェック
-        async CheckServiceHealth(): Promise<boolean> {
+        async checkServiceHealth(): Promise<boolean> {
             try {
                 const response = await fetchWithTimeout(`${this.URL}/speakers`, {
                     method: 'GET',
