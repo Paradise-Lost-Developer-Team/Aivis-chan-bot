@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits } from '../../utils/subscription';
 import path from 'path';
 import fs from 'fs';
@@ -7,8 +7,8 @@ import fs from 'fs';
 function ensureDataDirectoryExists() {
     const dataDir = path.join(__dirname, '../data');
     if (!fs.existsSync(dataDir)) {
-      console.log(`データディレクトリを作成します: ${dataDir}`);
-      fs.mkdirSync(dataDir, { recursive: true });
+        console.log(`データディレクトリを作成します: ${dataDir}`);
+        fs.mkdirSync(dataDir, { recursive: true });
     }
     return dataDir;
 }
@@ -32,7 +32,12 @@ export const data = new SlashCommandBuilder()
             .setDescription('サブスクリプションをアップグレードします')
     );
 
-export async function execute(interaction: { options: { getSubcommand: () => any; getString: (arg0: string) => SubscriptionType; getInteger: (arg0: string) => any; }; guildId: any; reply: (arg0: { embeds?: EmbedBuilder[]; ephemeral: boolean; content?: string; }) => any; memberPermissions: { has: (arg0: bigint) => any; }; }) {
+export async function execute(interaction: { 
+    options: { getSubcommand: () => any; getString: (arg0: string) => SubscriptionType; getInteger: (arg0: string) => any; }; 
+    guildId: any; 
+    reply: (arg0: { embeds?: EmbedBuilder[]; /* replaced ephemeral with flags */ flags?: MessageFlags; content?: string; }) => any; 
+    memberPermissions: { has: (arg0: bigint) => any; }; 
+}) {
     const subcommand = interaction.options.getSubcommand();
 
     if (subcommand === 'info') {
@@ -73,14 +78,14 @@ export async function execute(interaction: { options: { getSubcommand: () => any
             });
         }
         
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         
     } else if (subcommand === 'set') {
         // 管理者権限確認
         if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
             return interaction.reply({ 
                 content: 'このコマンドは管理者のみ使用できます。',
-                ephemeral: true 
+                flags: MessageFlags.Ephemeral
             });
         }
         
@@ -98,7 +103,7 @@ export async function execute(interaction: { options: { getSubcommand: () => any
         
         await interaction.reply({ 
             content: `サブスクリプションを **${planNames[type]}** に設定しました。期間: ${days}日間`,
-            ephemeral: true 
+            flags: MessageFlags.Ephemeral
         });
     }
 }

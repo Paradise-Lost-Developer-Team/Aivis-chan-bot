@@ -305,12 +305,13 @@ function isOwnerGuild(guildId: string): boolean {
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return false;
         
-        // ギルドのオーナーがBOT作者の場合
-        if (guild.ownerId === BOT_OWNER_ID) {
+        // 既存の ownerId を利用する（guild.ownerId は string 型であるための変更）
+        const ownerId = guild.ownerId;
+        if (ownerId === BOT_OWNER_ID) {
             return true;
         }
         
-        // BOT作者がギルドの管理者権限を持っている場合も含める
+        // BOT作者が管理者権限を持っているかチェック
         const ownerMember = guild.members.cache.get(BOT_OWNER_ID);
         if (ownerMember && ownerMember.permissions.has('Administrator')) {
             return true;
