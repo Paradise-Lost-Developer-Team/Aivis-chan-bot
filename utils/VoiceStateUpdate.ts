@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
-import { speakVoice, play_audio, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
+import { speakVoice, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 
 export function VoiceStateUpdate(client: Client) {
@@ -16,15 +16,13 @@ export function VoiceStateUpdate(client: Client) {
                 // ユーザーがボイスチャンネルに参加したとき
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
-                    const path = await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                    await play_audio(voiceClient, path, guildId, null);
+                    await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
                 }
             } else if (oldState.channel && !newState.channel) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
-                    const path = await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
-                    await play_audio(voiceClient, path, guildId, null);
+                    await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
     
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
@@ -90,27 +88,20 @@ export function VoiceStateUpdate(client: Client) {
                                     voiceClient.removeListener('error', onError);
                                     console.log(`接続タイムアウト: ${newState.channel?.name}`);
                                     resolve();
-                                }, 5000);
+                                }, 25000);
                             });
                             
                             voiceClients[guildId] = voiceClient;
                             console.log(`Connected to voice channel ${voiceChannelId} in guild ${guildId}`);
 
                             // 安定するまで少し待機
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            await new Promise(resolve => setTimeout(resolve, 2000));  // 2秒に延長
 
                             // ボイスチャンネル参加アナウンス
                             try {
                                 const speakerId = currentSpeaker[guildId] || 888753760;
                                 console.log(`自動接続アナウンス生成開始: ${guildId}`);
-                                const audioPath = await speakVoice("自動接続しました。", speakerId, guildId);
-                                if (audioPath) {
-                                    console.log(`自動接続アナウンス音声生成成功: ${audioPath}`);
-                                    await play_audio(voiceClient, audioPath, guildId, null);
-                                    console.log(`自動接続アナウンス再生完了: ${guildId}`);
-                                } else {
-                                    console.error("アナウンス生成失敗: 音声ファイルパスがnullです");
-                                }
+                                await speakVoice("自動接続しました。", speakerId, guildId);
                             } catch (audioError) {
                                 console.error(`自動接続アナウンス再生エラー: ${audioError}`);
                             }

@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, play_audio } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { enqueueText, Priority } from './VoiceQueue';
 import { logError } from './errorLogger';
@@ -209,9 +209,8 @@ export function MessageCreate(client: ExtendedClient) {
                         if (isProFeatureAvailable(guildId, 'smart-tts')) {
                             audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
-                            audioPath = await speakVoice(replyText, 888753760, guildId);
+                            await speakVoice(replyText, 888753760, guildId);
                         }
-                        await play_audio(voiceClient, audioPath, guildId, null);
                     } catch (error) {
                         console.error('カスタム応答TTSエラー:', error);
                     }

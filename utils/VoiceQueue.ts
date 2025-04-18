@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { speakVoice, currentSpeaker, voiceClients, play_audio, updateLastSpeechTime } from './TTS-Engine';
+import { speakVoice, currentSpeaker, voiceClients, updateLastSpeechTime } from './TTS-Engine';
 import { VoiceHistoryItem, saveVoiceHistoryItem } from './voiceHistory';
 import { isProFeatureAvailable } from './subscription';
 import { logError } from './errorLogger';
@@ -116,10 +116,7 @@ async function processQueue(guildId: string): Promise<void> {
             try {
                 // 音声を生成
                 console.log(`キュー処理: "${item.text.substring(0, 30)}..." を再生します (${guildId})`);
-                const audioPath = await speakVoice(item.text, item.speakerId, guildId);
-                
-                // 音声を再生
-                await play_audio(voiceClient, audioPath, guildId, null);
+                await speakVoice(item.text, item.speakerId, guildId);
                 
                 // 最終発話時間を更新
                 updateLastSpeechTime();

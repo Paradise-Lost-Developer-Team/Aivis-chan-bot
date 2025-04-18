@@ -1,7 +1,7 @@
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from './subscription';
 import fs from 'fs';
 import path from 'path';
-import { speakVoice, play_audio, voiceClients, currentSpeaker } from './TTS-Engine';
+import { speakVoice, voiceClients, currentSpeaker } from './TTS-Engine';
 import { Message } from 'discord.js';
 import { createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayer } from '@discordjs/voice';
 
