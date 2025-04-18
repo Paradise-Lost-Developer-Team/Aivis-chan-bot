@@ -7,7 +7,7 @@ import * as path from 'path';
 // 設定を読み込む関数
 function loadConfig() {
   try {
-    const configPath = path.resolve(__dirname, '../config.json');
+    const configPath = path.resolve(__dirname, '../data/config.json');
     const configFile = fs.readFileSync(configPath, 'utf8');
     return JSON.parse(configFile);
   } catch (error) {

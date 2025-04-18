@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/subscription';
 import { getSmartTTSSettings, updateSmartTTSSettings, SmartTTSSettings } from '../../utils/smart-tts';
-import { speakVoice, currentSpeaker, voiceClients, play_audio } from '../../utils/TTS-Engine';
+import { speakVoice, currentSpeaker, voiceClients } from '../../utils/TTS-Engine';
 import fs from 'fs';
 
 module.exports = {
@@ -164,7 +164,7 @@ async function handleTestSubcommand(interaction: ChatInputCommandInteraction) {
         
         // 有効なファイルパスであることを確認
         if (typeof audioPath === 'string' && fs.existsSync(audioPath)) {
-            await play_audio(voiceClient, audioPath, guildId, null);
+
             
             const settings = getSmartTTSSettings(guildId);
             const settingsInfo = [

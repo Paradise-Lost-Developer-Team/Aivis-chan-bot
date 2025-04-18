@@ -3,7 +3,7 @@ import * as path from 'path';
 import axios from 'axios';
 
 // 設定ファイルの読み込み
-const CONFIG_PATH = path.join(__dirname, '../config.json');
+const CONFIG_PATH = path.join(__dirname, '../data/config.json');
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const { PATREON } = CONFIG;
 
