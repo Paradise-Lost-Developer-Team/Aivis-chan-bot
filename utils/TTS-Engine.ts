@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, getVoiceConnection } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, getVoiceConnection, AudioResource } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
@@ -9,6 +9,8 @@ import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvail
 import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 import { getVoiceEffectSettings } from './pro-features';
 import { text } from "stream/consumers";
+import { PassThrough, Readable } from "stream";
+import { ReadableStream as WebReadableStream } from "stream/web";
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
 const TTS_HOST = "127.0.0.1";
@@ -227,8 +229,13 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
     throw lastError || new Error('リトライ回数を超過しました');
 }
 
+const CHUNK_SIZE = 64 * 1024; // 64KBのチャンクサイズに最適化
+
+// 変更: createFFmpegAudioSource を先読み対応に変更
 export async function createFFmpegAudioSource(path: string) {
-    return createAudioResource(path, { inputType: StreamType.Arbitrary });
+    const fileStream = fs.createReadStream(path, { highWaterMark: CHUNK_SIZE });
+    const buffered = await bufferStream(fileStream, 2);
+    return createAudioResource(buffered, { inputType: StreamType.Arbitrary });
 }
 
 export async function postAudioQuery(text: string, speaker: number) {
@@ -271,6 +278,48 @@ export async function postSynthesis(audioQuery: any, speaker: number) {
     }
 }
 
+// 新規: レスポンスのボディを Node.js ストリームに変換して返す
+async function postSynthesisStream(audioQuery: any, speaker: number): Promise<Readable> {
+    const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
+    const resp = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(audioQuery)
+    });
+    // Node 18+ の場合
+    return Readable.fromWeb(resp.body as unknown as WebReadableStream<Uint8Array>);
+}
+
+// 追加: チャンク単位で先読みバッファリングする関数
+async function bufferStream(input: Readable, preChunks = 2): Promise<Readable> {
+    const out = new PassThrough();
+    input.pause();
+    let readCount = 0;
+    return new Promise<Readable>(resolve => {
+        const onData = (chunk: Buffer) => {
+            readCount++;
+            out.write(chunk);
+            if (readCount >= preChunks) {
+                input.removeListener("data", onData);
+                input.pipe(out);
+                input.resume();
+                resolve(out);
+            }
+        };
+        input.on("data", onData);
+        input.on("end", () => out.end());
+    });
+}
+
+// 変更: synthesizeAndCreateResource 内でも2チャンク先読み
+async function synthesizeAndCreateResource(text: string, speaker: number, guildId: string) {
+    const q = await postAudioQuery(text, speaker);
+    const adj = adjustAudioQuery(q, guildId);
+    const rawStream = await postSynthesisStream(adj, speaker);
+    const buffered = await bufferStream(rawStream, 2);
+    return createAudioResource(buffered, { inputType: StreamType.Arbitrary });
+}
+
 let guildDictionary: { [key: string]: any } = {};
 
 try {
@@ -303,51 +352,101 @@ export function getMaxTextLength(guildId: string): number {
     return getSubscriptionMaxTextLength(guildId);
 }
 
-export async function speakVoice(text: string, speaker: number, guildId: string): Promise<string> {
-    // 最大文字数をサブスクリプションベースで取得
-    const maxLength = getMaxTextLength(guildId);
+// 追加: 非同期タスクパイプライン処理クラス
+class AsyncPipeline {
+    private queue: Array<() => Promise<any>> = [];
+    private processing = false;
     
-    // 文字数制限
-    const originalText = text; // 履歴用に元のテキストを保存
-    if (text.length > maxLength) {
-        text = text.substring(0, maxLength) + "...";
+    add<T>(task: () => Promise<T>): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            this.queue.push(async () => {
+                try {
+                    const result = await task();
+                    resolve(result);
+                    return result;
+                } catch (error) {
+                    reject(error);
+                    throw error;
+                }
+            });
+            this.processQueue();
+        });
     }
     
-    try {
-        console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
+    private async processQueue() {
+        if (this.processing) return;
+        this.processing = true;
+        while (this.queue.length) {
+            const task = this.queue.shift();
+            if (task) {
+                await task();
+            }
+        }
+        this.processing = false;
+    }
+}
+const ttsPipeline = new AsyncPipeline();
+const synthPipeline = new AsyncPipeline();
+const playPipeline  = new AsyncPipeline();
+
+// 変更: speakVoice 関数を非同期パイプラインに対応させる
+export async function speakVoice(text: string, speaker: number, guildId: string): Promise<string> {
+    return ttsPipeline.add(async () => {
+        // 最大文字数をサブスクリプションベースで取得
+        const maxLength = getMaxTextLength(guildId);
         
-        // サービス健全性チェック
-        const adapter = AivisAdapter() as any;
-        const isHealthy = await adapter.checkServiceHealth();
-        if (!isHealthy) {
-            throw new Error(`TTSサービスが応答していません: ${TTS_BASE_URL}`);
+        // 文字数制限
+        const originalText = text; // 履歴用に元のテキストを保存
+        if (text.length > maxLength) {
+            text = text.substring(0, maxLength) + "...";
         }
         
-        let audioQuery = await postAudioQuery(text, speaker);
-        console.log(`音声クエリ取得成功`);
-        
-        audioQuery = adjustAudioQuery(audioQuery, guildId);
-        console.log(`音声合成リクエスト送信`);
-        
-        const audioContent = await postSynthesis(audioQuery, speaker);
-        console.log(`音声合成完了: ${(audioContent as ArrayBuffer).byteLength} バイト`);
-        
-        const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
-        fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
-        console.log(`一時ファイル作成: ${tempAudioFilePath}`);
-        
-        // 成功時に最終発話時間を更新
-        updateLastSpeechTime();
-        
-        // Pro版以上の場合、履歴に保存
-        // ...existing code for history saving...
-        
-        return tempAudioFilePath;
-        
-    } catch (error) {
-        console.error(`音声生成エラー: ${error}`);
-        throw error; // エラーを上位に伝播させる
-    }
+        try {
+            console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
+            
+            // サービス健全性チェック
+            const adapter = AivisAdapter() as any;
+            const isHealthy = await adapter.checkServiceHealth();
+            if (!isHealthy) {
+                throw new Error(`TTSサービスが応答していません: ${TTS_BASE_URL}`);
+            }
+            
+            let audioQuery = await postAudioQuery(text, speaker);
+            console.log(`音声クエリ取得成功`);
+            
+            audioQuery = adjustAudioQuery(audioQuery, guildId);
+            console.log(`音声合成リクエスト送信`);
+            
+            const audioContent = await postSynthesis(audioQuery, speaker);
+            console.log(`音声合成完了: ${(audioContent as ArrayBuffer).byteLength} バイト`);
+            
+            const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
+            fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
+            console.log(`一時ファイル作成: ${tempAudioFilePath}`);
+            
+            // 成功時に最終発話時間を更新
+            updateLastSpeechTime();
+            
+            // Pro版以上の場合、履歴に保存
+            // ...existing code for history saving...
+            
+            return tempAudioFilePath;
+            
+        } catch (error) {
+            console.error(`音声生成エラー: ${error}`);
+            throw error; // エラーを上位に伝播させる
+        }
+    });
+}
+
+// 変更: speakVoice の代替として並行処理エントリを提供
+export function speakAndPlay(text: string, speaker: number, guildId: string) {
+    synthPipeline.add(() => synthesizeAndCreateResource(text, speaker, guildId))
+        .then(resource => {
+            const vc = voiceClients[guildId];
+            return playPipeline.add(() => play_audio(vc, resource, guildId));
+        })
+        .catch(error => console.error("speakAndPlay error:", error));
 }
 
 export function getPlayer(guildId: string): AudioPlayer {
@@ -380,7 +479,7 @@ export function isVoiceClientConnected(guildId: string): boolean {
     return voiceClients[guildId].state.status === VoiceConnectionStatus.Ready;
 }
 
-export async function play_audio(voiceClient: VoiceConnection, path: string, guildId: string, interaction: any) {
+export async function play_audio(voiceClient: VoiceConnection, path: string | AudioResource, guildId: string, interaction?: any) {
     try {
         const player = getPlayer(guildId);
         console.log(`ギルド: ${guildId} の音声を再生中, ファイル: ${path}`);
@@ -402,7 +501,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
                 voiceClients[guildId] = reconnectedClient; // voiceClientsを更新
             } else {
                 // 接続なしの場合、ファイルを削除して終了
-                if (fs.existsSync(path)) {
+                if (typeof path === 'string' && fs.existsSync(path)) {
                     fs.unlinkSync(path);
                     console.log(`接続なしのため一時ファイルを削除: ${path}`);
                 }
@@ -427,7 +526,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
 
         if (voiceClient.joinConfig.guildId !== guildId) {
             console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
-            if (fs.existsSync(path)) {
+            if (typeof path === 'string' && fs.existsSync(path)) {
                 fs.unlinkSync(path);
                 console.log(`不一致のため一時ファイルを削除: ${path}`);
             }
@@ -435,13 +534,13 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
         }
 
         // ファイル存在確認
-        if (!fs.existsSync(path)) {
+        if (typeof path === 'string' && !fs.existsSync(path)) {
             console.error(`音声ファイルが見つかりません: ${path}`);
             return;
         }
 
         console.log(`音声リソース作成中: ${path}`);
-        const resource = await createFFmpegAudioSource(path);
+        const resource = typeof path === 'string' ? await createFFmpegAudioSource(path) : path;
         console.log(`音声再生開始: ${path}`);
         
         // 処理完了フラグ（二重実行防止用）
@@ -467,7 +566,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
             
             // ファイル削除
             try {
-                if (fs.existsSync(path)) {
+                if (typeof path === 'string' && fs.existsSync(path)) {
                     fs.unlinkSync(path);
                     console.log(`一時ファイルを削除しました: ${path}`);
                 }
@@ -503,7 +602,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
             // ファイルサイズから再生時間を推定
             let estimatedDuration = 10000; // デフォルトは10秒
             try {
-                if (fs.existsSync(path)) {
+                if (typeof path === 'string' && fs.existsSync(path)) {
                     const stats = fs.statSync(path);
                     // WAVファイルの場合、おおよそ1秒あたり48000バイト（48kHz、16bit、モノラル）
                     // 安全マージンとして2倍の時間を設定
@@ -537,7 +636,7 @@ export async function play_audio(voiceClient: VoiceConnection, path: string, gui
     } catch (error) {
         console.error(`音声再生エラー(全体): ${error}`);
         // エラーが発生した場合もファイル削除を試みる
-        if (fs.existsSync(path)) {
+        if (typeof path === 'string' && fs.existsSync(path)) {
             try {
                 fs.unlinkSync(path);
                 console.log(`エラー後、一時ファイルを削除しました: ${path}`);
