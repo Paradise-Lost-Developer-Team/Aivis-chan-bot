@@ -346,39 +346,45 @@ function splitTextSmart(text: string, maxLen: number = 30): string[] {
   return chunks;
 }
 
-// 変更：シグネチャを修正、voiceClients引数を削除
-export async function speakVoice(
+// 新規：ギルドごとの読み上げキュー管理
+const speakQueue: { [guildId: string]: Promise<void> } = {};
+
+// 変更：キューイング対応
+export function speakVoice(
     text: string,
     speaker: number,
     guildId: string
 ): Promise<void> {
-    const maxLength = getMaxTextLength(guildId);
-    try {
-        console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
-        // ① テキスト→audioQuery
-        const audioQuery = await postAudioQuery(text, speaker);
-        if (!audioQuery) return;
-        // ② パラメータ調整＋合成
-        const adj = adjustAudioQuery(audioQuery, guildId);
-        const bufAB = await postSynthesis(adj, speaker);
-        if (!bufAB.byteLength) return;
-        // ③ Buffer化→FFmpeg→AudioResource
-        const audioResource = createFFmpegAudioSource(Buffer.from(bufAB));
+    // 前回の読み上げ終了を待つ
+    const prev = speakQueue[guildId] || Promise.resolve();
+    // 次のタスクとして登録
+    const next = prev.then(async () => {
+        try {
+            console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
+            const audioQuery = await postAudioQuery(text, speaker);
+            if (!audioQuery) return;
+            const adj = adjustAudioQuery(audioQuery, guildId);
+            const bufAB = await postSynthesis(adj, speaker);
+            if (!bufAB.byteLength) return;
+            const audioResource = createFFmpegAudioSource(Buffer.from(bufAB));
 
-        // ④ 再生
-        const vc = voiceClients[guildId];
-        if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-            console.warn(`speakVoice: VoiceConnection not ready for guild ${guildId}`);
-            return;
+            const vc = voiceClients[guildId];
+            if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
+                console.warn(`speakVoice: VoiceConnection not ready for guild ${guildId}`);
+                return;
+            }
+            const player = getPlayer(guildId);
+            player.removeAllListeners();
+            vc.subscribe(player);
+            player.play(audioResource);
+            await new Promise<void>(resolve => player.once(AudioPlayerStatus.Idle, resolve));
+        } catch (err) {
+            console.error("❌ speakVoice エラー:", err);
         }
-        const player = getPlayer(guildId);
-        player.removeAllListeners();
-        vc.subscribe(player);
-        player.play(audioResource);
-        player.once(AudioPlayerStatus.Idle, () => player.stop());
-    } catch (err) {
-        console.error("❌ speakVoice エラー:", err);
-    }
+    });
+    // エラーでキューが止まらないようcatchして保持
+    speakQueue[guildId] = next.catch(() => {});
+    return next;
 }
 
 export function getPlayer(guildId: string): AudioPlayer {
