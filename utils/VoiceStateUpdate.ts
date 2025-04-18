@@ -60,40 +60,37 @@ export function VoiceStateUpdate(client: Client) {
                                 selfMute: false   // マイクはON（話せる）
                             });
                             
-                            const CONNECT_TIMEOUT = 15000; // 接続待機タイムアウトを15秒に変更
-
                             // 接続が安定するまで待機
                             await new Promise<void>((resolve) => {
                                 const onReady = () => {
-                                    voiceClient.removeListener(VoiceConnectionStatus.Disconnected, onError);
+                                    voiceClient.removeListener('error', onError);
                                     console.log(`ボイスチャンネル接続完了: ${newState.channel?.name}`);
                                     resolve();
                                 };
                                 
-                                const onError = (error?: Error) => {
-                                    voiceClient.removeListener(VoiceConnectionStatus.Ready, onReady);
-                                    console.error(`接続エラー: ${error?.message}`);
+                                const onError = (error: Error) => {
+                                    voiceClient.removeListener('ready', onReady);
+                                    console.error(`接続エラー: ${error.message}`);
                                     resolve(); // エラーでも進行
                                 };
                                 
-                                // 変更: イベントリスナーをVoiceConnectionStatus定数で登録
-                                voiceClient.once(VoiceConnectionStatus.Ready, onReady);
-                                voiceClient.once(VoiceConnectionStatus.Disconnected, onError);
+                                voiceClient.once('ready', onReady);
+                                voiceClient.once('error', onError);
                                 
                                 // 既に接続済みの場合
                                 if (voiceClient.state.status === VoiceConnectionStatus.Ready) {
-                                    voiceClient.removeListener(VoiceConnectionStatus.Disconnected, onError);
+                                    voiceClient.removeListener('error', onError);
                                     console.log(`既に接続済み: ${newState.channel?.name}`);
                                     resolve();
                                 }
                                 
                                 // タイムアウト
                                 setTimeout(() => {
-                                    voiceClient.removeListener(VoiceConnectionStatus.Ready, onReady);
-                                    voiceClient.removeListener(VoiceConnectionStatus.Disconnected, onError);
+                                    voiceClient.removeListener('ready', onReady);
+                                    voiceClient.removeListener('error', onError);
                                     console.log(`接続タイムアウト: ${newState.channel?.name}`);
                                     resolve();
-                                }, CONNECT_TIMEOUT);
+                                }, 5000);
                             });
                             
                             voiceClients[guildId] = voiceClient;
