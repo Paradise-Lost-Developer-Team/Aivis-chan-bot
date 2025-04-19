@@ -10,7 +10,10 @@
     {% include head-custom.html %}
   </head>
   <body>
+    <!-- 存在しない header.html の include をコメントアウト -->
+    {%- comment -%}
     {% include header.html %}
+    {%- endcomment -%}
     <div class="container-lg px-3 my-5 markdown-body">
       {{ content }}
 
