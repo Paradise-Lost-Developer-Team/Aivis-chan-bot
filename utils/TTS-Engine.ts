@@ -12,6 +12,7 @@ import { text } from "stream/consumers";
 import { Readable, PassThrough } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
+import PQueue from 'p-queue';
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
 const TTS_HOST = "127.0.0.1";
@@ -433,11 +434,8 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     return connection;
 }
 
-export async function speakVoice(
-    text: string,
-    speaker: number,
-    guildId: string
-): Promise<void> {
+// 実際の音声生成＆再生ロジックを切り出し
+async function speakVoiceImpl(text: string, speaker: number, guildId: string): Promise<void> {
     const vc = voiceClients[guildId];
     if (!vc) {
         console.warn(`VoiceConnection が存在しません`);
@@ -451,8 +449,7 @@ export async function speakVoice(
         return;
     }
 
-    const prev = speakQueue[guildId] || Promise.resolve();
-    const next = prev.then(async () => {
+    try {
         let ffmpegProcess: ChildProcess | null = null;
         try {
             console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
@@ -535,10 +532,30 @@ export async function speakVoice(
         } finally {
             if (ffmpegProcess) ffmpegPool.release(ffmpegProcess).catch(()=>{});
         }
-    });
-    speakQueue[guildId] = next.catch(() => {});
-    return next;
+    } catch (err) {
+        console.error("❌ speakVoice エラー:", err);
+    }
+}
 
+// enqueue 用のエクスポート関数
+export function speakVoice(text: string, speaker: number, guildId: string): Promise<void> {
+    const queue = getQueueForUser(guildId);
+    return queue.add(() => speakVoiceImpl(text, speaker, guildId));
+}
+
+// ユーザー／ギルドごとのキュー管理
+const userQueues = new Map<string, PQueue>();
+function getQueueForUser(userId: string): PQueue {
+    const plan = getSubscription(userId); // SubscriptionType を取得
+    const concurrency = plan === SubscriptionType.PREMIUM ? 4 :
+                        plan === SubscriptionType.PRO     ? 2 : 1;
+    if (!userQueues.has(userId)) {
+        userQueues.set(userId, new PQueue({ concurrency }));
+    }
+    // 動的に並列数を更新
+    const queue = userQueues.get(userId)!;
+    queue.concurrency = concurrency;
+    return queue;
 }
 
 // AudioPlayerごとのサブスクライブ状態を管理するWeakMap
