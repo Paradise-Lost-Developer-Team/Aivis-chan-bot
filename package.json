@@ -11,6 +11,7 @@
     "dotenv": "^16.4.7",
     "generic-pool": "^3.9.0",
     "install": "^0.13.0",
+    "p-queue": "^8.1.0",
     "requests": "^0.3.0",
     "uuid": "^11.1.0"
   },
