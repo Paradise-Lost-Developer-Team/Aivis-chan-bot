@@ -10,7 +10,8 @@ import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 import { getVoiceEffectSettings } from './pro-features';
 import { text } from "stream/consumers";
 import { Readable, PassThrough } from "stream";
-import { spawn } from "child_process";
+import { genericPool } from 'generic-pool';
+import { spawn, ChildProcess } from "child_process";
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
 const TTS_HOST = "127.0.0.1";
@@ -229,28 +230,32 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
     throw lastError || new Error('リトライ回数を超過しました');
 }
 
-// 1. createFFmpegAudioSource を修正
-export function createFFmpegAudioSource(buffer: Buffer | Uint8Array): AudioResource {
-    const ffmpeg = spawn('ffmpeg', [
-        '-i', 'pipe:0',            // stdin から読み込み
-        '-f', 's16le',             // PCM 16bit LE
-        '-ar', '48000',            // サンプルレート 48kHz
-        '-ac', '2',                // ステレオ
-        '-acodec', 'pcm_s16le',    // コーデック指定
-        'pipe:1'                   // stdout に出力
+// FFmpeg プロセスプール工場
+const ffmpegFactory = {
+  create: (): ChildProcess => {
+    return spawn('ffmpeg', [
+      '-i','pipe:0','-f','s16le','-ar','48000','-ac','2','-acodec','pcm_s16le','pipe:1'
     ]);
+  },
+  destroy: (cp: ChildProcess) => {
+    cp.kill();
+  },
+  validate: (cp: ChildProcess) => cp.stdin?.writable && cp.stdout?.readable
+};
+const ffmpegPool = genericPool.createPool(ffmpegFactory, {
+  min: 1,
+  max: 4,
+  idleTimeoutMillis: 30000
+});
 
-    // 書き込み
-    // Uint8Array の場合は Buffer に変換し、配列単位で流す
-    const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
-    const input = Readable.from([buf]);
-
-    input.pipe(ffmpeg.stdin);
-
-    // Discord に送る形式に変換
-    return createAudioResource(ffmpeg.stdout, {
-      inputType: StreamType.Raw,    // Raw PCM として再生
-    });
+// 変更：プールから取得するように
+export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Promise<{ resource: AudioResource, ffmpeg: ChildProcess }> {
+  const ffmpeg = await ffmpegPool.acquire();
+  const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+  const input = Readable.from([buf]);
+  input.pipe(ffmpeg.stdin!);
+  const resource = createAudioResource(ffmpeg.stdout!, { inputType: StreamType.Raw });
+  return { resource, ffmpeg };
 }
 
 export async function postAudioQuery(text: string, speaker: number): Promise<any|null> {
@@ -359,6 +364,7 @@ export function speakVoice(
     const prev = speakQueue[guildId] || Promise.resolve();
     // 次のタスクとして登録
     const next = prev.then(async () => {
+        let ffmpegProcess: ChildProcess | null = null;
         try {
             console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
             const audioQuery = await postAudioQuery(text, speaker);
@@ -366,8 +372,9 @@ export function speakVoice(
             const adj = adjustAudioQuery(audioQuery, guildId);
             const bufAB = await postSynthesis(adj, speaker);
             if (!bufAB.byteLength) return;
-            const audioResource = createFFmpegAudioSource(Buffer.from(bufAB));
-
+            // プール経由の取得
+            const { resource: audioResource, ffmpeg } = await createFFmpegAudioSource(Buffer.from(bufAB));
+            ffmpegProcess = ffmpeg;
             const vc = voiceClients[guildId];
             if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
                 console.warn(`speakVoice: VoiceConnection not ready for guild ${guildId}`);
@@ -380,6 +387,9 @@ export function speakVoice(
             await new Promise<void>(resolve => player.once(AudioPlayerStatus.Idle, resolve));
         } catch (err) {
             console.error("❌ speakVoice エラー:", err);
+        } finally {
+            // プールに返却
+            if (ffmpegProcess) ffmpegPool.release(ffmpegProcess).catch(()=>{});
         }
     });
     // エラーでキューが止まらないようcatchして保持
