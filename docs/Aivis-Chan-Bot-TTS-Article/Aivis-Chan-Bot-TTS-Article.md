@@ -1,6 +1,6 @@
 ---
-
-## title: AivisSpeechとFFmpegプロセスプールによるリアルタイム高性能TTS Botの実現
+title: "AivisSpeechとFFmpegプロセスプールによるリアルタイム高性能TTS Botの実現"
+---
 
 ## はじめに
 
