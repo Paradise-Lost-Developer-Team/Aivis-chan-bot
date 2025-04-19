@@ -210,6 +210,11 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
                 speakerId,
                 guildId
               )) as unknown as string | undefined;
+              connection.on('stateChange', (oldState, newState) => {
+                if (newState.status === 'ready') {
+                  console.log("✅ VoiceConnection Ready");
+                }
+              });              
             } catch (audioError) {
               console.warn(
                 `再接続アナウンス生成中に非致命的エラー（再生失敗の可能性）: ${audioError}`

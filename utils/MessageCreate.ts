@@ -11,6 +11,9 @@ interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
 }
 
+// 追加: ギルドごとにボイス接続状態の初期化済みかどうかを記録するマップ
+const voiceInitMap: { [guildId: string]: boolean } = {};
+
 export function MessageCreate(client: ExtendedClient) {
     client.on(Events.MessageCreate, async (message: Message) => {
         if (message.author.bot) {
@@ -146,20 +149,24 @@ export function MessageCreate(client: ExtendedClient) {
                 }
             }
             
-            // メッセージを処理する前にボイスクライアントの接続を確認
-            if (voiceClient) {
-                // 接続状態を確認し、接続が切れていたら再取得
-                if (voiceClient.state.status !== 'ready') {
-                    const reconnectedClient = getVoiceConnection(guildId);
-                    if (reconnectedClient) {
-                        voiceClients[guildId] = reconnectedClient;
-                        voiceClient = reconnectedClient;
-                        console.log(`ギルド ${guildId} の接続を回復しました`);
-                    } else {
-                        console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
-                        return;
+            // 1度だけボイス接続状態の保存や再取得を行う
+            if (!voiceInitMap[guildId]) {
+                if (voiceClient) {
+                    // 接続状態を確認し、接続が切れていたら再取得
+                    if (voiceClient.state.status !== 'ready') {
+                        const reconnectedClient = getVoiceConnection(guildId);
+                        if (reconnectedClient) {
+                            voiceClients[guildId] = reconnectedClient;
+                            voiceClient = reconnectedClient;
+                            console.log(`ギルド ${guildId} の接続を回復しました`);
+                        } else {
+                            console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+                            return;
+                        }
                     }
                 }
+                // 初期化済みフラグを立てる
+                voiceInitMap[guildId] = true;
             }
             
             // メッセージ読み込みだけで自動接続は行わない
@@ -187,8 +194,12 @@ export function MessageCreate(client: ExtendedClient) {
                 }
                 
                 // キューにメッセージを追加
-                enqueueText(guildId, messageContent, priority, message);
-                console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
+                if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
+                    enqueueText(guildId, messageContent, priority, message);
+                    console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
+                } else {
+                    console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
+                }
                 
             } else {
                 console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
@@ -203,7 +214,7 @@ export function MessageCreate(client: ExtendedClient) {
                 }
 
                 // ボイスチャンネルに接続中ならTTSを試みる
-                if (voiceClient) {
+                if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                     try {
                         let audioPath: string;
                         if (isProFeatureAvailable(guildId, 'smart-tts')) {
