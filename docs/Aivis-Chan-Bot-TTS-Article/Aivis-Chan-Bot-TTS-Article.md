@@ -34,6 +34,17 @@ graph TD;
 
 ## プロセスプールの実装
 
+```mermaid
+graph LR
+  subgraph FFmpeg Pool
+    A[createPool] --> B{Factory}
+    B -->|spawn| C[FFmpeg プロセス]
+    C -->|stdin| D[音声バッファ受信]
+    C -->|stdout| E[PCM 出力]
+    C -->|kill| F[destroy]
+  end
+```
+
 FFmpegプロセスは起動にコストがかかるため、以下のようにプール化して再利用しています：
 
 ```ts
@@ -57,6 +68,16 @@ const ffmpegPool = genericPool.createPool(ffmpegFactory, {
 ```
 
 ## ワーカー + キューアーキテクチャ
+
+```mermaid
+graph TD
+  U(ユーザー) -->|push| Q(キュー)
+  Q --> W(ワーカー)
+  W -->|FFmpeg 合成| F[createFFmpegAudioSource]
+  F --> R[AudioResource]
+  W -->|play| P(AudioPlayer)
+  P -->|Idle 受信| W
+```
 
 同時に複数の再生要求が来ても対応できるよう、各ギルドごとにキューとワーカーを保持しています。
 
