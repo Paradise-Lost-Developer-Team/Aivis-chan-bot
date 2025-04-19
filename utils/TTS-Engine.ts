@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, getVoiceConnection } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, entersState } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
 import os from "os";
@@ -10,7 +10,7 @@ import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
 import { getVoiceEffectSettings } from './pro-features';
 import { text } from "stream/consumers";
 import { Readable, PassThrough } from "stream";
-import { genericPool } from 'generic-pool';
+import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
@@ -232,30 +232,90 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
 
 // FFmpeg プロセスプール工場
 const ffmpegFactory = {
-  create: (): ChildProcess => {
-    return spawn('ffmpeg', [
-      '-i','pipe:0','-f','s16le','-ar','48000','-ac','2','-acodec','pcm_s16le','pipe:1'
-    ]);
-  },
-  destroy: (cp: ChildProcess) => {
-    cp.kill();
-  },
-  validate: (cp: ChildProcess) => cp.stdin?.writable && cp.stdout?.readable
+    create: async (): Promise<ChildProcess> => {
+        // プロセス生成時は一度だけ起動し、標準入出力を維持
+        const ffmpeg = spawn('ffmpeg', [
+            '-loglevel', 'error',
+            '-i', 'pipe:0',
+            '-ar', '48000',
+            '-ac', '2',
+            '-f', 's16le',
+            '-acodec', 'pcm_s16le',
+            'pipe:1'
+        ], { stdio: ['pipe', 'pipe', 'pipe'] });
+
+        ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
+        ffmpeg.stdout?.on("error", err => console.warn("stdout error:", err));
+        ffmpeg.on("exit", (code, signal) => {
+            if (code !== 0) {
+                console.error(`FFmpegプロセスの終了コード: ${code}, シグナル: ${signal}`);
+            }
+        });
+
+        // イベントリスナー上限を増やす
+        ffmpeg.setMaxListeners(50);
+
+        return ffmpeg;
+    },
+    destroy: async (cp: ChildProcess) => {
+        if (cp.killed) return;
+        cp.kill();
+    },
+    validate: async (cp: ChildProcess) => !!(cp.stdin && cp.stdin.writable && cp.stdout && cp.stdout.readable)
 };
+
 const ffmpegPool = genericPool.createPool(ffmpegFactory, {
-  min: 1,
-  max: 4,
-  idleTimeoutMillis: 30000
+    min: 1,
+    max: 4,
+    idleTimeoutMillis: 30000,
+    evictionRunIntervalMillis: 10000
 });
 
-// 変更：プールから取得するように
+// FFmpegプールを使って音声変換を行う
 export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Promise<{ resource: AudioResource, ffmpeg: ChildProcess }> {
-  const ffmpeg = await ffmpegPool.acquire();
-  const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
-  const input = Readable.from([buf]);
-  input.pipe(ffmpeg.stdin!);
-  const resource = createAudioResource(ffmpeg.stdout!, { inputType: StreamType.Raw });
-  return { resource, ffmpeg };
+    const ffmpeg = await ffmpegPool.acquire();
+    const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+
+    // FFmpegプロセスが終了していたら再取得
+    if (ffmpeg.killed || ffmpeg.exitCode !== null) {
+        await ffmpegPool.destroy(ffmpeg);
+        return createFFmpegAudioSource(buffer);
+    }
+
+    // FFmpegのstdin, stdoutを一時的に使う
+    const input = new Readable({
+        read() {
+            this.push(buf);
+            this.push(null);
+        }
+    });
+
+    // エラー監視
+    ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
+    ffmpeg.stdout?.on("error", err => console.warn("stdout error:", err));
+    ffmpeg.on("exit", (code, signal) => {
+        if (code !== 0) {
+            console.error(`FFmpegプロセスの終了コード: ${code}, シグナル: ${signal}`);
+        }
+    });
+    if (ffmpeg.stderr) {
+        ffmpeg.stderr.on('data', (data) => {
+            console.error(`FFmpeg エラー: ${data}`);
+        });
+    }
+
+    // 入力を流し込む
+    input.pipe(ffmpeg.stdin!, { end: true });
+
+    // Discord用リソース作成
+    const resource = createAudioResource(ffmpeg.stdout!, {
+        inputType: StreamType.Raw,
+        inlineVolume: true,
+    });
+    resource.volume?.setVolume(1.0);
+
+    // 再生終了後にプールへ返却する責任は呼び出し元
+    return { resource, ffmpeg };
 }
 
 export async function postAudioQuery(text: string, speaker: number): Promise<any|null> {
@@ -354,52 +414,146 @@ function splitTextSmart(text: string, maxLen: number = 30): string[] {
 // 新規：ギルドごとの読み上げキュー管理
 const speakQueue: { [guildId: string]: Promise<void> } = {};
 
-// 変更：キューイング対応
-export function speakVoice(
+/**
+ * ギルドごとにVoiceConnectionを確保・再利用する関数
+ */
+export function ensureVoiceConnection(guildId: string, voiceChannel: any): VoiceConnection {
+    let connection = voiceClients[guildId];
+    if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed) {
+        connection = joinVoiceChannel({
+            channelId: voiceChannel.id,
+            guildId: guildId,
+            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+            selfDeaf: false,
+        });
+        // ここでリスナー上限を増やす（デフォルト10→50）
+        connection.setMaxListeners(50);
+        voiceClients[guildId] = connection;
+    }
+    return connection;
+}
+
+export async function speakVoice(
     text: string,
     speaker: number,
     guildId: string
 ): Promise<void> {
-    // 前回の読み上げ終了を待つ
+    const vc = voiceClients[guildId];
+    if (!vc) {
+        console.warn(`VoiceConnection が存在しません`);
+        return Promise.resolve();
+    }
+
+    try {
+        await entersState(vc, VoiceConnectionStatus.Ready, 5_000);
+    } catch {
+        console.warn(`VoiceConnection Ready になりませんでした`);
+        return;
+    }
+
     const prev = speakQueue[guildId] || Promise.resolve();
-    // 次のタスクとして登録
     const next = prev.then(async () => {
         let ffmpegProcess: ChildProcess | null = null;
         try {
             console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
             const audioQuery = await postAudioQuery(text, speaker);
-            if (!audioQuery) return;
+            if (!audioQuery) {
+                console.warn("audioQueryがnullです");
+                return;
+            }
+            console.log("audioQuery取得成功");
             const adj = adjustAudioQuery(audioQuery, guildId);
             const bufAB = await postSynthesis(adj, speaker);
-            if (!bufAB.byteLength) return;
-            // プール経由の取得
+            if (!bufAB.byteLength) {
+                console.warn("postSynthesisの戻り値が空です");
+                return;
+            }
+            console.log("音声バッファ取得成功", bufAB.byteLength);
             const { resource: audioResource, ffmpeg } = await createFFmpegAudioSource(Buffer.from(bufAB));
             ffmpegProcess = ffmpeg;
+            console.log("FFmpegリソース生成成功");
             const vc = voiceClients[guildId];
             if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
                 console.warn(`speakVoice: VoiceConnection not ready for guild ${guildId}`);
                 return;
             }
             const player = getPlayer(guildId);
-            player.removeAllListeners();
-            vc.subscribe(player);
+
+            // プレイヤーの状態をリセット
+            player.stop(true);
+
+            // 初回のみsubscribe（既にサブスクライブ済みなら不要）
+            if (!playerSubscribedMap.get(player)) {
+                const sub = vc.subscribe(player);
+                if (!sub) {
+                    console.warn("vc.subscribe(player) が失敗しました");
+                    return;
+                }
+                playerSubscribedMap.set(player, true);
+            }
+
+            // イベントリスナーは毎回登録
+            player.once(AudioPlayerStatus.Playing, () => {
+                console.log("AudioPlayerStatus.Playing: 再生開始");
+            });
+            player.once(AudioPlayerStatus.Idle, () => {
+                console.log("AudioPlayerStatus.Idle: 再生完了");
+            });
+            player.once('error', (err) => {
+                console.error("AudioPlayer error:", err);
+            });
+
             player.play(audioResource);
+            console.log("player.play 実行");
+
+            // 再生開始を待つ
+            await new Promise<void>((resolve, reject) => {
+                let started = false;
+                const onPlaying = () => {
+                    started = true;
+                    resolve();
+                };
+                const onError = (err: any) => {
+                    reject(err);
+                };
+                player.once(AudioPlayerStatus.Playing, onPlaying);
+                player.once('error', onError);
+                setTimeout(() => {
+                    if (!started) {
+                        console.warn("AudioPlayerStatus.Playing になりませんでした");
+                        resolve();
+                    }
+                }, 3000);
+            });
+
+            // 再生完了を待つ
             await new Promise<void>(resolve => player.once(AudioPlayerStatus.Idle, resolve));
+            console.log("再生完了");
+            player.stop(true);
         } catch (err) {
             console.error("❌ speakVoice エラー:", err);
         } finally {
-            // プールに返却
             if (ffmpegProcess) ffmpegPool.release(ffmpegProcess).catch(()=>{});
         }
     });
-    // エラーでキューが止まらないようcatchして保持
     speakQueue[guildId] = next.catch(() => {});
     return next;
+
 }
 
+// AudioPlayerごとのサブスクライブ状態を管理するWeakMap
+const playerSubscribedMap: WeakMap<AudioPlayer, boolean> = new WeakMap();
+
+// AudioPlayer/VoiceConnectionのリスナー上限を明示的に増やす
 export function getPlayer(guildId: string): AudioPlayer {
     if (!players[guildId]) {
-        players[guildId] = createAudioPlayer();
+        players[guildId] = createAudioPlayer({
+            behaviors: {
+                noSubscriber: NoSubscriberBehavior.Play
+            }
+        });
+        // イベントリスナー上限を増やす（デフォルト10→50）
+        players[guildId].setMaxListeners(50);
     }
     return players[guildId];
 }
