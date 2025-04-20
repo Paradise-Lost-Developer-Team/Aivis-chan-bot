@@ -31,22 +31,25 @@ AivisProject様の音声合成エンジン「AivisSpeech」を使ったTTS Bot�
 
 ```mermaid
 graph TD;
-  ユーザー発言 --> Bot検知 --> AivisSpeech音声合成
-  AivisSpeech --> 音声バッファ生成 --> FFmpegプロセス
-  FFmpegプロセス --> PCM変換 --> Discord音声リソース
-  Discord音声リソース --> 再生
+  User["ユーザーの発言"] --> Detect["Botが検知"]
+  Detect --> Synthesis["AivisSpeech\n音声合成"]
+  Synthesis --> Buffer["音声バッファ生成"]
+  Buffer --> FFmpeg["FFmpeg プロセス"]
+  FFmpeg --> PCM["PCM 変換"]
+  PCM --> Resource["Discord\n音声リソース"]
+  Resource --> Play["再生"]
 ```
 
 ## プロセスプールの実装
 
 ```mermaid
 graph LR
-  subgraph FFmpeg Pool
-    A[createPool] --> B{Factory}
-    B -->|spawn| C[FFmpeg プロセス]
-    C -->|stdin| D[音声バッファ受信]
-    C -->|stdout| E[PCM 出力]
-    C -->|kill| F[destroy]
+  subgraph "FFmpeg プール"
+    Create[createPool()] --> Factory["Factory メソッド"]
+    Factory -->|spawn| Process["FFmpeg\nプロセス"]
+    Process -->|stdin| Receive["音声バッファ受信"]
+    Process -->|stdout| Output["PCM 出力"]
+    Process -->|kill| Destroy["destroy"]
   end
 ```
 
@@ -80,12 +83,12 @@ const ffmpegPool = genericPool.createPool(ffmpegFactory, {
 
 ```mermaid
 graph TD
-  U(ユーザー) -->|push| Q(キュー)
-  Q --> W(ワーカー)
-  W -->|FFmpeg 合成| F[createFFmpegAudioSource]
-  F --> R[AudioResource]
-  W -->|play| P(AudioPlayer)
-  P -->|Idle 受信| W
+  U["ユーザー"] -->|push| Q["再生キュー"]
+  Q --> W["ワーカー"]
+  W -->|変換| F["FFmpeg\n音声ソース作成"]
+  F --> R["AudioResource"]
+  W -->|play| P["AudioPlayer"]
+  P -->|Idle| W
 ```
 
 同時に複数の再生要求が来ても対応できるよう、各ギルドごとにキューとワーカーを保持しています。
