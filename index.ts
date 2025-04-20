@@ -3,7 +3,7 @@ import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { loadAutoJoinChannels, loadJoinChannels } from "./utils/TTS-Engine";
+import { loadAutoJoinChannels, loadJoinChannels, loadSpeakers } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -94,6 +94,7 @@ client.once("ready", async () => {
         console.log("TTS初期化中...");
         loadAutoJoinChannels();
         loadJoinChannels();
+        loadSpeakers();
         
         console.log("TTS初期化完了");
         
