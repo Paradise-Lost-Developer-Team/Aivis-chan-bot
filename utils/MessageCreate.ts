@@ -112,12 +112,15 @@ export function MessageCreate(client: ExtendedClient) {
             const userMentions = messageContent.match(/<@!?(\d+)>/g) || [];
             const userPromises = userMentions.map(async (mention) => {
                 const userId = mention.match(/\d+/)![0];
+                const nickname = message.guild?.members.cache.get(userId)?.nickname || null;
                 try {
                     const user = await client.users.fetch(userId);
-                    return { mention, username: `${user.username}` };
+                    // Use nickname if available, otherwise fallback to username or globalName
+                    const displayName = nickname || user.globalName || user.username;
+                    return { mention, username: `${displayName}` };
                 } catch (error) {
-                    console.error(`Failed to fetch user for ID: ${userId}`, error);
-                    return { mention, username: `Unknown User (${userId})` };
+                    console.error(`Failed to fetch user for Nickname: ${nickname}`, error);
+                    return { mention, username: `Unknown User (${nickname})` };
                 }
             });
             const resolvedMentions = await Promise.all(userPromises);
