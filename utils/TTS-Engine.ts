@@ -234,18 +234,24 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
 // FFmpeg プロセスプール工場
 const ffmpegFactory = {
     create: async (): Promise<ChildProcess> => {
-        // プロセス生成時は一度だけ起動し、標準入出力を維持
         const ffmpeg = spawn('ffmpeg', [
-            '-loglevel', 'error',
+            '-loglevel', 'error',  // エラーログのみ出力
+            '-nostats',            // 進捗統計を抑制
             '-f', 's16le',
-            '-ar', '48000',
-            '-ac', '2',
-            '-i', 'pipe:0',
+            '-ar', '44100',        // 入力側のサンプリングレート指定
+            '-ac', '1',
+            '-i', 'pipe:0',        // 標準入力から読み込み
+        
+            // 出力側のエンコード設定
             '-c:a', 'libopus',
+            '-ar', '48000',        // ← これを追加！
             '-b:a', '96k',
+            '-vbr', 'on',
+            '-application', 'audio',
             '-f', 'ogg',
-            'pipe:1',
+            'pipe:1'
         ], { stdio: ['pipe', 'pipe', 'pipe'] });
+        
 
         ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
         ffmpeg.stdout?.on("error", err => console.warn("stdout error:", err));
