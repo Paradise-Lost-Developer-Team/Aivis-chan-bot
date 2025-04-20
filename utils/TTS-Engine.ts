@@ -115,36 +115,52 @@ export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "data", "guild_dictionari
 export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "data", "auto_join_channels.json");
 export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels.json");
 
-export function loadSpeakers() {
+export async function loadSpeakers(): Promise<any[]> {
     try {
-        // 親ディレクトリにあるspeakers.jsonファイルへのパスを正しく設定
-        console.log(`スピーカー情報ファイルを読み込みます: ${SPEAKERS_FILE}`);
-        
+        // まず /speakers API から最新情報を取得して JSON ファイルに上書き
+        console.log(`スピーカー情報を TTS サービスから取得します: ${TTS_BASE_URL}/speakers`);
+        const res = await fetchWithRetry(`${TTS_BASE_URL}/speakers`, { method: "GET" });
+        if (res.ok) {
+            const remoteSpeakers = await res.json();
+            console.log(`取得したスピーカー情報をファイルに保存します: ${SPEAKERS_FILE}`);
+            ensureDirectoryExists(SPEAKERS_FILE);
+            fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(remoteSpeakers, null, 2), "utf-8");
+            return remoteSpeakers;
+        } else {
+            console.warn(`TTS /speakers API エラー: ${res.status} ${res.statusText}`);
+        }
+    } catch (err) {
+        console.warn("TTS /speakers API からの取得に失敗しました。ローカルデータを使用します。", err);
+    }
+
+    // フェールオーバー: ローカル speakers.json もしくはデフォルト
+    try {
+        console.log(`ローカルファイルからスピーカー情報を読み込みます: ${SPEAKERS_FILE}`);
         if (!fs.existsSync(SPEAKERS_FILE)) {
-            console.log("speakers.jsonファイルが見つかりません。デフォルト設定を使用します。");
-            // デフォルト設定を保存
+            console.log("speakers.json が存在しません。デフォルト設定を使用します。");
+            ensureDirectoryExists(SPEAKERS_FILE);
             fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(DEFAULT_SPEAKERS, null, 2), "utf-8");
-            console.log("デフォルトのspeakers.jsonファイルを作成しました。");
             return DEFAULT_SPEAKERS;
         }
-        
         const data = fs.readFileSync(SPEAKERS_FILE, "utf-8");
-        const speakers = JSON.parse(data);
-        
-        if (!Array.isArray(speakers) || speakers.length === 0) {
-            console.log("speakers.jsonの形式が不正です。デフォルト設定を使用します。");
+        const localSpeakers = JSON.parse(data);
+        if (!Array.isArray(localSpeakers) || localSpeakers.length === 0) {
+            console.warn("ローカル speakers.json の形式が不正です。デフォルト設定を使用します。");
             return DEFAULT_SPEAKERS;
         }
-        
-        console.log(`スピーカー情報を読み込みました: ${speakers.length}件のスピーカーが見つかりました`);
-        return speakers;
+        return localSpeakers;
     } catch (error) {
-        console.error("スピーカー情報の読み込みでエラーが発生しました:", error);
+        console.error("スピーカー情報の読み込み中にエラーが発生しました:", error);
         return DEFAULT_SPEAKERS;
     }
 }
 
-export const speakers = loadSpeakers();
+export let speakers: any[] = [];
+loadSpeakers().then(data => {
+    speakers = data;
+}).catch(err => {
+    console.error("スピーカー情報初期化エラー:", err);
+});
 
 export const voiceSettings: { [key: string]: any } = {
     volume: {},
