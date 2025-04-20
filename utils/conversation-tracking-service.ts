@@ -1,7 +1,17 @@
 import { Message, Client, VoiceState, MessageReaction, User, PartialMessageReaction, PartialUser, MessageReactionEventDetails } from 'discord.js';
 import * as fs from 'fs';
 import * as path from 'path';
-import { UserConversationStats, ServerConversationStats, ChannelStats } from './conversation-stats';
+import { UserConversationStats, ServerConversationStats } from './conversation-stats';
+
+interface ChannelStats {
+  channelId: string;
+  channelName: string;
+  totalMessages: number;
+  messageByUsers: Map<string, number>;
+  hourlyActivity: number[];
+  weekdayActivity: number[];
+}
+
 import { logError } from './errorLogger';
 
 export class ConversationTrackingService {
@@ -167,8 +177,8 @@ export class ConversationTrackingService {
       
       // チャンネル統計の更新
       channelStat.totalMessages++;
-      const userMsgCount = channelStat.messageByUsers.get(userId) || 0;
-      channelStat.messageByUsers.set(userId, userMsgCount + 1);
+      const prev = channelStat.messageByUsers.get(userId) ?? 0;
+      channelStat.messageByUsers.set(userId, prev + 1);
       channelStat.hourlyActivity[currentHour]++;
       channelStat.weekdayActivity[currentWeekday]++;
       
@@ -341,6 +351,15 @@ export class ConversationTrackingService {
             serverStat.mostActiveDate = new Date(serverStat.mostActiveDate);
           }
           
+          // messageByUsers を Map に変換
+          for (const [, channelStat] of serverStat.channelStats) {
+            if (!(channelStat.messageByUsers instanceof Map)) {
+              channelStat.messageByUsers = new Map(
+                Object.entries(channelStat.messageByUsers || {})
+              );
+            }
+          }
+          
           this.serverStats.set(serverId, serverStat);
         } catch (innerError) {
           console.error(`ファイル ${file} の読み込みエラー:`, innerError);
@@ -444,7 +463,7 @@ export class ConversationTrackingService {
       channelId,
       channelName,
       totalMessages: 0,
-      messageByUsers: new Map(),
+      messageByUsers: new Map<string, number>(),
       hourlyActivity: Array(24).fill(0),
       weekdayActivity: Array(7).fill(0)
     };
@@ -499,7 +518,7 @@ function updateChannelStat(channelStat: any, userId: string, message: string) {
   if (!(channelStat.messageByUsers instanceof Map)) {
     channelStat.messageByUsers = new Map(Object.entries(channelStat.messageByUsers || {}));
   }
+  const prevCount = channelStat.messageByUsers.get(userId) ?? 0;
+  channelStat.messageByUsers.set(userId, prevCount + 1);
   
-  const userCount = channelStat.messageByUsers.get(userId) || 0;
-  channelStat.messageByUsers.set(userId, userCount + 1);
 }
