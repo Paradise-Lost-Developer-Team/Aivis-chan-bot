@@ -237,12 +237,14 @@ const ffmpegFactory = {
         // プロセス生成時は一度だけ起動し、標準入出力を維持
         const ffmpeg = spawn('ffmpeg', [
             '-loglevel', 'error',
-            '-i', 'pipe:0',
+            '-f', 's16le',
             '-ar', '48000',
             '-ac', '2',
-            '-f', 's16le',
-            '-acodec', 'pcm_s16le',
-            'pipe:1'
+            '-i', 'pipe:0',
+            '-c:a', 'libopus',
+            '-b:a', '96k',
+            '-f', 'ogg',
+            'pipe:1',
         ], { stdio: ['pipe', 'pipe', 'pipe'] });
 
         ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
@@ -310,7 +312,7 @@ export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Prom
 
     // Discord用リソース作成
     const resource = createAudioResource(ffmpeg.stdout!, {
-        inputType: StreamType.Raw,
+        inputType: StreamType.OggOpus,
         inlineVolume: true,
     });
     resource.volume?.setVolume(1.0);
