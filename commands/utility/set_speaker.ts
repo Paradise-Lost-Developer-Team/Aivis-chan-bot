@@ -31,7 +31,7 @@ module.exports = {
             }
             
             // メニューオプションの作成
-            const options = speakerOptions.map(option => 
+            const options = speakerOptions.map((option: { label: string; value: string }) => 
                 new StringSelectMenuOptionBuilder()
                     .setLabel(option.label)
                     .setValue(option.value)

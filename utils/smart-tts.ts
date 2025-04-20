@@ -124,7 +124,7 @@ export async function generateSmartSpeech(text: string, speaker: number, guildId
         }
         
         // 音声生成
-        const audioContent = await postSynthesis(audioQuery, speaker);
+        const audioContent = await postSynthesis(processedText, audioQuery, speaker);
         const tempAudioFilePath = path.join(os.tmpdir(), `${uuidv4()}.wav`);
         fs.writeFileSync(tempAudioFilePath, Buffer.from(audioContent as ArrayBuffer));
         
