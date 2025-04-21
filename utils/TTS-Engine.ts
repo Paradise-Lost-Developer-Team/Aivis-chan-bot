@@ -13,6 +13,7 @@ import { Readable, PassThrough } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
+import { create } from "axios";
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
 const TTS_HOST = "127.0.0.1";
@@ -178,8 +179,8 @@ export function AivisAdapter() {
 
         constructor() {
             this.URL = TTS_BASE_URL;
-            this.speaker = 0; // 話者IDを設定
-            
+            this.speaker = 888753760; // デフォルトの話者ID
+
             // 起動時にTTSサービス状態を確認
             this.checkServiceHealth()
                 .then(isHealthy => {
@@ -189,24 +190,64 @@ export function AivisAdapter() {
                         console.warn(`TTSサービス(${this.URL})への接続に失敗しました。発話機能が利用できない可能性があります。`);
                     }
                 })
-                .catch(error => {
-                    console.error(`TTSサービス接続確認中にエラーが発生しました: ${error.message}`);
+                .catch(err => {
+                    console.error(`TTSサービス接続確認中にエラーが発生しました: ${err.message}`);
+                });
+
+            // synthesis が application/octet-stream を返すかチェック
+            this.supportsStreaming()
+                .then(sup => {
+                    console.log(`synthesis endpoint application/octet-stream 対応: ${sup}`);
+                })
+                .catch(() => {
+                    console.log(`synthesis endpoint 対応チェック失敗`);
                 });
         }
-        
+
         // TTSサービスの健全性チェック
         async checkServiceHealth(): Promise<boolean> {
             try {
-                const response = await fetchWithTimeout(`${this.URL}/speakers`, {
-                    method: 'GET',
-                }, 5000);
-                return response.ok;
-            } catch (error) {
-                console.error(`TTSサービス健全性チェックエラー: ${error instanceof Error ? error.message : error}`);
+                const res = await fetchWithTimeout(`${this.URL}/speakers`, { method: 'GET' }, 5000);
+                return res.ok;
+            } catch (e) {
+                console.error(`TTSサービス健全性チェックエラー: ${e instanceof Error ? e.message : e}`);
+                return false;
+            }
+        }
+
+        // synthesis endpoint が application/octet-stream を返すかチェック
+        async supportsStreaming(): Promise<boolean> {
+            try {
+                // 最小限のボディを送信して Content-Type を確認
+                const testBody = {
+                    accent_phrases: [],
+                    speedScale: 1.0,
+                    pitchScale: 0.0,
+                    intonationScale: 1.0,
+                    volumeScale: 1.0,
+                    prePhonemeLength: 0.1,
+                    postPhonemeLength: 0.1,
+                    outputSamplingRate: 48000,
+                    outputStereo: false,
+                    kana: ""
+                };
+                const res = await fetchWithTimeout(
+                    `${this.URL}/synthesis?speaker=${this.speaker}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(testBody)
+                    },
+                    5000
+                );
+                const ct = res.headers.get('content-type') || '';
+                return res.ok && ct.includes('application/octet-stream');
+            } catch {
                 return false;
             }
         }
     }
+
     return new AivisAdapter();
 }
 
@@ -267,7 +308,6 @@ const ffmpegFactory = {
             '-f', 'ogg',
             'pipe:1'
         ], { stdio: ['pipe', 'pipe', 'pipe'] });
-        
 
         ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
         ffmpeg.stdout?.on("error", err => console.warn("stdout error:", err));
@@ -307,13 +347,8 @@ export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Prom
         return createFFmpegAudioSource(buffer);
     }
 
-    // FFmpegのstdin, stdoutを一時的に使う
-    const input = new Readable({
-        read() {
-            this.push(buf);
-            this.push(null);
-        }
-    });
+    // FFmpegの標準入力にバッファを流し込むストリームを作成
+    const input = createChunkedStream(buf, 1920);   // 20ms 相当 (48000Hz×1ch×2bytes/sample の 0.02s)
 
     // エラー監視
     ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
@@ -364,23 +399,24 @@ export async function postAudioQuery(text: string, speaker: number): Promise<any
     }
 }
 
-export async function postSynthesis(audioQuery: any, speaker: number) {
+export async function postSynthesis(audioQuery: any, speaker: number): Promise<Buffer> {
     try {
-        const params = new URLSearchParams({ speaker: speaker.toString(), enable_interrogative_upspeak: "true" });
+        const params = new URLSearchParams({ speaker: speaker.toString() });
         const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(audioQuery)
         });
-        // 422 は音声化不可のテキスト → 空のバッファを返す
+        // 422 は音声化不可のテキスト → 空の Buffer を返す
         if (response.status === 422) {
             console.warn('postSynthesis: Unprocessable Entity, returning empty buffer');
-            return new ArrayBuffer(0);
+            return Buffer.alloc(0);
         }
         if (!response.ok) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-        return await response.arrayBuffer();
+        const arrayBuffer = await response.arrayBuffer();
+        return Buffer.from(arrayBuffer);
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
@@ -420,24 +456,66 @@ export function getMaxTextLength(guildId: string): number {
 }
 
 // 追加：単語単位で自然にチャンク分割
-function splitTextSmart(text: string, maxLen: number = 30): string[] {
-  const words = text.split(/\s+/);
-  const chunks: string[] = [];
-  let current = "";
-  for (const word of words) {
-    if ((current + " " + word).trim().length > maxLen) {
-      chunks.push(current.trim());
-      current = word;
-    } else {
-      current += " " + word;
-    }
-  }
-  if (current.trim()) chunks.push(current.trim());
-  return chunks;
+// チャンク分割（文末記号でざっくり）
+function chunkText(text: string): string[] {
+    return text
+        .split(/(?<=[。！？\n])/)
+        .map(chunk => chunk.trim())
+        .filter(chunk => chunk.length > 0);
 }
 
-// 新規：ギルドごとの読み上げキュー管理
-const speakQueue: { [guildId: string]: Promise<void> } = {};
+// 単一チャンクの音声生成
+async function synthesizeChunk(chunk: string, speakerId: number): Promise<Buffer> {
+    const query = await postAudioQuery(chunk, speakerId);
+    return await postSynthesis(query, speakerId);
+}
+
+// 追加：並列チャンク合成＆順次再生
+async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 2) {
+    const chunks = chunkText(text);
+    const results: Buffer[] = new Array(chunks.length);
+    let currentIndex = 0;
+
+    // 並列で合成
+    await Promise.all(
+        Array.from({ length: maxConcurrency }, async () => {
+            while (currentIndex < chunks.length) {
+                const idx = currentIndex++;
+                try {
+                    results[idx] = await synthesizeChunk(chunks[idx], speakerId);
+                } catch (e) {
+                    console.error(`チャンク ${idx} 合成失敗`, e);
+                    results[idx] = Buffer.alloc(0);
+                }
+            }
+        })
+    );
+
+    // 順次再生（FFmpeg 経由で変換）
+    const player = getPlayer(guildId);
+    const vc = voiceClients[guildId];
+    if (vc && !playerSubscribedMap.get(player)) {
+        vc.subscribe(player);
+        playerSubscribedMap.set(player, true);
+    }
+
+    for (const buf of results) {
+        if (!buf.length) continue;
+        // ← 変更ここから
+        const { resource, ffmpeg } = await createFFmpegAudioSource(buf);
+        player.stop(true);
+        player.play(resource);
+        try {
+            await entersState(player, AudioPlayerStatus.Playing, 5000);
+            await entersState(player, AudioPlayerStatus.Idle, 60000);
+        } catch (err) {
+            console.error("再生中にエラーが発生しました:", err);
+        } finally {
+            await ffmpegPool.release(ffmpeg).catch(() => {});
+        }
+        // ← 変更ここまで
+    }
+}
 
 /**
  * ギルドごとにVoiceConnectionを確保・再利用する関数
@@ -458,7 +536,30 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     return connection;
 }
 
-// 実際の音声生成＆再生ロジックを切り出し
+// 追加：バッファをチャンクに分けて間隔送信するストリーム
+function createChunkedStream(
+    buffer: Buffer,
+    chunkSize: number = 1920,   // 20ms 相当 (48000Hz×1ch×2bytes/sample の 0.02s)
+): Readable {
+    const sampleRate = 48000;
+    const channels = 1;
+    const bytesPerSample = 2; // s16le
+    const interval = chunkSize / (sampleRate * channels * bytesPerSample) * 1000;
+    let offset = 0;
+    return new Readable({
+        read() {
+            if (offset >= buffer.length) {
+                this.push(null);
+                return;
+            }
+            const end = Math.min(offset + chunkSize, buffer.length);
+            this.push(buffer.subarray(offset, end));
+            offset = end;
+            setTimeout(() => this.read(), interval);
+        }
+    });
+}
+
 async function speakVoiceImpl(text: string, speaker: number, guildId: string): Promise<void> {
     const vc = voiceClients[guildId];
     if (!vc) {
@@ -473,92 +574,9 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string): P
         return;
     }
 
-    try {
-        let ffmpegProcess: ChildProcess | null = null;
-        try {
-            console.log(`音声生成開始: "${text}" (話者ID: ${speaker})`);
-            const audioQuery = await postAudioQuery(text, speaker);
-            if (!audioQuery) {
-                console.warn("audioQueryがnullです");
-                return;
-            }
-            console.log("audioQuery取得成功");
-            const adj = adjustAudioQuery(audioQuery, guildId);
-            const bufAB = await postSynthesis(adj, speaker);
-            if (!bufAB.byteLength) {
-                console.warn("postSynthesisの戻り値が空です");
-                return;
-            }
-            console.log("音声バッファ取得成功", bufAB.byteLength);
-            const { resource: audioResource, ffmpeg } = await createFFmpegAudioSource(Buffer.from(bufAB));
-            ffmpegProcess = ffmpeg;
-            console.log("FFmpegリソース生成成功");
-            const vc = voiceClients[guildId];
-            if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-                console.warn(`speakVoice: VoiceConnection not ready for guild ${guildId}`);
-                return;
-            }
-            const player = getPlayer(guildId);
-
-            // プレイヤーの状態をリセット
-            player.stop(true);
-
-            // 初回のみsubscribe（既にサブスクライブ済みなら不要）
-            if (!playerSubscribedMap.get(player)) {
-                const sub = vc.subscribe(player);
-                if (!sub) {
-                    console.warn("vc.subscribe(player) が失敗しました");
-                    return;
-                }
-                playerSubscribedMap.set(player, true);
-            }
-
-            // イベントリスナーは毎回登録
-            player.once(AudioPlayerStatus.Playing, () => {
-                console.log("AudioPlayerStatus.Playing: 再生開始");
-            });
-            player.once(AudioPlayerStatus.Idle, () => {
-                console.log("AudioPlayerStatus.Idle: 再生完了");
-            });
-            player.once('error', (err) => {
-                console.error("AudioPlayer error:", err);
-            });
-
-            player.play(audioResource);
-            console.log("player.play 実行");
-
-            // 再生開始を待つ
-            await new Promise<void>((resolve, reject) => {
-                let started = false;
-                const onPlaying = () => {
-                    started = true;
-                    resolve();
-                };
-                const onError = (err: any) => {
-                    reject(err);
-                };
-                player.once(AudioPlayerStatus.Playing, onPlaying);
-                player.once('error', onError);
-                setTimeout(() => {
-                    if (!started) {
-                        console.warn("AudioPlayerStatus.Playing になりませんでした");
-                        resolve();
-                    }
-                }, 3000);
-            });
-
-            // 再生完了を待つ
-            await new Promise<void>(resolve => player.once(AudioPlayerStatus.Idle, resolve));
-            console.log("再生完了");
-            player.stop(true);
-        } catch (err) {
-            console.error("❌ speakVoice エラー:", err);
-        } finally {
-            if (ffmpegProcess) ffmpegPool.release(ffmpegProcess).catch(()=>{});
-        }
-    } catch (err) {
-        console.error("❌ speakVoice エラー:", err);
-    }
+    // 置換: 従来の1チャンクFFmpeg経由ではなく並列チャンク合成＋再生へ
+    await speakBufferedChunks(text, speaker, guildId, /* maxConcurrency= */2);
+    return;
 }
 
 // enqueue 用のエクスポート関数
@@ -1012,5 +1030,4 @@ function applyTextTransformations(message: string, options: any): string {
     // この関数ではテキストの変換処理を行う
     return message; // 変換後のテキストを返す
 }
-
 

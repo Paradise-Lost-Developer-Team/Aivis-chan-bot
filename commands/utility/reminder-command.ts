@@ -2,7 +2,36 @@ import { Message, EmbedBuilder, ChatInputCommandInteraction, ApplicationCommandO
 import { VoiceReminder } from '../../utils/voice-reminder';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
+// --- 追加: モジュールレベルの data プロパティ ---
+export const data = new SlashCommandBuilder()
+  .setName('リマインダー')
+  .setDescription('リマインダーを設定します')
+  .addSubcommand(sub => 
+    sub
+      .setName('設定')
+      .setDescription('新しいリマインダーを設定します')
+      .addStringOption(o => o.setName('時間').setDescription('例: 30m, 1h30m, 17:30').setRequired(true))
+      .addStringOption(o => o.setName('メッセージ').setDescription('リマインダー内容').setRequired(true))
+      .addBooleanOption(o => o.setName('音声').setDescription('音声通知を有効にする').setRequired(false))
+  )
+  .addSubcommand(sub => sub.setName('一覧').setDescription('設定済みリマインダーを一覧表示'))
+  .addSubcommand(sub => 
+    sub
+      .setName('キャンセル')
+      .setDescription('リマインダーをキャンセルします')
+      .addStringOption(o => o.setName('id').setDescription('キャンセルするID').setRequired(true))
+  );
+
+// --- 追加: モジュールレベルの execute 関数 ---
+export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  // クラス実装に委譲
+  await new ReminderCommand(new VoiceReminder()).executeInteraction(interaction);
+}
+
 export class ReminderCommand {
+  // --- 追加: Discord.js が要求する data プロパティ ---
+  public readonly data = this.getCommandData();
+
   constructor(private voiceReminder: VoiceReminder) {}
 
   // スラッシュコマンド定義
@@ -99,6 +128,11 @@ export class ReminderCommand {
       const response = this.voiceReminder.cancelReminder(interaction.user.id, reminderId);
       await interaction.reply({ content: response, ephemeral: true });
     }
+  }
+
+  // --- 追加: execute メソッドをエイリアス ---
+  public async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+    await this.executeInteraction(interaction);
   }
 
   // テキストコマンド実行 (レガシーサポート)

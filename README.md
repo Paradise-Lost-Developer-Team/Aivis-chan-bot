@@ -12,7 +12,9 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 - 音量、速度、ピッチ、テンポの緩急の調節
 
 ## 導入方法
-1. 導入URLからBOTを招待する [導入URL1](https://discord.com/oauth2/authorize?client_id=1333819940645638154), [導入URL2](https://discord.com/oauth2/authorize?client_id=1334732369831268352), [導入URL3](https://discord.com/oauth2/authorize?client_id=1334734681656262770)
+1. BOTをワンクリックで招待する  
+   https://discord.com/oauth2/authorize?client_id=<YOUR_BOT_CLIENT_ID>&permissions=3145728&scope=bot%20applications.commands  
+   必要な権限: Connect, Speak, Use Slash Commands
 2. 任意のVCに入った状態で`/join`コマンドを使用する
 3. メッセージを送信すると、自動的に読み上げてくれます
 4. 退出させる際は`/leave`コマンドを使用してください
@@ -22,39 +24,11 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 - [プライバシーポリシー](https://paladise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy/)
 
 ## 前提条件
-
-### FFmpegのインストール
-
-このボットは音声処理にFFmpegを使用します。以下の方法でインストールしてください。
-
-#### Windowsの場合:
-
-1. [FFmpegの公式サイト](https://ffmpeg.org/download.html)または[FFmpeg Builds](https://ffmpeg.org/download.html#build-windows)からFFmpegをダウンロード
-2. ダウンロードしたzipファイルを展開し、任意の場所（例：`C:\ffmpeg`）に配置
-3. 環境変数のPathにFFmpegの実行ファイルがあるディレクトリ（例：`C:\ffmpeg\bin`）を追加
-
-または、環境変数を設定せずに直接パスを指定することもできます：
-`FFMPEG_PATH=C:\path\to\ffmpeg.exe`をボットの環境設定に追加
-
-#### macOSの場合:
-
-Homebrewを使用してインストール:
-```bash
-brew install ffmpeg
-```
-
-#### Linuxの場合:
-
-Ubuntu/Debian:
-```bash
-sudo apt update
-sudo apt install ffmpeg
-```
-
-CentOS/RHEL:
-```bash
-sudo yum install ffmpeg
-```
+- Node.js v16.6.0以降
+- FFmpegのインストール
+  - Windows: Path に `C:\ffmpeg\bin` を追加
+  - macOS: `brew install ffmpeg`
+  - Linux(Debian/Ubuntu): `sudo apt install ffmpeg`
 
 ## Pro版・Premium版について
 
@@ -78,4 +52,16 @@ Aivis-chan-botには有料の「Pro版」と「Premium版」があります。
 
 ## その他のセットアップ手順
 
-...
+1. リポジトリをクローン  
+   git clone https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot.git  
+2. ディレクトリに移動  
+   cd Aivis-chan-bot  
+3. 依存関係をインストール  
+   npm install  
+4. 環境変数を設定  
+   - DISCORD_TOKEN: Discord Bot のトークン  
+   - FFMPEG_PATH: ffmpeg 実行ファイル（未設定時）  
+5. スラッシュコマンドを登録  
+   npm run deploy-commands  
+6. ボットを起動  
+   npm start  
