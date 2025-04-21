@@ -104,38 +104,52 @@ class HelpMenu {
                     { name: "コードブロック", value: "コードブロック（```で囲まれた部分）は読み上げられません。" }
                 )
                 .setColor(0x3498db),
-            // 以下、新しいEmbedページの追加
+            // 統計コマンドページ
             new EmbedBuilder()
-                .setTitle("ヘルプ - stats-command")
-                .setDescription("システム利用状況や統計情報を表示します。")
+                .setTitle("ヘルプ - 統計コマンド")
+                .setDescription("システムの利用状況や統計情報を表示します。")
                 .addFields(
                     { name: "/stats", value: "システム全体の利用状況、使用統計、アップタイムを表示します。" }
                 )
                 .setColor(0x3498db),
+            // 音声スタイルコマンドページ
             new EmbedBuilder()
-                .setTitle("ヘルプ - voice-style")
-                .setDescription("カスタム音声スタイルに関するコマンドの一覧です。")
+                .setTitle("ヘルプ - 音声スタイルコマンド")
+                .setDescription("カスタム音声スタイルに関するコマンドです。")
                 .addFields(
                     { name: "/voice-style list", value: "利用可能なカスタム音声スタイルを一覧表示します。" },
-                    { name: "/voice-style set", value: "指定した音声スタイルに変更します。" },
-                    { name: "/voice-style reset", value: "デフォルトの音声スタイルにリセットします。" }
+                    { name: "/voice-style set",  value: "指定した音声スタイルに変更します。" },
+                    { name: "/voice-style reset",value: "デフォルトの音声スタイルにリセットします。" }
                 )
                 .setColor(0x3498db),
+            // Patreonコマンドページ
             new EmbedBuilder()
-                .setTitle("ヘルプ - patreon")
-                .setDescription("Patreon連携機能に関するコマンドの一覧です。")
+                .setTitle("ヘルプ - Patreonコマンド")
+                .setDescription("Patreon連携に関するコマンドです。")
                 .addFields(
-                    { name: "/patreon link", value: "DiscordアカウントとPatreonアカウントを連携します。" },
-                    { name: "/patreon benefits", value: "Patreon支援者向けの特典一覧を表示します。" }
+                    { name: "/patreon link",      value: "DiscordアカウントとPatreonアカウントを連携します。" },
+                    { name: "/patreon benefits",  value: "Patreon支援者向け特典を表示します。" }
                 )
                 .setColor(0x3498db),
+            // リマインダーコマンドページ
             new EmbedBuilder()
-                .setTitle("ヘルプ - reminder-command")
-                .setDescription("リマインダー機能に関するコマンドの一覧です。")
+                .setTitle("ヘルプ - リマインダーコマンド")
+                .setDescription("リマインダー機能に関するコマンドです。")
                 .addFields(
-                    { name: "/reminder set", value: "指定した日時にリマインダーを設定します。" },
-                    { name: "/reminder list", value: "設定済みリマインダーの一覧を表示します。" },
+                    { name: "/reminder set",    value: "指定日時にリマインダーを設定します。" },
+                    { name: "/reminder list",   value: "設定済みのリマインダーを一覧表示します。" },
                     { name: "/reminder cancel", value: "指定したリマインダーをキャンセルします。" }
+                )
+                .setColor(0x3498db),
+            // サポートコマンドページ
+            new EmbedBuilder()
+                .setTitle("ヘルプ - サポートコマンド")
+                .setDescription("サポートおよび情報取得に関するコマンドです。")
+                .addFields(
+                    { name: "/support",  value: "サポート情報やトラブルシューティングを表示します。" },
+                    { name: "/invite",   value: "ボットの招待リンクを取得します。" },
+                    { name: "/feedback", value: "BOTへのフィードバックを送信します。" },
+                    { name: "/github",   value: "GitHubリポジトリへのリンクを表示します。" }
                 )
                 .setColor(0x3498db)
         ];
