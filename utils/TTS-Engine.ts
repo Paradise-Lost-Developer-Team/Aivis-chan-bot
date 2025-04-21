@@ -471,7 +471,7 @@ async function synthesizeChunk(chunk: string, speakerId: number): Promise<Buffer
 }
 
 // 追加：並列チャンク合成＆順次再生
-async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 2) {
+async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 1) {
     const chunks = chunkText(text);
     const results: Buffer[] = new Array(chunks.length);
     let currentIndex = 0;
