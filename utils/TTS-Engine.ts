@@ -451,9 +451,11 @@ export function getMaxTextLength(guildId: string): number {
 }
 
 // 追加：句点読点とコンマとピリオド、半角クエスチョンマークと改行で分割
+// チャンク分割：句点(。)、読点(、)、カンマ(,)、ピリオド(. )、半角クエスチョンマーク(?)、改行(\n)
+// ただしこれらの文字が連続している場合は分割しない
 function chunkText(text: string): string[] {
     return text
-        .split(/(?<=[。、,\.\?\n])/)
+        .split(/(?<=[。、,\.?\n])(?![。、,\.?\n])/)  // 連続区切り文字は無視
         .map(chunk => chunk.trim())
         .filter(chunk => chunk.length > 0);
 }
