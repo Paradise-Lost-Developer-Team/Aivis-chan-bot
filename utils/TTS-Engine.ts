@@ -455,11 +455,10 @@ export function getMaxTextLength(guildId: string): number {
     return getSubscriptionMaxTextLength(guildId);
 }
 
-// 追加：単語単位で自然にチャンク分割
-// チャンク分割（文末記号でざっくり）
+// 追加：句点読点とコンマとピリオド、半角クエスチョンマークと改行で分割
 function chunkText(text: string): string[] {
     return text
-        .split(/(?<=[。！？\n])/)
+        .split(/(?<=[。、,\.\?\n])/)
         .map(chunk => chunk.trim())
         .filter(chunk => chunk.length > 0);
 }
