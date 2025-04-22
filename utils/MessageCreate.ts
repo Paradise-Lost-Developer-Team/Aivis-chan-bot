@@ -53,11 +53,20 @@ export function MessageCreate(client: ExtendedClient) {
                 messageContent = messageContent.replace(spoiler, "ネタバレ");
             });
             
-            // Unicodeの絵文字を置換
-            const discordEmojis = messageContent.match(/\p{Emoji}/gu) || [];
-            discordEmojis.forEach(emoji => {
-                messageContent = messageContent.replace(emoji, "Unicode絵文字");
-            });
+            // Unicode絵文字を置換（カスタム絵文字/<a:…>タグ内は除外）
+            {
+                const original = messageContent;
+                messageContent = original.replace(/\p{Emoji}/gu, (emoji, offset) => {
+                    // 絵文字の位置が <…> タグ内かをチェック
+                    const openIdx  = original.lastIndexOf('<', offset);
+                    const closeIdx = original.indexOf('>',  offset);
+                    if (openIdx !== -1 && closeIdx !== -1 && openIdx < offset && offset < closeIdx) {
+                        // タグ内なのでカスタム絵文字 or アニメーション絵文字
+                        return emoji;
+                    }
+                    return 'Unicode絵文字';
+                });
+            }
             
             // カスタム絵文字を置換
             const customEmojis = messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
