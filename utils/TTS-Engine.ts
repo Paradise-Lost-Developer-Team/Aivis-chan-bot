@@ -1,19 +1,14 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, getVoiceConnection, joinVoiceChannel, NoSubscriberBehavior, entersState } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
-import os from "os";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
-import { getMaxTextLength as getSubscriptionMaxTextLength, isPremiumFeatureAvailable, isProFeatureAvailable, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
-import { saveVoiceHistoryItem, VoiceHistoryItem } from './voiceHistory';
-import { getVoiceEffectSettings } from './pro-features';
-import { text } from "stream/consumers";
+import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable, PassThrough } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
-import { create } from "axios";
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
 const TTS_HOST = "127.0.0.1";
