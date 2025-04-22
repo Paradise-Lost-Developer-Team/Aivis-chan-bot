@@ -53,10 +53,14 @@ export function MessageCreate(client: ExtendedClient) {
                 messageContent = messageContent.replace(spoiler, "ネタバレ");
             });
             
-            // Unicode絵文字を置換（カスタム絵文字/<a:…>タグ内は除外）
+            // Unicode絵文字を置換（カスタム絵文字/<a:…>タグ内は除外）、アラビア数字単体は除外
             {
                 const original = messageContent;
                 messageContent = original.replace(/\p{Emoji}/gu, (emoji, offset) => {
+                    // 単一のアラビア数字（0-9）の場合は置換しない
+                    if (/^[0-9]$/.test(emoji)) {
+                        return emoji;
+                    }
                     // 絵文字の位置が <…> タグ内かをチェック
                     const openIdx  = original.lastIndexOf('<', offset);
                     const closeIdx = original.indexOf('>',  offset);
@@ -64,10 +68,9 @@ export function MessageCreate(client: ExtendedClient) {
                         // タグ内なのでカスタム絵文字 or アニメーション絵文字
                         return emoji;
                     }
-                    return 'Unicode絵文字';
+                    return '絵文字';
                 });
             }
-            
             // カスタム絵文字を置換
             const customEmojis = messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
             customEmojis.forEach(emoji => {
