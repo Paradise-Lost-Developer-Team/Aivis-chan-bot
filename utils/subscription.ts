@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Client, Guild } from 'discord.js';
 import { client } from '../index';
 import { logError } from './errorLogger';
 
