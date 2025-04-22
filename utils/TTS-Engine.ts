@@ -293,7 +293,7 @@ const ffmpegFactory = {
             '-ar', '44100',        // 入力側のサンプリングレート指定
             '-ac', '1',
             '-i', 'pipe:0',        // 標準入力から読み込み
-        
+            '-af', 'afftdn',       // 追加：FFTベースのノイズ除去フィルタを適用
             // 出力側のエンコード設定
             '-c:a', 'libopus',
             '-ar', '48000',        // ← これを追加！
@@ -468,6 +468,12 @@ async function synthesizeChunk(chunk: string, speakerId: number): Promise<Buffer
 
 // 追加：並列チャンク合成＆順次再生
 async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 1) {
+    // 文字数制限を超えたら末尾に「以下省略」を追加
+    const limit = getMaxTextLength(guildId);
+    if (text.length > limit) {
+        text = text.slice(0, limit) + "以下省略";
+    }
+
     const chunks = chunkText(text);
     const results: Buffer[] = new Array(chunks.length);
     let currentIndex = 0;
