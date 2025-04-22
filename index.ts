@@ -126,12 +126,33 @@ client.once("ready", async () => {
 
         setInterval(async () => {
             try {
-                const joinServerCount = client.guilds.cache.size;
-                await client.user!.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
-                await new Promise(resolve => setTimeout(resolve, 15000));
-                const joinVCCount = client.voice.adapters.size;
-                client.user!.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
-                await new Promise(resolve => setTimeout(resolve, 15000));
+                // Modrinthのトレンドプロジェクトからランダムに1つをステータスに表示
+                try {
+                    const res = await fetch('https://api.modrinth.com/v2/projects?limit=100');
+                    if (!res.ok) throw new Error(`Modrinth API error: ${res.status}`);
+                    const data = (await res.json()) as {
+                        hits: Array<{ title: string; slug: string }>;
+                    };
+                    const projects = data.hits;
+                    if (projects.length === 0) {
+                        client.user!.setActivity(`No mods found`, { type: ActivityType.Custom });
+                    } else {
+                        const randomMod = projects[Math.floor(Math.random() * projects.length)];
+                        client.user!.setActivity(`Random Mod: ${randomMod.title}`, {
+                            type: ActivityType.Custom,
+                            url: `https://modrinth.com/project/${randomMod.slug}`,
+                        });
+                    }
+                } catch (error) {
+                    console.error("Modrinthプロジェクト取得エラー:", error);
+                    logError(
+                        'modrinthFetchError',
+                        error instanceof Error ? error : new Error(String(error))
+                    );
+                }
+
+                // ヘルプコマンド案内をステータスに表示
+                client.user!.setActivity(`Use /help`, { type: ActivityType.Custom });
             } catch (error) {
                 console.error("ステータス更新エラー:", error);
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));
