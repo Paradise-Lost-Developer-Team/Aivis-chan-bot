@@ -1,6 +1,6 @@
 # Aivis-chan-bot
 
-[![Release](https://img.shields.io/github/release/Paladise-Lost-Developer-Team/Aivis-chan-bot?include_prereleases=&sort=semver&color=blue)](https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot/releases/)
+[![Release](https://img.shields.io/github/release/Paradise-Lost-Developer-Team/Aivis-chan-bot?include_prereleases=&sort=semver&color=blue)](https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot/releases/)
 [![Discord](https://discord.com/api/guilds/1337303326332813334/widget.png)](https://discord.gg/MPx2ny8HXT)
 
 Aivis-chan-botは、[AivisSpeech Engine](https://github.com/Aivis-Project/AivisSpeech-Engine)を使用したDiscord読み上げBotです。\
@@ -56,7 +56,7 @@ Aivis-chan-botには有料の「Pro版」と「Premium版」があります。
 ## その他のセットアップ手順
 
 1. リポジトリをクローン  
-   git clone <https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot.git>  
+   git clone <https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot.git>  
 2. ディレクトリに移動  
    cd Aivis-chan-bot  
 3. 依存関係をインストール  
