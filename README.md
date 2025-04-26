@@ -56,7 +56,7 @@ Aivis-chan-botには有料の「Pro版」と「Premium版」があります。
 ## その他のセットアップ手順
 
 1. リポジトリをクローン  
-   git clone <https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot.git>  
+   git clone <https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot.git>  
 2. ディレクトリに移動  
    cd Aivis-chan-bot  
 3. 依存関係をインストール  
