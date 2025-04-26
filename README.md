@@ -15,7 +15,7 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 
 ## 導入方法
 
-1. BOTをワンクリックで招待する  [招待リンク1](https://discord.com/oauth2/authorize?client_id=1333819940645638154) [招待リンク2](https://discord.com/oauth2/authorize?client_id=1334732369831268352) [招待リンク3](https://discord.com/oauth2/authorize?client_id=1334734681656262770)
+1. BOTをワンクリックで招待する  [招待リンク1](https://discord.com/oauth2/authorize?client_id=1333819940645638154), [招待リンク2](https://discord.com/oauth2/authorize?client_id=1334732369831268352), [招待リンク3](https://discord.com/oauth2/authorize?client_id=1334734681656262770), [招待リンク4](https://discord.com/oauth2/authorize?client_id=1365633502988472352), [招待リンク5](https://discord.com/oauth2/authorize?client_id=1365633586123771934), [招待リンク6](https://discord.com/oauth2/authorize?client_id=1365633656173101086)
 2. 任意のVCに入った状態で`/join`コマンドを使用する
 3. メッセージを送信すると、自動的に読み上げてくれます
 4. 退出させる際は`/leave`コマンドを使用してください
