@@ -22,8 +22,8 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 
 ## ドキュメント
 
-- [利用規約](https://paladise-lost-developer-team.github.io/Aivis-chan-bot/Term-of-Service/)
-- [プライバシーポリシー](https://paladise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy/)
+- [利用規約](https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Term-of-Service/)
+- [プライバシーポリシー](https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy/)
 
 ## 前提条件
 
