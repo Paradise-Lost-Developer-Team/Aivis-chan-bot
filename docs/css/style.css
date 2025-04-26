@@ -217,6 +217,17 @@ main {
   transition: transform var(--transition-speed);
 }
 
+/* 機能セクションのスタイル */
+
+.feature-section {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.feature-section .section-title {
+  margin-bottom: 1rem;
+}
+
 .feature-card:hover {
   transform: translateY(-3px);
 }
@@ -259,6 +270,16 @@ blockquote {
 }
 
 /* 使い方セクションのスタイル */
+.usage-section {
+  padding: 2rem 0;
+}
+
+.usage-section .section-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+
 .styled-usage {
   display: flex;
   flex-direction: column;
@@ -459,6 +480,8 @@ blockquote {
   margin: 0;
   color: #555;
 }
+
+
 
 /* サブスクリプションバナーのスタイル */
 .subscription-banner {
