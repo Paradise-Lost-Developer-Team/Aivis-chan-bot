@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Client, Guild, VoiceChannel, ChannelType, TextChannel } from 'discord.js';
 import { joinVoiceChannel, VoiceConnection, getVoiceConnection } from '@discordjs/voice';
-import { speakVoice, voiceClients, currentSpeaker } from './TTS-Engine'; // play_audioもインポート
+import { speakVoice, voiceClients, currentSpeaker, cleanupAudioResources, getOrCreateAudioPlayer } from './TTS-Engine'; // play_audioもインポート
 
 // プロジェクトルートディレクトリへのパスを取得する関数
 function getProjectRoot(): string {
@@ -167,13 +167,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       // 既に接続されていれば切断
       const existingConnection = getVoiceConnection(guild.id);
       if (existingConnection) {
-        existingConnection.destroy();
+        cleanupAudioResources(guild.id);
         await wait(1000); // 切断処理を待機
-        
-        // voiceClientsからも削除
-        if (voiceClients[guildId]) {
-          delete voiceClients[guildId];
-        }
       }
       
       // ボイスチャンネルに接続
@@ -199,6 +194,10 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
 
             // 安定するまで少し待機
             await wait(1000);
+
+            // 接続確立後、必ず新規 AudioPlayer を生成して subscribe
+            const player = getOrCreateAudioPlayer(guildId);
+            connection.subscribe(player);
 
             // 再接続アナウンスを流す
             console.log(`${guild.name}のチャンネルに再接続アナウンスを送信します...`);
@@ -308,6 +307,10 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
               } catch (audioError) {
                 console.error(`リトライ後の再接続アナウンス送信エラー: ${audioError}`);
               }
+
+              // retry 成功時にも同様にプレイヤー生成・subscribe
+              const retryPlayer = getOrCreateAudioPlayer(guildId);
+              retryConnection.subscribe(retryPlayer);
               
               resolve();
             });
