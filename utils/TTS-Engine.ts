@@ -493,12 +493,11 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
         })
     );
 
-    // 順次再生（FFmpeg 経由で変換）
-    const player = getPlayer(guildId);
+    // 再生前に必ず新規プレイヤーを取得
+    const player = getOrCreateAudioPlayer(guildId);
     const vc = voiceClients[guildId];
-    if (vc && !playerSubscribedMap.get(player)) {
+    if (vc) {
         vc.subscribe(player);
-        playerSubscribedMap.set(player, true);
     }
 
     for (const buf of results) {
@@ -1063,4 +1062,3 @@ export function cleanupAudioResources(guildId: string) {
         audioPlayers.delete(guildId);
     }
 }
-
