@@ -1,4 +1,4 @@
-import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState } from "@discordjs/voice";
+import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState, getVoiceConnection } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
 import { TextChannel } from "discord.js";
@@ -1031,5 +1031,36 @@ function applyTextTransformations(message: string, options: any): string {
     
     // この関数ではテキストの変換処理を行う
     return message; // 変換後のテキストを返す
+}
+
+// ギルドごとに AudioPlayer を保持
+const audioPlayers: Map<string, AudioPlayer> = new Map();
+
+/**
+ * 指定ギルドの既存プレイヤーを停止破棄し、
+ * 常に新規プレイヤーを生成して返す
+ */
+export function getOrCreateAudioPlayer(guildId: string): AudioPlayer {
+    const prev = audioPlayers.get(guildId);
+    if (prev) {
+        prev.stop();
+        audioPlayers.delete(guildId);
+    }
+    const player = createAudioPlayer();
+    audioPlayers.set(guildId, player);
+    return player;
+}
+
+/**
+ * 指定ギルドの Connection／Player を完全破棄
+ */
+export function cleanupAudioResources(guildId: string) {
+    const conn = getVoiceConnection(guildId);
+    if (conn) conn.destroy();
+    const player = audioPlayers.get(guildId);
+    if (player) {
+        player.stop();
+        audioPlayers.delete(guildId);
+    }
 }
 
