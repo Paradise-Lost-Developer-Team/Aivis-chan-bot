@@ -289,32 +289,33 @@ const ffmpegFactory = {
         const ffmpeg = spawn('ffmpeg', [
             '-loglevel', 'error',  // エラーログのみ出力
             '-nostats',            // 進捗統計を抑制
-            '-f', 's16le',
-            '-ar', '44100',        // 入力側のサンプリングレート指定
-            '-ac', '1',
-            '-i', 'pipe:0',        // 標準入力から読み込み
-            '-af', 'afftdn',       // 追加：FFTベースのノイズ除去フィルタを適用
-            // 出力側のエンコード設定
+            // ↓ WAV→raw PCM 指定に修正
+            '-f', 's16le',        // 生PCM (16bit little endian)
+            '-ar', '44100',       // TTS が返すレート
+            '-ac', '1',           // モノラル
+            '-i', 'pipe:0',
+            // 48kHz にリサンプル＆ノイズ除去・フェード
+            '-af', 'aresample=48000,silenceremove=start_periods=1:start_silence=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
+            // Opus エンコード設定
             '-c:a', 'libopus',
-            '-ar', '48000',        // ← これを追加！
+            '-ar', '48000',        // 出力は Opus のサポートする 48 kHz
             '-b:a', '96k',
             '-vbr', 'on',
             '-application', 'audio',
             '-f', 'ogg',
             'pipe:1'
-        ], { stdio: ['pipe', 'pipe', 'pipe'] });
+        ], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
 
-        ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
-        ffmpeg.stdout?.on("error", err => console.warn("stdout error:", err));
-        ffmpeg.on("exit", (code, signal) => {
-            if (code !== 0) {
-                console.error(`FFmpegプロセスの終了コード: ${code}, シグナル: ${signal}`);
-            }
+        // 追加：stderr を全て拾う
+        ffmpeg.stderr?.on('data', chunk => {
+            console.error('[ffmpeg stderr]', chunk.toString());
         });
-
-        // イベントリスナー上限を増やす
+        ffmpeg.stdin?.on('error', err => console.warn('stdin error:', err));
+        ffmpeg.stdout?.on('error', err => console.warn('stdout error:', err));
+        ffmpeg.on('exit', (code, signal) => {
+            console.error(`FFmpeg exit code=${code} signal=${signal}`);
+        });
         ffmpeg.setMaxListeners(50);
-
         return ffmpeg;
     },
     destroy: async (cp: ChildProcess) => {
@@ -336,31 +337,21 @@ export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Prom
     const ffmpeg = await ffmpegPool.acquire();
     const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
 
-    // FFmpegプロセスが終了していたら再取得
+    // プロセスが死んでいたら再取得
     if (ffmpeg.killed || ffmpeg.exitCode !== null) {
         await ffmpegPool.destroy(ffmpeg);
         return createFFmpegAudioSource(buffer);
     }
 
-    // FFmpegの標準入力にバッファを流し込むストリームを作成
-    const input = createChunkedStream(buf, 1920);   // 20ms 相当 (48000Hz×1ch×2bytes/sample の 0.02s)
+    // ---- ここから修正部分 ----
+    // 以前: 20msごとのチャンク送信でフィルタが何度もリセットされていた
+    // const input = createChunkedStream(buf, 1920);
+    // input.pipe(ffmpeg.stdin!, { end: true });
 
-    // エラー監視
-    ffmpeg.stdin?.on("error", err => console.warn("stdin error:", err));
-    ffmpeg.stdout?.on("error", err => console.warn("stdout error:", err));
-    ffmpeg.on("exit", (code, signal) => {
-        if (code !== 0) {
-            console.error(`FFmpegプロセスの終了コード: ${code}, シグナル: ${signal}`);
-        }
-    });
-    if (ffmpeg.stderr) {
-        ffmpeg.stderr.on('data', (data) => {
-            console.error(`FFmpeg エラー: ${data}`);
-        });
-    }
-
-    // 入力を流し込む
-    input.pipe(ffmpeg.stdin!, { end: true });
+    // 修正: 全バッファを一度だけ書き込んで end()
+    ffmpeg.stdin?.write(buf);
+    ffmpeg.stdin?.end();
+    // ---- 修正ここまで ----
 
     // Discord用リソース作成
     const resource = createAudioResource(ffmpeg.stdout!, {
@@ -434,12 +425,16 @@ try {
 }
 
 export function adjustAudioQuery(audioQuery: any, guildId: string) {
-    audioQuery["volumeScale"] = voiceSettings["volume"]?.[guildId] || 0.5;
-    audioQuery["pitchScale"] = voiceSettings["pitch"]?.[guildId] || 0.0;
-    audioQuery["rateScale"] = voiceSettings["rate"]?.[guildId] || 1.0;
-    audioQuery["speedScale"] = voiceSettings["speed"]?.[guildId] || 1.0;
-    audioQuery["styleStrength"] = voiceSettings["style_strength"]?.[guildId] || 1.0;
-    audioQuery["tempoScale"] = voiceSettings["tempo"]?.[guildId] || 1.0;
+    // 追加：必ず 44.1kHz, モノラルで出力させる
+    audioQuery["outputSamplingRate"] = 44100;
+    audioQuery["outputStereo"]       = false;
+
+    audioQuery["volumeScale"]    = voiceSettings["volume"]?.[guildId]    || 0.5;
+    audioQuery["pitchScale"]     = voiceSettings["pitch"]?.[guildId]     || 0.0;
+    audioQuery["rateScale"]      = voiceSettings["rate"]?.[guildId]      || 1.0;
+    audioQuery["speedScale"]     = voiceSettings["speed"]?.[guildId]     || 1.0;
+    audioQuery["styleStrength"]  = voiceSettings["style_strength"]?.[guildId] || 1.0;
+    audioQuery["tempoScale"]     = voiceSettings["tempo"]?.[guildId]     || 1.0;
     return audioQuery;
 }
 
@@ -453,15 +448,28 @@ export function getMaxTextLength(guildId: string): number {
 // 追加：句点読点とコンマとピリオド、半角クエスチョンマークと改行で分割
 // チャンク分割：句点(。)、読点(、)、カンマ(,)、ピリオド(. )、半角クエスチョンマーク(?)、改行(\n)
 // ただしこれらの文字が連続している場合は分割しない
+// 追加：単独記号のみのチャンクを除外
 function chunkText(text: string): string[] {
     return text
-        .split(/(?<=[。、,\.?\n])(?![。、,\.?\n])/)  // 連続区切り文字は無視
-        .map(chunk => chunk.trim())
-        .filter(chunk => chunk.length > 0);
+        .split(/(?<=[。、,\.?\n])(?![。、,\.?\n])/)
+        .map(c => c.trim())
+        .filter(chunk => {
+            if (!chunk) return false;
+            // 単独記号（。 , . ? 改行）だけのチャンクはスキップ
+            if (/^[。、,\.?？!！\n]+$/.test(chunk)) return false;
+            return true;
+        });
 }
 
 // 単一チャンクの音声生成
 async function synthesizeChunk(chunk: string, speakerId: number): Promise<Buffer> {
+    // 追加：記号のみ（複数文字含む）チャンクはすべて無音バッファを返す
+    if (/^[。、,\.?？!！\n]+$/.test(chunk)) {
+        const sampleRate = 44100;
+        const durationSec = 0.05;
+        const frameCount = Math.floor(sampleRate * durationSec);
+        return Buffer.alloc(frameCount * 2);
+    }
     const query = await postAudioQuery(chunk, speakerId);
     return await postSynthesis(query, speakerId);
 }
@@ -475,6 +483,30 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     }
 
     const chunks = chunkText(text);
+
+    // 追加：チャンクが1つ以下なら分割不要パスへ
+    if (chunks.length <= 1) {
+        // そのまま一括で合成
+        const buf = await synthesizeChunk(chunks[0] ?? text, speakerId);
+        if (!buf || buf.length === 0) return;
+
+        const player = getOrCreateAudioPlayer(guildId);
+        const vc = voiceClients[guildId];
+        if (vc) vc.subscribe(player);
+
+        const { resource, ffmpeg } = await createFFmpegAudioSource(buf);
+        player.play(resource);
+        try {
+            await entersState(player, AudioPlayerStatus.Playing, 5000);
+            await entersState(player, AudioPlayerStatus.Idle, 60000);
+        } catch (err) {
+            console.error("再生中にエラー:", err);
+        } finally {
+            await ffmpegPool.release(ffmpeg).catch(() => {});
+        }
+        return;
+    }
+
     const results: Buffer[] = new Array(chunks.length);
     let currentIndex = 0;
 
@@ -493,28 +525,27 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
         })
     );
 
-    // 再生前に必ず新規プレイヤーを取得
+    // 空のチャンクは除外してすべて連結
+    const nonEmpty = results.filter(buf => buf.length > 0);
+    if (nonEmpty.length === 0) return;
+
+    const fullBuffer = Buffer.concat(nonEmpty);
+
+    // プレイヤー取得＆subscribe
     const player = getOrCreateAudioPlayer(guildId);
     const vc = voiceClients[guildId];
-    if (vc) {
-        vc.subscribe(player);
-    }
+    if (vc) vc.subscribe(player);
 
-    for (const buf of results) {
-        if (!buf.length) continue;
-        // ← 変更ここから
-        const { resource, ffmpeg } = await createFFmpegAudioSource(buf);
-        player.stop(true);
-        player.play(resource);
-        try {
-            await entersState(player, AudioPlayerStatus.Playing, 5000);
-            await entersState(player, AudioPlayerStatus.Idle, 60000);
-        } catch (err) {
-            console.error("再生中にエラーが発生しました:", err);
-        } finally {
-            await ffmpegPool.release(ffmpeg).catch(() => {});
-        }
-        // ← 変更ここまで
+    // まとめたバッファを一度だけ FFmpeg に流し込む
+    const { resource, ffmpeg } = await createFFmpegAudioSource(fullBuffer);
+    player.play(resource);
+    try {
+        await entersState(player, AudioPlayerStatus.Playing, 5000);
+        await entersState(player, AudioPlayerStatus.Idle,    60000);
+    } catch (err) {
+        console.error("再生中にエラー:", err);
+    } finally {
+        await ffmpegPool.release(ffmpeg).catch(() => {});
     }
 }
 
