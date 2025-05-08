@@ -2,6 +2,9 @@ import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
 import { speakVoice, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
+import { isJoinLeaveEnabled } from './joinLeaveManager';
+import { getTextChannelForGuild } from './voiceStateManager';
+import { EmbedBuilder } from 'discord.js';
 
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
@@ -17,12 +20,62 @@ export function VoiceStateUpdate(client: Client) {
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
                     await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                    // join/leave embed通知
+                    if (isJoinLeaveEnabled(guildId)) {
+                        const textChannelId = getTextChannelForGuild(guildId);
+                        if (textChannelId) {
+                            const textChannel = member.guild.channels.cache.get(textChannelId);
+                            if (textChannel?.isTextBased()) {
+                                const embed = new EmbedBuilder()
+                                    .setTitle('入室通知')
+                                    .setDescription(`${nickname} さんが入室しました`)
+                                    .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+                                    .setThumbnail(member.user.displayAvatarURL())
+                                    .addFields(
+                                        { name: 'ユーザー名', value: member.user.tag, inline: true },
+                                        { name: '代名詞', value: '未設定', inline: true },
+                                        { name: '自己紹介', value: '未設定' },
+                                        { name: 'サーバー参加日', value: member.joinedAt ? member.joinedAt.toLocaleDateString() : '不明', inline: true },
+                                        { name: 'Discord参加日', value: member.user.createdAt.toLocaleDateString(), inline: true },
+                                        { name: '役職', value: member.roles.highest.name, inline: true },
+                                        { name: 'ボイスチャンネル', value: newState.channel.name, inline: true }
+                                    )
+                                    .setTimestamp();
+                                await textChannel.send({ embeds: [embed] });
+                            }
+                        }
+                    }
                 }
             } else if (oldState.channel && !newState.channel) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
                     await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                    // join/leave embed通知
+                    if (isJoinLeaveEnabled(guildId)) {
+                        const textChannelId = getTextChannelForGuild(guildId);
+                        if (textChannelId) {
+                            const textChannel = member.guild.channels.cache.get(textChannelId);
+                            if (textChannel?.isTextBased()) {
+                                const embed = new EmbedBuilder()
+                                    .setTitle('退室通知')
+                                    .setDescription(`${nickname} さんが退室しました`)
+                                    .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+                                    .setThumbnail(member.user.displayAvatarURL())
+                                    .addFields(
+                                        { name: 'ユーザー名', value: member.user.tag, inline: true },
+                                        { name: '代名詞', value: '未設定', inline: true },
+                                        { name: '自己紹介', value: '未設定' },
+                                        { name: 'サーバー参加日', value: member.joinedAt ? member.joinedAt.toLocaleDateString() : '不明', inline: true },
+                                        { name: 'Discord参加日', value: member.user.createdAt.toLocaleDateString(), inline: true },
+                                        { name: '役職', value: member.roles.highest.name, inline: true },
+                                        { name: 'ボイスチャンネル', value: oldState.channel.name, inline: true }
+                                    )
+                                    .setTimestamp();
+                                await textChannel.send({ embeds: [embed] });
+                            }
+                        }
+                    }
     
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
