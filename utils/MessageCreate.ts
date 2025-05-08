@@ -15,6 +15,8 @@ interface ExtendedClient extends Client {
 const voiceInitMap: { [guildId: string]: boolean } = {};
 
 export function MessageCreate(client: ExtendedClient) {
+    // メッセージイベントによるトリガーを無効化（スラッシュコマンドのみを有効とする）
+    return;
     client.on(Events.MessageCreate, async (message: Message) => {
         if (message.author.bot) {
             console.log("Message is from a bot, ignoring.");
