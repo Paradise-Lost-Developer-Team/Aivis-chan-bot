@@ -6,7 +6,7 @@ import { GoogleGenAI } from '@google/genai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const configPath = path.resolve(__dirname, '../../config.json');
+const configPath = path.resolve(process.cwd(), 'data', 'config.json');
 
 // config読み込み (Gemini 設定)
 const { GEMINI_API_KEY, GEMINI_PROJECT_ID, GEMINI_LOCATION } = JSON.parse(
