@@ -131,25 +131,22 @@ class HelpMenu {
                     { name: "/patreon benefits",  value: "Patreon支援者向け特典を表示します。" }
                 )
                 .setColor(0x3498db),
-            // リマインダーコマンドページ
+            // 最新機能ページ: チャットコマンド
             new EmbedBuilder()
-                .setTitle("ヘルプ - リマインダーコマンド")
-                .setDescription("リマインダー機能に関するコマンドです。")
+                .setTitle("ヘルプ - AIチャットコマンド")
+                .setDescription("チャット機能に関するコマンドです。")
                 .addFields(
-                    { name: "/reminder set",    value: "指定日時にリマインダーを設定します。" },
-                    { name: "/reminder list",   value: "設定済みのリマインダーを一覧表示します。" },
-                    { name: "/reminder cancel", value: "指定したリマインダーをキャンセルします。" }
+                    { name: "/chat", value: "Google Gemini 1.5-Pro を使ったAIチャットを実行します。" }
                 )
                 .setColor(0x3498db),
-            // サポートコマンドページ
+
+            // 最新機能ページ: 入退室Embed通知
             new EmbedBuilder()
-                .setTitle("ヘルプ - サポートコマンド")
-                .setDescription("サポートおよび情報取得に関するコマンドです。")
+                .setTitle("ヘルプ - 入退室Embed通知")
+                .setDescription("/joinleave で入退室通知のEmbedを有効化/無効化します。")
                 .addFields(
-                    { name: "/support",  value: "サポート情報やトラブルシューティングを表示します。" },
-                    { name: "/invite",   value: "ボットの招待リンクを取得します。" },
-                    { name: "/feedback", value: "BOTへのフィードバックを送信します。" },
-                    { name: "/github",   value: "GitHubリポジトリへのリンクを表示します。" }
+                    { name: "/joinleave enable", value: "入退室Embed通知を有効化します。", inline: true },
+                    { name: "/joinleave disable", value: "入退室Embed通知を無効化します。", inline: true }
                 )
                 .setColor(0x3498db)
         ];
