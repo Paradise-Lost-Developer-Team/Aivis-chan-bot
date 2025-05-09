@@ -8,16 +8,16 @@ export const data = new SlashCommandBuilder()
   .setDescription('リマインダーを設定します')
   .addSubcommand(sub => 
     sub
-      .setName('設定')
+      .setName('set')
       .setDescription('新しいリマインダーを設定します')
       .addStringOption(o => o.setName('時間').setDescription('例: 30m, 1h30m, 17:30').setRequired(true))
       .addStringOption(o => o.setName('メッセージ').setDescription('リマインダー内容').setRequired(true))
       .addBooleanOption(o => o.setName('音声').setDescription('音声通知を有効にする').setRequired(false))
   )
-  .addSubcommand(sub => sub.setName('一覧').setDescription('設定済みリマインダーを一覧表示'))
+  .addSubcommand(sub => sub.setName('list').setDescription('設定済みリマインダーを一覧表示'))
   .addSubcommand(sub => 
     sub
-      .setName('キャンセル')
+      .setName('cancel')
       .setDescription('リマインダーをキャンセルします')
       .addStringOption(o => o.setName('id').setDescription('キャンセルするID').setRequired(true))
   );
