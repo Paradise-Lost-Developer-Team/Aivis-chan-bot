@@ -136,9 +136,9 @@ class HelpMenu {
                 .setTitle("ヘルプ - リマインダーコマンド")
                 .setDescription("リマインダー機能に関するコマンドです。以下のサブコマンドがあります。")
                 .addFields(
-                    { name: "/リマインダー 設定", value: "新しいリマインダーを設定します。", inline: true },
-                    { name: "/リマインダー 一覧", value: "設定済みのリマインダーを一覧表示します。", inline: true },
-                    { name: "/リマインダー キャンセル", value: "指定したリマインダーをキャンセルします。", inline: true }
+                    { name: "/reminder set", value: "新しいリマインダーを設定します。", inline: true },
+                    { name: "/reminder list", value: "設定済みのリマインダーを一覧表示します。", inline: true },
+                    { name: "/reminder cancel", value: "指定したリマインダーをキャンセルします。", inline: true }
                 )
                 .setColor(0x3498db),
             // 最新機能ページ: チャットコマンド
