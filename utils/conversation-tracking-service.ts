@@ -25,6 +25,23 @@ export class ConversationTrackingService {
     }
     return { messageCount: totalMessages };
   }
+
+  /**
+   * システム全体の統計を取得
+   */
+  public async getSystemConversationStats(): Promise<{ totalMessages: number; totalUsers: number; totalGuilds: number }> {
+    // 全サーバーのメッセージ総数を集計
+    let totalMessages = 0;
+    for (const stat of this.serverStats.values()) {
+      totalMessages += stat.totalMessages;
+    }
+    // ユニークユーザー数（キャッシュ上のユーザー数）
+    const totalUsers = this.client.users.cache.size;
+    // サーバー数（追跡対象のサーバー数）
+    const totalGuilds = this.serverStats.size;
+    return { totalMessages, totalUsers, totalGuilds };
+  }
+
   private static instance: ConversationTrackingService;
   private client: Client;
   private userStats: Map<string, Map<string, UserConversationStats>> = new Map(); // サーバーID -> ユーザーID -> 統計

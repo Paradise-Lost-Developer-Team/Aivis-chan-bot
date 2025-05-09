@@ -1,119 +1,55 @@
-import { 
-  CommandInteraction, 
-  SlashCommandBuilder, 
-  EmbedBuilder, 
-  ActionRowBuilder, 
-  ButtonBuilder, 
-  ButtonStyle, 
+import {
+  CommandInteraction,
+  SlashCommandBuilder,
+  EmbedBuilder,
   MessageFlags,
-  PermissionFlagsBits,
-  AttachmentBuilder
 } from 'discord.js';
 import { ConversationTrackingService } from '../../utils/conversation-tracking-service';
 import { logError } from '../../utils/errorLogger';
-import { createCanvas } from 'canvas';
-import { getGuildSubscriptionTier, getUserSubscription } from '../../utils/subscription';
 
 export const data = new SlashCommandBuilder()
-  .setName('統計')
-  .setDescription('会話統計を表示します (プレミアム機能)')
-  .addSubcommand(subcommand =>
-    subcommand
-      .setName('個人')
-      .setDescription('あなたの会話統計を表示します')
-      .addStringOption(option =>
-        option
-          .setName('期間')
-          .setDescription('統計の期間')
-          .setRequired(false)
-          .addChoices(
-            { name: '今日', value: 'today' },
-            { name: '今週', value: 'week' },
-            { name: '今月', value: 'month' },
-            { name: '全期間', value: 'all' }
-          )
-      )
-      .addStringOption(option =>
-        option
-          .setName('タイプ')
-          .setDescription('統計の種類')
-          .setRequired(false)
-          .addChoices(
-            { name: '概要', value: 'summary' },
-            { name: '単語', value: 'words' },
-            { name: '活動時間', value: 'activity' },
-            { name: '絵文字', value: 'emoji' },
-            { name: 'コマンド', value: 'commands' }
-          )
-      )
-  )
-  .addSubcommand(subcommand =>
-    subcommand
-      .setName('サーバー')
-      .setDescription('サーバーの会話統計を表示します (管理者権限が必要)')
-      .addStringOption(option =>
-        option
-          .setName('期間')
-          .setDescription('統計の期間')
-          .setRequired(false)
-          .addChoices(
-            { name: '今日', value: 'today' },
-            { name: '今週', value: 'week' },
-            { name: '今月', value: 'month' },
-            { name: '全期間', value: 'all' }
-          )
-      )
-  );
+  .setName('stats')
+  .setDescription('システム全体の利用状況、使用統計、アップタイムを表示します');
 
 export async function execute(interaction: CommandInteraction) {
   try {
-    if (!interaction.guild) {
-      await interaction.reply({ 
-        content: 'この機能はサーバー内でのみ使用できます。',
-        flags: MessageFlags.Ephemeral
-      });
-      return;
-    }
-    
-    const userId = interaction.user.id;
-    
-    // Bot製作者の管理サーバーの場合は常にプレミアム機能を許可
-    if (interaction.guild.id !== process.env.DEVELOPER_SERVER_ID) {
-      const guildTier = await getGuildSubscriptionTier(interaction.guild.id);
-      const userSubscription = await getUserSubscription(userId);
-      
-      if (guildTier !== 'premium' && (!userSubscription || !userSubscription.isPremium)) {
-      await interaction.reply({ 
-        content: 'この機能はプレミアム会員専用です。',
-        flags: MessageFlags.Ephemeral
-      });
-      return;
-      }
-    }
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // ConversationTrackingService に全体統計取得メソッドを実装しておく
     const trackingService = ConversationTrackingService.getInstance(interaction.client);
-    const userStats = await trackingService.getUserConversationStats(userId) as unknown as { messageCount: number };
-    
+    const systemStats = await trackingService.getSystemConversationStats(); 
+    // 例: { totalMessages, totalUsers, totalGuilds }
+
+    // プロセス情報
+    const uptimeSec = process.uptime();
+    const hours = Math.floor(uptimeSec / 3600);
+    const minutes = Math.floor((uptimeSec % 3600) / 60);
+    const seconds = Math.floor(uptimeSec % 60);
+    const uptime = `${hours}h ${minutes}m ${seconds}s`;
+
+    const mem = process.memoryUsage();
+    const toMB = (b: number) => (b / 1024 / 1024).toFixed(2) + ' MB';
+
     const embed = new EmbedBuilder()
-      .setTitle('会話統計')
-      .setDescription(`あなたの発言数: ${userStats?.messageCount ?? 0}`);
-    
+      .setTitle('🤖 システム統計')
+      .addFields(
+        { name: '💬 総メッセージ数', value: `${systemStats.totalMessages}`, inline: true },
+        { name: '👥 ユーザー数',      value: `${systemStats.totalUsers}`,    inline: true },
+        { name: '🛡️ サーバー数',     value: `${systemStats.totalGuilds}`,   inline: true },
+        { name: '⏱️ アップタイム',   value: uptime,                         inline: true },
+        { name: '📈 RSSメモリ',       value: toMB(mem.rss),                  inline: true },
+        { name: '📊 Heap 使用量',     value: toMB(mem.heapUsed),             inline: true }
+      )
+      .setTimestamp();
+
     await interaction.editReply({ embeds: [embed] });
-    
   } catch (error) {
     console.error('統計コマンドエラー:', error);
     logError('statsCommandError', error instanceof Error ? error : new Error(String(error)));
-    
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ 
-        content: '統計データの取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。',
-        flags: MessageFlags.Ephemeral
-      });
-    } else {
-      await interaction.reply({ 
-        content: '統計データの取得中にエラーが発生しました。しばらく経ってからもう一度お試しください。',
-        flags: MessageFlags.Ephemeral
-      });
-    }
+    const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+    await interaction[method]({
+      content: 'システム統計の取得中にエラーが発生しました。もう一度お試しください。',
+      flags: MessageFlags.Ephemeral
+    });
   }
 }
