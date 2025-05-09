@@ -4,7 +4,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 
 // --- 追加: モジュールレベルの data プロパティ ---
 export const data = new SlashCommandBuilder()
-  .setName('リマインダー')
+  .setName('reminder')
   .setDescription('リマインダーを設定します')
   .addSubcommand(sub => 
     sub
@@ -41,7 +41,7 @@ export class ReminderCommand {
       .setDescription('リマインダーを設定します')
       .addSubcommand(subcommand =>
         subcommand
-          .setName('設定')
+          .setName('set')
           .setDescription('新しいリマインダーを設定します')
           .addStringOption(option =>
             option.setName('時間')
@@ -58,12 +58,12 @@ export class ReminderCommand {
       )
       .addSubcommand(subcommand =>
         subcommand
-          .setName('一覧')
+          .setName('list')
           .setDescription('設定したリマインダーの一覧を表示します')
       )
       .addSubcommand(subcommand =>
         subcommand
-          .setName('キャンセル')
+          .setName('cancel')
           .setDescription('リマインダーをキャンセルします')
           .addStringOption(option =>
             option.setName('id')
