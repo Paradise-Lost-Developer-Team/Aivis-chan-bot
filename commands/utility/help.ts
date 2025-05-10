@@ -149,16 +149,6 @@ class HelpMenu {
                     { name: "/chat", value: "Google Gemini 1.5-Pro を使ったAIチャットを実行します。" }
                 )
                 .setColor(0x3498db),
-
-            // 最新機能ページ: 入退室Embed通知
-            new EmbedBuilder()
-                .setTitle("ヘルプ - 入退室Embed通知")
-                .setDescription("/joinleave で入退室通知のEmbedを有効化/無効化します。")
-                .addFields(
-                    { name: "/joinleave enable", value: "入退室Embed通知を有効化します。", inline: true },
-                    { name: "/joinleave disable", value: "入退室Embed通知を無効化します。", inline: true }
-                )
-                .setColor(0x3498db)
         ];
         this.currentPage = 0;
     }
