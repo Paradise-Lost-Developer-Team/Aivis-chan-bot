@@ -431,10 +431,9 @@ export function adjustAudioQuery(audioQuery: any, guildId: string) {
 
     audioQuery["volumeScale"]    = voiceSettings["volume"]?.[guildId]    || 0.5;
     audioQuery["pitchScale"]     = voiceSettings["pitch"]?.[guildId]     || 0.0;
-    audioQuery["rateScale"]      = voiceSettings["rate"]?.[guildId]      || 1.0;
     audioQuery["speedScale"]     = voiceSettings["speed"]?.[guildId]     || 1.0;
-    audioQuery["styleStrength"]  = voiceSettings["style_strength"]?.[guildId] || 1.0;
-    audioQuery["tempoScale"]     = voiceSettings["tempo"]?.[guildId]     || 1.0;
+    audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[guildId] || 1.0;
+    audioQuery["tempoDynamicsScale"]     = voiceSettings["tempo"]?.[guildId]     || 1.0;
     return audioQuery;
 }
 
