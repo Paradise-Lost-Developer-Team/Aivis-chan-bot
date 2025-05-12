@@ -46,7 +46,7 @@ class HelpMenu {
                     { name: "/set_volume", value: "音量を設定します (0.0 - 2.0)。" },
                     { name: "/set_pitch", value: "音高を設定します (-1.0 - 1.0)。" },
                     { name: "/set_speed", value: "話速を設定します (0.5 - 2.0)。" },
-                    { name: "/set_style_strength", value: "スタイルの強さを設定します (0.0 - 2.0)。" },
+                    { name: "/set_intensity", value: "感情表現の強さを設定します (0.0 - 2.0)。" },
                     { name: "/set_tempo", value: "テンポの緩急を設定します (0.5 - 2.0)。" }
                 )
                 .setColor(0x3498db),
