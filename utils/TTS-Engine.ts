@@ -21,6 +21,8 @@ const TTS_RETRY_DELAY = 1000;
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [key: string]: number } = {};
+// ギルド単位のデフォルト話者設定
+export const currentUserSpeaker: { [userId: string]: number } = {};
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 

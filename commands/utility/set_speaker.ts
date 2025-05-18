@@ -25,7 +25,7 @@ module.exports = {
             if (!speakerOptions || speakerOptions.length === 0) {
                 await interaction.reply({
                     content: 'スピーカー情報が読み込まれていません。設定ファイルを確認してください。',
-                   flags: MessageFlags.Ephemeral
+                    flags: MessageFlags.Ephemeral
                 });
                 return;
             }
