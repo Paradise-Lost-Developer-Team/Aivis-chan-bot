@@ -85,7 +85,7 @@ module.exports = {
                     }
 
                     // 話者を設定
-                    currentSpeaker[guildId] = speakerIdNumber;
+                    currentSpeaker[selectInteraction.user.id] = speakerIdNumber;
                     
                     // インタラクションを更新
                     await selectInteraction.update({
