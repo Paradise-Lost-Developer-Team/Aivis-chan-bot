@@ -9,6 +9,7 @@ import { Readable } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
+import fetch from 'node-fetch';
 
 // TTS設定のデフォルト値（config.jsonに依存しない）
 const TTS_HOST = "127.0.0.1";
@@ -276,17 +277,40 @@ export function AivisAdapter() {
     return new AivisAdapter();
 }
 
+// AivisSpeech Engine から話者情報を取得して speakers.json に保存
+export async function fetchAndSaveSpeakers() {
+    const TTS_HOST = "127.0.0.1";
+    const TTS_PORT = 10101;
+    const TTS_BASE_URL = `http://${TTS_HOST}:${TTS_PORT}`;
+    const SPEAKERS_FILE = path.join(getProjectRoot(), "data", "speakers.json");
+    try {
+        const res = await fetch(`${TTS_BASE_URL}/speakers`, { method: "GET" });
+        if (!res.ok) throw new Error(`TTS Engine API error: ${res.status}`);
+        const speakers = await res.json();
+        ensureDirectoryExists(SPEAKERS_FILE);
+        fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(speakers, null, 2), "utf-8");
+        console.log("AivisSpeech Engineから話者情報を取得しspeakers.jsonに保存しました");
+        return speakers;
+    } catch (err) {
+        console.error("AivisSpeech Engineから話者情報取得に失敗。ローカルspeakers.jsonを使用します。", err);
+        if (fs.existsSync(SPEAKERS_FILE)) {
+            return JSON.parse(fs.readFileSync(SPEAKERS_FILE, "utf-8"));
+        }
+        return [];
+    }
+}
+
 // タイムアウト付きfetch関数
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout: number = TTS_TIMEOUT): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout: number = TTS_TIMEOUT): Promise<any> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
     try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal
-        });
-        return response;
+        // node-fetch: body=nullはエラーになるのでundefinedにする
+        const fetchOptions: any = { ...options, signal: controller.signal };
+        if ('body' in fetchOptions && (fetchOptions.body === null || typeof fetchOptions.body === 'undefined')) {
+            delete fetchOptions.body;
+        }
+        return await fetch(url, fetchOptions);
     } finally {
         clearTimeout(timeoutId);
     }
@@ -398,19 +422,17 @@ export async function postAudioQuery(text: string, speaker: number): Promise<any
     try {
         const params = new URLSearchParams({ text, speaker: speaker.toString() });
         const response = await fetchWithRetry(`${TTS_BASE_URL}/audio_query?${params}`, {
-            method: 'POST'
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, speaker })
         });
-        // 422はテキスト不可→nullを返す
-        if (response.status === 422) {
-            console.warn('postAudioQuery: Unprocessable Entity, skipping chunk');
+        if (!response.ok) {
+            console.error(`音声クエリ送信エラー: ${response.status} ${response.statusText}`);
             return null;
         }
-        if (!response.ok) {
-            throw new Error(`Error in postAudioQuery: ${response.statusText}`);
-        }
         return await response.json();
-    } catch (error) {
-        console.error("Error in postAudioQuery:", error);
+    } catch (err) {
+        console.error("音声クエリ送信中にエラーが発生しました:", err);
         return null;
     }
 }

@@ -3,7 +3,7 @@ import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels, loadSpeakers, loadUserSpeakers } from "./utils/TTS-Engine";
+import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels, loadSpeakers, fetchAndSaveSpeakers } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -70,6 +70,9 @@ async function gracefulShutdown() {
 
 client.once("ready", async () => {
     try {
+        // 起動時にAivisSpeech Engineから話者情報を取得しspeakers.jsonに保存
+        await fetchAndSaveSpeakers();
+
         await deployCommands(client);
         console.log("コマンドのデプロイ完了");
         
@@ -95,7 +98,6 @@ client.once("ready", async () => {
         loadAutoJoinChannels();
         loadJoinChannels();
         loadSpeakers();
-        loadUserSpeakers();
         
         console.log("TTS初期化完了");
 
