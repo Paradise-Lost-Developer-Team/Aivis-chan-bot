@@ -611,10 +611,21 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string): P
     return;
 }
 
-// enqueue 用のエクスポート関数
-export function speakVoice(text: string, speaker: number, guildId: string): Promise<void> {
+/**
+ * メッセージ読み上げ: ユーザーごとの話者設定を参照
+ */
+export function speakVoice(text: string, userId: string, guildId: string): Promise<void> {
+    const speaker = currentSpeaker[userId] ?? DEFAULT_SPEAKER_ID;
     const queue = getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, speaker, guildId));
+}
+
+/**
+ * アナウンス用: 必ずデフォルト話者で再生
+ */
+export function speakAnnounce(text: string, guildId: string): Promise<void> {
+    const queue = getQueueForUser(guildId);
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId));
 }
 
 // ユーザー／ギルドごとのキュー管理
@@ -1093,3 +1104,6 @@ export function cleanupAudioResources(guildId: string) {
         audioPlayers.delete(guildId);
     }
 }
+
+// デフォルト話者ID（Anneli ノーマル）
+export const DEFAULT_SPEAKER_ID = 888753760;
