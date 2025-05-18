@@ -112,6 +112,35 @@ export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "data", "guild_dictionari
 export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "data", "auto_join_channels.json");
 export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels.json");
 
+// ユーザーごとの話者設定を永続化するファイル
+const USER_SPEAKERS_FILE = path.join(PROJECT_ROOT, 'data', 'user_speakers.json');
+
+/**
+ * ユーザーごとの話者設定を保存
+ */
+export function saveUserSpeakers() {
+    try {
+        fs.writeFileSync(USER_SPEAKERS_FILE, JSON.stringify(currentSpeaker, null, 2), 'utf-8');
+    } catch (e) {
+        console.error('ユーザー話者設定の保存エラー:', e);
+    }
+}
+
+/**
+ * ユーザーごとの話者設定を読み込み
+ */
+export function loadUserSpeakers() {
+    try {
+        if (fs.existsSync(USER_SPEAKERS_FILE)) {
+            const data = fs.readFileSync(USER_SPEAKERS_FILE, 'utf-8');
+            const obj = JSON.parse(data);
+            Object.assign(currentSpeaker, obj);
+        }
+    } catch (e) {
+        console.error('ユーザー話者設定の読み込みエラー:', e);
+    }
+}
+
 export async function loadSpeakers(): Promise<any[]> {
     try {
         // まず /speakers API から最新情報を取得して JSON ファイルに上書き
@@ -614,8 +643,8 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string): P
 /**
  * メッセージ読み上げ: ユーザーごとの話者設定を参照
  */
-export function speakVoice(text: string, userId: string, guildId: string): Promise<void> {
-    const speaker = currentSpeaker[userId] ?? DEFAULT_SPEAKER_ID;
+export function speakVoice(text: string, userId: string | number, guildId: string): Promise<void> {
+    const speaker = currentSpeaker[String(userId)] ?? DEFAULT_SPEAKER_ID;
     const queue = getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, speaker, guildId));
 }

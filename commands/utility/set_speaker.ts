@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, ChatInputCommandInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder, ComponentType, MessageFlags } from 'discord.js';
-import { getSpeakerOptions, currentSpeaker } from '../../utils/TTS-Engine';
+import { getSpeakerOptions, currentSpeaker, saveUserSpeakers } from '../../utils/TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -83,14 +83,12 @@ module.exports = {
                         });
                         return;
                     }
-
-                    // 話者を設定
+                    // ユーザーごとに話者IDを保存
                     currentSpeaker[selectInteraction.user.id] = speakerIdNumber;
-                    
-                    // インタラクションを更新
+                    saveUserSpeakers();
                     await selectInteraction.update({
-                        content: `話者を「${speakerName} - ${styleName}」に設定しました。`,
-                        components: [] // コンポーネントを削除
+                        content: `あなたの話者を「${speakerName} - ${styleName}」に設定しました。`,
+                        components: []
                     });
                 });
                 

@@ -116,7 +116,9 @@ async function processQueue(guildId: string): Promise<void> {
             try {
                 // 音声を生成
                 console.log(`キュー処理: "${item.text.substring(0, 30)}..." を再生します (${guildId})`);
-                await speakVoice(item.text, item.speakerId, guildId);
+                // originalMessageがあればuserIdを渡す、なければデフォルト話者
+                const userId = item.originalMessage?.author.id ?? 'default';
+                await speakVoice(item.text, userId, guildId);
                 
                 // 最終発話時間を更新
                 updateLastSpeechTime();
