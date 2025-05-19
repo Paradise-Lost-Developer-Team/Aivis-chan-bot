@@ -15,7 +15,7 @@ module.exports = {
         const volume = options.getNumber('volume', true);
 
         if (volume >= 0.0 && volume <= 2.0) {
-            voiceSettings.volume[interaction.guildId!] = volume;
+            voiceSettings.volume[interaction.user.id] = volume;
             await interaction.reply(`音量を ${volume} に設定しました。`);
         } else {
             await interaction.reply({ content: '音量は 0.0 から 2.0 の間でなければなりません。', flags: MessageFlags.Ephemeral });

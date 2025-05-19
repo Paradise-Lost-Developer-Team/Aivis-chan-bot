@@ -192,9 +192,8 @@ loadSpeakers().then(data => {
 export const voiceSettings: { [key: string]: any } = {
     volume: {},
     pitch: {},
-    rate: {},
     speed: {},
-    style_strength: {},
+    intonation: {},
     tempo: {}
 };
 
@@ -476,16 +475,29 @@ try {
     guildDictionary = {};
 }
 
-export function adjustAudioQuery(audioQuery: any, guildId: string) {
+export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: string) {
     // 追加：必ず 44.1kHz, モノラルで出力させる
     audioQuery["outputSamplingRate"] = 44100;
-    audioQuery["outputStereo"]       = false;
+    audioQuery["outputStereo"] = false;
 
-    audioQuery["volumeScale"]    = voiceSettings["volume"]?.[guildId]    || 0.5;
-    audioQuery["pitchScale"]     = voiceSettings["pitch"]?.[guildId]     || 0.0;
-    audioQuery["speedScale"]     = voiceSettings["speed"]?.[guildId]     || 1.0;
-    audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[guildId] || 1.0;
-    audioQuery["tempoDynamicsScale"]     = voiceSettings["tempo"]?.[guildId]     || 1.0;
+    // userIdが指定されていればユーザーごとの設定、なければギルドごとの設定を参照
+    let targetId = guildId;
+    if (userId && (
+        voiceSettings["volume"]?.[userId] !== undefined ||
+        voiceSettings["pitch"]?.[userId] !== undefined ||
+        voiceSettings["speed"]?.[userId] !== undefined ||
+        voiceSettings["intonation"]?.[userId] !== undefined ||
+        voiceSettings["tempo"]?.[userId] !== undefined
+    )) {
+        targetId = String(userId);
+    }
+
+    audioQuery["volumeScale"]      = voiceSettings["volume"]?.[targetId]      ?? 0.5;
+    audioQuery["pitchScale"]       = voiceSettings["pitch"]?.[targetId]       ?? 0.0;
+    audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
+    audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
+    audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
+
     return audioQuery;
 }
 
@@ -512,62 +524,35 @@ function chunkText(text: string): string[] {
         });
 }
 
-// 単一チャンクの音声生成
-async function synthesizeChunk(chunk: string, speakerId: number): Promise<Buffer> {
-    // 追加：記号のみ（複数文字含む）チャンクはすべて無音バッファを返す
-    if (/^[。、,\.?？!！\n]+$/.test(chunk)) {
-        const sampleRate = 44100;
-        const durationSec = 0.05;
-        const frameCount = Math.floor(sampleRate * durationSec);
-        return Buffer.alloc(frameCount * 2);
-    }
-    const query = await postAudioQuery(chunk, speakerId);
-    return await postSynthesis(query, speakerId);
-}
 
 // 追加：並列チャンク合成＆順次再生
-async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 1) {
-    // 文字数制限を超えたら末尾に「以下省略」を追加
+async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 1, userId?: string) {
     const limit = getMaxTextLength(guildId);
     if (text.length > limit) {
         text = text.slice(0, limit) + "以下省略";
     }
-
     const chunks = chunkText(text);
+    console.log("チャンク分割結果:", chunks); // デバッグ用
 
-    // 追加：チャンクが1つ以下なら分割不要パスへ
-    if (chunks.length <= 1) {
-        // そのまま一括で合成
-        const buf = await synthesizeChunk(chunks[0] ?? text, speakerId);
-        if (!buf || buf.length === 0) return;
-
-        const player = getOrCreateAudioPlayer(guildId);
-        const vc = voiceClients[guildId];
-        if (vc) vc.subscribe(player);
-
-        const { resource, ffmpeg } = await createFFmpegAudioSource(buf);
-        player.play(resource);
-        try {
-            await entersState(player, AudioPlayerStatus.Playing, 5000);
-            await entersState(player, AudioPlayerStatus.Idle, 60000);
-        } catch (err) {
-            console.error("再生中にエラー:", err);
-        } finally {
-            await ffmpegPool.release(ffmpeg).catch(() => {});
-        }
-        return;
-    }
-
+    // チャンクごとに合成
     const results: Buffer[] = new Array(chunks.length);
     let currentIndex = 0;
-
-    // 並列で合成
     await Promise.all(
         Array.from({ length: maxConcurrency }, async () => {
-            while (currentIndex < chunks.length) {
+            while (true) {
                 const idx = currentIndex++;
+                if (idx >= chunks.length) break;
                 try {
-                    results[idx] = await synthesizeChunk(chunks[idx], speakerId);
+                    let audioQuery = await postAudioQuery(chunks[idx], speakerId);
+                    if (!audioQuery) {
+                        results[idx] = Buffer.alloc(0);
+                        continue;
+                    }
+                    audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
+                    let buf = await postSynthesis(audioQuery, speakerId);
+                    // チャンクの先頭・末尾の無音を除去
+                    buf = trimSilence(buf);
+                    results[idx] = buf;
                 } catch (e) {
                     console.error(`チャンク ${idx} 合成失敗`, e);
                     results[idx] = Buffer.alloc(0);
@@ -575,24 +560,19 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
             }
         })
     );
-
-    // 空のチャンクは除外してすべて連結
-    const nonEmpty = results.filter(buf => buf.length > 0);
+    const nonEmpty = results.filter(buf => buf.length > 100); // 100バイト未満は無音とみなす
     if (nonEmpty.length === 0) return;
-
     const fullBuffer = Buffer.concat(nonEmpty);
 
-    // プレイヤー取得＆subscribe
+    // 1回だけFFmpeg変換して再生
     const player = getOrCreateAudioPlayer(guildId);
     const vc = voiceClients[guildId];
     if (vc) vc.subscribe(player);
-
-    // まとめたバッファを一度だけ FFmpeg に流し込む
     const { resource, ffmpeg } = await createFFmpegAudioSource(fullBuffer);
     player.play(resource);
     try {
         await entersState(player, AudioPlayerStatus.Playing, 5000);
-        await entersState(player, AudioPlayerStatus.Idle,    60000);
+        await entersState(player, AudioPlayerStatus.Idle, 60000);
     } catch (err) {
         console.error("再生中にエラー:", err);
     } finally {
@@ -600,9 +580,7 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     }
 }
 
-/**
- * ギルドごとにVoiceConnectionを確保・再利用する関数
- */
+// ギルドごとにVoiceConnectionを確保・再利用する関数
 export function ensureVoiceConnection(guildId: string, voiceChannel: any): VoiceConnection {
     let connection = voiceClients[guildId];
     if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed) {
@@ -618,47 +596,19 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     }
     return connection;
 }
-
-// 追加：バッファをチャンクに分けて間隔送信するストリーム
-function createChunkedStream(
-    buffer: Buffer,
-    chunkSize: number = 1920,   // 20ms 相当 (48000Hz×1ch×2bytes/sample の 0.02s)
-): Readable {
-    const sampleRate = 48000;
-    const channels = 1;
-    const bytesPerSample = 2; // s16le
-    const interval = chunkSize / (sampleRate * channels * bytesPerSample) * 1000;
-    let offset = 0;
-    return new Readable({
-        read() {
-            if (offset >= buffer.length) {
-                this.push(null);
-                return;
-            }
-            const end = Math.min(offset + chunkSize, buffer.length);
-            this.push(buffer.subarray(offset, end));
-            offset = end;
-            setTimeout(() => this.read(), interval);
-        }
-    });
-}
-
-async function speakVoiceImpl(text: string, speaker: number, guildId: string): Promise<void> {
+async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string): Promise<void> {
     const vc = voiceClients[guildId];
     if (!vc) {
         console.warn(`VoiceConnection が存在しません`);
         return Promise.resolve();
     }
-
     try {
         await entersState(vc, VoiceConnectionStatus.Ready, 5_000);
     } catch {
         console.warn(`VoiceConnection Ready になりませんでした`);
         return;
     }
-
-    // 置換: 従来の1チャンクFFmpeg経由ではなく並列チャンク合成＋再生へ
-    await speakBufferedChunks(text, speaker, guildId, /* maxConcurrency= */2);
+    await speakBufferedChunks(text, speaker, guildId, 2, userId);
     return;
 }
 
@@ -668,7 +618,7 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string): P
 export function speakVoice(text: string, userId: string | number, guildId: string): Promise<void> {
     const speaker = currentSpeaker[String(userId)] ?? DEFAULT_SPEAKER_ID;
     const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, speaker, guildId));
+    return queue.add(() => speakVoiceImpl(text, speaker, guildId, String(userId)));
 }
 
 /**
@@ -1158,3 +1108,38 @@ export function cleanupAudioResources(guildId: string) {
 
 // デフォルト話者ID（Anneli ノーマル）
 export const DEFAULT_SPEAKER_ID = 888753760;
+
+// 16bit PCM, 1ch, silence = 0x0000, threshold: 8サンプル連続で無音ならカット
+function trimSilence(buffer: Buffer, threshold = 8): Buffer {
+    let start = 0;
+    let end = buffer.length;
+    // 先頭無音
+    for (let i = 0; i < buffer.length - threshold * 2; i += 2) {
+        let silent = true;
+        for (let j = 0; j < threshold * 2; j += 2) {
+            if (buffer[i + j] !== 0 || buffer[i + j + 1] !== 0) {
+                silent = false;
+                break;
+            }
+        }
+        if (!silent) {
+            start = i;
+            break;
+        }
+    }
+    // 末尾無音
+    for (let i = buffer.length - 2; i >= threshold * 2; i -= 2) {
+        let silent = true;
+        for (let j = 0; j < threshold * 2; j += 2) {
+            if (buffer[i - j] !== 0 || buffer[i - j + 1] !== 0) {
+                silent = false;
+                break;
+            }
+        }
+        if (!silent) {
+            end = i + 2;
+            break;
+        }
+    }
+    return buffer.slice(start, end);
+}
