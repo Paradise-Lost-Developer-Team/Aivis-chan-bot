@@ -14,9 +14,7 @@ module.exports = {
         const options = interaction.options as CommandInteractionOptionResolver;
         const tempo = options.getNumber('tempo', true);
         if (tempo >= 0.0 && tempo <= 2.0) {
-            
-            // テンポを設定する処理をここに記述
-            voiceSettings.tempo[interaction.guildId!] = tempo;
+            voiceSettings.tempo[interaction.user.id] = tempo;
             await interaction.reply(`テンポを ${tempo} に設定しました。`);
         } else {
             await interaction.reply({ content: 'テンポは 0.0 から 2.0 の間でなければなりません。', flags: MessageFlags.Ephemeral });
