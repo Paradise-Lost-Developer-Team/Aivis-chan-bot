@@ -281,7 +281,7 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
             const timeout = setTimeout(() => {
               delete voiceClients[guildId]; // タイムアウト時も必ず削除
               reject(new Error('リトライ接続タイムアウト'));
-            }, 10000);
+            }, 20000); // タイムアウトを20秒に延長
             retryConnection.once('ready', async () => {
               clearTimeout(timeout);
               // voiceClients[guildId] = retryConnection; // 既に登録済み
