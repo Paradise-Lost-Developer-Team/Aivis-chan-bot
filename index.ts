@@ -13,6 +13,7 @@ import './utils/patreonIntegration'; // Patreon連携モジュールをインポ
 import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
 import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
 import { initSentry } from './utils/sentry';
+import { VoiceConnection, VoiceConnectionStatus, entersState } from "@discordjs/voice";
 
 // アプリケーション起動の最初にSentryを初期化
 initSentry();
@@ -80,6 +81,22 @@ client.once("ready", async () => {
         console.log('ボイスチャンネルへの再接続を試みています...');
         await reconnectToVoiceChannels(client);
         console.log('ボイスチャンネル再接続処理が完了しました');
+
+        // --- 追加: 各ギルドのVoiceConnectionがReadyになるまで待機 ---
+        const { voiceClients } = await import('./utils/TTS-Engine');
+        const waitForReady = async (vc: VoiceConnection, guildId: string) => {
+            try {
+                await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
+            } catch (e) {
+                console.warn(`ギルド${guildId}のVoiceConnectionがReadyになりませんでした:`, e);
+            }
+        };
+        for (const [guildId, vc] of Object.entries(voiceClients) as [string, VoiceConnection][]) {
+            if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
+                await waitForReady(vc, guildId);
+            }
+        }
+        // --- 追加ここまで ---
         
         // 会話統計トラッキングサービスの初期化
         console.log("会話分析サービスを初期化しています...");
