@@ -173,7 +173,6 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       }
       // ボイスチャンネルに接続
       try {
-        console.log(`[DEBUG] joinVoiceChannel: guildId=${guild.id}, channelId=${channel.id}, channelType=${channel.type}, adapterCreator=${!!guild.voiceAdapterCreator}`);
         const connection = joinVoiceChannel({
           channelId: channel.id,
           guildId: guild.id,
