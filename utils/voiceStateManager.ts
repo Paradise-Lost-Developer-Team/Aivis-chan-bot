@@ -168,11 +168,12 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       const existingConnection = getVoiceConnection(guild.id);
       if (existingConnection) {
         cleanupAudioResources(guild.id);
+        delete voiceClients[guild.id]; // 既存のvoiceClientsも必ず削除
         await wait(1000); // 切断処理を待機
       }
-      
       // ボイスチャンネルに接続
       try {
+        console.log(`[DEBUG] joinVoiceChannel: guildId=${guild.id}, channelId=${channel.id}, channelType=${channel.type}, adapterCreator=${!!guild.voiceAdapterCreator}`);
         const connection = joinVoiceChannel({
           channelId: channel.id,
           guildId: guild.id,
@@ -180,7 +181,7 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
           selfDeaf: true,     // スピーカーはOFF（聞こえない）
           selfMute: false     // マイクはON（話せる）
         });
-        
+        voiceClients[guildId] = connection; // joinVoiceChannel直後に必ず登録
         // 接続が確立されるまで待機
         await new Promise<void>((resolve, reject) => {
           // 成功したとき
@@ -231,6 +232,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
           // エラー発生時
           const onError = (error: Error) => {
             connection.removeListener('ready', onReady);
+            delete voiceClients[guildId]; // エラー時は必ず削除
+            console.error(`joinVoiceChannel error for guild ${guildId} channel ${channel.id}:`, error);
             reject(error);
           };
           
@@ -241,6 +244,7 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
           // すでに接続済みの場合
           if (connection.state.status === 'ready') {
             connection.removeListener('error', onError);
+            // voiceClients[guildId] = connection; // 既に登録済み
             resolve();
           }
           
@@ -249,6 +253,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
             connection.removeListener('ready', onReady);
             connection.removeListener('error', onError);
             if (connection.state.status !== 'ready') {
+              delete voiceClients[guildId]; // タイムアウト時も必ず削除
+              console.error(`VoiceConnection Ready timeout for guild ${guildId} channel ${channel.id}`);
               reject(new Error('接続タイムアウト'));
             } else {
               resolve();
@@ -261,12 +267,19 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
         await wait(2000);
         
       } catch (joinError) {
-        console.error(`ボイスチャンネル接続エラー: ${joinError}`);
+        delete voiceClients[guildId]; // joinVoiceChannel自体がthrowした場合も必ず削除
+        console.error(`ボイスチャンネル接続エラー: guildId=${guildId} channelId=${channel.id} error=`, joinError);
         
         // リトライ処理
         try {
           await wait(3000); // リトライ前に少し待機
-          
+          // 直前の失敗したVoiceConnectionが残っていれば必ず破棄
+          const prevRetryConn = getVoiceConnection(guild.id);
+          if (prevRetryConn) {
+            cleanupAudioResources(guild.id);
+            delete voiceClients[guild.id];
+            await wait(1000); // 破棄待機
+          }
           const retryConnection = joinVoiceChannel({
             channelId: channel.id,
             guildId: guild.id,
@@ -274,20 +287,16 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
             selfDeaf: true,   // スピーカーはOFF（聞こえない）
             selfMute: false   // マイクはON（話せる）
           });
-          
+          voiceClients[guildId] = retryConnection; // リトライ直後も必ず登録
           // リトライの接続が確立されるまで待機
           await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => {
+              delete voiceClients[guildId]; // タイムアウト時も必ず削除
               reject(new Error('リトライ接続タイムアウト'));
             }, 10000);
-            
             retryConnection.once('ready', async () => {
               clearTimeout(timeout);
-              console.log(`${guild.name}のチャンネル${channel.name}に再接続しました（リトライ後）`);
-              
-              // 重要: リトライ後もvoiceClientsオブジェクトに接続を登録
-              voiceClients[guildId] = retryConnection;
-              console.log(`ギルド ${guildId} の接続をvoiceClientsに登録しました（リトライ後）`);
+              // voiceClients[guildId] = retryConnection; // 既に登録済み
               
               // 安定するまで少し待機
               await wait(1000);
@@ -314,9 +323,10 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
               
               resolve();
             });
-            
             retryConnection.once('error', (error) => {
               clearTimeout(timeout);
+              delete voiceClients[guildId]; // エラー時も必ず削除
+              console.error(`Retry joinVoiceChannel error for guild ${guildId} channel ${channel.id}:`, error);
               reject(error);
             });
           });
@@ -325,7 +335,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
           await wait(2000); // 接続後少し待機
           
         } catch (retryError) {
-          console.error(`ボイスチャンネル接続リトライエラー: ${retryError}`);
+          delete voiceClients[guildId]; // リトライも失敗した場合必ず削除
+          console.error(`ボイスチャンネル接続リトライエラー: guildId=${guildId} channelId=${channel.id} error=`, retryError);
           failCount++;
         }
       }
