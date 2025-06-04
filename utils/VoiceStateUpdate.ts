@@ -89,7 +89,6 @@ export function VoiceStateUpdate(client: Client) {
         // Auto join channels handling
         try {
             const autoJoinChannelsData = loadAutoJoinChannels();
-            console.log(`Loaded autoJoinChannels data: ${JSON.stringify(autoJoinChannelsData)}`);
     
             const guildData = autoJoinChannelsData[guildId];
             if (!guildData) return;
