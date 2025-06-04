@@ -164,12 +164,12 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       
       console.log(`${guild.name}のチャンネル${channel.name}に再接続します...`);
       
-      // 既に接続されていれば切断
+      // 既に接続されていれば必ず完全に破棄
       const existingConnection = getVoiceConnection(guild.id);
       if (existingConnection) {
-        cleanupAudioResources(guild.id);
-        delete voiceClients[guild.id]; // 既存のvoiceClientsも必ず削除
-        await wait(1000); // 切断処理を待機
+        cleanupAudioResources(guild.id); // 既存のVoiceConnection/AudioPlayerを完全破棄
+        delete voiceClients[guild.id];
+        await wait(1000); // 破棄待機
       }
       // ボイスチャンネルに接続
       try {
