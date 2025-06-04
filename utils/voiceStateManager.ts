@@ -55,46 +55,37 @@ export const getTextChannelForGuild = (guildId: string): string | undefined => {
 // 音声接続状態を保存
 export const saveVoiceState = (client: Client | null): void => {
   ensureDataDirExists();
-  
   const voiceState: VoiceStateData = {};
-  
-  // 既存の保存データがあれば読み込む（テキストチャンネル情報を引き継ぐため）
   const existingState = loadVoiceState();
-  
-  // クライアントが提供されている場合は、現在の接続状態を追跡
   if (client) {
     client.guilds.cache.forEach(guild => {
-      // ボットがボイスチャンネルに接続しているか確認
       const me = guild.members.cache.get(client.user?.id || '');
       if (me && me.voice.channel) {
+        const textChannelId = existingState[guild.id]?.textChannelId || guildTextChannels[guild.id];
         voiceState[guild.id] = {
           channelId: me.voice.channel.id,
-          // 保存されているテキストチャンネルIDをセット、なければグローバル変数から取得
-          textChannelId: existingState[guild.id]?.textChannelId || guildTextChannels[guild.id]
+          ...(textChannelId ? { textChannelId } : {}) // undefined/nullなら保存しない
         };
       }
     });
   } else {
-    // クライアントが提供されていない場合は、グローバル変数とexistingStateを使用
     Object.keys(existingState).forEach(guildId => {
+      const textChannelId = existingState[guildId].textChannelId || guildTextChannels[guildId];
       voiceState[guildId] = {
         channelId: existingState[guildId].channelId,
-        textChannelId: existingState[guildId].textChannelId || guildTextChannels[guildId]
+        ...(textChannelId ? { textChannelId } : {})
       };
     });
-    
-    // グローバル変数にあるがexistingStateにないものを追加
     Object.keys(guildTextChannels).forEach(guildId => {
       if (!voiceState[guildId] && existingState[guildId]) {
+        const textChannelId = guildTextChannels[guildId];
         voiceState[guildId] = {
           channelId: existingState[guildId].channelId,
-          textChannelId: guildTextChannels[guildId]
+          ...(textChannelId ? { textChannelId } : {})
         };
       }
     });
   }
-  
-  // JSONとして保存
   try {
     fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(voiceState, null, 2));
     console.log(`ボイス接続状態を保存しました: ${VOICE_STATE_PATH}`);
@@ -106,25 +97,23 @@ export const saveVoiceState = (client: Client | null): void => {
 // 音声接続状態を読み込み
 export const loadVoiceState = (): VoiceStateData => {
   ensureDataDirExists();
-  
   try {
     if (fs.existsSync(VOICE_STATE_PATH)) {
       const data = fs.readFileSync(VOICE_STATE_PATH, 'utf8');
       const parsedData = JSON.parse(data) as VoiceStateData;
-      
-      // グローバル変数にテキストチャンネル情報を読み込む
       Object.keys(parsedData).forEach(guildId => {
-        if (parsedData[guildId].textChannelId) {
-          guildTextChannels[guildId] = parsedData[guildId].textChannelId!;
+        const textChannelId = parsedData[guildId].textChannelId;
+        if (textChannelId) {
+          guildTextChannels[guildId] = textChannelId;
+        } else {
+          delete guildTextChannels[guildId]; // 未指定ならグローバル変数からも削除
         }
       });
-      
       return parsedData;
     }
   } catch (error) {
     console.error('ボイス状態の読み込みエラー:', error);
   }
-  
   return {};
 };
 
