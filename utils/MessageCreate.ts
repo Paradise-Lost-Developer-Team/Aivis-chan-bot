@@ -27,8 +27,6 @@ export function MessageCreate(client: ExtendedClient) {
             let voiceClient = voiceClients[guildId];
             const autoJoinChannelsData = loadAutoJoinChannels();
             const joinChannelsData = loadJoinChannels();
-            console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
-            console.log(`joinChannelsData = ${JSON.stringify(joinChannelsData)}`);
     
             // ここを変更してjoinChannelsDataを先にチェックし、無い場合のみautoJoinChannelsDataを使用
             if (joinChannelsData[guildId]?.textChannelId) {
