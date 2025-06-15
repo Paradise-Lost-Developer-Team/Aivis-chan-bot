@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageFlags } from 'discord.js';
-import { autoJoinChannels, loadAutoJoinChannels, saveAutoJoinChannels } from '../../TTS-Engine';
+import { autoJoinChannels, loadAutoJoinChannels, saveAutoJoinChannels } from '../../utils/TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
