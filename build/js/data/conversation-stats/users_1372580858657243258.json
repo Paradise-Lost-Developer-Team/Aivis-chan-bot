@@ -1,0 +1,162 @@
+[
+  [
+    "1334729786274086925",
+    {
+      "userId": "1334729786274086925",
+      "username": "dokokanoar101",
+      "totalMessages": 16,
+      "totalCharacters": 113,
+      "totalWords": 18,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-21T20:43:24.649Z",
+      "lastMessageDate": "2025-05-21T21:46:06.345Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "ano",
+          1
+        ],
+        [
+          "はまはま",
+          1
+        ],
+        [
+          "こんにちは",
+          1
+        ],
+        [
+          "審査の結果",
+          1
+        ],
+        [
+          "テンプレートに従って無いとして、却下されたことをお伝えします(?)",
+          1
+        ],
+        [
+          "申請を行わないと他のチャンネルにアクセス出来ません",
+          1
+        ],
+        [
+          "テンプレート⇩",
+          1
+        ],
+        [
+          "discordusername:",
+          1
+        ],
+        [
+          "一言:",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        12,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0
+      ],
+      "voiceMinutes": 38.408366666666666,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "998242990248181861",
+    {
+      "userId": "998242990248181861",
+      "username": "xuecun",
+      "totalMessages": 1,
+      "totalCharacters": 16,
+      "totalWords": 3,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-21T21:56:33.366Z",
+      "lastMessageDate": "2025-05-21T21:56:32.815Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "˙꒳​˙",
+          1
+        ],
+        [
+          ")ﾀﾞﾆｨ!?",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

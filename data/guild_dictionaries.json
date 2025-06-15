@@ -1,0 +1,40 @@
+{
+  "966557943271133235": {
+    "璃月": {
+      "pronunciation": "リーユェ",
+      "accent_type": 1,
+      "word_type": "PROPER_NOUN"
+    },
+    "聖龍": {
+      "pronunciation": "セイリュウ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "1202979760179781763": {
+    "w": {
+      "pronunciation": "ワラ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "テスト": {
+      "pronunciation": "テステス",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "1317015435043934228": {
+    "乃愛": {
+      "pronunciation": "ノア",
+      "accentType": 2,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1348660763858047099": {
+    "🍆": {
+      "pronunciation": "ナス",
+      "accentType": 1,
+      "wordType": "COMMON_NOUN"
+    }
+  }
+}

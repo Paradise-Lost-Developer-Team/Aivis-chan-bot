@@ -1,0 +1,146 @@
+{
+  "serverId": "1362768756408975410",
+  "serverName": "飛びました最高です",
+  "totalMessages": 152,
+  "totalCharacters": 1633,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1362768757084131372",
+      {
+        "channelId": "1362768757084131372",
+        "channelName": "一般",
+        "totalMessages": 123,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          29,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          94
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          94,
+          29
+        ]
+      }
+    ],
+    [
+      "1362768757084131371",
+      {
+        "channelId": "1362768757084131371",
+        "channelName": "一般",
+        "totalMessages": 29,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          20,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          21
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    29,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    20,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    8,
+    0,
+    0,
+    0,
+    0,
+    94
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    94,
+    58
+  ],
+  "averageMessageLength": 10.743421052631579,
+  "messageDistribution": [
+    [
+      "2025-04-18",
+      123
+    ],
+    [
+      "2025-04-19",
+      29
+    ]
+  ],
+  "mostActiveUser": "1351870434450210897",
+  "mostActiveChannel": "1362768757084131372"
+}

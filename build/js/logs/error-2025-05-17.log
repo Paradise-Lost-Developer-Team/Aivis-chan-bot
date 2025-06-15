@@ -1,0 +1,16 @@
+[2025-05-17T05-24-14.456Z] [uncaughtException] 
+AggregateError [ETIMEDOUT]: 
+    at internalConnectMultiple (node:net:1139:18)
+    at afterConnectMultiple (node:net:1712:7)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+[2025-05-17T05-24-22.863Z] [uncaughtException] connect ETIMEDOUT 10.0.0.1:443
+Error: connect ETIMEDOUT 10.0.0.1:443
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+[2025-05-17T18-36-11.282Z] [uncaughtException] getaddrinfo ENOTFOUND japan5723.discord.media
+Error: getaddrinfo ENOTFOUND japan5723.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+

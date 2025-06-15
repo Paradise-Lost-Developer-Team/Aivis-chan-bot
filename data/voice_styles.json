@@ -1,0 +1,94 @@
+{
+  "966557943271133235": {
+    "styles": [
+      {
+        "id": "default",
+        "name": "デフォルト",
+        "description": "標準的な読み上げスタイル",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "createdBy": "system",
+        "createdAt": "2025-03-19T07:02:00.342Z",
+        "isDefault": true
+      },
+      {
+        "id": "style_1742378453573_951",
+        "name": "デフォルト_adv_1742378453573",
+        "description": "高度設定版",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "emphasis": 1,
+        "createdBy": "1005716357154885713",
+        "createdAt": "2025-03-19T10:00:53.573Z"
+      }
+    ],
+    "currentStyleId": "style_1742378453573_951"
+  },
+  "1317015435043934228": {
+    "styles": [
+      {
+        "id": "default",
+        "name": "デフォルト",
+        "description": "標準的な読み上げスタイル",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "createdBy": "system",
+        "createdAt": "2025-03-19T07:02:00.342Z",
+        "isDefault": true
+      },
+      {
+        "id": "style_1742378849977_653",
+        "name": "デフォルト_adv_1742378849977",
+        "description": "高度設定版",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "emphasis": 0.5,
+        "createdBy": "1005716357154885713",
+        "createdAt": "2025-03-19T10:07:29.977Z"
+      }
+    ],
+    "currentStyleId": "style_1742378849977_653"
+  },
+  "1281107107126575114": {
+    "styles": [
+      {
+        "id": "default",
+        "name": "デフォルト",
+        "description": "標準的な読み上げスタイル",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "createdBy": "system",
+        "createdAt": "2025-03-19T07:02:00.342Z",
+        "isDefault": true
+      },
+      {
+        "id": "style_1742381327372_142",
+        "name": "デフォルト_adv_1742381327372",
+        "description": "高度設定版",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "intonation": 1,
+        "createdBy": "1005716357154885713",
+        "createdAt": "2025-03-19T10:48:47.372Z"
+      },
+      {
+        "id": "style_1742381350589_72",
+        "name": "デフォルト_adv_1742381327372_adv_1742381350589",
+        "description": "高度設定版",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "intonation": 0,
+        "createdBy": "1005716357154885713",
+        "createdAt": "2025-03-19T10:49:10.589Z"
+      }
+    ],
+    "currentStyleId": "style_1742381350589_72"
+  }
+}
