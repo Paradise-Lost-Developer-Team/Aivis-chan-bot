@@ -1,0 +1,64 @@
+[
+  [
+    "1077441220181245962",
+    {
+      "userId": "1077441220181245962",
+      "username": "yv1_q2",
+      "totalMessages": 2,
+      "totalCharacters": 6,
+      "totalWords": 2,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-06T06:18:51.920Z",
+      "lastMessageDate": "2025-06-06T06:18:54.926Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "おまえら",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

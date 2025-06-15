@@ -1,16 +1,35 @@
-import { Client, Events, GatewayIntentBits, ActivityType, MessageFlags, Collection } from "discord.js";
-import { deployCommands } from "./utils/deploy-commands"; // 相対パスを修正
+import { Client, GatewayIntentBits, ActivityType, MessageFlags, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
-import { TOKEN } from "./config.json";
-import { AivisAdapter, loadAutoJoinChannels, deleteJoinChannelsConfig, loadJoinChannels } from "./utils/TTS-Engine"; // 相対パスを修正
-import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries"; // 相対パスを修正
+import * as path from "path";
+import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserSpeakers } from "./utils/TTS-Engine";
+import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
-import { saveVoiceState, reconnectToVoiceChannels } from './utils/voiceStateManager';
+import { reconnectToVoiceChannels } from './utils/voiceStateManager';
+import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
+import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
+import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
+import { initSentry } from './utils/sentry';
+import { VoiceConnection, VoiceConnectionStatus, entersState } from "@discordjs/voice";
 
-interface ExtendedClient extends Client {
+// アプリケーション起動の最初にSentryを初期化
+initSentry();
+
+// 相対パス (プロジェクトルート) を使うよう変更
+const DATA_DIR = path.resolve(process.cwd(), 'data');
+if (!fs.existsSync(DATA_DIR)) {
+    console.log(`データディレクトリを作成します: ${DATA_DIR}`);
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const CONFIG_PATH = path.resolve(process.cwd(), 'data', 'config.json');
+const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+const { TOKEN } = CONFIG;
+
+export interface ExtendedClient extends Client {
     commands: Collection<string, any>;
 }
 
@@ -50,18 +69,64 @@ async function gracefulShutdown() {
     process.exit(0);
 }
 
-client.once(Events.ClientReady, async () => {
+client.once("ready", async () => {
     try {
-        await deployCommands();
-        MessageCreate(client); // 非同期関数として呼び出す
-        VoiceStateUpdate(client); // 非同期関数として呼び出す
-        AivisAdapter();
-        console.log("起動完了");
-        client.user!.setActivity("起動中…", { type: ActivityType.Playing });
+        // 起動時にAivisSpeech Engineから話者情報を取得しspeakers.jsonに保存
+        await fetchAndSaveSpeakers();
+
+        await deployCommands(client);
+        console.log("コマンドのデプロイ完了");
         
-        // ボイスチャンネル再接続を先に実行する
+        // ボイスチャンネル再接続を先に実行し、完全に完了するまで待機
         console.log('ボイスチャンネルへの再接続を試みています...');
         await reconnectToVoiceChannels(client);
+        console.log('ボイスチャンネル再接続処理が完了しました');
+
+        // --- 追加: 各ギルドのVoiceConnectionがReadyになるまで待機 ---
+        const { voiceClients } = await import('./utils/TTS-Engine');
+        const waitForReady = async (vc: VoiceConnection, guildId: string) => {
+            try {
+                await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
+            } catch (e) {
+                console.warn(`ギルド${guildId}のVoiceConnectionがReadyになりませんでした:`, e);
+            }
+        };
+        for (const [guildId, vc] of Object.entries(voiceClients) as [string, VoiceConnection][]) {
+            if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
+                await waitForReady(vc, guildId);
+            }
+        }
+        // --- 追加ここまで ---
+        
+        // 会話統計トラッキングサービスの初期化
+        console.log("会話分析サービスを初期化しています...");
+        const conversationTrackingService = ConversationTrackingService.getInstance(client);
+        conversationTrackingService.setupEventListeners();
+        console.log("会話分析サービスの初期化が完了しました");
+        
+        // ボイススタンプ機能の初期化
+        console.log("ボイススタンプ機能を初期化しています...");
+        const voiceStampManager = VoiceStampManager.getInstance(client);
+        setupVoiceStampEvents(client);
+        console.log("ボイススタンプ機能の初期化が完了しました");
+        
+        // TTS関連の初期化を先に実行
+        console.log("TTS初期化中...");
+        loadAutoJoinChannels();
+        loadJoinChannels();
+        loadSpeakers();
+        loadUserSpeakers();
+        
+        console.log("TTS初期化完了");
+
+        AivisAdapter();
+        console.log("AivisAdapter初期化完了");
+        
+        // 再接続が完了した後で他の機能を初期化
+        MessageCreate(client);
+        VoiceStateUpdate(client);
+        console.log("起動完了");
+        client.user!.setActivity("起動完了", { type: ActivityType.Playing });
         
         // 辞書データ関連の処理を後で行う（エラーがあっても再接続には影響しない）
         try {
@@ -83,7 +148,7 @@ client.once(Events.ClientReady, async () => {
         setInterval(async () => {
             try {
                 const joinServerCount = client.guilds.cache.size;
-                await client.user!.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
+                client.user!.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
                 await new Promise(resolve => setTimeout(resolve, 15000));
                 const joinVCCount = client.voice.adapters.size;
                 client.user!.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
@@ -99,34 +164,104 @@ client.once(Events.ClientReady, async () => {
     }
 });
 
-client.on(Events.InteractionCreate, async interaction => {    
-    if (!interaction.isChatInputCommand()) return;
-
-    // Bot起動時にloadAutoJoinChannels()関数を実行
-    loadAutoJoinChannels();
-    loadJoinChannels();
-    console.log("Auto join channels loaded.");
-
+client.on("interactionCreate", async interaction => {
     try {
-
-        const command = client.commands.get(interaction.commandName);
-        if (!command) {
-            console.error(`No command matching ${interaction.commandName} was found.`);
-            return;
-        }
-
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'このコマンドの実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
-            } else {
-                await interaction.reply({ content: 'このコマンドの実行中にエラーが発生しました', flags: MessageFlags.Ephemeral });
+        // スラッシュコマンド処理
+        if (interaction.isChatInputCommand()) {
+            const command = client.commands.get(interaction.commandName);
+            if (!command) return;
+            
+            try {
+                await command.execute(interaction);
+            } catch (error) {
+                console.error(`コマンド実行エラー (${interaction.commandName}):`, error);
+                
+                // インタラクションの応答状態に基づいて適切に対応
+                if (interaction.replied || interaction.deferred) {
+                    try {
+                        await interaction.followUp({ 
+                            content: 'コマンド実行時にエラーが発生しました', 
+                            flags: MessageFlags.Ephemeral 
+                        });
+                    } catch (e: any) {
+                        if (e.code !== 10062) // Unknown interaction以外のエラーのみログ
+                            console.error("FollowUp失敗:", e);
+                    }
+                } else {
+                    try {
+                        await interaction.reply({ 
+                            content: 'コマンド実行時にエラーが発生しました', 
+                            flags: MessageFlags.Ephemeral 
+                        });
+                    } catch (e: any) {
+                        if (e.code !== 10062) // Unknown interaction以外のエラーのみログ
+                            console.error("Reply失敗:", e);
+                    }
+                }
             }
         }
+        
+        // ボタンインタラクション処理
+        else if (interaction.isButton()) {
+            console.log(`ボタン押下: ${interaction.customId}`);
+            
+            // helpコマンドのボタン処理
+            if (interaction.customId.startsWith('previous_') || interaction.customId.startsWith('next_')) {
+                const helpCommand = require('./commands/utility/help');
+                await helpCommand.buttonHandler(interaction);
+            }
+            // 他のボタンハンドラーはここに追加
+        }
     } catch (error) {
-        console.error(error);
+        console.error('インタラクション処理エラー:', error);
+    }
+});
+
+client.on("guildCreate", async (guild) => {
+    try {
+        const embed = new EmbedBuilder()
+            .setTitle('Aivis Chan Botが導入されました！')
+            .setDescription('Aivis Chan Botを導入いただきありがとうございます。Discordサーバーにてメッセージ読み上げ等を行う便利BOTです。')
+            .addFields(
+                { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
+                { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
+                { name: '基本コマンド', value: '• /help\n• /join\n• /leave' },
+                { name: '🌟 プレミアムプラン', value: '• Pro版: 追加の声優、優先キュー、高品質音声\n• Premium版: 独占ボイス、無制限辞書、優先サポート\n• 詳細は `/subscription info` で確認' },
+                { name: '💰 Patreon連携', value: 'PatreonでBot開発をサポートすると、Pro版やPremium版の特典が自動で適用されます！\n• `/patreon link` コマンドでPatreonアカウントを連携\n• 支援Tierに応じて特典が自動有効化' }
+            )
+            .setFooter({ text: 'Powered by AivisSpeech' })
+            .setColor(0x00AAFF);
+
+        const row = new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('利用規約')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Term-of-Service'),
+                new ButtonBuilder()
+                    .setLabel('プライバシーポリシー')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy'),
+                new ButtonBuilder()
+                    .setLabel('購読プラン')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Subscription'),
+                new ButtonBuilder()
+                    .setLabel('Patreonで支援する')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://www.patreon.com/c/AlcJP02'),
+                new ButtonBuilder()
+                    .setLabel('サポートサーバー')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL('https://discord.gg/c4TrxUD5XX')
+            );
+
+        const systemChannel = guild.systemChannel;
+        if (systemChannel && systemChannel.isTextBased()) {
+            await systemChannel.send({ embeds: [embed], components: [row] });
+        }
+    } catch (error) {
+        console.error('Error sending welcome embed:', error);
     }
 });
 

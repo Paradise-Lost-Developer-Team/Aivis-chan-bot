@@ -1,11 +1,37 @@
 import * as fs from 'fs';
+import * as path from 'path';
+import { DICTIONARY_FILE } from './TTS-Engine';
 
 export const guildDictionary: { [key: string]: { [key: string]: any } } = {};
 
-const DICTIONARY_FILE = "guild_dictionaries.json";
+export function loadToDictionaryFile() {
+    try {
+        if (fs.existsSync(DICTIONARY_FILE)) {
+            const data = fs.readFileSync(DICTIONARY_FILE, "utf-8");
+            const parsed = JSON.parse(data);
+            Object.assign(guildDictionary, parsed);
+            console.log(`辞書ファイルを読み込みました: ${DICTIONARY_FILE}`);
+        } else {
+            console.log(`辞書ファイルが存在しません: ${DICTIONARY_FILE}`);
+        }
+    } catch (error) {
+        console.error(`辞書ファイル読み込みエラー (${DICTIONARY_FILE}):`, error);
+    }
+}
 
 export function saveToDictionaryFile() {
-    fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
+    try {
+        // ディレクトリ存在確認
+        const dirname = path.dirname(DICTIONARY_FILE);
+        if (!fs.existsSync(dirname)) {
+            fs.mkdirSync(dirname, { recursive: true });
+        }
+        
+        fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 4), "utf-8");
+        console.log(`辞書ファイルを保存しました: ${DICTIONARY_FILE}`);
+    } catch (error) {
+        console.error(`辞書ファイル保存エラー (${DICTIONARY_FILE}):`, error);
+    }
 }
 
 export function updateGuildDictionary(guildId: string, word: string, details: any) {
@@ -49,15 +75,20 @@ export async function fetchAllUUIDs(): Promise<void> {
         try {
             const response = await fetch('https://api.mojang.com/users/profiles/minecraft/nickname', {
                 signal: controller.signal
+            }).catch(err => {
+                console.log(`Fetch error caught: ${err.message}`);
+                return null; // エラー時にnullを返してフローを継続
             });
             
             clearTimeout(timeoutId); // タイムアウトをクリア
             
-            if (response.ok) {
+            if (response && response.ok) {
                 const data = await response.json();
-                // 以降の処理...
-            } else {
+                // 処理を続行...
+            } else if (response) {
                 console.log(`Error fetching user dictionary: HTTP ${response.status}`);
+            } else {
+                console.log(`Failed to fetch user dictionary (null response)`);
             }
         } catch (fetchError) {
             console.log(`Attempt ${attempts} - Error fetching user dictionary: ${fetchError}`);
@@ -73,19 +104,41 @@ export async function fetchAllUUIDs(): Promise<void> {
 
 export class ServerStatus {
     guildId: string;
+    // guild_id保存先のファイルパス
+    private GUILD_ID_FILE: string;
+    
     constructor(guildId: string) {
         this.guildId = guildId;
-        this.saveTask();
+        
+        // プロジェクトルートディレクトリへのパスを取得
+        const currentDir = __dirname;
+        let projectRoot: string;
+        
+        if (currentDir.includes('build/js/utils') || currentDir.includes('build\\js\\utils')) {
+            projectRoot = path.resolve(path.join(currentDir, '..', '..', '..'));
+        } else if (currentDir.includes('/utils') || currentDir.includes('\\utils')) {
+            projectRoot = path.resolve(path.join(currentDir, '..'));
+        } else {
+            projectRoot = process.cwd();
         }
+        
+        this.GUILD_ID_FILE = path.join(projectRoot, "guild_id.txt");
+        this.saveTask();
+    }
 
     async saveTask() {
         while (true) {
-            console.log(`Saving guild id: ${this.guildId}`);
             try {
-                fs.writeFileSync('guild_id.txt', this.guildId); // guild_id をファイルに保存
+                // ディレクトリ存在確認
+                const dirname = path.dirname(this.GUILD_ID_FILE);
+                if (!fs.existsSync(dirname)) {
+                    fs.mkdirSync(dirname, { recursive: true });
+                }
+                
+                fs.writeFileSync(this.GUILD_ID_FILE, this.guildId);
                 await new Promise(resolve => setTimeout(resolve, 60000)); // 60秒ごとに保存
-            } catch (error: any) {
-                console.error("Error saving guild id:", error);
+            } catch (error) {
+                console.error(`Error saving guild id to ${this.GUILD_ID_FILE}:`, error);
             }
         }
     }

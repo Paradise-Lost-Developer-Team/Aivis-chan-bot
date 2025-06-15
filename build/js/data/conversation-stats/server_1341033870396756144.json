@@ -1,0 +1,98 @@
+{
+  "serverId": "1341033870396756144",
+  "serverName": "Family",
+  "totalMessages": 1,
+  "totalCharacters": 4,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1341033871269036136",
+      {
+        "channelId": "1341033871269036136",
+        "channelName": "🗨｜トーク",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+  ],
+  "averageMessageLength": 4,
+  "messageDistribution": [
+    [
+      "2025-04-17",
+      1
+    ]
+  ],
+  "mostActiveUser": "610690178021064704",
+  "mostActiveChannel": "1341033871269036136"
+}
