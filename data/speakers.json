@@ -110,21 +110,6 @@
     }
   },
   {
-    "name": "まい",
-    "speaker_uuid": "41b7785f-35cc-4089-a360-dd8a63da5e75",
-    "styles": [
-      {
-        "name": "ノーマル",
-        "id": 1431611904,
-        "type": "talk"
-      }
-    ],
-    "version": "1.0.0",
-    "supported_features": {
-      "permitted_synthesis_morphing": "NOTHING"
-    }
-  },
-  {
     "name": "るな",
     "speaker_uuid": "aa63d66e-92fe-499e-9e0d-15dad4a61d0d",
     "styles": [
@@ -171,36 +156,6 @@
       {
         "name": "じょうきげん",
         "id": 532977858,
-        "type": "talk"
-      }
-    ],
-    "version": "1.0.0",
-    "supported_features": {
-      "permitted_synthesis_morphing": "NOTHING"
-    }
-  },
-  {
-    "name": "花音",
-    "speaker_uuid": "b1ca560f-f212-4e67-ab7d-0a4f5afb75a8",
-    "styles": [
-      {
-        "name": "ノーマル",
-        "id": 1325133120,
-        "type": "talk"
-      }
-    ],
-    "version": "1.0.0",
-    "supported_features": {
-      "permitted_synthesis_morphing": "NOTHING"
-    }
-  },
-  {
-    "name": "蒼月ハヤテ",
-    "speaker_uuid": "a82fc628-f166-427f-b568-4c4f94921629",
-    "styles": [
-      {
-        "name": "ノーマル",
-        "id": 593129376,
         "type": "talk"
       }
     ],
