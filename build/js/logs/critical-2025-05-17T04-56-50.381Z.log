@@ -1,0 +1,5 @@
+[2025-05-17T04-56-50.381Z] [uncaughtException] getaddrinfo ENOTFOUND japan1192.discord.media
+Error: getaddrinfo ENOTFOUND japan1192.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+

@@ -1,0 +1,6 @@
+[2025-06-14T07-55-23.940Z] [uncaughtException] 
+AggregateError [ETIMEDOUT]: 
+    at internalConnectMultiple (node:net:1139:18)
+    at afterConnectMultiple (node:net:1712:7)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+

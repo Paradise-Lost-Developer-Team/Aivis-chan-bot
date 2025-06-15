@@ -1,0 +1,21 @@
+{
+  "966557943271133235": {
+    "Optifine": {
+      "pronunciation": "オプティファイン",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "1333082050651230262": {
+    "御冬": {
+      "pronunciation": "ミフユ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    },
+    "ごふゆ": {
+      "pronunciation": "ミフユ",
+      "accentType": 2,
+      "wordType": "PERSON_NAME"
+    }
+  }
+}

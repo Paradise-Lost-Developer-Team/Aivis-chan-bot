@@ -1,0 +1,8 @@
+[2025-06-11T11-38-28.230Z] [unhandledRejection] Cannot perform IP discovery - socket closed
+Error: Cannot perform IP discovery - socket closed
+    at Socket.<anonymous> (C:\Users\AZ-hima\2台目-Aivis-Chan-Bot\node_modules\@discordjs\voice\dist\index.js:373:46)
+    at Object.onceWrapper (node:events:632:28)
+    at Socket.emit (node:events:530:35)
+    at socketCloseNT (node:dgram:808:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+

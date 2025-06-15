@@ -1,0 +1,20 @@
+{
+    "TOKEN": "MTMzNDczMjM2OTgzMTI2ODM1Mg.GOVTJE.h-gbOQ_77J6dvMB64FeTVL6jUhk6FOnSlmmLPI",
+    "clientId": "1334732369831268352",
+    "PATREON": {
+        "CLIENT_ID": "HBIxSZ_J8ZP6vvRs2jcQuFXrqjn0aGfI_DmGb3ZbslKymcxaUTxbBrdeB2UvnY1I",
+        "CLIENT_SECRET": "dQeerzvp8gwxuOI_9hJ7KZxrDWhDJVOp8yLq_wv_kTKZo7sb6NedIuUnGAT_nVQK",
+        "REDIRECT_URI": "https://paradise-lost-developer-team.github.io/Aivis-chan-bot/callback"
+    },
+    "TTS_HOST": "127.0.0.1",
+    "TTS_PORT": 10101,
+    "TTS_TIMEOUT": 15000,
+    "TTS_MAX_RETRIES": 3,
+    "TTS_RETRY_DELAY": 1000,
+    "sentry": {
+        "dsn": "https://d0b59b0c737cec133e7fa01b6d4fb241@o4509140991737856.ingest.us.sentry.io/4509140994228224",
+        "environment": "production",
+        "tracesSampleRate": 1.0,
+        "enabled": true
+    }
+}

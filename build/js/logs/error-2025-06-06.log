@@ -1,0 +1,11 @@
+[2025-06-06T04-05-34.429Z] [uncaughtException] getaddrinfo ENOTFOUND japan2510.discord.media
+Error: getaddrinfo ENOTFOUND japan2510.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+[2025-06-06T04-12-42.344Z] [uncaughtException] 
+AggregateError [ETIMEDOUT]: 
+    at internalConnectMultiple (node:net:1139:18)
+    at afterConnectMultiple (node:net:1712:7)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+

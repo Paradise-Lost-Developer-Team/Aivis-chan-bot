@@ -1,0 +1,15 @@
+[2025-05-17T04-56-50.381Z] [uncaughtException] getaddrinfo ENOTFOUND japan1192.discord.media
+Error: getaddrinfo ENOTFOUND japan1192.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+[2025-05-17T05-24-25.082Z] [uncaughtException] connect ETIMEDOUT 10.0.0.1:443
+Error: connect ETIMEDOUT 10.0.0.1:443
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+[2025-05-17T18-36-03.665Z] [uncaughtException] getaddrinfo ENOTFOUND japan3512.discord.media
+Error: getaddrinfo ENOTFOUND japan3512.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+

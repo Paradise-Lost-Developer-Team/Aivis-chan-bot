@@ -1,0 +1,154 @@
+{
+  "serverId": "1208072765069074442",
+  "serverName": "コミュニティ「TSUSHIWA」",
+  "totalMessages": 20,
+  "totalCharacters": 14,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1208072766926889072",
+      {
+        "channelId": "1208072766926889072",
+        "channelName": "システムメッセージ",
+        "totalMessages": 19,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          1,
+          1,
+          2,
+          6,
+          3,
+          3,
+          0,
+          1
+        ],
+        "weekdayActivity": [
+          3,
+          5,
+          0,
+          0,
+          0,
+          0,
+          11
+        ]
+      }
+    ],
+    [
+      "1379057240522231809",
+      {
+        "channelId": "1379057240522231809",
+        "channelName": "tachikawa1214's Room",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    1,
+    1,
+    2,
+    6,
+    4,
+    3,
+    0,
+    1
+  ],
+  "weekdayActivity": [
+    3,
+    6,
+    0,
+    0,
+    0,
+    0,
+    11
+  ],
+  "averageMessageLength": 0.7,
+  "messageDistribution": [
+    [
+      "2025-05-31",
+      1
+    ],
+    [
+      "2025-06-02",
+      6
+    ],
+    [
+      "2025-06-14",
+      10
+    ],
+    [
+      "2025-06-15",
+      3
+    ]
+  ],
+  "mostActiveUser": "747686547968491521",
+  "mostActiveChannel": "1208072766926889072"
+}
