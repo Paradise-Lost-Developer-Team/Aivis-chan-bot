@@ -1,8 +1,8 @@
 {
   "serverId": "1237119393989660824",
   "serverName": "ぺろりん☆さば",
-  "totalMessages": 10838,
-  "totalCharacters": 169767,
+  "totalMessages": 10840,
+  "totalCharacters": 169787,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -407,7 +407,7 @@
       {
         "channelId": "1237123496362901534",
         "channelName": "【🗿】つぶやく",
-        "totalMessages": 1019,
+        "totalMessages": 1021,
         "messageByUsers": {},
         "hourlyActivity": [
           36,
@@ -428,7 +428,7 @@
           35,
           30,
           47,
-          48,
+          50,
           45,
           39,
           163,
@@ -436,7 +436,7 @@
           33
         ],
         "weekdayActivity": [
-          291,
+          293,
           266,
           45,
           70,
@@ -2358,7 +2358,7 @@
     377,
     464,
     480,
-    708,
+    710,
     983,
     768,
     1209,
@@ -2366,7 +2366,7 @@
     600
   ],
   "weekdayActivity": [
-    2071,
+    2073,
     1157,
     1007,
     1664,
@@ -2374,7 +2374,7 @@
     1078,
     2565
   ],
-  "averageMessageLength": 15.664052408193394,
+  "averageMessageLength": 15.6630073800738,
   "messageDistribution": [
     [
       "2025-05-10",
@@ -2522,7 +2522,7 @@
     ],
     [
       "2025-06-15",
-      248
+      250
     ]
   ],
   "mostActiveUser": "1242785742275481723",

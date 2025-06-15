@@ -30780,12 +30780,12 @@
     {
       "userId": "1182962697696977007",
       "username": "shuredinmasukarunoneko",
-      "totalMessages": 2161,
-      "totalCharacters": 33181,
-      "totalWords": 2506,
+      "totalMessages": 2163,
+      "totalCharacters": 33201,
+      "totalWords": 2508,
       "totalEmojis": 126,
       "firstMessageDate": "2025-05-10T22:51:34.718Z",
-      "lastMessageDate": "2025-06-15T08:51:17.644Z",
+      "lastMessageDate": "2025-06-15T09:11:37.208Z",
       "mentionsGiven": 62,
       "mentionsReceived": 38,
       "wordFrequency": [
@@ -39036,6 +39036,14 @@
         [
           "2750とは思えん",
           1
+        ],
+        [
+          "クッキーはうまし",
+          1
+        ],
+        [
+          "クッキーはめっちゃうまい",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -39179,7 +39187,7 @@
         64,
         144,
         163,
-        192,
+        194,
         255,
         293,
         303,
@@ -39187,7 +39195,7 @@
         0
       ],
       "weekdayActivity": [
-        412,
+        414,
         265,
         161,
         252,
