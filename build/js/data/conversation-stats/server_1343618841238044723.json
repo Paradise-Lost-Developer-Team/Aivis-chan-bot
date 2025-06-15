@@ -1,0 +1,98 @@
+{
+  "serverId": "1343618841238044723",
+  "serverName": "身内さーばー",
+  "totalMessages": 1,
+  "totalCharacters": 0,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1343618842265518306",
+      {
+        "channelId": "1343618842265518306",
+        "channelName": "一般",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "averageMessageLength": 0,
+  "messageDistribution": [
+    [
+      "2025-04-22",
+      1
+    ]
+  ],
+  "mostActiveUser": "1307580385043021885",
+  "mostActiveChannel": "1343618842265518306"
+}

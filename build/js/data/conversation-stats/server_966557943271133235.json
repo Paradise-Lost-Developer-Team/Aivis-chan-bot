@@ -1,8 +1,8 @@
 {
   "serverId": "966557943271133235",
   "serverName": "Paradise Lost 原神鯖",
-  "totalMessages": 83771,
-  "totalCharacters": 925804,
+  "totalMessages": 83780,
+  "totalCharacters": 925919,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -1199,7 +1199,7 @@
       {
         "channelId": "1082521345901994046",
         "channelName": "👑聖遺物",
-        "totalMessages": 28,
+        "totalMessages": 30,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -1220,7 +1220,7 @@
           0,
           3,
           2,
-          5,
+          7,
           1,
           2,
           1,
@@ -1228,7 +1228,7 @@
           5
         ],
         "weekdayActivity": [
-          3,
+          5,
           4,
           2,
           2,
@@ -13035,7 +13035,7 @@
       {
         "channelId": "1383036567463006240",
         "channelName": "45_tissue's Room",
-        "totalMessages": 2397,
+        "totalMessages": 2404,
         "messageByUsers": {},
         "hourlyActivity": [
           66,
@@ -13056,7 +13056,7 @@
           78,
           141,
           92,
-          75,
+          82,
           41,
           35,
           44,
@@ -13064,7 +13064,7 @@
           100
         ],
         "weekdayActivity": [
-          652,
+          659,
           0,
           0,
           0,
@@ -13314,7 +13314,7 @@
     2926,
     4242,
     4722,
-    4294,
+    4303,
     4376,
     5374,
     4816,
@@ -13322,7 +13322,7 @@
     5049
   ],
   "weekdayActivity": [
-    14513,
+    14522,
     10284,
     10858,
     11513,
@@ -13330,7 +13330,7 @@
     12495,
     11370
   ],
-  "averageMessageLength": 11.051604970693916,
+  "averageMessageLength": 11.051790403437575,
   "messageDistribution": [
     [
       "2025-04-26",
@@ -13534,7 +13534,7 @@
     ],
     [
       "2025-06-15",
-      505
+      514
     ]
   ],
   "mostActiveUser": "778827415018537020",

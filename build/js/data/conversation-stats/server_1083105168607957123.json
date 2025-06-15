@@ -1,0 +1,102 @@
+{
+  "serverId": "1083105168607957123",
+  "serverName": "テスト",
+  "totalMessages": 9,
+  "totalCharacters": 2401,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1083105168607957125",
+      {
+        "channelId": "1083105168607957125",
+        "channelName": "一般",
+        "totalMessages": 9,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          2,
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          8
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    2,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    8
+  ],
+  "averageMessageLength": 266.77777777777777,
+  "messageDistribution": [
+    [
+      "2025-05-17",
+      8
+    ],
+    [
+      "2025-05-30",
+      1
+    ]
+  ],
+  "mostActiveUser": "427303239310901251",
+  "mostActiveChannel": "1083105168607957125"
+}

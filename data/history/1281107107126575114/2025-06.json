@@ -1,6 +1,19 @@
 [
   {
+<<<<<<< HEAD
     "timestamp": "2025-06-04T02:26:26.020Z",
+=======
+    "timestamp": "2025-06-04T02:36:09.069Z",
+    "text": "ああ",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  },
+  {
+    "timestamp": "2025-06-04T02:36:21.189Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "ああ",
     "userId": "809627147333140531",
     "username": "Alec / アレク",
