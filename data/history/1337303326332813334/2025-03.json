@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2025-03-19T13:42:45.686Z",
+    "text": "た",
+    "userId": "system",
+    "username": "システム",
+    "speakerId": 888753760,
+    "channelId": "",
+    "channelName": ""
+  },
+  {
+    "timestamp": "2025-03-19T13:42:46.319Z",
+    "text": "た",
+    "userId": "1350832420479569952",
+    "username": "美 羽",
+    "speakerId": 888753760,
+    "channelId": "1339050703900905533",
+    "channelName": "テスト"
+  },
+  {
+    "timestamp": "2025-03-19T13:42:52.129Z",
+    "text": "あいうえお",
+    "userId": "system",
+    "username": "システム",
+    "speakerId": 888753760,
+    "channelId": "",
+    "channelName": ""
+  },
+  {
+    "timestamp": "2025-03-19T13:42:52.990Z",
+    "text": "あいうえお",
+    "userId": "1350832420479569952",
+    "username": "美 羽",
+    "speakerId": 888753760,
+    "channelId": "1339050703900905533",
+    "channelName": "テスト"
+  },
+  {
+    "timestamp": "2025-03-19T13:43:26.237Z",
+    "text": "あいうえお",
+    "userId": "system",
+    "username": "システム",
+    "speakerId": 888753760,
+    "channelId": "",
+    "channelName": ""
+  },
+  {
+    "timestamp": "2025-03-19T13:43:27.133Z",
+    "text": "あいうえお",
+    "userId": "1350832420479569952",
+    "username": "美 羽",
+    "speakerId": 888753760,
+    "channelId": "1339050703900905533",
+    "channelName": "テスト"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "966557943271133235": {
+    "styles": [
+      {
+        "id": "default",
+        "name": "デフォルト",
+        "description": "標準的な読み上げスタイル",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "createdBy": "system",
+        "createdAt": "2025-04-13T07:47:39.848Z",
+        "isDefault": true
+      },
+      {
+        "id": "style_1744543821490_303",
+        "name": "デフォルト_adv_1744543821490",
+        "description": "高度設定版",
+        "volume": 0.2,
+        "pitch": 0,
+        "speed": 1,
+        "intonation": 1,
+        "emphasis": 0.8,
+        "formant": 1,
+        "createdBy": "809627147333140531",
+        "createdAt": "2025-04-13T11:30:21.490Z"
+      }
+    ],
+    "currentStyleId": "style_1744543821490_303"
+  }
+}

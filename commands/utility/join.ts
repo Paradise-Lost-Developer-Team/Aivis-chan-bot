@@ -1,12 +1,12 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel } from '@discordjs/voice';
-import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
-import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../TTS-Engine';
+import { joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
+import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
+import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('join')
-        .setDescription('BOTをチャンネルに参加します')
+        .setDescription('BOTをチャンネルに参加させます')
         .addChannelOption(option =>
             option.setName('voice_channel') // 小文字に変更
                 .setDescription('参加するボイスチャンネル')
@@ -38,17 +38,41 @@ module.exports = {
         }
 
         const guildId = interaction.guildId!;
+        
+        // 既に接続しているかチェック
+        let voiceClient = voiceClients[guildId];
+        if (voiceClient) {
+            // 現在Botが接続しているボイスチャンネルを取得
+            const currentVoiceChannel = interaction.guild?.channels.cache.find(
+                ch => ch.isVoiceBased() && ch.members.has(interaction.client.user!.id)
+            ) as VoiceChannel | undefined;
+            
+            if (currentVoiceChannel) {
+                // 既に接続しているチャンネルと指定されたチャンネルが異なる場合
+                if (currentVoiceChannel.id !== voiceChannel.id) {
+                    await interaction.reply({
+                        content: `❌ 既に別のボイスチャンネル「${currentVoiceChannel.name}」に接続しています。\n他のチャンネルに移動させるには、まず \`/leave\` コマンドで退出させてから再度呼んでください。`,
+                        flags: MessageFlags.Ephemeral
+                    });
+                    return;
+                } else {
+                    // 同じチャンネルの場合
+                    textChannels[guildId] = textChannel; // テキストチャンネルの更新のみ
+                    await interaction.reply(`✅ 既に「${currentVoiceChannel.name}」に接続しています。テキストチャンネルを「${textChannel.name}」に設定しました。`);
+                    return;
+                }
+            }
+        }
+        
         textChannels[guildId] = textChannel;
 
         try {
-            let voiceClient = voiceClients[guildId];
-            if (voiceClient) {
-                await voiceClient.disconnect();
-            }
             voiceClient = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: guildId,
-                adapterCreator: interaction.guild!.voiceAdapterCreator as any
+                adapterCreator: interaction.guild!.voiceAdapterCreator as any,
+                selfDeaf: true, // スピーカーはOFF（聞こえない）
+                selfMute: false // マイクはON（話せる）
             });
             voiceClients[guildId] = voiceClient;
 
@@ -58,9 +82,23 @@ module.exports = {
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
             loadJoinChannels();
 
-            // Botが接続した際のアナウンス
-            const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient, path, guildId, interaction);
+            // 追加: Ready になるまで待機
+            await new Promise<void>((resolve) => {
+                const onReady = () => {
+                    voiceClient.off(VoiceConnectionStatus.Disconnected, onError);
+                    resolve();
+                };
+                const onError = () => {
+                    voiceClient.off(VoiceConnectionStatus.Ready, onReady);
+                    resolve();
+                };
+                voiceClient.once(VoiceConnectionStatus.Ready, onReady);
+                voiceClient.once(VoiceConnectionStatus.Disconnected, onError);
+            });
+
+            // 読み上げ開始
+            await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
+
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
