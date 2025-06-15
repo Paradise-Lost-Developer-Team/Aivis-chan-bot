@@ -4,13 +4,13 @@
     {
       "userId": "914065595476103198",
       "username": "dia_0c0_amia12",
-      "totalMessages": 40,
-      "totalCharacters": 402,
-      "totalWords": 37,
+      "totalMessages": 41,
+      "totalCharacters": 423,
+      "totalWords": 38,
       "totalEmojis": 3,
       "firstMessageDate": "2025-06-09T14:08:31.263Z",
-      "lastMessageDate": "2025-06-12T05:49:37.150Z",
-      "mentionsGiven": 11,
+      "lastMessageDate": "2025-06-15T09:24:28.784Z",
+      "mentionsGiven": 12,
       "mentionsReceived": 6,
       "wordFrequency": [
         [
@@ -128,6 +128,10 @@
         [
           "良かった",
           1
+        ],
+        [
+          "<@816953664701988894>",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -155,7 +159,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0,
@@ -163,7 +167,7 @@
         10
       ],
       "weekdayActivity": [
-        0,
+        1,
         10,
         0,
         29,
@@ -183,14 +187,14 @@
     {
       "userId": "816953664701988894",
       "username": "youtubenyahunyahu",
-      "totalMessages": 54,
-      "totalCharacters": 762,
-      "totalWords": 66,
+      "totalMessages": 56,
+      "totalCharacters": 772,
+      "totalWords": 68,
       "totalEmojis": 1,
       "firstMessageDate": "2025-06-09T14:08:40.887Z",
-      "lastMessageDate": "2025-06-12T05:49:10.256Z",
-      "mentionsGiven": 7,
-      "mentionsReceived": 10,
+      "lastMessageDate": "2025-06-15T09:26:14.737Z",
+      "mentionsGiven": 8,
+      "mentionsReceived": 11,
       "wordFrequency": [
         [
           "ミスったｗ",
@@ -431,6 +435,10 @@
         [
           "そこは覚えておいて",
           1
+        ],
+        [
+          "なってると思うけど",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -458,7 +466,7 @@
         0,
         0,
         0,
-        0,
+        2,
         0,
         0,
         0,
@@ -466,7 +474,7 @@
         14
       ],
       "weekdayActivity": [
-        0,
+        2,
         14,
         0,
         39,
@@ -644,14 +652,14 @@
     {
       "userId": "1005716357154885713",
       "username": "disc_nanashi",
-      "totalMessages": 16,
-      "totalCharacters": 180,
-      "totalWords": 16,
+      "totalMessages": 19,
+      "totalCharacters": 196,
+      "totalWords": 18,
       "totalEmojis": 1,
       "firstMessageDate": "2025-06-11T03:18:19.146Z",
-      "lastMessageDate": "2025-06-11T05:33:04.189Z",
+      "lastMessageDate": "2025-06-15T09:25:59.063Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 7,
+      "mentionsReceived": 8,
       "wordFrequency": [
         [
           "改善案あったらくだせえ",
@@ -704,6 +712,14 @@
         [
           "ご自由にどうぞ～",
           1
+        ],
+        [
+          "これ既に投下されてるよ",
+          1
+        ],
+        [
+          "左側のやつ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -731,7 +747,7 @@
         0,
         0,
         0,
-        0,
+        3,
         0,
         0,
         0,
@@ -739,7 +755,7 @@
         0
       ],
       "weekdayActivity": [
-        0,
+        3,
         0,
         0,
         16,
@@ -994,12 +1010,12 @@
     {
       "userId": "1025378429874470992",
       "username": "sta_0101",
-      "totalMessages": 2,
-      "totalCharacters": 20,
-      "totalWords": 4,
+      "totalMessages": 3,
+      "totalCharacters": 35,
+      "totalWords": 5,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-11T06:26:53.792Z",
-      "lastMessageDate": "2025-06-12T06:26:10.949Z",
+      "lastMessageDate": "2025-06-15T09:24:33.561Z",
       "mentionsGiven": 1,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -1013,6 +1029,10 @@
         ],
         [
           "速度多分85",
+          1
+        ],
+        [
+          "ふにゃ村ぐりーんばっぐがほしい",
           1
         ]
       ],
@@ -1036,7 +1056,7 @@
         2,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0,
@@ -1044,7 +1064,7 @@
         0
       ],
       "weekdayActivity": [
-        0,
+        1,
         0,
         0,
         1,
