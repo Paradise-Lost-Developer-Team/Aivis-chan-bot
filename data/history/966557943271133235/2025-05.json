@@ -1,5 +1,215 @@
 [
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-07T01:31:02.645Z",
+    "text": "おはよう！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T01:31:23.084Z",
+    "text": "モンハン見に来た",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T01:31:42.133Z",
+    "text": "全然かまわない",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T01:31:44.847Z",
+    "text": "仕事している",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:00:04.704Z",
+    "text": "覗きに来た！",
+    "userId": "1192629832425676922",
+    "username": "Seven",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:00:21.172Z",
+    "text": "私もお仕事中！",
+    "userId": "1192629832425676922",
+    "username": "Seven",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:00:32.745Z",
+    "text": "カスタム絵文字",
+    "userId": "1192629832425676922",
+    "username": "Seven",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:06:54.804Z",
+    "text": "キアヌか",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:06:57.879Z",
+    "text": "おもしろそう",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:07:10.308Z",
+    "text": "アクション系の洋画好きなんだよな",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:07:44.162Z",
+    "text": "最近最後にみたのミッションインポッシブルだから全然映画みとらんな",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:26:57.966Z",
+    "text": "メンテ明けたぞー！！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:27:03.772Z",
+    "text": "ドンドンきゃっきゃ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:27:28.261Z",
+    "text": "石うめうめ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:27:44.870Z",
+    "text": "うひー！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:27:49.369Z",
+    "text": "めちゃくちゃキニナル",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:27:51.491Z",
+    "text": "はわわ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:28:36.486Z",
+    "text": "？！？？",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:28:39.988Z",
+    "text": "新マップ？？！？",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:04.883Z",
+    "text": "地下あるかもしれんので",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:10.318Z",
+    "text": "僕は何も信じないぞ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:13.300Z",
+    "text": "絵文字 ´꒳`):",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:20.081Z",
+    "text": "絵文字なんだこれ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:22.335Z",
+=======
     "timestamp": "2025-05-01T12:38:01.793Z",
     "text": "巡回しにきましたー",
     "userId": "451040830266933258",
@@ -667,16 +877,89 @@
   },
   {
     "timestamp": "2025-05-02T12:47:28.176Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "www",
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
+<<<<<<< HEAD
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:43.392Z",
+    "text": "手前の小さい島でギミックじゃない",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:49.908Z",
+    "text": "だーれももってない()",
+    "userId": "1364201001028030564",
+    "username": "ゆず",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:29:53.790Z",
+    "text": "ぎみっくかあ",
+    "userId": "1364201001028030564",
+    "username": "ゆず",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:31:03.903Z",
+    "text": "とりあえず自分で見るから一旦落ち！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:31:05.331Z",
+    "text": "また！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:34:47.837Z",
+    "text": "上いきま！またねー！",
+    "userId": "1192629832425676922",
+    "username": "Seven",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-07T02:38:39.431Z",
+    "text": "ええ",
+    "userId": "1364201001028030564",
+    "username": "ゆず",
+    "speakerId": 888753760,
+    "channelId": "1369479109918462024",
+    "channelName": "tachikawa1214's Room"
+  },
+  {
+    "timestamp": "2025-05-17T09:48:31.019Z",
+    "text": "こんばんは",
+=======
     "channelId": "986219529275326474",
     "channelName": "VC1 原神"
   },
   {
     "timestamp": "2025-05-02T12:47:30.415Z",
     "text": "おもった",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -684,6 +967,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:48:40.226Z",
+    "text": "ぐども",
+=======
     "timestamp": "2025-05-02T12:54:14.759Z",
     "text": "ぽやっほー",
     "userId": "1181572462618607719",
@@ -695,6 +982,7 @@
   {
     "timestamp": "2025-05-02T12:54:19.880Z",
     "text": "ポがきた",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -702,8 +990,22 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:48:43.555Z",
+    "text": "いべしてり",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T09:48:49.480Z",
+    "text": "おなじく",
+=======
     "timestamp": "2025-05-02T12:54:40.599Z",
     "text": "あれじぶさんだ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -711,8 +1013,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:48:52.212Z",
+    "text": "イベスト",
+=======
     "timestamp": "2025-05-02T12:54:41.997Z",
     "text": "わほ〜",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -720,8 +1027,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:48:55.373Z",
+    "text": "ないすだ",
+=======
     "timestamp": "2025-05-02T12:54:51.616Z",
     "text": "おひさしぶりです",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -729,6 +1041,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:49:18.329Z",
+    "text": "今始めたところですわ",
+=======
     "timestamp": "2025-05-02T13:02:16.782Z",
     "text": "層岩巨淵ならつれてけるよ",
     "userId": "1181572462618607719",
@@ -758,6 +1074,7 @@
   {
     "timestamp": "2025-05-02T13:02:34.756Z",
     "text": "ｵ!",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -765,8 +1082,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:50:16.198Z",
+    "text": "イファじゃね...?",
+=======
     "timestamp": "2025-05-02T13:03:01.897Z",
     "text": "いまこなさんがくれたメモみつけたｗ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -774,6 +1096,9 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:50:36.035Z",
+=======
     "timestamp": "2025-05-02T13:03:04.835Z",
     "text": "あんないおまかせしてもいいですか",
     "userId": "812231024615751690",
@@ -784,6 +1109,7 @@
   },
   {
     "timestamp": "2025-05-02T13:03:10.757Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "絵文字",
     "userId": "1181572462618607719",
     "username": "cona",
@@ -792,8 +1118,49 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T09:52:12.442Z",
+    "text": "ﾜｧｲﾝ!?",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T09:52:56.540Z",
+    "text": "???",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:12:21.168Z",
+    "text": "おさわりですか",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:12:26.390Z",
+    "text": "ｻﾜｻﾜしたいにょん",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:13:09.460Z",
+    "text": "撫でられてしまいました…",
+=======
     "timestamp": "2025-05-02T13:03:34.177Z",
     "text": "ちかちか",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -801,7 +1168,389 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T10:13:25.086Z",
+    "text": "ファースト・タッチ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:14:05.579Z",
+    "text": "ペロッこれは……",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:16:02.969Z",
+    "text": "刻まれるか張り付いてしまいそう",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:16:25.745Z",
+    "text": "低温こわすんぎ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:18:33.751Z",
+    "text": "ん？これは経営ゲー？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:18:44.487Z",
+    "text": "そうだよ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:18:50.648Z",
+    "text": "まぁなんと",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:18:54.179Z",
+    "text": "原神ぽくないな",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:19:07.444Z",
+    "text": "基本は　エスコのとこでバフもらって",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:19:18.719Z",
+    "text": "施設の状況よくして",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:19:27.910Z",
+    "text": "合間にくるキャライベするんだ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:19:31.374Z",
+    "text": "のでいそがしい",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:19:38.732Z",
+    "text": "うわああん",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:19:49.519Z",
+    "text": "あたまわるくて何を言っているのかわからないよおおん",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:20:04.976Z",
+    "text": "真っ先にエスコのとこでご飯設定するのだけ覚えておけばいいよ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:21:43.577Z",
+    "text": "毎期設定しないと売上上がらんのが罠だから()",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:21:52.245Z",
+    "text": "まじですか",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:21:54.321Z",
+    "text": "たすかります",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:25:10.539Z",
+    "text": "イベストの幕間にプレイアブルがあちこちいるんだけど見つけるのが下手すぎて今回全然探せてない",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:25:20.687Z",
+    "text": "そうなの！？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:25:37.999Z",
+    "text": "え、シュヴァルマランなんとかだけじゃないですかもしかして",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:26:11.171Z",
+    "text": "キィニチとかのナタ組のほうがストーリー",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:26:21.548Z",
+    "text": "イベント画面の左下のやつ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:26:37.345Z",
+    "text": "二本立て・・・？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:26:40.460Z",
+    "text": "いみがわからない",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:26:46.274Z",
+    "text": "別で、同時進行・・・？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:26:59.722Z",
+    "text": "そう！メインストーリーと、ミニゲーム",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:27:04.165Z",
+    "text": "ﾌｧｰｰｰｰ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:27:09.578Z",
+    "text": "経営はミニゲームとミニストーリー",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:27:33.580Z",
+    "text": "事件追跡がメインストーリーで、合間にプレイアブル探し",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:31:43.500Z",
+    "text": "そこは近くに敵おらなんだ？",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:31:53.318Z",
+    "text": "多分さっき殺しちゃいました",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:32:04.071Z",
+    "text": "全部殺すはずだから足りてないかも",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:32:50.013Z",
+    "text": "連動してるやつだ…",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:32:58.560Z",
+    "text": "ほかに2か所ギミックがあるはず",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:33:09.419Z",
+    "text": "お！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:33:18.012Z",
+    "text": "全然大丈夫だったww",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:33:30.747Z",
+    "text": "水龍水龍なかないで",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:34:05.481Z",
+    "text": "カスタム絵文字",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:34:20.539Z",
+    "text": "あああ裁かれてしまいます～",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:34:40.144Z",
+    "text": "め、めしじゃ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:34:44.918Z",
+    "text": "目の前におるのに.......",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T10:34:48.238Z",
+=======
     "timestamp": "2025-05-02T13:03:36.356Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "www",
     "userId": "1181572462618607719",
     "username": "cona",
@@ -810,8 +1559,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T10:34:52.311Z",
+    "text": "体、置いていきます",
+=======
     "timestamp": "2025-05-02T13:03:44.946Z",
     "text": "いしきない",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -819,8 +1573,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T10:34:56.355Z",
+    "text": "爆速で食べてくる",
+=======
     "timestamp": "2025-05-02T13:03:53.915Z",
     "text": "回復しようと思ったらフルヘルスだったし",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -828,8 +1587,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T10:34:59.135Z",
+    "text": "いったん落ち着くんじゃよ",
+=======
     "timestamp": "2025-05-02T13:04:28.721Z",
     "text": "こちこち",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -837,6 +1601,9 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T10:35:00.776Z",
+=======
     "timestamp": "2025-05-02T13:07:53.956Z",
     "text": "tp",
     "userId": "1181572462618607719",
@@ -910,6 +1677,7 @@
   },
   {
     "timestamp": "2025-05-02T13:25:20.840Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "行ってらっしゃい",
     "userId": "1181572462618607719",
     "username": "cona",
@@ -918,8 +1686,40 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T10:35:07.032Z",
+    "text": "いてきま",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:07:42.326Z",
+    "text": "ただいま",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:07:50.564Z",
+    "text": "ｲﾌｧに声かけるぞ・・・・Z!",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:07:55.468Z",
+    "text": "おかえりー1",
+=======
     "timestamp": "2025-05-02T13:32:49.557Z",
     "text": "これでおわり！",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -927,6 +1727,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:07:57.610Z",
+    "text": "がんば！",
+=======
     "timestamp": "2025-05-02T13:33:02.023Z",
     "text": "やった～！ありがとうございます！",
     "userId": "812231024615751690",
@@ -947,6 +1751,7 @@
   {
     "timestamp": "2025-05-02T13:33:18.226Z",
     "text": "石もモラも手に入るから良い",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -954,8 +1759,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:08:20.423Z",
+    "text": "ﾄﾞｷﾄﾞｷしてきた...これが.....恋........!?",
+=======
     "timestamp": "2025-05-02T13:33:22.777Z",
     "text": "ｳﾏｳﾏ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -963,8 +1773,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:08:47.145Z",
+    "text": "しんぞうがもたない",
+=======
     "timestamp": "2025-05-02T13:33:49.922Z",
     "text": "先生もありがとうございます、たいへんたすかりました、、",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -972,8 +1787,22 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:10:49.395Z",
+    "text": "これサウンドボードにほしい",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:10:57.840Z",
+    "text": "www",
+=======
     "timestamp": "2025-05-02T13:34:00.301Z",
     "text": "大抵層岩巨淵のためにいる",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -981,8 +1810,49 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:11:56.802Z",
+    "text": "カメラワークがえてぃ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:12:51.138Z",
+    "text": "絵文字",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:14:22.199Z",
+    "text": "アハウってミュートできるんだ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:14:23.973Z",
+    "text": "便利だな",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:14:40.610Z",
+    "text": "そうしないとよるうるさそうだからね",
+=======
     "timestamp": "2025-05-02T13:34:05.710Z",
     "text": "ｼｮｳﾘｾﾝｾｲ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -990,8 +1860,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:14:51.028Z",
+    "text": "夜はさすがに寝るんじゃないか・・・？",
+=======
     "timestamp": "2025-05-02T13:34:22.926Z",
     "text": "わしも容易に石とかわれるようになりたい",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -999,8 +1874,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:15:16.146Z",
+    "text": "いや、命長そうだから睡眠とかいらない生物か？",
+=======
     "timestamp": "2025-05-02T13:34:30.922Z",
     "text": "みてるだけになってしまうのかなしい",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1008,8 +1888,22 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:15:35.572Z",
+    "text": "いつも寝言しか言ってないから起きてないかもしれない",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:15:48.528Z",
+    "text": "逆だったかもしれねえ",
+=======
     "timestamp": "2025-05-02T13:34:34.122Z",
     "text": "修行か～",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1017,6 +1911,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:18:03.590Z",
+    "text": "まつ毛美しいな",
+=======
     "timestamp": "2025-05-02T13:34:48.697Z",
     "text": "そのきもちわかる〜！！\n一緒にやりたいよね",
     "userId": "1181572462618607719",
@@ -1028,6 +1926,7 @@
   {
     "timestamp": "2025-05-02T13:34:56.841Z",
     "text": "けいうんちにいけばつめますか？修行",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1035,6 +1934,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:18:28.124Z",
+    "text": "なんだこの幸せ空間",
+=======
     "timestamp": "2025-05-02T13:35:01.224Z",
     "text": "(૭ ᐕ)૭=૭彡))動く絵文字 ﾊﾟｰﾝ!!",
     "userId": "1181572462618607719",
@@ -1046,6 +1949,7 @@
   {
     "timestamp": "2025-05-02T13:35:11.337Z",
     "text": "ゲーミング原石だ...",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1053,6 +1957,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:18:30.011Z",
+    "text": "ここに住みたい",
+=======
     "timestamp": "2025-05-02T13:35:13.541Z",
     "text": "お手洗い行てくる",
     "userId": "1181572462618607719",
@@ -1064,6 +1972,7 @@
   {
     "timestamp": "2025-05-02T13:35:15.158Z",
     "text": "いてらしや",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1071,8 +1980,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:18:32.055Z",
+    "text": "永住権が欲しい",
+=======
     "timestamp": "2025-05-02T13:36:16.002Z",
     "text": "いらいだけ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1080,8 +1994,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:18:50.122Z",
+    "text": "パレメルモニアで手続きしたらいけるよ",
+=======
     "timestamp": "2025-05-02T13:41:09.175Z",
     "text": "ただいま〜",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -1089,6 +2008,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:21:12.828Z",
+    "text": "すみませーんイファとオロルンの間の永住権くださーい",
+=======
     "timestamp": "2025-05-02T13:41:16.860Z",
     "text": "萌ってだれよポストマン！！",
     "userId": "1181572462618607719",
@@ -1127,6 +2050,7 @@
   {
     "timestamp": "2025-05-02T13:45:25.341Z",
     "text": "！？",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1134,8 +2058,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:21:16.170Z",
+    "text": "ここに住まわせてくださーい",
+=======
     "timestamp": "2025-05-02T13:45:40.148Z",
     "text": "",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1143,6 +2072,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:34:58.757Z",
+    "text": "こゆこと？",
+=======
     "timestamp": "2025-05-02T13:45:47.336Z",
     "text": "えっ？！？？？",
     "userId": "1181572462618607719",
@@ -1163,6 +2096,7 @@
   {
     "timestamp": "2025-05-02T13:46:05.279Z",
     "text": "天賦上げたのに火力うんちだったからいそぎで上げたけど",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1170,6 +2104,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:35:08.354Z",
+    "text": "これを追ってるかんじ？ですか？",
+=======
     "timestamp": "2025-05-02T13:46:09.215Z",
     "text": "会心のみスコア40.4",
     "userId": "1181572462618607719",
@@ -1190,6 +2128,7 @@
   {
     "timestamp": "2025-05-02T13:46:19.720Z",
     "text": "全財産の半分使った甲斐ありました",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1197,8 +2136,49 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:35:13.675Z",
+    "text": "そそそそｓ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:35:33.046Z",
+    "text": "2幕おわりまでは追い切れたんだけど",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:35:45.049Z",
+    "text": "3幕おわりとエピローグで探し忘れて",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:35:51.587Z",
+    "text": "絵文字",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:36:09.789Z",
+    "text": "攻略見ながらじゃないとムズそうではある",
+=======
     "timestamp": "2025-05-02T13:46:42.037Z",
     "text": "どれだっけ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1206,6 +2186,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:38:03.677Z",
+    "text": "2日後長くて草",
+=======
     "timestamp": "2025-05-02T13:46:49.317Z",
     "text": "さかずき",
     "userId": "1181572462618607719",
@@ -1280,6 +2264,7 @@
   {
     "timestamp": "2025-05-02T13:50:17.416Z",
     "text": "せいえいがりしてますよ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1287,8 +2272,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:38:28.458Z",
+    "text": "パレメルモニアとホテルしかキャラいないはずだけど",
+=======
     "timestamp": "2025-05-02T13:51:06.037Z",
     "text": "じぶさん何がいい？ディオナやくあいてるよ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -1296,8 +2286,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:38:32.886Z",
+    "text": "探せって猶予時間なんだよね",
+=======
     "timestamp": "2025-05-02T13:51:21.359Z",
     "text": "たのしくなってくるやんえ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -1305,8 +2300,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:38:57.899Z",
+    "text": "なるほどな",
+=======
     "timestamp": "2025-05-02T13:51:29.358Z",
     "text": "でぃおななんておるだけでええねん",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1314,6 +2314,10 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:40:34.589Z",
+    "text": "この衣装走るとﾁｬﾘｯって音する",
+=======
     "timestamp": "2025-05-02T13:51:30.938Z",
     "text": "それがいい",
     "userId": "1181572462618607719",
@@ -1334,6 +2338,7 @@
   {
     "timestamp": "2025-05-02T13:52:59.115Z",
     "text": "あ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1341,8 +2346,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:40:48.087Z",
+    "text": "鎖いっぱいついてるからね！",
+=======
     "timestamp": "2025-05-02T13:53:21.248Z",
     "text": "ハネムーンしにきてるよ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -1350,8 +2360,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:40:52.702Z",
+    "text": "わかりしころだから",
+=======
     "timestamp": "2025-05-02T13:53:25.405Z",
     "text": "なお各国にいる",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -1359,7 +2374,254 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:40:57.431Z",
+    "text": "声も高い",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:41:25.559Z",
+    "text": "家族がディルック推しなんだけど",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:41:36.142Z",
+    "text": "顔のモデリング変えるの嫌だって",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:41:41.444Z",
+    "text": "この顔が好きなんだって言ってた",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:41:55.243Z",
+    "text": "わかる、わかる",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:42:02.112Z",
+    "text": "ジト目だったのにガイアみたいになったらいやだそうな",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:42:06.455Z",
+    "text": "僕もこのモデルちゅきちゅき侍",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:42:26.699Z",
+    "text": "エスコボス行きたかったのか",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:42:40.909Z",
+    "text": "ないですねそんなもの",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:42:48.769Z",
+    "text": "一緒にやってほしいからうちこいよだった？",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:42:57.758Z",
+    "text": "この衣装だと心臓がそれになってるな",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:01.260Z",
+    "text": "自分とこ来てほしいって人が玉にいる",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:05.560Z",
+    "text": "いや、開いてないからじゃ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:06.737Z",
+    "text": "えぇ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:29.305Z",
+    "text": "自分とこなら自分が受け取るとボスリポップするから",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:44.045Z",
+    "text": "人んちはそこの人がやらんといかんのよね",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:45.578Z",
+    "text": "ww",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:43:52.989Z",
+    "text": "それは、そう",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:44:02.081Z",
+    "text": "友達いないのか",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:44:15.226Z",
+    "text": "それでたまにインマイワールドって人来る",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:44:34.021Z",
+    "text": "自分でやればよくないか・・・？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:44:56.575Z",
+    "text": "多分次いでに好感度ほしいタイプ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:45:03.252Z",
+    "text": "あぁ＾～",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:49:32.201Z",
+    "text": "キィニチはどこにいるんだろう",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:50:11.183Z",
+    "text": "見当たらないんだよね",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:50:24.963Z",
+    "text": "経営イベント周辺かな",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:50:34.853Z",
+    "text": "見つけられなかったものの戯言",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:52:21.760Z",
+=======
     "timestamp": "2025-05-02T13:53:33.317Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "絵文字️",
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
@@ -1368,6 +2630,9 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:53:09.265Z",
+=======
     "timestamp": "2025-05-02T13:53:35.857Z",
     "text": "絵文字️",
     "userId": "812231024615751690",
@@ -1927,6 +3192,7 @@
   },
   {
     "timestamp": "2025-05-02T14:41:36.676Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "カスタム絵文字",
     "userId": "1181572462618607719",
     "username": "cona",
@@ -1935,8 +3201,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:53:12.264Z",
+    "text": "いいたー！！",
+=======
     "timestamp": "2025-05-02T15:05:15.642Z",
     "text": "たっだーいまー",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -1944,8 +3215,31 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T11:53:22.527Z",
+    "text": "聞けて良かった",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:53:24.109Z",
+    "text": "ありがとう",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T11:53:29.925Z",
+    "text": "みつけられてよかた～",
+=======
     "timestamp": "2025-05-02T15:05:24.508Z",
     "text": "おかです～",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -1953,6 +3247,9 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:00:26.778Z",
+=======
     "timestamp": "2025-05-02T15:06:08.999Z",
     "text": "ホカホカしている(  ･̀ω･́  )",
     "userId": "1181572462618607719",
@@ -2035,6 +3332,7 @@
   },
   {
     "timestamp": "2025-05-02T15:55:42.880Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "こんばんわ",
     "userId": "427320991383814154",
     "username": "ぱーたー",
@@ -2043,7 +3341,11 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:00:36.309Z",
+=======
     "timestamp": "2025-05-02T15:55:49.468Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "おはようございます",
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
@@ -2052,8 +3354,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:00:39.335Z",
+    "text": "イベしています",
+=======
     "timestamp": "2025-05-02T15:55:56.807Z",
     "text": "ほぼ意識ないですがせいえいしています",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -2061,8 +3368,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:02:07.553Z",
+    "text": "ちょっとトイレ",
+=======
     "timestamp": "2025-05-02T15:56:31.307Z",
     "text": "ワイもモラ欲しさにいくかあ…",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "427320991383814154",
     "username": "ぱーたー",
     "speakerId": 888753760,
@@ -2070,17 +3382,9 @@
     "channelName": "VC1 原神"
   },
   {
-    "timestamp": "2025-05-02T15:56:49.125Z",
-    "text": "114514",
-    "userId": "812231024615751690",
-    "username": "パーリナイ浜田",
-    "speakerId": 888753760,
-    "channelId": "986219529275326474",
-    "channelName": "VC1 原神"
-  },
-  {
-    "timestamp": "2025-05-02T15:57:01.879Z",
-    "text": "まちがったにゃん",
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:02:23.752Z",
+    "text": "いてら",
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -2088,6 +3392,82 @@
     "channelName": "VC1 原神"
   },
   {
+    "timestamp": "2025-05-17T12:18:14.078Z",
+    "text": "こん～",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:21:56.756Z",
+    "text": "こんちは",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:22:19.472Z",
+    "text": "こんにちはー",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:22:28.042Z",
+    "text": "おじゃ",
+=======
+    "timestamp": "2025-05-02T15:56:49.125Z",
+    "text": "114514",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:31:06.012Z",
+    "text": "もどり",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:31:14.237Z",
+    "text": "人がおおいなあ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:31:15.722Z",
+    "text": "おっかえり",
+=======
+    "timestamp": "2025-05-02T15:57:01.879Z",
+    "text": "まちがったにゃん",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:31:23.660Z",
+    "text": "もう戻ってたと思ってた",
+=======
     "timestamp": "2025-05-02T15:57:08.884Z",
     "text": "大丈夫にゃん",
     "userId": "778827415018537020",
@@ -2099,6 +3479,7 @@
   {
     "timestamp": "2025-05-02T16:21:09.522Z",
     "text": "樹脂を使い切って寝るンゴ",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "1181572462618607719",
     "username": "cona",
     "speakerId": 888753760,
@@ -2106,8 +3487,13 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:31:31.207Z",
+    "text": "多いけどだれもしゃべってない",
+=======
     "timestamp": "2025-05-02T16:22:19.161Z",
     "text": "もら、、かいしゅうしてないや、、、、、、",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "userId": "812231024615751690",
     "username": "パーリナイ浜田",
     "speakerId": 888753760,
@@ -2115,6 +3501,1188 @@
     "channelName": "VC1 原神"
   },
   {
+<<<<<<< HEAD
+    "timestamp": "2025-05-17T12:31:41.763Z",
+    "text": "wwwww",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:31:47.771Z",
+    "text": "経営イベ序盤に985万売上した人いたらしい",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:31:48.713Z",
+    "text": "!?",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:31:51.799Z",
+    "text": "すげ～",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:32:00.671Z",
+    "text": "バケモンかよって思った",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:32:25.850Z",
+    "text": "お前は経営者になれ！やん",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:35:07.433Z",
+    "text": "今誰かマイクラやってんのかと思ったwww",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:35:08.953Z",
+    "text": "どいつ？",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:35:19.013Z",
+    "text": "2段階のやつ？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:35:31.928Z",
+    "text": "アイツは炎浴びせまくればいい",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:35:34.677Z",
+    "text": "それは火責めか過負荷",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:09.389Z",
+    "text": "ｲﾌｧを育てよう",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:15.399Z",
+    "text": "龍形態になったあとも炎浴びせればダウン取れます",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:19.347Z",
+    "text": "引こう",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:24.586Z",
+    "text": "!?",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:27.937Z",
+    "text": "えーーーーーるりあさんだあああああ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:34.516Z",
+    "text": "!?!?!?!",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:36.876Z",
+    "text": "こんばんわ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:38.269Z",
+    "text": "ども",
+    "userId": "305701041100554240",
+    "username": "Rulia",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:47.233Z",
+    "text": "こんちは",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:51.497Z",
+    "text": "原神トークの人だ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:36:59.429Z",
+    "text": "どんな人やねんｗ",
+    "userId": "305701041100554240",
+    "username": "Rulia",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:01.677Z",
+    "text": "マイク入ってますが",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:05.765Z",
+    "text": "けつのひとだよ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:10.310Z",
+    "text": "け、つ！？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:17.986Z",
+    "text": "ぴかちゅうのけつ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:25.164Z",
+    "text": "原神トークで時々棘さしてくるひと",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:34.877Z",
+    "text": "wwwwwwww",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:36.477Z",
+    "text": "そうだよ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:39.224Z",
+    "text": "いつもそんなだから",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:45.024Z",
+    "text": "だいたいあってる",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:47.161Z",
+    "text": "ツンデレって聞いた",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:37:48.905Z",
+    "text": "なるほどな",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:38:06.379Z",
+    "text": "自覚はあるらしい",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:38:12.119Z",
+    "text": "デレりゃええねんツンでもよ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:38:18.066Z",
+    "text": "推せる推せる",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:38:27.438Z",
+    "text": "大丈夫だ兄弟",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:41:33.143Z",
+    "text": "どこぞの腹ペコ姫の声がきこえる…",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:41:43.418Z",
+    "text": "飯を食いに来ていますよ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:42:11.568Z",
+    "text": "任務見ながら放置した火山進めるか…",
+    "userId": "305701041100554240",
+    "username": "Rulia",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:47:12.376Z",
+    "text": "おめでとー",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:47:15.266Z",
+    "text": "おつおつ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:47:17.503Z",
+    "text": "おめです～",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:47:31.995Z",
+    "text": "したがむしろ召使単騎いけそうな感じする",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:47:48.237Z",
+    "text": "あー初手避けてればいいよ",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:48:04.005Z",
+    "text": "体制上がってるだけだから",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:48:20.731Z",
+    "text": "その耐性が問題なんだけどね",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:48:48.917Z",
+    "text": "両完凸なら関係ないのかなって",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:49:11.380Z",
+    "text": "たしか耐性70%じゃなかったっけ？",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:49:34.252Z",
+    "text": "今喋ってるよ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:49:39.645Z",
+    "text": "ホラホラ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:49:52.485Z",
+    "text": "ぱたさん音声入力できるOSじゃないんだよね",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:50:04.772Z",
+    "text": "汚声なんだよなあ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:51:04.368Z",
+    "text": "なんか診療変わった状態で来るんじゃないかって言われてる",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:51:08.772Z",
+    "text": "ゲーム内登場と服が違う",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:51:34.132Z",
+    "text": "フリーナも服違ったから…",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:51:42.045Z",
+    "text": "爆発打ったら大木成人笠",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:51:45.379Z",
+    "text": "何語だこれは",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:55:31.590Z",
+    "text": "めちゃめちゃ原石もらえるなこのイベ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:55:59.634Z",
+    "text": "石も武器もくれるからおいしい",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:56:05.979Z",
+    "text": "yumyum",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:57:41.460Z",
+    "text": "両単騎いけた",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:57:51.617Z",
+    "text": "後半マヴィ以外無理ってぐらい無理",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:58:04.774Z",
+    "text": "アドミ",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:59:01.237Z",
+    "text": "弾さえあれば実質単騎で行ける花翼の問題児",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:59:41.198Z",
+    "text": "ベネット「立ってますね」\nシャンリン「立ってますね」\nトーマ「立ってますね」",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T12:59:57.578Z",
+    "text": "HP盛れる子にもたせるとだね",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:00:16.243Z",
+    "text": "PTを弾丸に見立てるのは草",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:00:22.729Z",
+    "text": "夜蘭かもしれねえ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:00:40.103Z",
+    "text": "なお贅沢な使い方",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:01:48.992Z",
+    "text": "あとはモンドのネコ",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:02:14.672Z",
+    "text": "特製ドリンク(物理)",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:03:39.543Z",
+    "text": "炎だけにするとそんな火力出ないのよ…",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:04:05.658Z",
+    "text": "ひやしちゃいけないから",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:04:19.742Z",
+    "text": "あ、約束の時間過ぎてた！",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:04:21.323Z",
+    "text": "いってきます",
+    "userId": "1181572462618607719",
+    "username": "cona",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:04:25.799Z",
+    "text": "いてら",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:04:30.398Z",
+    "text": "てらっさい",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:04:32.042Z",
+    "text": "いてらしや",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:13:13.504Z",
+    "text": "別のところから麻雀誘われたので行ってきます",
+    "userId": "427320991383814154",
+    "username": "ぱーたー",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:13:18.643Z",
+    "text": "いてらしや",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:13:21.101Z",
+    "text": "てらっさい",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:15:50.714Z",
+    "text": "おつおつ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:15:58.155Z",
+    "text": "おつです",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:16:13.715Z",
+    "text": "ちょっとべつのとこいってきます",
+    "userId": "343063958778806274",
+    "username": "ぜろ",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:16:28.821Z",
+    "text": "いてらしや",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:16:32.143Z",
+    "text": "リスがくそでかい",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:29:22.426Z",
+    "text": "リネットってこんな表情豊かな声でしたっけ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:29:38.743Z",
+    "text": "そうなのか",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:29:52.288Z",
+    "text": "配布されたときクソ機械ぽいと思っていた",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:30:08.432Z",
+    "text": "え、マシナリーじゃないのか・・・？",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:36:08.415Z",
+    "text": "ディオナ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:41:22.278Z",
+    "text": "そんなことより売り上げが気になる",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:41:52.841Z",
+    "text": "まだ、遊べます",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:43:28.927Z",
+    "text": "wwwwwww",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:43:33.370Z",
+    "text": "騒がしい無音",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:44:07.102Z",
+    "text": "このフィールド定期的にカニ拾えておもろい",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:44:57.673Z",
+    "text": "ミッションインポッシブルで草",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T13:53:42.918Z",
+    "text": "飲み物出したのにｗ",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T14:08:04.290Z",
+    "text": "とばしちゃた",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-17T14:12:19.297Z",
+    "text": "おつです",
+    "userId": "812231024615751690",
+    "username": "パーリナイ浜田",
+    "speakerId": 888753760,
+    "channelId": "986219529275326474",
+    "channelName": "VC1 原神"
+  },
+  {
+    "timestamp": "2025-05-23T06:11:38.377Z",
+    "text": "こんにちは",
+    "userId": "809627147333140531",
+    "username": "アレク",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:12:05.718Z",
+    "text": "ﾌｫｯﾌｫｯﾌｫ、こんにちわ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:20:28.402Z",
+    "text": "今授業中に先生にGTA見せてって言われて見せてる謎状況",
+    "userId": "809627147333140531",
+    "username": "アレク",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:20:34.265Z",
+    "text": "草",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:22:23.300Z",
+    "text": "kurasshushita",
+    "userId": "809627147333140531",
+    "username": "アレク",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:22:37.425Z",
+    "text": "ﾄﾞﾝﾏｲ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:57:02.008Z",
+    "text": "授業お疲れ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:59:52.485Z",
+    "text": "わはは",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T06:59:58.744Z",
+    "text": "さついがたかいのう",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:01:25.098Z",
+    "text": "逆に今でもまだGTAやってる人いるんじゃなあ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:04:51.795Z",
+    "text": "手配度リセット",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:07:59.294Z",
+    "text": "ミサイル付き改造車とかは強いイメージ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:08:52.826Z",
+    "text": "ストーカー",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:09:35.027Z",
+    "text": "手ごわい",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:10:48.476Z",
+    "text": "ﾊﾞｲﾊﾞｰｲ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:12:22.214Z",
+    "text": "ええ・・・",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:12:50.523Z",
+    "text": "でも今無防備そうだね",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:13:33.839Z",
+    "text": "ｗｗｗ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:15:06.139Z",
+    "text": "ひえ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:15:21.030Z",
+    "text": "ｗｗｗ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:16:18.589Z",
+    "text": "ないす",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:18:46.281Z",
+    "text": "そうだね",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:19:43.145Z",
+    "text": "人生リセットボタン",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:20:53.575Z",
+    "text": "地下いいね",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:21:23.997Z",
+    "text": "勝ったな",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:21:29.715Z",
+    "text": "負けたな",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:23:02.888Z",
+    "text": "ｗｗｗｗ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:23:45.892Z",
+    "text": "扉の近くにさえいなければしなない",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:23:55.877Z",
+    "text": "しんだーーーーーーｗｗｗｗ",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:28:48.268Z",
+    "text": "いえーい",
+    "userId": "451040830266933258",
+    "username": "AVID",
+    "speakerId": 888753760,
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+  },
+  {
+    "timestamp": "2025-05-23T07:29:38.527Z",
+=======
     "timestamp": "2025-05-02T16:22:27.596Z",
     "text": "してな〜い",
     "userId": "1181572462618607719",
@@ -29485,10 +32053,15 @@
   },
   {
     "timestamp": "2025-05-19T09:04:01.924Z",
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
     "text": "あい",
     "userId": "451040830266933258",
     "username": "AVID",
     "speakerId": 888753760,
+<<<<<<< HEAD
+    "channelId": "1375350047696228393",
+    "channelName": "alexandergg's Room"
+=======
     "channelId": "1373890076249161868",
     "channelName": "yuu_bin's Room"
   },
@@ -40858,5 +43431,6 @@
     "speakerId": 888753760,
     "channelId": "1377817116463595591",
     "channelName": "ryugu_life's Room"
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb
   }
 ]

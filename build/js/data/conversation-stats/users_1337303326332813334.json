@@ -4,243 +4,15 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 26,
-      "totalCharacters": 2464,
-      "totalWords": 151,
-      "totalEmojis": 9,
-      "firstMessageDate": "2025-04-12T16:48:49.092Z",
+      "totalMessages": 13,
+      "totalCharacters": 834,
+      "totalWords": 43,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-27T11:49:12.355Z",
       "lastMessageDate": "2025-06-04T08:19:26.456Z",
-      "mentionsGiven": 6,
+      "mentionsGiven": 5,
       "mentionsReceived": 0,
       "wordFrequency": [
-        [
-          "効率的なエラー追跡の実装！",
-          1
-        ],
-        [
-          "こんばんは、**aivis",
-          1
-        ],
-        [
-          "chan",
-          7
-        ],
-        [
-          "bot**ユーザーの皆様！",
-          1
-        ],
-        [
-          "いつもご利用いただき、誠にありがとうございます。",
-          1
-        ],
-        [
-          "今回のアップデートでは、安定運用と問題の早期発見を目指し、以下の新機能と改善を実施しました。",
-          1
-        ],
-        [
-          "###",
-          5
-        ],
-        [
-          "新機能",
-          1
-        ],
-        [
-          "**sentry統合によるエラートラッキングの追加**",
-          1
-        ],
-        [
-          "sentryを有効化し、発生した問題の追跡と迅速な修正をサポートします。",
-          1
-        ],
-        [
-          "今回のアップデートにより、**aivis",
-          1
-        ],
-        [
-          "bot**はさらに安定した運用と迅速な問題解決が可能になります。",
-          1
-        ],
-        [
-          "今後とも、皆様に快適な環境を提供できるよう、改善を続けてまいります！",
-          1
-        ],
-        [
-          "有料版新機能",
-          1
-        ],
-        [
-          "**音声付きリマインダー**",
-          1
-        ],
-        [
-          "**会話分析&統計表示**",
-          1
-        ],
-        [
-          "**ボイススタンプ機能**",
-          1
-        ],
-        [
-          "どうぞよろしくお願いいたします！",
-          1
-        ],
-        [
-          "※アップデート適用時には数十秒ほどのダウンタイムが発生します。ご利用中の方は、再起動後にbotが再接続されます。",
-          3
-        ],
-        [
-          "いつもご対応いただき、ありがとうございます！",
-          3
-        ],
-        [
-          "解決済み",
-          2
-        ],
-        [
-          "ご迷惑をおかけし申し訳ございません。",
-          1
-        ],
-        [
-          "音声合成が行われない不具合は修正されました！",
-          1
-        ],
-        [
-          "今後ともよろしくお願いいたします。",
-          5
-        ],
-        [
-          "<@1005716357154885713>",
-          1
-        ],
-        [
-          "2台目のメッセージを3台目が読み上げるとか言ってんだけど",
-          1
-        ],
-        [
-          "そんなバグ確認できないんだが",
-          1
-        ],
-        [
-          "読み上げが行われない不具合を確認",
-          2
-        ],
-        [
-          "不具合修正！処理をより高速化",
-          1
-        ],
-        [
-          "！コードの最適化！",
-          2
-        ],
-        [
-          "こんにちは、aivis",
-          3
-        ],
-        [
-          "botをご利用いただきありがとうございます",
-          3
-        ],
-        [
-          "今回のミニアップデートでは、以下の改善を行いました！",
-          3
-        ],
-        [
-          "処理の高速化と改善点",
-          3
-        ],
-        [
-          "チャンク分割ロジックを追加",
-          1
-        ],
-        [
-          "処理パイプラインを非同期キュー構造に変更",
-          1
-        ],
-        [
-          "一時ファイルが完全不要になり、メモリとストリームベースの最速処理に",
-          1
-        ],
-        [
-          "読み上げが行われない不具合は解決しました。",
-          2
-        ],
-        [
-          "不具合修正！さらに読み上げレスポンスが高速化",
-          1
-        ],
-        [
-          "ffmpeg後pcmも別キャッシュとして即再生対応",
-          1
-        ],
-        [
-          "audioquery取得と再生準備を並列化する",
-          1
-        ],
-        [
-          "再生完了待ちをスキップする「即応答モード」追加",
-          1
-        ],
-        [
-          "不具合修正！ついに話者が増えました！",
-          1
-        ],
-        [
-          "新たな話者５名を追加",
-          1
-        ],
-        [
-          "aivis",
-          1
-        ],
-        [
-          "bot",
-          1
-        ],
-        [
-          "(読みちゃん)",
-          1
-        ],
-        [
-          "徹底解説！",
-          1
-        ],
-        [
-          "と評して、私の制作したbotの名前を使って読みちゃん様の解説記事を書いた人がいます。",
-          1
-        ],
-        [
-          "読みちゃん様とaivis",
-          1
-        ],
-        [
-          "botは全くの無関係であり、",
-          1
-        ],
-        [
-          "私の制作したbotの名前を無許可で使い、",
-          1
-        ],
-        [
-          "それと無関係の記事が出回っていることに",
-          1
-        ],
-        [
-          "憤りを感じております。",
-          1
-        ],
-        [
-          "私のbotについて記事を出す際はアポイントメントを取ってから記事を出しますようお願い申し上げます。",
-          1
-        ],
-        [
-          "アラビア数字が正しく読み上げされない問題を確認",
-          1
-        ],
-        [
-          "アラビア数字が正しく読み上げされない問題は解決しました。",
-          1
-        ],
         [
           "一度vcに接続し、",
           2
@@ -248,6 +20,14 @@
         [
           "切断した後にもう一度接続すると",
           2
+        ],
+        [
+          "読み上げが行われない不具合を確認",
+          1
+        ],
+        [
+          "読み上げが行われない不具合は解決しました。",
+          1
         ],
         [
           "読み上げの最初のほうで小さいノイズが発生する問題と、",
@@ -326,6 +106,10 @@
           1
         ],
         [
+          "今後ともよろしくお願いいたします。",
+          1
+        ],
+        [
           "©paradise-lost-group",
           1
         ],
@@ -378,31 +162,9 @@
           1
         ]
       ],
-      "emojiFrequency": [
-        [
-          "🚀",
-          1
-        ],
-        [
-          "✨",
-          1
-        ],
-        [
-          "💫",
-          1
-        ],
-        [
-          "🎉",
-          3
-        ],
-        [
-          "🔧",
-          3
-        ]
-      ],
+      "emojiFrequency": [],
       "hourlyActivity": [
         0,
-        1,
         0,
         0,
         0,
@@ -411,598 +173,29 @@
         0,
         0,
         0,
-        1,
-        1,
         0,
         1,
-        6,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2,
         3,
-        3,
+        0,
+        0,
+        2,
+        1,
+        1,
+        0
+      ],
+      "weekdayActivity": [
+        2,
         5,
         0,
-        0,
-        2,
-        1,
-        2,
-        0
-      ],
-      "weekdayActivity": [
-        8,
-        6,
-        2,
         5,
         1,
-        4,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "327780615032274946",
-    {
-      "userId": "327780615032274946",
-      "username": "qualia.e",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-15T09:52:45.027Z",
-      "lastMessageDate": "2025-04-15T09:52:44.618Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
         0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "575185047724752927",
-    {
-      "userId": "575185047724752927",
-      "username": "noji8887",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-16T03:17:45.101Z",
-      "lastMessageDate": "2025-04-16T03:17:44.773Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "862008327118782484",
-    {
-      "userId": "862008327118782484",
-      "username": "amat0_",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-16T11:43:45.435Z",
-      "lastMessageDate": "2025-04-16T11:43:45.248Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "1362030974501781534",
-    {
-      "userId": "1362030974501781534",
-      "username": "takechiyan_42157",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-16T11:49:32.411Z",
-      "lastMessageDate": "2025-04-16T11:49:32.222Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "1361269193017921720",
-    {
-      "userId": "1361269193017921720",
-      "username": "umbrella89",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-20T07:26:29.655Z",
-      "lastMessageDate": "2025-04-20T07:26:29.382Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "1359737352439857163",
-    {
-      "userId": "1359737352439857163",
-      "username": "pechiya0073",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-21T15:11:30.309Z",
-      "lastMessageDate": "2025-04-21T15:11:30.035Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "419412767301435414",
-    {
-      "userId": "419412767301435414",
-      "username": "fragile_wing",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-22T16:03:21.719Z",
-      "lastMessageDate": "2025-04-22T16:03:21.328Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "1358092877040717904",
-    {
-      "userId": "1358092877040717904",
-      "username": "sarugani3150",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-23T10:45:14.819Z",
-      "lastMessageDate": "2025-04-23T10:45:14.219Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "847796475139194890",
-    {
-      "userId": "847796475139194890",
-      "username": "eimi_daisuki",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-23T13:36:43.872Z",
-      "lastMessageDate": "2025-04-23T13:36:43.621Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0
-      ],
-      "voiceMinutes": 0,
-      "responseTime": 0,
-      "reactionCount": 0,
-      "reactionGiven": 0,
-      "commandUsage": []
-    }
-  ],
-  [
-    "922127418741903450",
-    {
-      "userId": "922127418741903450",
-      "username": "doncha_owo",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
-      "totalEmojis": 0,
-      "firstMessageDate": "2025-04-25T12:31:36.501Z",
-      "lastMessageDate": "2025-04-25T12:31:36.300Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
-      "emojiFrequency": [],
-      "hourlyActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0
-      ],
-      "weekdayActivity": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
         0
       ],
       "voiceMinutes": 0,
@@ -1021,7 +214,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-04-29T02:02:22.946Z",
+      "firstMessageDate": "2025-04-29T02:02:22.939Z",
       "lastMessageDate": "2025-04-29T02:02:22.540Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1078,7 +271,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-04-29T11:28:08.713Z",
+      "firstMessageDate": "2025-04-29T11:28:08.706Z",
       "lastMessageDate": "2025-04-29T11:28:08.441Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1135,7 +328,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-04-30T12:25:16.433Z",
+      "firstMessageDate": "2025-04-30T12:25:16.442Z",
       "lastMessageDate": "2025-04-30T12:25:16.256Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1192,7 +385,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-03T05:26:56.383Z",
+      "firstMessageDate": "2025-05-03T05:26:56.393Z",
       "lastMessageDate": "2025-05-03T05:26:56.052Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1249,7 +442,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-03T14:47:16.662Z",
+      "firstMessageDate": "2025-05-03T14:47:16.658Z",
       "lastMessageDate": "2025-05-03T14:49:38.506Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1306,7 +499,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-04T10:32:30.041Z",
+      "firstMessageDate": "2025-05-04T10:32:30.057Z",
       "lastMessageDate": "2025-05-04T10:32:29.621Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1363,7 +556,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-05T01:29:44.437Z",
+      "firstMessageDate": "2025-05-05T01:29:44.435Z",
       "lastMessageDate": "2025-05-05T01:29:44.165Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1420,7 +613,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-05T10:02:27.249Z",
+      "firstMessageDate": "2025-05-05T10:02:27.248Z",
       "lastMessageDate": "2025-05-05T10:02:27.058Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1477,7 +670,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-05T14:19:44.881Z",
+      "firstMessageDate": "2025-05-05T14:19:44.875Z",
       "lastMessageDate": "2025-05-05T14:19:44.637Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1534,7 +727,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-05T22:45:32.130Z",
+      "firstMessageDate": "2025-05-05T22:45:32.132Z",
       "lastMessageDate": "2025-05-05T22:45:31.727Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1591,7 +784,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-09T02:22:11.301Z",
+      "firstMessageDate": "2025-05-09T02:22:11.290Z",
       "lastMessageDate": "2025-05-09T02:22:11.000Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1648,7 +841,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-10T13:14:18.073Z",
+      "firstMessageDate": "2025-05-10T13:14:18.072Z",
       "lastMessageDate": "2025-05-10T13:14:17.658Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1705,7 +898,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-11T00:34:33.618Z",
+      "firstMessageDate": "2025-05-11T00:34:33.613Z",
       "lastMessageDate": "2025-05-11T00:34:33.184Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1762,7 +955,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-17T03:53:47.724Z",
+      "firstMessageDate": "2025-05-17T03:53:47.741Z",
       "lastMessageDate": "2025-05-17T03:53:47.522Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1819,7 +1012,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-19T06:17:24.095Z",
+      "firstMessageDate": "2025-05-19T06:17:24.107Z",
       "lastMessageDate": "2025-05-19T06:17:23.691Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1876,7 +1069,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-19T08:22:51.243Z",
+      "firstMessageDate": "2025-05-19T08:22:51.251Z",
       "lastMessageDate": "2025-05-19T08:22:50.938Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1933,7 +1126,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-21T20:37:03.602Z",
+      "firstMessageDate": "2025-05-21T20:37:03.596Z",
       "lastMessageDate": "2025-05-21T20:37:03.026Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -1990,7 +1183,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-22T12:05:41.964Z",
+      "firstMessageDate": "2025-05-22T12:05:41.966Z",
       "lastMessageDate": "2025-05-22T12:05:41.783Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2047,7 +1240,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-30T02:20:24.053Z",
+      "firstMessageDate": "2025-05-30T02:20:24.039Z",
       "lastMessageDate": "2025-05-30T02:20:23.807Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2104,7 +1297,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-31T04:17:14.378Z",
+      "firstMessageDate": "2025-05-31T04:17:14.387Z",
       "lastMessageDate": "2025-05-31T04:17:14.219Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2161,7 +1354,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-05-31T18:53:30.134Z",
+      "firstMessageDate": "2025-05-31T18:53:30.129Z",
       "lastMessageDate": "2025-05-31T18:53:29.888Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2218,7 +1411,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-06-03T13:27:11.989Z",
+      "firstMessageDate": "2025-06-03T13:27:11.959Z",
       "lastMessageDate": "2025-06-03T13:27:11.767Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2275,7 +1468,7 @@
       "totalCharacters": 160,
       "totalWords": 5,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-06-04T07:15:16.759Z",
+      "firstMessageDate": "2025-06-04T07:15:16.761Z",
       "lastMessageDate": "2025-06-04T08:17:14.529Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -2353,7 +1546,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-06-08T03:42:19.465Z",
+      "firstMessageDate": "2025-06-08T03:42:19.472Z",
       "lastMessageDate": "2025-06-08T03:45:43.399Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2467,7 +1660,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-06-10T06:20:23.831Z",
+      "firstMessageDate": "2025-06-10T06:20:23.832Z",
       "lastMessageDate": "2025-06-10T06:20:23.453Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2524,7 +1717,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-06-10T07:53:40.630Z",
+      "firstMessageDate": "2025-06-10T07:53:40.628Z",
       "lastMessageDate": "2025-06-10T07:53:40.366Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -2581,7 +1774,7 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
-      "firstMessageDate": "2025-06-11T11:51:22.978Z",
+      "firstMessageDate": "2025-06-11T11:51:22.980Z",
       "lastMessageDate": "2025-06-11T11:51:22.840Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
