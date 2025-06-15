@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2025-05-09T08:13:24.142Z",
+    "text": "こんにちは！",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  },
+  {
+    "timestamp": "2025-05-09T08:14:29.509Z",
+    "text": "今日の天気は晴れだね！\nこんないい日にはお散歩に出かけたいなぁ～！",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  },
+  {
+    "timestamp": "2025-05-09T08:14:49.605Z",
+    "text": "今日のご飯はカレーなの！？\nやったあ！",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  },
+  {
+    "timestamp": "2025-05-09T08:16:02.525Z",
+    "text": "こんにちは！",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  },
+  {
+    "timestamp": "2025-05-09T08:16:40.562Z",
+    "text": "七対子",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  },
+  {
+    "timestamp": "2025-05-09T08:17:06.721Z",
+    "text": "やったあ！純正九蓮宝燈あがったよ！",
+    "userId": "809627147333140531",
+    "username": "Alec / アレク",
+    "speakerId": 888753760,
+    "channelId": "1334452931268968481",
+    "channelName": "command-test"
+  }
+]

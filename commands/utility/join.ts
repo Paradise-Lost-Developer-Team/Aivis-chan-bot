@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel } from '@discordjs/voice';
-import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, CommandInteractionOptionResolver } from 'discord.js';
-import { currentSpeaker, play_audio, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
+import { joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
+import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
+import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -70,7 +70,9 @@ module.exports = {
             voiceClient = await joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: guildId,
-                adapterCreator: interaction.guild!.voiceAdapterCreator as any
+                adapterCreator: interaction.guild!.voiceAdapterCreator as any,
+                selfDeaf: true, // スピーカーはOFF（聞こえない）
+                selfMute: false // マイクはON（話せる）
             });
             voiceClients[guildId] = voiceClient;
 
@@ -80,9 +82,23 @@ module.exports = {
             await interaction.reply(`${voiceChannel.name} に接続しました。`);
             loadJoinChannels();
 
-            // Botが接続した際のアナウンス
-            const path = await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-            await play_audio(voiceClient, path, guildId, interaction);
+            // 追加: Ready になるまで待機
+            await new Promise<void>((resolve) => {
+                const onReady = () => {
+                    voiceClient.off(VoiceConnectionStatus.Disconnected, onError);
+                    resolve();
+                };
+                const onError = () => {
+                    voiceClient.off(VoiceConnectionStatus.Ready, onReady);
+                    resolve();
+                };
+                voiceClient.once(VoiceConnectionStatus.Ready, onReady);
+                voiceClient.once(VoiceConnectionStatus.Disconnected, onError);
+            });
+
+            // 読み上げ開始
+            await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
+
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {

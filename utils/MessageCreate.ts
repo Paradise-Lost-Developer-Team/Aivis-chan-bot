@@ -1,10 +1,18 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, currentSpeaker, speakVoice, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels } from './TTS-Engine'; // Adjust the import path as necessary
-import { AudioPlayerStatus, VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
+import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice } from './TTS-Engine';
+import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
+import { enqueueText, Priority } from './VoiceQueue';
+import { logError } from './errorLogger';
+import { findMatchingResponse, processResponse } from './custom-responses';
+import { generateSmartSpeech, getSmartTTSSettings } from './smart-tts';
+import { isProFeatureAvailable } from './subscription';
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed
 }
+
+// 追加: ギルドごとにボイス接続状態の初期化済みかどうかを記録するマップ
+const voiceInitMap: { [guildId: string]: boolean } = {};
 
 export function MessageCreate(client: ExtendedClient) {
     client.on(Events.MessageCreate, async (message: Message) => {
@@ -19,8 +27,6 @@ export function MessageCreate(client: ExtendedClient) {
             let voiceClient = voiceClients[guildId];
             const autoJoinChannelsData = loadAutoJoinChannels();
             const joinChannelsData = loadJoinChannels();
-            console.log(`autoJoinChannelsData = ${JSON.stringify(autoJoinChannelsData)}`);
-            console.log(`joinChannelsData = ${JSON.stringify(joinChannelsData)}`);
     
             // ここを変更してjoinChannelsDataを先にチェックし、無い場合のみautoJoinChannelsDataを使用
             if (joinChannelsData[guildId]?.textChannelId) {
@@ -37,23 +43,6 @@ export function MessageCreate(client: ExtendedClient) {
                 console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
                 return;
             }
-    
-            // ↓ 自動再接続を行わないように、以下の処理をコメントアウト
-            /*
-            // voiceClient が "Disconnected" の場合は再接続を試みる
-            if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Disconnected) {
-                console.log("Voice client is in Disconnected state. Trying to rejoin...");
-                const guildAutoJoin = autoJoinChannelsData[guildId];
-                if (guildAutoJoin && guildAutoJoin.voiceChannelId) {
-                    voiceClient = joinVoiceChannel({
-                        channelId: guildAutoJoin.voiceChannelId,
-                        guildId: guildId,
-                        adapterCreator: message.guild!.voiceAdapterCreator as any
-                    });
-                    voiceClients[guildId] = voiceClient;
-                }
-            }
-            */
             
             // メッセージ内容の加工
             // スポイラーを置換
@@ -62,10 +51,28 @@ export function MessageCreate(client: ExtendedClient) {
                 messageContent = messageContent.replace(spoiler, "ネタバレ");
             });
             
+            // Unicode絵文字を置換（カスタム絵文字/<a:…>タグ内は除外）、アラビア数字単体は除外
+            {
+                const original = messageContent;
+                messageContent = original.replace(/\p{Emoji}/gu, (emoji, offset) => {
+                    // 単一のアラビア数字（0-9）の場合は置換しない
+                    if (/^[0-9]$/.test(emoji)) {
+                        return emoji;
+                    }
+                    // 絵文字の位置が <…> タグ内かをチェック
+                    const openIdx  = original.lastIndexOf('<', offset);
+                    const closeIdx = original.indexOf('>',  offset);
+                    if (openIdx !== -1 && closeIdx !== -1 && openIdx < offset && offset < closeIdx) {
+                        // タグ内なのでカスタム絵文字 or アニメーション絵文字
+                        return emoji;
+                    }
+                    return '絵文字';
+                });
+            }
             // カスタム絵文字を置換
             const customEmojis = messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
             customEmojis.forEach(emoji => {
-                messageContent = messageContent.replace(emoji, "絵文字");
+                messageContent = messageContent.replace(emoji, "カスタム絵文字");
             });
             
             // 動く絵文字（アニメーション絵文字）を置換
@@ -121,22 +128,22 @@ export function MessageCreate(client: ExtendedClient) {
             const userMentions = messageContent.match(/<@!?(\d+)>/g) || [];
             const userPromises = userMentions.map(async (mention) => {
                 const userId = mention.match(/\d+/)![0];
+                const nickname = message.guild?.members.cache.get(userId)?.nickname || null;
                 try {
                     const user = await client.users.fetch(userId);
-                    return { mention, username: `${user.username}` };
+                    // Use nickname if available, otherwise fallback to username or globalName
+                    const displayName = nickname || user.globalName || user.username;
+                    return { mention, username: `${displayName}` };
                 } catch (error) {
-                    console.error(`Failed to fetch user for ID: ${userId}`, error);
-                    return { mention, username: `Unknown User (${userId})` };
+                    console.error(`Failed to fetch user for Nickname: ${nickname}`, error);
+                    return { mention, username: `Unknown User (${nickname})` };
                 }
             });
             const resolvedMentions = await Promise.all(userPromises);
             resolvedMentions.forEach(({ mention, username }) => {
                 messageContent = messageContent.replace(mention, username);
-
             });
             
-            
-    
             // コードブロック除外
             if (messageContent.match(/```[\s\S]+```/g)) {
                 console.log("Message contains code block, ignoring.");
@@ -161,53 +168,90 @@ export function MessageCreate(client: ExtendedClient) {
                 }
             }
             
+            // 1度だけボイス接続状態の保存や再取得を行う
+            if (!voiceInitMap[guildId]) {
+                if (voiceClient) {
+                    // 接続状態を確認し、接続が切れていたら再取得
+                    if (voiceClient.state.status !== 'ready') {
+                        const reconnectedClient = getVoiceConnection(guildId);
+                        if (reconnectedClient) {
+                            voiceClients[guildId] = reconnectedClient;
+                            voiceClient = reconnectedClient;
+                            console.log(`ギルド ${guildId} の接続を回復しました`);
+                        } else {
+                            console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+                            return;
+                        }
+                    }
+                }
+                // 初期化済みフラグを立てる
+                voiceInitMap[guildId] = true;
+            }
+            
             // メッセージ読み込みだけで自動接続は行わない
             if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                 console.log("Voice client is connected and message is in the correct text channel. Handling message.");
-            // 修正後
-            await handle_message(message, messageContent);
+                
+                // 文字数制限
+                if (messageContent.length > MAX_TEXT_LENGTH) {
+                    messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
+                }
+                
+                // 優先度の決定
+                let priority = Priority.NORMAL;
+                
+                // システム通知やコマンド応答などは優先度高
+                if (messageContent.includes('接続しました') || 
+                    messageContent.includes('入室しました') || 
+                    messageContent.includes('退室しました')) {
+                    priority = Priority.HIGH;
+                }
+                
+                // 長いメッセージやURLが多いメッセージは優先度低
+                if (messageContent.length > 100 || messageContent.includes('URL省略')) {
+                    priority = Priority.LOW;
+                }
+                
+                // キューにメッセージを追加
+                if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
+                    enqueueText(guildId, messageContent, priority, message);
+                    console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
+                } else {
+                    console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
+                }
+                
             } else {
-                console.log(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
+                console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
+            }
+
+            const match = findMatchingResponse(guildId, message.content);
+            if (match) {
+                // カスタム応答のテキストを生成
+                const replyText = processResponse(match, message.content, message.author.username);
+                if (message.channel.isTextBased() && 'send' in message.channel) {
+                    await message.channel.send(replyText);
+                }
+
+                // ボイスチャンネルに接続中ならTTSを試みる
+                if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
+                    try {
+                        let audioPath: string;
+                        if (isProFeatureAvailable(guildId, 'smart-tts')) {
+                            audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
+                        } else {
+                            await speakVoice(replyText, 888753760, guildId);
+                        }
+                    } catch (error) {
+                        console.error('カスタム応答TTSエラー:', error);
+                    }
+                }
             }
         } catch (error) {
-            console.error(`An error occurred while processing the message: ${error}`);
+            console.error(`メッセージの処理中にエラーが発生しました: ${error}`);
+            logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
         }
     });
 }
 
-async function handle_message(message: Message, messageContent: string) {
-    if (messageContent.length > MAX_TEXT_LENGTH) {
-        messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
-    }
-    const guildId = message.guildId!;
-    const voiceClient = voiceClients[guildId];
-
-    if (!voiceClient) {
-        console.error("Error: Voice client is None, skipping message processing.");
-        return;
-    }
-
-    console.log(`Handling message: ${messageContent}`);
-    const speakerId = currentSpeaker[guildId] || 888753760;  // デフォルトの話者ID
-    const path = await speakVoice(messageContent, speakerId, guildId);
-
-    while (voiceClient.state.status === VoiceConnectionStatus.Ready && getPlayer(guildId)?.state.status === AudioPlayerStatus.Playing) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    if (voiceClients[guildId] !== voiceClient) {
-        console.log(`Voice client for guild ${guildId} has changed, stopping playback.`);
-        return;
-    }
-
-    // 再度 subscribe を行い、ちゃんと再生するようにする
-    const resource = createFFmpegAudioSource(path);
-    const player = getPlayer(guildId);
-    if (player) {
-        player.play(await resource);
-        voiceClient.subscribe(player);
-    } else {
-        console.error("Error: Audio player is undefined, cannot subscribe.");
-    }
-    console.log(`Finished playing message: ${messageContent}`);
-}
+// 古い関数は削除（キュー処理に置き換えたため）
+// async function handle_message(message: Message, messageContent: string) { ... }

@@ -1,0 +1,154 @@
+[
+  [
+    "1009318724320378900",
+    {
+      "userId": "1009318724320378900",
+      "username": "33330422713193",
+      "totalMessages": 9,
+      "totalCharacters": 96,
+      "totalWords": 9,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-11T00:43:40.965Z",
+      "lastMessageDate": "2025-05-24T00:28:56.781Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "disboard.org",
+          1
+        ],
+        [
+          "https://disboard.org/ja/search?keyword=bot",
+          1
+        ],
+        [
+          "ああああ",
+          1
+        ],
+        [
+          "あいうえお",
+          1
+        ],
+        [
+          "aiueo",
+          1
+        ],
+        [
+          "aitoawmdfco",
+          1
+        ],
+        [
+          "uhuoigbouh",
+          1
+        ],
+        [
+          "こんにちは",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        6,
+        0,
+        0,
+        2,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 17.67696666666667,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1340995130009849857",
+    {
+      "userId": "1340995130009849857",
+      "username": "__makkurokurosuke__",
+      "totalMessages": 2,
+      "totalCharacters": 6,
+      "totalWords": 2,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-22T09:32:17.379Z",
+      "lastMessageDate": "2025-05-22T09:32:21.173Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "あああ",
+          2
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "voiceMinutes": 0.3057166666666667,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]
