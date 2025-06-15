@@ -1,0 +1,158 @@
+{
+  "serverId": "1281107107126575114",
+  "serverName": "Paradise Lost Test Server",
+  "totalMessages": 81,
+  "totalCharacters": 1580,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1334452931268968481",
+      {
+        "channelId": "1334452931268968481",
+        "channelName": "command-test",
+        "totalMessages": 79,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          12,
+          15,
+          10,
+          0,
+          4,
+          0,
+          0,
+          2,
+          15,
+          18,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          70,
+          0,
+          3,
+          2,
+          4,
+          0
+        ]
+      }
+    ],
+    [
+      "1333847602826969099",
+      {
+        "channelId": "1333847602826969099",
+        "channelName": "音声チャンネル",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    0,
+    12,
+    15,
+    10,
+    0,
+    4,
+    0,
+    0,
+    2,
+    17,
+    18,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    72,
+    0,
+    3,
+    2,
+    4,
+    0
+  ],
+  "averageMessageLength": 19.506172839506174,
+  "messageDistribution": [
+    [
+      "2025-04-28",
+      37
+    ],
+    [
+      "2025-05-08",
+      2
+    ],
+    [
+      "2025-05-09",
+      4
+    ],
+    [
+      "2025-05-19",
+      35
+    ],
+    [
+      "2025-06-04",
+      3
+    ]
+  ],
+  "mostActiveUser": "809627147333140531",
+  "mostActiveChannel": "1334452931268968481"
+}

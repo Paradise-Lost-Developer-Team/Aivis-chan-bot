@@ -1,12 +1,19 @@
 {
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^0.13.0",
+    "@sentry/node": "^9.12.0",
+    "@sentry/types": "^9.12.0",
     "@types/uuid": "^10.0.0",
     "async-mutex": "^0.5.0",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
+    "canvas": "^3.1.0",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
+    "generic-pool": "^3.9.0",
     "install": "^0.13.0",
+    "openai": "^4.97.0",
+    "p-queue": "^8.1.0",
     "requests": "^0.3.0",
     "uuid": "^11.1.0"
   },
@@ -15,6 +22,7 @@
     "@discordjs/rest": "^2.4.3",
     "@discordjs/voice": "^0.18.0",
     "@types/axios": "^0.9.36",
+    "@types/generic-pool": "^3.1.11",
     "@types/lodash": "^4.17.15",
     "@types/lodash.snakecase": "^4.1.9",
     "@types/node": "^22.13.4",
@@ -26,6 +34,10 @@
     "eslint-plugin-prettier": "^5.2.3",
     "prettier": "^3.5.1",
     "typescript": "^5.7.3"
+  },
+  "optionalDependencies": {
+    "@discordjs/opus": "^0.11.0",
+    "opusscript": "^0.0.8"
   },
   "name": "aivis-chan-bot",
   "version": "1.0.0",
