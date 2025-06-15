@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { VoiceChannel, TextChannel, CommandInteraction, ChannelType } from 'discord.js';
-import { loadAutoJoinChannels, saveAutoJoinChannels, autoJoinChannels } from '../../TTS-Engine';
+import { loadAutoJoinChannels, saveAutoJoinChannels, autoJoinChannels } from '../../utils/TTS-Engine';
 
 module.exports = {
     data: new SlashCommandBuilder()
