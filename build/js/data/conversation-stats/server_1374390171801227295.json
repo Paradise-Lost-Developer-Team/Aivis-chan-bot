@@ -1,8 +1,8 @@
 {
   "serverId": "1374390171801227295",
   "serverName": "ふにゃ村",
-  "totalMessages": 171,
-  "totalCharacters": 2335,
+  "totalMessages": 178,
+  "totalCharacters": 2397,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1374390173076553800",
         "channelName": "一般",
-        "totalMessages": 161,
+        "totalMessages": 167,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -32,7 +32,7 @@
           1,
           0,
           0,
-          0,
+          6,
           0,
           0,
           0,
@@ -40,7 +40,7 @@
           24
         ],
         "weekdayActivity": [
-          0,
+          6,
           24,
           0,
           134,
@@ -137,6 +137,50 @@
           0
         ]
       }
+    ],
+    [
+      "1381638741592113202",
+      {
+        "channelId": "1381638741592113202",
+        "channelName": "通話",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
@@ -158,7 +202,7 @@
     2,
     0,
     0,
-    0,
+    7,
     0,
     0,
     0,
@@ -166,7 +210,7 @@
     33
   ],
   "weekdayActivity": [
-    0,
+    7,
     33,
     0,
     135,
@@ -174,7 +218,7 @@
     0,
     0
   ],
-  "averageMessageLength": 13.654970760233919,
+  "averageMessageLength": 13.46629213483146,
   "messageDistribution": [
     [
       "2025-06-09",
@@ -187,6 +231,10 @@
     [
       "2025-06-12",
       3
+    ],
+    [
+      "2025-06-15",
+      7
     ]
   ],
   "mostActiveUser": "816953664701988894",
