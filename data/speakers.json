@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Anneli",
+    "speaker_uuid": "e756b8e4-b606-4e15-99b1-3f9c6a1b2317",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 888753760,
+        "type": "talk"
+      },
+      {
+        "name": "通常",
+        "id": 888753761,
+        "type": "talk"
+      },
+      {
+        "name": "テンション高め",
+        "id": 888753762,
+        "type": "talk"
+      },
+      {
+        "name": "上機嫌",
+        "id": 888753764,
+        "type": "talk"
+      },
+      {
+        "name": "落ち着き",
+        "id": 888753763,
+        "type": "talk"
+      },
+      {
+        "name": "怒り・悲しみ",
+        "id": 888753765,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.1",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "Anneli (Alt)",
+    "speaker_uuid": "9c3114d0-59ce-4576-8110-a6671d3930e1",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 1196801504,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.1",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "Anneli (Whisper)",
+    "speaker_uuid": "d4f9bd78-b70f-4d1f-8b52-19df1d5c5586",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 864870016,
+        "type": "talk"
+      },
+      {
+        "name": "通常",
+        "id": 864870017,
+        "type": "talk"
+      },
+      {
+        "name": "テンション高め",
+        "id": 864870018,
+        "type": "talk"
+      },
+      {
+        "name": "上機嫌",
+        "id": 864870020,
+        "type": "talk"
+      },
+      {
+        "name": "落ち着き",
+        "id": 864870019,
+        "type": "talk"
+      },
+      {
+        "name": "怒り・悲しみ",
+        "id": 864870021,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "にせ",
+    "speaker_uuid": "bf56410a-d8e6-430d-a477-f789e16206d3",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 1937616896,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "まい",
+    "speaker_uuid": "41b7785f-35cc-4089-a360-dd8a63da5e75",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 1431611904,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "るな",
+    "speaker_uuid": "aa63d66e-92fe-499e-9e0d-15dad4a61d0d",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 345585728,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "ろてじん（長老ボイス）",
+    "speaker_uuid": "452fee2b-d102-4053-bccd-c0f8c265c147",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 391794336,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "亜空マオ",
+    "speaker_uuid": "a0205710-ebb3-4880-bc84-dc10f1773325",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 532977856,
+        "type": "talk"
+      },
+      {
+        "name": "ふきげん",
+        "id": 532977857,
+        "type": "talk"
+      },
+      {
+        "name": "じょうきげん",
+        "id": 532977858,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "花音",
+    "speaker_uuid": "b1ca560f-f212-4e67-ab7d-0a4f5afb75a8",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 1325133120,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  },
+  {
+    "name": "蒼月ハヤテ",
+    "speaker_uuid": "a82fc628-f166-427f-b568-4c4f94921629",
+    "styles": [
+      {
+        "name": "ノーマル",
+        "id": 593129376,
+        "type": "talk"
+      }
+    ],
+    "version": "1.0.0",
+    "supported_features": {
+      "permitted_synthesis_morphing": "NOTHING"
+    }
+  }
+]
