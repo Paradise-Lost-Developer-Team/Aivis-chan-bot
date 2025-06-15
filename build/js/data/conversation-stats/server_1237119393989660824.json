@@ -1,8 +1,8 @@
 {
   "serverId": "1237119393989660824",
   "serverName": "ぺろりん☆さば",
-  "totalMessages": 10840,
-  "totalCharacters": 169787,
+  "totalMessages": 10859,
+  "totalCharacters": 169980,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -187,7 +187,7 @@
       {
         "channelId": "1277552798124347456",
         "channelName": "ブロスタ",
-        "totalMessages": 439,
+        "totalMessages": 441,
         "messageByUsers": {},
         "hourlyActivity": [
           4,
@@ -208,7 +208,7 @@
           5,
           36,
           29,
-          38,
+          40,
           57,
           54,
           21,
@@ -216,7 +216,7 @@
           13
         ],
         "weekdayActivity": [
-          70,
+          72,
           132,
           26,
           42,
@@ -407,7 +407,7 @@
       {
         "channelId": "1237123496362901534",
         "channelName": "【🗿】つぶやく",
-        "totalMessages": 1021,
+        "totalMessages": 1025,
         "messageByUsers": {},
         "hourlyActivity": [
           36,
@@ -428,7 +428,7 @@
           35,
           30,
           47,
-          50,
+          54,
           45,
           39,
           163,
@@ -436,7 +436,7 @@
           33
         ],
         "weekdayActivity": [
-          293,
+          297,
           266,
           45,
           70,
@@ -539,7 +539,7 @@
       {
         "channelId": "1360575842144747634",
         "channelName": "クッキーラン",
-        "totalMessages": 1167,
+        "totalMessages": 1174,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
@@ -560,7 +560,7 @@
           24,
           45,
           73,
-          85,
+          92,
           160,
           206,
           174,
@@ -568,7 +568,7 @@
           2
         ],
         "weekdayActivity": [
-          124,
+          131,
           151,
           115,
           133,
@@ -1023,7 +1023,7 @@
       {
         "channelId": "1237123534124220507",
         "channelName": "【🚲】趣味",
-        "totalMessages": 31,
+        "totalMessages": 37,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -1044,7 +1044,7 @@
           0,
           0,
           3,
-          0,
+          6,
           0,
           3,
           3,
@@ -1052,7 +1052,7 @@
           1
         ],
         "weekdayActivity": [
-          8,
+          14,
           0,
           0,
           5,
@@ -2358,7 +2358,7 @@
     377,
     464,
     480,
-    710,
+    729,
     983,
     768,
     1209,
@@ -2366,7 +2366,7 @@
     600
   ],
   "weekdayActivity": [
-    2073,
+    2092,
     1157,
     1007,
     1664,
@@ -2374,7 +2374,7 @@
     1078,
     2565
   ],
-  "averageMessageLength": 15.6630073800738,
+  "averageMessageLength": 15.653375080578321,
   "messageDistribution": [
     [
       "2025-05-10",
@@ -2522,7 +2522,7 @@
     ],
     [
       "2025-06-15",
-      250
+      269
     ]
   ],
   "mostActiveUser": "1242785742275481723",

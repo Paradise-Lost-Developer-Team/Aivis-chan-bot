@@ -1,8 +1,8 @@
 {
   "serverId": "1333082050651230262",
   "serverName": "学生ゆったり荘",
-  "totalMessages": 175937,
-  "totalCharacters": 1794136,
+  "totalMessages": 176020,
+  "totalCharacters": 1794986,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -99,7 +99,7 @@
       {
         "channelId": "1333082051473047684",
         "channelName": "☕│雑談",
-        "totalMessages": 22587,
+        "totalMessages": 22622,
         "messageByUsers": {},
         "hourlyActivity": [
           1476,
@@ -120,7 +120,7 @@
           737,
           1628,
           968,
-          748,
+          783,
           992,
           804,
           1023,
@@ -128,7 +128,7 @@
           608
         ],
         "weekdayActivity": [
-          3661,
+          3696,
           1738,
           1662,
           2837,
@@ -143,7 +143,7 @@
       {
         "channelId": "1359110477073879050",
         "channelName": "🙌│新規さん歓迎",
-        "totalMessages": 2862,
+        "totalMessages": 2863,
         "messageByUsers": {},
         "hourlyActivity": [
           189,
@@ -164,7 +164,7 @@
           100,
           47,
           52,
-          42,
+          43,
           83,
           113,
           142,
@@ -172,7 +172,7 @@
           145
         ],
         "weekdayActivity": [
-          340,
+          341,
           156,
           288,
           224,
@@ -275,7 +275,7 @@
       {
         "channelId": "1333086213036445727",
         "channelName": "💬│つぶやき",
-        "totalMessages": 26037,
+        "totalMessages": 26052,
         "messageByUsers": {},
         "hourlyActivity": [
           665,
@@ -296,7 +296,7 @@
           1103,
           1166,
           1578,
-          1236,
+          1251,
           1379,
           1139,
           1574,
@@ -304,7 +304,7 @@
           1477
         ],
         "weekdayActivity": [
-          3838,
+          3853,
           3039,
           2277,
           3451,
@@ -671,7 +671,7 @@
       {
         "channelId": "1333087814098878514",
         "channelName": "🙏│相談",
-        "totalMessages": 1187,
+        "totalMessages": 1217,
         "messageByUsers": {},
         "hourlyActivity": [
           67,
@@ -692,7 +692,7 @@
           7,
           17,
           174,
-          121,
+          151,
           59,
           217,
           89,
@@ -700,7 +700,7 @@
           78
         ],
         "weekdayActivity": [
-          164,
+          194,
           265,
           229,
           84,
@@ -4713,6 +4713,50 @@
           0
         ]
       }
+    ],
+    [
+      "1365375449760403617",
+      {
+        "channelId": "1365375449760403617",
+        "channelName": "Role Count: 105",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
@@ -4734,7 +4778,7 @@
     7444,
     9862,
     8891,
-    9327,
+    9410,
     10322,
     9504,
     13833,
@@ -4742,7 +4786,7 @@
     12158
   ],
   "weekdayActivity": [
-    31363,
+    31446,
     23037,
     23821,
     24194,
@@ -4750,7 +4794,7 @@
     24865,
     26783
   ],
-  "averageMessageLength": 10.197604824454208,
+  "averageMessageLength": 10.197625269855699,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -5010,7 +5054,7 @@
     ],
     [
       "2025-06-15",
-      1532
+      1615
     ]
   ],
   "mostActiveUser": "1275052409013670033",

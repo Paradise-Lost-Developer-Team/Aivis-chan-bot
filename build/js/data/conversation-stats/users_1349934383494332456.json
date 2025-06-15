@@ -1798,12 +1798,12 @@
     {
       "userId": "1101461935175774218",
       "username": "bamboo_grass33",
-      "totalMessages": 23,
-      "totalCharacters": 460,
-      "totalWords": 27,
+      "totalMessages": 25,
+      "totalCharacters": 509,
+      "totalWords": 29,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-29T20:55:22.361Z",
-      "lastMessageDate": "2025-06-14T11:08:01.445Z",
+      "lastMessageDate": "2025-06-15T09:25:57.285Z",
       "mentionsGiven": 6,
       "mentionsReceived": 7,
       "wordFrequency": [
@@ -1906,6 +1906,14 @@
         [
           "コラボクエストやると、ラスゲにミセス流れますよ",
           1
+        ],
+        [
+          "薬屋が好きじゃない限り引かない方がいいですね",
+          1
+        ],
+        [
+          "限定排出率も高くなってますけど別にっていうくらいですし",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -1928,7 +1936,7 @@
         0,
         2,
         0,
-        4,
+        6,
         1,
         3,
         0,
@@ -1936,7 +1944,7 @@
         0
       ],
       "weekdayActivity": [
-        0,
+        2,
         0,
         2,
         0,
@@ -3655,12 +3663,12 @@
     {
       "userId": "840245757847666699",
       "username": "kurukuronikuru",
-      "totalMessages": 51,
-      "totalCharacters": 1103,
-      "totalWords": 77,
+      "totalMessages": 52,
+      "totalCharacters": 1118,
+      "totalWords": 79,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-30T13:35:30.555Z",
-      "lastMessageDate": "2025-06-15T09:11:39.040Z",
+      "lastMessageDate": "2025-06-15T09:14:42.361Z",
       "mentionsGiven": 8,
       "mentionsReceived": 10,
       "wordFrequency": [
@@ -3931,6 +3939,14 @@
         [
           "vc部屋開いたんで",
           1
+        ],
+        [
+          "パス2989",
+          1
+        ],
+        [
+          "識別j8tskx",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -3953,7 +3969,7 @@
         1,
         1,
         3,
-        3,
+        4,
         5,
         1,
         13,
@@ -3961,7 +3977,7 @@
         4
       ],
       "weekdayActivity": [
-        9,
+        10,
         1,
         4,
         2,
@@ -13027,12 +13043,12 @@
     {
       "userId": "1253972316967141456",
       "username": "shiruko0736",
-      "totalMessages": 128,
-      "totalCharacters": 1328,
-      "totalWords": 127,
+      "totalMessages": 133,
+      "totalCharacters": 1364,
+      "totalWords": 132,
       "totalEmojis": 18,
       "firstMessageDate": "2025-06-11T12:02:37.499Z",
-      "lastMessageDate": "2025-06-15T09:13:21.448Z",
+      "lastMessageDate": "2025-06-15T09:24:57.207Z",
       "mentionsGiven": 11,
       "mentionsReceived": 10,
       "wordFrequency": [
@@ -13074,7 +13090,7 @@
         ],
         [
           "おけです！",
-          2
+          3
         ],
         [
           "部屋つくりました！",
@@ -13230,7 +13246,7 @@
         ],
         [
           "全然大丈夫です！",
-          2
+          3
         ],
         [
           "武器もつくれました！",
@@ -13326,7 +13342,7 @@
         ],
         [
           "なるほど！",
-          1
+          2
         ],
         [
           "はいありがとうございます😊",
@@ -13447,6 +13463,14 @@
         [
           "部屋作れますか？",
           1
+        ],
+        [
+          "碧玉ですか？",
+          1
+        ],
+        [
+          "他にも誰かいるんですか？",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -13490,7 +13514,7 @@
         23,
         13,
         14,
-        10,
+        15,
         0,
         0,
         4,
@@ -13498,7 +13522,7 @@
         21
       ],
       "weekdayActivity": [
-        9,
+        14,
         0,
         0,
         4,

@@ -1,8 +1,8 @@
 {
   "serverId": "1349934383494332456",
   "serverName": "🎀みんなと楽しむゲームの鯖🎀",
-  "totalMessages": 1757,
-  "totalCharacters": 26460,
+  "totalMessages": 1765,
+  "totalCharacters": 26560,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -1815,7 +1815,7 @@
       {
         "channelId": "1380118286536282142",
         "channelName": "│📱│スマホゲームお部屋",
-        "totalMessages": 23,
+        "totalMessages": 25,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1836,7 +1836,7 @@
           0,
           3,
           0,
-          3,
+          5,
           2,
           6,
           1,
@@ -1844,7 +1844,7 @@
           0
         ],
         "weekdayActivity": [
-          1,
+          3,
           0,
           3,
           0,
@@ -3047,7 +3047,7 @@
       {
         "channelId": "1381876182622146652",
         "channelName": "🔰新規雑談",
-        "totalMessages": 224,
+        "totalMessages": 230,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -3068,7 +3068,7 @@
           0,
           0,
           0,
-          2,
+          8,
           5,
           104,
           34,
@@ -3076,7 +3076,7 @@
           24
         ],
         "weekdayActivity": [
-          2,
+          8,
           0,
           0,
           10,
@@ -3546,7 +3546,7 @@
     123,
     66,
     72,
-    115,
+    123,
     92,
     215,
     184,
@@ -3554,7 +3554,7 @@
     145
   ],
   "weekdayActivity": [
-    189,
+    197,
     166,
     99,
     85,
@@ -3562,7 +3562,7 @@
     313,
     678
   ],
-  "averageMessageLength": 15.0597609561753,
+  "averageMessageLength": 15.048158640226628,
   "messageDistribution": [
     [
       "2025-05-29",
@@ -3634,7 +3634,7 @@
     ],
     [
       "2025-06-15",
-      25
+      33
     ]
   ],
   "mostActiveUser": "1348883439381643316",

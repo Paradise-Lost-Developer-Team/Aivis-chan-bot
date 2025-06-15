@@ -4,13 +4,13 @@
     {
       "userId": "715840411364491305",
       "username": "reika.0821",
-      "totalMessages": 240,
-      "totalCharacters": 7555,
-      "totalWords": 412,
+      "totalMessages": 245,
+      "totalCharacters": 7645,
+      "totalWords": 419,
       "totalEmojis": 20,
       "firstMessageDate": "2025-06-10T14:40:23.873Z",
-      "lastMessageDate": "2025-06-15T09:08:07.883Z",
-      "mentionsGiven": 132,
+      "lastMessageDate": "2025-06-15T09:19:28.272Z",
+      "mentionsGiven": 134,
       "mentionsReceived": 25,
       "wordFrequency": [
         [
@@ -287,11 +287,11 @@
         ],
         [
           "<#1381971397676498997>",
-          17
+          18
         ],
         [
           "をお願いします！",
-          13
+          14
         ],
         [
           "初メンバー✨",
@@ -563,7 +563,7 @@
         ],
         [
           "よろしくお願いします〜！",
-          9
+          10
         ],
         [
           "雑談したい所ですが眠いのでまたお昼頃に…💤",
@@ -1144,6 +1144,22 @@
         [
           "初期勢からしたらまた最初からやってみたいんだよね",
           1
+        ],
+        [
+          "からあげ",
+          1
+        ],
+        [
+          "<@1334436031487017024>",
+          1
+        ],
+        [
+          "ow2いいですね〜",
+          1
+        ],
+        [
+          "マウガよく使います",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1187,7 +1203,7 @@
         8,
         11,
         1,
-        22,
+        27,
         20,
         36,
         40,
@@ -1195,7 +1211,7 @@
         6
       ],
       "weekdayActivity": [
-        22,
+        27,
         0,
         3,
         77,
@@ -4642,13 +4658,13 @@
     {
       "userId": "1175238141846769724",
       "username": "kenpin0363",
-      "totalMessages": 27,
-      "totalCharacters": 187,
-      "totalWords": 19,
+      "totalMessages": 29,
+      "totalCharacters": 192,
+      "totalWords": 20,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-12T16:43:15.921Z",
-      "lastMessageDate": "2025-06-15T09:09:05.142Z",
-      "mentionsGiven": 13,
+      "lastMessageDate": "2025-06-15T09:18:45.530Z",
+      "mentionsGiven": 14,
       "mentionsReceived": 1,
       "wordFrequency": [
         [
@@ -4722,6 +4738,10 @@
         [
           "パルワールドわかんないけどいいんじゃないかしら",
           1
+        ],
+        [
+          "よろしく！",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -4744,7 +4764,7 @@
         1,
         4,
         0,
-        3,
+        5,
         0,
         3,
         1,
@@ -4752,7 +4772,7 @@
         0
       ],
       "weekdayActivity": [
-        15,
+        17,
         0,
         0,
         0,
@@ -6688,6 +6708,97 @@
         2,
         1,
         0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1334436031487017024",
+    {
+      "userId": "1334436031487017024",
+      "username": "meeow_xoxo",
+      "totalMessages": 3,
+      "totalCharacters": 51,
+      "totalWords": 7,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-06-15T09:15:28.598Z",
+      "lastMessageDate": "2025-06-15T09:18:37.294Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 3,
+      "wordFrequency": [
+        [
+          "【名前】しす",
+          1
+        ],
+        [
+          "【年齢】１５",
+          1
+        ],
+        [
+          "【性別】男",
+          1
+        ],
+        [
+          "【誕生日】",
+          1
+        ],
+        [
+          "【最近ハマっている事】",
+          1
+        ],
+        [
+          "【何か一言！】",
+          1
+        ],
+        [
+          "よろです👀",
+          1
+        ]
+      ],
+      "emojiFrequency": [
+        [
+          "👀",
+          1
+        ]
+      ],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
         0,
         0,
         0,

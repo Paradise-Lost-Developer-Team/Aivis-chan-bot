@@ -9182,14 +9182,14 @@
     {
       "userId": "1210143590316253256",
       "username": "pennpe",
-      "totalMessages": 1334,
-      "totalCharacters": 28217,
-      "totalWords": 1747,
-      "totalEmojis": 807,
+      "totalMessages": 1336,
+      "totalCharacters": 28388,
+      "totalWords": 1754,
+      "totalEmojis": 814,
       "firstMessageDate": "2025-06-10T06:27:21.925Z",
-      "lastMessageDate": "2025-06-15T09:12:43.154Z",
+      "lastMessageDate": "2025-06-15T09:21:22.691Z",
       "mentionsGiven": 18,
-      "mentionsReceived": 61,
+      "mentionsReceived": 62,
       "wordFrequency": [
         [
           "◜ω◝",
@@ -10277,7 +10277,7 @@
         ],
         [
           "<:pe:1381922662523338803>",
-          74
+          78
         ],
         [
           "discordばぐった",
@@ -11897,7 +11897,7 @@
         ],
         [
           "<:risekichu:1382896991218045059>",
-          5
+          7
         ],
         [
           "兵器👀",
@@ -13307,7 +13307,7 @@
         ],
         [
           "<:pe:1381922662523338803>",
-          74
+          78
         ],
         [
           "<:hiy:1243400482010169354>",
@@ -13699,7 +13699,7 @@
         ],
         [
           "<:risekichu:1382896991218045059>",
-          5
+          7
         ],
         [
           "🙋",
@@ -13803,7 +13803,7 @@
         ],
         [
           "🔚",
-          2
+          3
         ],
         [
           "<:naruhodo:1383669966162890772>",
@@ -13833,7 +13833,7 @@
         143,
         132,
         136,
-        76,
+        78,
         52,
         50,
         50,
@@ -13841,7 +13841,7 @@
         121
       ],
       "weekdayActivity": [
-        130,
+        132,
         0,
         217,
         247,
@@ -13849,7 +13849,7 @@
         338,
         66
       ],
-      "voiceMinutes": 2433.1077333333333,
+      "voiceMinutes": 2485.0726999999997,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -13861,14 +13861,14 @@
     {
       "userId": "1017040004205264918",
       "username": "mis.22",
-      "totalMessages": 1408,
-      "totalCharacters": 31360,
-      "totalWords": 1843,
+      "totalMessages": 1412,
+      "totalCharacters": 31407,
+      "totalWords": 1847,
       "totalEmojis": 946,
       "firstMessageDate": "2025-06-10T06:51:03.838Z",
-      "lastMessageDate": "2025-06-15T09:10:47.332Z",
+      "lastMessageDate": "2025-06-15T09:17:57.308Z",
       "mentionsGiven": 69,
-      "mentionsReceived": 62,
+      "mentionsReceived": 63,
       "wordFrequency": [
         [
           "<@663722429167697939>",
@@ -18137,6 +18137,22 @@
         [
           "もう乗り換え先ついた",
           1
+        ],
+        [
+          "最寄りついた",
+          1
+        ],
+        [
+          "暑いからループ予約した",
+          1
+        ],
+        [
+          "準備含めてあと1試合はいってて大丈夫",
+          1
+        ],
+        [
+          "充電ないから1回落ちます",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -18936,7 +18952,7 @@
         97,
         90,
         94,
-        39,
+        43,
         40,
         82,
         125,
@@ -18944,7 +18960,7 @@
         84
       ],
       "weekdayActivity": [
-        176,
+        180,
         0,
         222,
         311,
@@ -18952,7 +18968,7 @@
         179,
         110
       ],
-      "voiceMinutes": 96.77213333333333,
+      "voiceMinutes": 130.6957,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -18973,13 +18989,13 @@
     {
       "userId": "939550991601258516",
       "username": "neko_i5",
-      "totalMessages": 2868,
-      "totalCharacters": 43421,
-      "totalWords": 3341,
+      "totalMessages": 2869,
+      "totalCharacters": 43426,
+      "totalWords": 3342,
       "totalEmojis": 964,
       "firstMessageDate": "2025-06-10T07:54:03.179Z",
-      "lastMessageDate": "2025-06-15T09:10:25.113Z",
-      "mentionsGiven": 117,
+      "lastMessageDate": "2025-06-15T09:17:37.560Z",
+      "mentionsGiven": 118,
       "mentionsReceived": 51,
       "wordFrequency": [
         [
@@ -27977,6 +27993,10 @@
         [
           "れぽしよ",
           1
+        ],
+        [
+          "都会っ子め",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -28788,7 +28808,7 @@
         64,
         42,
         18,
-        6,
+        7,
         107,
         92,
         169,
@@ -28796,7 +28816,7 @@
         342
       ],
       "weekdayActivity": [
-        694,
+        695,
         0,
         258,
         285,
@@ -28804,7 +28824,7 @@
         669,
         391
       ],
-      "voiceMinutes": 3232.9368333333327,
+      "voiceMinutes": 3505.721083333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -34184,13 +34204,13 @@
     {
       "userId": "1274257069230526506",
       "username": "neko3napi_299",
-      "totalMessages": 50,
-      "totalCharacters": 1118,
-      "totalWords": 54,
+      "totalMessages": 51,
+      "totalCharacters": 1127,
+      "totalWords": 55,
       "totalEmojis": 14,
       "firstMessageDate": "2025-06-10T16:07:33.889Z",
-      "lastMessageDate": "2025-06-14T18:14:53.656Z",
-      "mentionsGiven": 2,
+      "lastMessageDate": "2025-06-15T09:23:40.178Z",
+      "mentionsGiven": 3,
       "mentionsReceived": 3,
       "wordFrequency": [
         [
@@ -34352,6 +34372,10 @@
         [
           "<:uchu_neko_nya:1382910903762161784>",
           1
+        ],
+        [
+          "ぺぺーーーーーーっ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -34423,7 +34447,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0,
@@ -34431,7 +34455,7 @@
         17
       ],
       "weekdayActivity": [
-        9,
+        10,
         0,
         0,
         19,

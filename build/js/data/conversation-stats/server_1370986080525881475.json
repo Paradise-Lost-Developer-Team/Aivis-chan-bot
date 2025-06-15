@@ -1,8 +1,8 @@
 {
   "serverId": "1370986080525881475",
   "serverName": "恋焦がれ鯖！",
-  "totalMessages": 13449,
-  "totalCharacters": 121069,
+  "totalMessages": 13474,
+  "totalCharacters": 121251,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1370986081461338218",
         "channelName": "バウンティ",
-        "totalMessages": 13205,
+        "totalMessages": 13230,
         "messageByUsers": {},
         "hourlyActivity": [
           327,
@@ -32,7 +32,7 @@
           868,
           679,
           589,
-          639,
+          664,
           1045,
           1884,
           1899,
@@ -40,7 +40,7 @@
           812
         ],
         "weekdayActivity": [
-          5172,
+          5197,
           1778,
           1033,
           178,
@@ -202,7 +202,7 @@
     873,
     685,
     627,
-    671,
+    696,
     1062,
     1886,
     1928,
@@ -210,7 +210,7 @@
     813
   ],
   "weekdayActivity": [
-    5271,
+    5296,
     1798,
     1047,
     184,
@@ -218,7 +218,7 @@
     1478,
     1726
   ],
-  "averageMessageLength": 9.002081939177634,
+  "averageMessageLength": 8.998886744841919,
   "messageDistribution": [
     [
       "2025-05-17",
@@ -314,7 +314,7 @@
     ],
     [
       "2025-06-15",
-      1257
+      1282
     ]
   ],
   "mostActiveUser": "1231209327306608682",

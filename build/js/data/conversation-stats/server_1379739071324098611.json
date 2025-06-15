@@ -1,8 +1,8 @@
 {
   "serverId": "1379739071324098611",
   "serverName": "話して遊べる集いの場",
-  "totalMessages": 718,
-  "totalCharacters": 14219,
+  "totalMessages": 728,
+  "totalCharacters": 14365,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1381971397676498997",
         "channelName": "自己紹介",
-        "totalMessages": 45,
+        "totalMessages": 46,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -32,7 +32,7 @@
           3,
           2,
           2,
-          3,
+          4,
           2,
           8,
           2,
@@ -40,7 +40,7 @@
           3
         ],
         "weekdayActivity": [
-          7,
+          8,
           0,
           3,
           11,
@@ -55,7 +55,7 @@
       {
         "channelId": "1381973438255595591",
         "channelName": "雑談",
-        "totalMessages": 217,
+        "totalMessages": 220,
         "messageByUsers": {},
         "hourlyActivity": [
           20,
@@ -76,7 +76,7 @@
           8,
           5,
           0,
-          16,
+          19,
           22,
           36,
           13,
@@ -84,7 +84,7 @@
           1
         ],
         "weekdayActivity": [
-          30,
+          33,
           0,
           0,
           79,
@@ -143,7 +143,7 @@
       {
         "channelId": "1381973744498769971",
         "channelName": "飯テロ",
-        "totalMessages": 2,
+        "totalMessages": 4,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -164,7 +164,7 @@
           0,
           0,
           0,
-          0,
+          2,
           0,
           0,
           0,
@@ -172,7 +172,7 @@
           0
         ],
         "weekdayActivity": [
-          0,
+          2,
           0,
           0,
           1,
@@ -363,7 +363,7 @@
       {
         "channelId": "1381971232693551194",
         "channelName": "新規さん挨拶",
-        "totalMessages": 169,
+        "totalMessages": 173,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -384,7 +384,7 @@
           8,
           20,
           1,
-          6,
+          10,
           7,
           32,
           8,
@@ -392,7 +392,7 @@
           2
         ],
         "weekdayActivity": [
-          30,
+          34,
           0,
           0,
           36,
@@ -774,7 +774,7 @@
     24,
     43,
     5,
-    33,
+    43,
     31,
     89,
     232,
@@ -782,7 +782,7 @@
     10
   ],
   "weekdayActivity": [
-    70,
+    80,
     0,
     3,
     150,
@@ -790,7 +790,7 @@
     26,
     78
   ],
-  "averageMessageLength": 19.803621169916436,
+  "averageMessageLength": 19.732142857142858,
   "messageDistribution": [
     [
       "2025-06-10",
@@ -814,7 +814,7 @@
     ],
     [
       "2025-06-15",
-      40
+      50
     ]
   ],
   "mostActiveUser": "715840411364491305",

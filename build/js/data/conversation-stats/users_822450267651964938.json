@@ -659,7 +659,7 @@
         20,
         30
       ],
-      "voiceMinutes": 16994.845300000004,
+      "voiceMinutes": 16995.63341666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1286,7 +1286,7 @@
         10,
         36
       ],
-      "voiceMinutes": 5892.423916666664,
+      "voiceMinutes": 6259.383249999997,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1305,7 +1305,7 @@
       "firstMessageDate": "2025-04-18T02:30:35.678Z",
       "lastMessageDate": "2025-06-14T09:01:10.130Z",
       "mentionsGiven": 20,
-      "mentionsReceived": 17,
+      "mentionsReceived": 18,
       "wordFrequency": [
         [
           "テスト",
@@ -2821,7 +2821,7 @@
         96,
         35
       ],
-      "voiceMinutes": 13587.567650000003,
+      "voiceMinutes": 13963.126583333336,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -9600,13 +9600,13 @@
     {
       "userId": "819908173283721286",
       "username": "coshian.ofc02",
-      "totalMessages": 434,
-      "totalCharacters": 8945,
-      "totalWords": 611,
+      "totalMessages": 435,
+      "totalCharacters": 8969,
+      "totalWords": 613,
       "totalEmojis": 17,
       "firstMessageDate": "2025-05-09T10:40:56.500Z",
-      "lastMessageDate": "2025-06-15T01:50:01.502Z",
-      "mentionsGiven": 61,
+      "lastMessageDate": "2025-06-15T09:25:42.920Z",
+      "mentionsGiven": 62,
       "mentionsReceived": 29,
       "wordFrequency": [
         [
@@ -10027,7 +10027,7 @@
         ],
         [
           "<@809627147333140531>",
-          3
+          4
         ],
         [
           "<@1169815094457282591>",
@@ -11287,7 +11287,7 @@
         9,
         29,
         53,
-        87,
+        88,
         29,
         23,
         16,
@@ -11295,7 +11295,7 @@
         4
       ],
       "weekdayActivity": [
-        84,
+        85,
         132,
         43,
         59,

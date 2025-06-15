@@ -455,12 +455,12 @@
     {
       "userId": "1366024161931296899",
       "username": "akanetoki325",
-      "totalMessages": 4,
-      "totalCharacters": 288,
-      "totalWords": 11,
+      "totalMessages": 5,
+      "totalCharacters": 335,
+      "totalWords": 13,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-13T07:47:12.718Z",
-      "lastMessageDate": "2025-06-14T09:19:14.417Z",
+      "lastMessageDate": "2025-06-15T09:22:21.651Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -502,11 +502,11 @@
         ],
         [
           "m!p",
-          1
+          2
         ],
         [
           "https://www.youtube.com/watch?v=nszqdk_pchu",
-          1
+          2
         ]
       ],
       "emojiFrequency": [],
@@ -529,7 +529,7 @@
         0,
         3,
         0,
-        1,
+        2,
         0,
         0,
         0,
@@ -537,7 +537,7 @@
         0
       ],
       "weekdayActivity": [
-        0,
+        1,
         0,
         0,
         0,

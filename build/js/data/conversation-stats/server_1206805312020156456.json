@@ -1,8 +1,8 @@
 {
   "serverId": "1206805312020156456",
   "serverName": "WOS Mrr",
-  "totalMessages": 9871,
-  "totalCharacters": 167891,
+  "totalMessages": 9879,
+  "totalCharacters": 168123,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1206805312493985806",
         "channelName": "🔊だれでも雑談VC/たまにクマ部",
-        "totalMessages": 9763,
+        "totalMessages": 9771,
         "messageByUsers": {},
         "hourlyActivity": [
           748,
@@ -32,7 +32,7 @@
           755,
           506,
           434,
-          271,
+          279,
           249,
           367,
           455,
@@ -40,7 +40,7 @@
           667
         ],
         "weekdayActivity": [
-          1749,
+          1757,
           0,
           1116,
           1351,
@@ -422,7 +422,7 @@
     755,
     507,
     436,
-    276,
+    284,
     251,
     376,
     462,
@@ -430,7 +430,7 @@
     673
   ],
   "weekdayActivity": [
-    1767,
+    1775,
     0,
     1120,
     1374,
@@ -438,7 +438,7 @@
     2443,
     764
   ],
-  "averageMessageLength": 17.008509776111843,
+  "averageMessageLength": 17.01822046765867,
   "messageDistribution": [
     [
       "2025-06-10",
@@ -462,7 +462,7 @@
     ],
     [
       "2025-06-15",
-      472
+      480
     ]
   ],
   "mostActiveUser": "939550991601258516",
