@@ -1,1 +1,186 @@
+<<<<<<< HEAD
 {}
+=======
+{
+  "966557943271133235": {
+    "門前清自摸和": {
+      "pronunciation": "ツモ",
+      "accent_type": 1,
+      "word_type": "PROPER_NOUN"
+    },
+    "白朮": {
+      "pronunciation": "ビャクジュツ",
+      "accent_type": 1,
+      "word_type": "PERSON_NAME"
+    },
+    "璃月": {
+      "pronunciation": "リーユェ",
+      "accent_type": 1,
+      "word_type": "PROPER_NOUN",
+      "uuid": "e486edc0-2b96-4adc-9ecb-8653d28aed44"
+    },
+    "AVID": {
+      "pronunciation": "アビッド",
+      "accent_type": 1,
+      "word_type": "PERSON_NAME"
+    },
+    "層岩巨淵": {
+      "pronunciation": "ソウガンキョエン",
+      "accent_type": 3,
+      "word_type": "PROPER_NOUN"
+    },
+    "wickbot": {
+      "pronunciation": "ウィックボット",
+      "accentType": 2,
+      "wordType": "PROPER_NOUN"
+    },
+    "Bot": {
+      "pronunciation": "ボット",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "BOT": {
+      "pronunciation": "ボット",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "黒蛇衆": {
+      "pronunciation": "コクジャシュウ",
+      "accentType": 3,
+      "wordType": "PERSON_NAME"
+    },
+    "黒蛇騎士": {
+      "pronunciation": "コクジャキシ",
+      "accentType": 3,
+      "wordType": "PERSON_NAME"
+    },
+    "微課金": {
+      "pronunciation": "ビカキン",
+      "accentType": 1,
+      "wordType": "COMMON_NOUN"
+    }
+  },
+  "1317015435043934228": {
+    "雀魂": {
+      "pronunciation": "ジャンタマ",
+      "accent_type": 1,
+      "word_type": "PROPER_NOUN"
+    },
+    "層岩巨淵": {
+      "pronunciation": "ソウガンキョエン",
+      "accent_type": 3,
+      "word_type": "PROPER_NOUN"
+    },
+    "白纓槍": {
+      "pronunciation": "ハクエイソウ",
+      "accent_type": 1,
+      "word_type": "PROPER_NOUN"
+    },
+    "一盃口": {
+      "pronunciation": "イーペーコー",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "清老頭": {
+      "pronunciation": "チンロートー",
+      "accentType": 1,
+      "wordType": "COMMON_NOUN"
+    },
+    "乃愛": {
+      "pronunciation": "ノア",
+      "accentType": 2,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1281107107126575114": {
+    "門前": {
+      "pronunciation": "モンゼン",
+      "accent_type": 2,
+      "word_type": "PROPER_NOUN",
+      "uuid": "1937eae8-2d24-4b4f-a487-7e92bdb646ce"
+    },
+    "English": {
+      "pronunciation": "イングリッシュ",
+      "accent_type": 1,
+      "word_type": "COMMON_NOUN"
+    }
+  },
+  "1202979760179781763": {
+    "w": {
+      "pronunciation": "ワラ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "Ciel": {
+      "pronunciation": "シエル",
+      "accent_type": 0,
+      "word_type": "PERSON_NAME"
+    },
+    "ciel": {
+      "pronunciation": "シエル",
+      "accent_type": 0,
+      "word_type": "PERSON_NAME"
+    },
+    "BOT": {
+      "pronunciation": "ボット",
+      "accent_type": 0,
+      "word_type": "COMMON_NOUN"
+    },
+    "%": {
+      "pronunciation": "パーセント",
+      "accent_type": 0,
+      "word_type": "SUFFIX"
+    },
+    "🤔": {
+      "pronunciation": "カンガエルカオ",
+      "accent_type": 0,
+      "word_type": "PROPER_NOUN"
+    },
+    "thinking": {
+      "pronunciation": "カンガエルカオ",
+      "accent_type": 0,
+      "word_type": "PROPER_NOUN"
+    },
+    "テスト": {
+      "pronunciation": "テステス",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "test": {
+      "pronunciation": "テステス",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "W": {
+      "pronunciation": "ワラ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "1333082050651230262": {
+    "みやび": {
+      "pronunciation": "ミヤビ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    },
+    "よくない": {
+      "pronunciation": "ミヤビ",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "歌志軒": {
+      "pronunciation": "カジケン",
+      "accentType": 0,
+      "wordType": "ORGANIZATION_NAME"
+    }
+  },
+  "1351930674335973386": {},
+  "926435671873323010": {
+    "wwwww": {
+      "pronunciation": "ワラワラ",
+      "accentType": 1,
+      "wordType": "COMMON_NOUN"
+    }
+  }
+}
+>>>>>>> 73cf8a39ae8445f7a8ad60602b1f2d2352d05acb

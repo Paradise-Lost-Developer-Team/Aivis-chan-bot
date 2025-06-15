@@ -1,0 +1,138 @@
+[
+  [
+    "950736873502937160",
+    {
+      "userId": "950736873502937160",
+      "username": "n.a_aruem_0519",
+      "totalMessages": 1,
+      "totalCharacters": 6,
+      "totalWords": 1,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-20T14:15:52.155Z",
+      "lastMessageDate": "2025-04-20T14:15:51.965Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 1,
+      "wordFrequency": [
+        [
+          "こんにちは。",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1114529711519956992",
+    {
+      "userId": "1114529711519956992",
+      "username": "sff_mountainsousagespacemountain",
+      "totalMessages": 4,
+      "totalCharacters": 41,
+      "totalWords": 4,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-20T14:15:56.258Z",
+      "lastMessageDate": "2025-05-02T13:33:51.819Z",
+      "mentionsGiven": 2,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "<@949479338275913799>",
+          1
+        ],
+        [
+          "わったっふぁ",
+          1
+        ],
+        [
+          "valorant's",
+          1
+        ],
+        [
+          "あーーね",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        1
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0
+      ],
+      "voiceMinutes": 0.64295,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

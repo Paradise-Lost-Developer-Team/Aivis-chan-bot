@@ -1,0 +1,158 @@
+[
+  [
+    "1350047826385567764",
+    {
+      "userId": "1350047826385567764",
+      "username": "saku34521",
+      "totalMessages": 2,
+      "totalCharacters": 5,
+      "totalWords": 1,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-16T10:56:03.071Z",
+      "lastMessageDate": "2025-04-16T12:51:08.725Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "あああああ",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 2.940383333333333,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "575185047724752927",
+    {
+      "userId": "575185047724752927",
+      "username": "noji8887",
+      "totalMessages": 18,
+      "totalCharacters": 169,
+      "totalWords": 14,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-16T11:09:35.530Z",
+      "lastMessageDate": "2025-06-05T12:42:55.454Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "ああああああ",
+          1
+        ],
+        [
+          "あああああ",
+          4
+        ],
+        [
+          "いいいいい",
+          1
+        ],
+        [
+          "ああああ",
+          1
+        ],
+        [
+          "あいうえお",
+          2
+        ],
+        [
+          "マイクラ",
+          1
+        ],
+        [
+          "https://linktr.ee/noji8887_contact",
+          1
+        ],
+        [
+          "https://linktr.ee/noji8887",
+          2
+        ],
+        [
+          "https://friend-request.studio.site",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        16,
+        2,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        16,
+        2,
+        0,
+        0
+      ],
+      "voiceMinutes": 31.665466666666667,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]
