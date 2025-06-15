@@ -1,8 +1,8 @@
 {
   "serverId": "1333082050651230262",
   "serverName": "学生ゆったり荘",
-  "totalMessages": 175837,
-  "totalCharacters": 1792899,
+  "totalMessages": 175937,
+  "totalCharacters": 1794136,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -231,7 +231,7 @@
       {
         "channelId": "1333086766193967105",
         "channelName": "📹│画像・動画",
-        "totalMessages": 1534,
+        "totalMessages": 1535,
         "messageByUsers": {},
         "hourlyActivity": [
           20,
@@ -252,7 +252,7 @@
           35,
           116,
           62,
-          44,
+          45,
           209,
           137,
           78,
@@ -260,7 +260,7 @@
           32
         ],
         "weekdayActivity": [
-          289,
+          290,
           154,
           216,
           89,
@@ -275,7 +275,7 @@
       {
         "channelId": "1333086213036445727",
         "channelName": "💬│つぶやき",
-        "totalMessages": 25938,
+        "totalMessages": 26037,
         "messageByUsers": {},
         "hourlyActivity": [
           665,
@@ -295,8 +295,8 @@
           591,
           1103,
           1166,
-          1567,
-          1148,
+          1578,
+          1236,
           1379,
           1139,
           1574,
@@ -304,7 +304,7 @@
           1477
         ],
         "weekdayActivity": [
-          3739,
+          3838,
           3039,
           2277,
           3451,
@@ -4733,8 +4733,8 @@
     6101,
     7444,
     9862,
-    8880,
-    9238,
+    8891,
+    9327,
     10322,
     9504,
     13833,
@@ -4742,7 +4742,7 @@
     12158
   ],
   "weekdayActivity": [
-    31263,
+    31363,
     23037,
     23821,
     24194,
@@ -4750,7 +4750,7 @@
     24865,
     26783
   ],
-  "averageMessageLength": 10.196369364809454,
+  "averageMessageLength": 10.197604824454208,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -5010,7 +5010,7 @@
     ],
     [
       "2025-06-15",
-      1432
+      1532
     ]
   ],
   "mostActiveUser": "1275052409013670033",

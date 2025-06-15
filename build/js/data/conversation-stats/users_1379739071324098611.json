@@ -4,13 +4,13 @@
     {
       "userId": "715840411364491305",
       "username": "reika.0821",
-      "totalMessages": 231,
-      "totalCharacters": 7317,
-      "totalWords": 399,
-      "totalEmojis": 19,
+      "totalMessages": 240,
+      "totalCharacters": 7555,
+      "totalWords": 412,
+      "totalEmojis": 20,
       "firstMessageDate": "2025-06-10T14:40:23.873Z",
-      "lastMessageDate": "2025-06-15T07:24:21.090Z",
-      "mentionsGiven": 127,
+      "lastMessageDate": "2025-06-15T09:08:07.883Z",
+      "mentionsGiven": 132,
       "mentionsReceived": 25,
       "wordFrequency": [
         [
@@ -563,7 +563,7 @@
         ],
         [
           "よろしくお願いします〜！",
-          8
+          9
         ],
         [
           "雑談したい所ですが眠いのでまたお昼頃に…💤",
@@ -635,7 +635,7 @@
         ],
         [
           "omg",
-          1
+          2
         ],
         [
           "バイト飲食はおすすめしないです",
@@ -1100,6 +1100,50 @@
         [
           "今日も今日とてバイトです",
           1
+        ],
+        [
+          "…🤔",
+          1
+        ],
+        [
+          "バイト行ってる間に人増えすぎでは…？",
+          1
+        ],
+        [
+          "<@1188008679971233843>",
+          1
+        ],
+        [
+          "<@1323672002984280126>",
+          1
+        ],
+        [
+          "<@1349981639828049940>",
+          1
+        ],
+        [
+          "<@1377971194531287080>",
+          1
+        ],
+        [
+          "relms人数突破してしまった",
+          1
+        ],
+        [
+          "これはレンタルサーバーかな",
+          1
+        ],
+        [
+          "||個人的にはマイクラ結構やってるからもし人いたら今後パルワールドの鯖開きたい||",
+          1
+        ],
+        [
+          "パルワールド今結構アプデ入ってて",
+          1
+        ],
+        [
+          "初期勢からしたらまた最初からやってみたいんだよね",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1113,7 +1157,7 @@
         ],
         [
           "🤔",
-          2
+          3
         ],
         [
           "💤",
@@ -1142,8 +1186,8 @@
         7,
         8,
         11,
-        0,
-        14,
+        1,
+        22,
         20,
         36,
         40,
@@ -1151,7 +1195,7 @@
         6
       ],
       "weekdayActivity": [
-        13,
+        22,
         0,
         3,
         77,
@@ -4598,12 +4642,12 @@
     {
       "userId": "1175238141846769724",
       "username": "kenpin0363",
-      "totalMessages": 25,
-      "totalCharacters": 160,
-      "totalWords": 17,
+      "totalMessages": 27,
+      "totalCharacters": 187,
+      "totalWords": 19,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-12T16:43:15.921Z",
-      "lastMessageDate": "2025-06-15T07:58:18.230Z",
+      "lastMessageDate": "2025-06-15T09:09:05.142Z",
       "mentionsGiven": 13,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -4670,6 +4714,14 @@
         [
           "声優の中村さんね",
           1
+        ],
+        [
+          "いいやん",
+          1
+        ],
+        [
+          "パルワールドわかんないけどいいんじゃないかしら",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -4692,7 +4744,7 @@
         1,
         4,
         0,
-        1,
+        3,
         0,
         3,
         1,
@@ -4700,7 +4752,7 @@
         0
       ],
       "weekdayActivity": [
-        13,
+        15,
         0,
         0,
         0,
@@ -6218,7 +6270,7 @@
       "firstMessageDate": "2025-06-15T03:08:26.927Z",
       "lastMessageDate": "2025-06-15T03:28:46.383Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 3,
+      "mentionsReceived": 4,
       "wordFrequency": [
         [
           "【名前】atom",
@@ -6362,7 +6414,7 @@
       "firstMessageDate": "2025-06-15T06:32:11.373Z",
       "lastMessageDate": "2025-06-15T06:33:38.016Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 3,
+      "mentionsReceived": 4,
       "wordFrequency": [
         [
           "【名前】りー",
@@ -6501,7 +6553,7 @@
       "firstMessageDate": "2025-06-15T07:19:46.787Z",
       "lastMessageDate": "2025-06-15T07:28:15.162Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "【名前】いちごちょこ",
@@ -6588,7 +6640,7 @@
       "firstMessageDate": "2025-06-15T07:53:49.304Z",
       "lastMessageDate": "2025-06-15T08:04:35.798Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 2,
+      "mentionsReceived": 4,
       "wordFrequency": [
         [
           "【名前】ma",

@@ -1,8 +1,8 @@
 {
   "serverId": "1379739071324098611",
   "serverName": "話して遊べる集いの場",
-  "totalMessages": 707,
-  "totalCharacters": 13954,
+  "totalMessages": 718,
+  "totalCharacters": 14219,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1381973438255595591",
         "channelName": "雑談",
-        "totalMessages": 207,
+        "totalMessages": 217,
         "messageByUsers": {},
         "hourlyActivity": [
           20,
@@ -76,7 +76,7 @@
           8,
           5,
           0,
-          6,
+          16,
           22,
           36,
           13,
@@ -84,7 +84,7 @@
           1
         ],
         "weekdayActivity": [
-          20,
+          30,
           0,
           0,
           79,
@@ -363,7 +363,7 @@
       {
         "channelId": "1381971232693551194",
         "channelName": "新規さん挨拶",
-        "totalMessages": 168,
+        "totalMessages": 169,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -383,7 +383,7 @@
           6,
           8,
           20,
-          0,
+          1,
           6,
           7,
           32,
@@ -392,7 +392,7 @@
           2
         ],
         "weekdayActivity": [
-          29,
+          30,
           0,
           0,
           36,
@@ -773,8 +773,8 @@
     15,
     24,
     43,
-    4,
-    23,
+    5,
+    33,
     31,
     89,
     232,
@@ -782,7 +782,7 @@
     10
   ],
   "weekdayActivity": [
-    59,
+    70,
     0,
     3,
     150,
@@ -790,7 +790,7 @@
     26,
     78
   ],
-  "averageMessageLength": 19.736916548797737,
+  "averageMessageLength": 19.803621169916436,
   "messageDistribution": [
     [
       "2025-06-10",
@@ -814,7 +814,7 @@
     ],
     [
       "2025-06-15",
-      29
+      40
     ]
   ],
   "mostActiveUser": "715840411364491305",

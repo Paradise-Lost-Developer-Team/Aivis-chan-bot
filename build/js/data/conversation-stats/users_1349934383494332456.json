@@ -3655,13 +3655,13 @@
     {
       "userId": "840245757847666699",
       "username": "kurukuronikuru",
-      "totalMessages": 49,
-      "totalCharacters": 1041,
-      "totalWords": 73,
+      "totalMessages": 51,
+      "totalCharacters": 1103,
+      "totalWords": 77,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-30T13:35:30.555Z",
-      "lastMessageDate": "2025-06-15T08:01:38.058Z",
-      "mentionsGiven": 7,
+      "lastMessageDate": "2025-06-15T09:11:39.040Z",
+      "mentionsGiven": 8,
       "mentionsReceived": 10,
       "wordFrequency": [
         [
@@ -3915,6 +3915,22 @@
         [
           "何時からですか",
           1
+        ],
+        [
+          "<@1253972316967141456>",
+          1
+        ],
+        [
+          "モンハンライズマルチやりませんか？",
+          1
+        ],
+        [
+          "19時までならokです",
+          1
+        ],
+        [
+          "vc部屋開いたんで",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -3937,7 +3953,7 @@
         1,
         1,
         3,
-        1,
+        3,
         5,
         1,
         13,
@@ -3945,7 +3961,7 @@
         4
       ],
       "weekdayActivity": [
-        7,
+        9,
         1,
         4,
         2,
@@ -13011,14 +13027,14 @@
     {
       "userId": "1253972316967141456",
       "username": "shiruko0736",
-      "totalMessages": 125,
-      "totalCharacters": 1305,
-      "totalWords": 124,
+      "totalMessages": 128,
+      "totalCharacters": 1328,
+      "totalWords": 127,
       "totalEmojis": 18,
       "firstMessageDate": "2025-06-11T12:02:37.499Z",
-      "lastMessageDate": "2025-06-15T08:08:15.165Z",
+      "lastMessageDate": "2025-06-15T09:13:21.448Z",
       "mentionsGiven": 11,
-      "mentionsReceived": 9,
+      "mentionsReceived": 10,
       "wordFrequency": [
         [
           "【名前】しるこ",
@@ -13214,7 +13230,7 @@
         ],
         [
           "全然大丈夫です！",
-          1
+          2
         ],
         [
           "武器もつくれました！",
@@ -13423,6 +13439,14 @@
         [
           "21時までだったら何時からでも/",
           1
+        ],
+        [
+          "やりましょう！",
+          1
+        ],
+        [
+          "部屋作れますか？",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -13466,7 +13490,7 @@
         23,
         13,
         14,
-        7,
+        10,
         0,
         0,
         4,
@@ -13474,7 +13498,7 @@
         21
       ],
       "weekdayActivity": [
-        6,
+        9,
         0,
         0,
         4,

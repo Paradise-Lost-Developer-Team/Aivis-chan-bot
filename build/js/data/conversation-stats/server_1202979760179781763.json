@@ -1,8 +1,8 @@
 {
   "serverId": "1202979760179781763",
   "serverName": "3Farms(Sparrow,Duck,Gorilla)",
-  "totalMessages": 45072,
-  "totalCharacters": 648666,
+  "totalMessages": 45074,
+  "totalCharacters": 648693,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,7 +143,7 @@
       {
         "channelId": "1205853917120823326",
         "channelName": "競馬限界集落",
-        "totalMessages": 930,
+        "totalMessages": 931,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -164,7 +164,7 @@
           292,
           143,
           52,
-          60,
+          61,
           9,
           37,
           20,
@@ -172,7 +172,7 @@
           0
         ],
         "weekdayActivity": [
-          537,
+          538,
           2,
           28,
           15,
@@ -1023,7 +1023,7 @@
       {
         "channelId": "1275095276163567780",
         "channelName": "開催調整ロビー",
-        "totalMessages": 140,
+        "totalMessages": 141,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -1044,7 +1044,7 @@
           1,
           0,
           2,
-          5,
+          6,
           22,
           21,
           57,
@@ -1052,7 +1052,7 @@
           1
         ],
         "weekdayActivity": [
-          19,
+          20,
           0,
           2,
           25,
@@ -2182,7 +2182,7 @@
     519,
     320,
     280,
-    421,
+    423,
     513,
     1822,
     4300,
@@ -2190,7 +2190,7 @@
     7488
   ],
   "weekdayActivity": [
-    7951,
+    7953,
     5589,
     5160,
     5229,
@@ -2198,7 +2198,7 @@
     6531,
     10016
   ],
-  "averageMessageLength": 14.391773162939296,
+  "averageMessageLength": 14.391733593646004,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -2458,7 +2458,7 @@
     ],
     [
       "2025-06-15",
-      238
+      240
     ]
   ],
   "mostActiveUser": "386884999670005773",
