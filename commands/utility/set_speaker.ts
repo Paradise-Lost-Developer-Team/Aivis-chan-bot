@@ -30,26 +30,27 @@ module.exports = {
                 return;
             }
             
-            // メニューオプションの作成
-            const options = speakerOptions.map((option: { label: string; value: string }) => 
-                new StringSelectMenuOptionBuilder()
-                    .setLabel(option.label)
-                    .setValue(option.value)
-            );
+            // 25件ごとに分割して複数の選択メニューを作成
+            const chunkSize = 25;
+            const rows: ActionRowBuilder<StringSelectMenuBuilder>[] = [];
+            for (let i = 0; i < speakerOptions.length; i += chunkSize) {
+                const chunk = speakerOptions.slice(i, i + chunkSize);
+                const options = chunk.map((option: { label: string; value: string }) =>
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(option.label)
+                        .setValue(option.value)
+                );
+                const selectMenu = new StringSelectMenuBuilder()
+                    .setCustomId(`select_speaker_${i / chunkSize}`)
+                    .setPlaceholder('話者を選択してください')
+                    .setOptions(options);
+                rows.push(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu));
+            }
             
-            // 選択メニューの作成（最大25項目までしか表示できないので注意）
-            const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId('select_speaker')
-                .setPlaceholder('話者を選択してください')
-                .setOptions(options.slice(0, 25)); // 最大25オプションまで
-                
-            const row = new ActionRowBuilder<StringSelectMenuBuilder>()
-                .addComponents(selectMenu);
-                
             // 選択メニューを含むメッセージを送信
             const response = await interaction.reply({
                 content: '読み上げに使用する話者を選択してください：',
-                components: [row],
+                components: rows,
                 flags: MessageFlags.Ephemeral
             });
             
@@ -67,7 +68,7 @@ module.exports = {
                     if (!selectedValue.includes('-')) {
                         await selectInteraction.update({
                             content: '話者情報の形式が不正です。もう一度選択してください。',
-                            components: [row]
+                            components: rows
                         });
                         return;
                     }
@@ -79,7 +80,7 @@ module.exports = {
                     if (isNaN(speakerIdNumber)) {
                         await selectInteraction.update({
                             content: '話者IDが不正です。もう一度選択してください。',
-                            components: [row]
+                            components: rows
                         });
                         return;
                     }
