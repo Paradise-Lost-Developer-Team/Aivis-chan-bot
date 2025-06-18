@@ -1,8 +1,8 @@
 {
   "serverId": "1373240283403386920",
   "serverName": "新しい雷サーバー",
-  "totalMessages": 3127,
-  "totalCharacters": 28125,
+  "totalMessages": 3132,
+  "totalCharacters": 28167,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -231,7 +231,7 @@
       {
         "channelId": "1373392877899612190",
         "channelName": "作業聞き専",
-        "totalMessages": 614,
+        "totalMessages": 619,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -250,7 +250,7 @@
           0,
           0,
           0,
-          0,
+          5,
           111,
           88,
           170,
@@ -261,7 +261,7 @@
         ],
         "weekdayActivity": [
           0,
-          330,
+          335,
           264,
           1,
           5,
@@ -596,7 +596,7 @@
     11,
     29,
     209,
-    52,
+    57,
     131,
     122,
     226,
@@ -607,14 +607,14 @@
   ],
   "weekdayActivity": [
     327,
-    459,
+    464,
     633,
     339,
     362,
     383,
     624
   ],
-  "averageMessageLength": 8.994243684042212,
+  "averageMessageLength": 8.993295019157088,
   "messageDistribution": [
     [
       "2025-05-17",
@@ -723,6 +723,10 @@
     [
       "2025-06-15",
       6
+    ],
+    [
+      "2025-06-16",
+      5
     ]
   ],
   "mostActiveUser": "1362707605843083294",

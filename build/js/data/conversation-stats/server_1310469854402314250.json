@@ -1,8 +1,8 @@
 {
   "serverId": "1310469854402314250",
   "serverName": "Japan Mineraft Mods",
-  "totalMessages": 291,
-  "totalCharacters": 22030,
+  "totalMessages": 294,
+  "totalCharacters": 22147,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -1243,7 +1243,7 @@
       {
         "channelId": "1382546316005212310",
         "channelName": "サーバーMODだけ適応されない",
-        "totalMessages": 38,
+        "totalMessages": 41,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1256,7 +1256,7 @@
           0,
           0,
           0,
-          0,
+          1,
           11,
           1,
           0,
@@ -1269,12 +1269,12 @@
           1,
           7,
           2,
-          4
+          6
         ],
         "weekdayActivity": [
           0,
-          0,
-          0,
+          2,
+          1,
           0,
           27,
           5,
@@ -1426,7 +1426,7 @@
     1,
     1,
     1,
-    10,
+    11,
     18,
     8,
     6,
@@ -1439,18 +1439,18 @@
     44,
     27,
     21,
-    10
+    12
   ],
   "weekdayActivity": [
     12,
-    26,
-    39,
+    28,
+    40,
     43,
     51,
     80,
     40
   ],
-  "averageMessageLength": 75.70446735395188,
+  "averageMessageLength": 75.32993197278911,
   "messageDistribution": [
     [
       "2025-04-27",
@@ -1582,6 +1582,14 @@
     ],
     [
       "2025-06-15",
+      1
+    ],
+    [
+      "2025-06-16",
+      2
+    ],
+    [
+      "2025-06-17",
       1
     ]
   ],
