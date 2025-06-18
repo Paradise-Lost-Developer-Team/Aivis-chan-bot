@@ -4,12 +4,12 @@
     {
       "userId": "1362707605843083294",
       "username": "aizawa.7014",
-      "totalMessages": 1350,
-      "totalCharacters": 15245,
-      "totalWords": 1522,
+      "totalMessages": 1355,
+      "totalCharacters": 15287,
+      "totalWords": 1527,
       "totalEmojis": 57,
       "firstMessageDate": "2025-05-17T12:55:26.990Z",
-      "lastMessageDate": "2025-06-15T07:11:15.264Z",
+      "lastMessageDate": "2025-06-16T07:37:44.462Z",
       "mentionsGiven": 31,
       "mentionsReceived": 7,
       "wordFrequency": [
@@ -1303,7 +1303,7 @@
         ],
         [
           "はいただいま",
-          1
+          2
         ],
         [
           "おかえり",
@@ -4752,6 +4752,22 @@
         [
           "救いようがない",
           1
+        ],
+        [
+          "帰ってきたぜ",
+          1
+        ],
+        [
+          "なんなんこの読み上げbot",
+          1
+        ],
+        [
+          "たでぇま",
+          1
+        ],
+        [
+          "また17時前に戻ってくる！",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4925,7 +4941,7 @@
         5,
         3,
         112,
-        29,
+        34,
         120,
         88,
         153,
@@ -4936,7 +4952,7 @@
       ],
       "weekdayActivity": [
         154,
-        209,
+        214,
         366,
         52,
         176,

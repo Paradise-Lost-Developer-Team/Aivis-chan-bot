@@ -147,13 +147,13 @@
     {
       "userId": "459694418383994880",
       "username": "noko_tsuchinoko",
-      "totalMessages": 171,
-      "totalCharacters": 4392,
-      "totalWords": 164,
-      "totalEmojis": 46,
+      "totalMessages": 174,
+      "totalCharacters": 4451,
+      "totalWords": 166,
+      "totalEmojis": 48,
       "firstMessageDate": "2025-04-27T00:01:24.231Z",
-      "lastMessageDate": "2025-06-15T05:01:28.189Z",
-      "mentionsGiven": 33,
+      "lastMessageDate": "2025-06-17T06:23:40.629Z",
+      "mentionsGiven": 35,
       "mentionsReceived": 2,
       "wordFrequency": [
         [
@@ -719,6 +719,10 @@
         [
           "同症状が出た場合は、ゲーム内「その他→フィードバック」から公式へ報告をお願いします～👌",
           1
+        ],
+        [
+          "<@&1244876556950835284>月曜から夜更かし。良ければ、ウィークリーいっしょにやりましょ～🐺",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -800,7 +804,7 @@
         ],
         [
           "👌",
-          2
+          3
         ],
         [
           "🦈",
@@ -825,6 +829,10 @@
         [
           "🐍",
           1
+        ],
+        [
+          "🐺",
+          1
         ]
       ],
       "hourlyActivity": [
@@ -843,26 +851,26 @@
         5,
         6,
         3,
-        17,
+        18,
         7,
         10,
         9,
         7,
-        7,
+        9,
         9,
         17,
         15
       ],
       "weekdayActivity": [
         36,
-        36,
-        24,
+        38,
+        25,
         23,
         12,
         31,
         9
       ],
-      "voiceMinutes": 7130.703666666667,
+      "voiceMinutes": 7348.949333333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1108,12 +1116,12 @@
     {
       "userId": "1099951692205785088",
       "username": "1325weiya",
-      "totalMessages": 25,
-      "totalCharacters": 861,
-      "totalWords": 27,
+      "totalMessages": 26,
+      "totalCharacters": 910,
+      "totalWords": 28,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-27T04:08:42.842Z",
-      "lastMessageDate": "2025-06-09T15:12:14.412Z",
+      "lastMessageDate": "2025-06-16T14:23:27.954Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -1220,6 +1228,10 @@
         [
           "二人目の支援きたわね…",
           1
+        ],
+        [
+          "https://x.com/zzzproxy/status/1932730859108643047",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -1247,18 +1259,18 @@
         4,
         6,
         1,
-        0
+        1
       ],
       "weekdayActivity": [
         5,
-        1,
+        2,
         5,
         3,
         3,
         8,
         0
       ],
-      "voiceMinutes": 3017.4702999999995,
+      "voiceMinutes": 3118.487966666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1270,12 +1282,12 @@
     {
       "userId": "1031167854671839282",
       "username": "yuta020260",
-      "totalMessages": 24,
+      "totalMessages": 25,
       "totalCharacters": 1968,
       "totalWords": 62,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-27T05:47:05.661Z",
-      "lastMessageDate": "2025-06-07T17:04:52.721Z",
+      "lastMessageDate": "2025-06-16T14:21:19.340Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -1533,18 +1545,18 @@
         0,
         0,
         0,
-        4
+        5
       ],
       "weekdayActivity": [
         14,
-        0,
+        1,
         0,
         0,
         6,
         0,
         4
       ],
-      "voiceMinutes": 1666.5363333333337,
+      "voiceMinutes": 1777.0823500000004,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1671,13 +1683,13 @@
     {
       "userId": "322775025528864768",
       "username": "bud0u",
-      "totalMessages": 23,
+      "totalMessages": 24,
       "totalCharacters": 876,
       "totalWords": 50,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-27T11:26:30.901Z",
-      "lastMessageDate": "2025-06-15T05:05:05.825Z",
-      "mentionsGiven": 5,
+      "lastMessageDate": "2025-06-17T12:22:02.571Z",
+      "mentionsGiven": 6,
       "mentionsReceived": 1,
       "wordFrequency": [
         [
@@ -1840,20 +1852,20 @@
         3,
         3,
         2,
-        5,
+        6,
         4,
         0
       ],
       "weekdayActivity": [
         6,
         1,
-        2,
+        3,
         2,
         1,
         3,
         8
       ],
-      "voiceMinutes": 3412.9903500000005,
+      "voiceMinutes": 3531.7686000000003,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1935,12 +1947,12 @@
     {
       "userId": "451040830266933258",
       "username": "avid_diva",
-      "totalMessages": 87,
-      "totalCharacters": 1455,
-      "totalWords": 67,
+      "totalMessages": 89,
+      "totalCharacters": 1513,
+      "totalWords": 69,
       "totalEmojis": 3,
       "firstMessageDate": "2025-04-28T03:59:57.469Z",
-      "lastMessageDate": "2025-06-14T03:52:06.970Z",
+      "lastMessageDate": "2025-06-17T03:10:09.337Z",
       "mentionsGiven": 31,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -2187,6 +2199,14 @@
         [
           "https://x.com/zzz_goods/status/1933390563560337658",
           1
+        ],
+        [
+          "https://x.com/heiankyo_327/status/1934808781759947213",
+          1
+        ],
+        [
+          "めろすぐ～",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2212,7 +2232,7 @@
         2,
         1,
         1,
-        4,
+        6,
         3,
         4,
         2,
@@ -2228,7 +2248,7 @@
       "weekdayActivity": [
         4,
         1,
-        48,
+        50,
         9,
         5,
         15,
@@ -3543,7 +3563,7 @@
         0,
         1
       ],
-      "voiceMinutes": 851.3977333333332,
+      "voiceMinutes": 919.6804,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -6518,7 +6538,7 @@
         3,
         3
       ],
-      "voiceMinutes": 843.8542666666667,
+      "voiceMinutes": 890.4478333333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -6644,7 +6664,7 @@
         0,
         3
       ],
-      "voiceMinutes": 1756.07315,
+      "voiceMinutes": 1801.46265,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -10638,15 +10658,44 @@
     {
       "userId": "171601894383419392",
       "username": "tintin_soldier",
-      "totalMessages": 2,
-      "totalCharacters": 0,
-      "totalWords": 0,
+      "totalMessages": 6,
+      "totalCharacters": 87,
+      "totalWords": 20,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-10T07:38:34.230Z",
-      "lastMessageDate": "2025-06-13T03:30:23.873Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
+      "lastMessageDate": "2025-06-16T11:41:00.229Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 2,
+      "wordFrequency": [
+        [
+          "しんご",
+          1
+        ],
+        [
+          "インターノットレベル",
+          1
+        ],
+        [
+          "プロキシランク",
+          1
+        ],
+        [
+          "シュエン",
+          1
+        ],
+        [
+          "シーザー",
+          1
+        ],
+        [
+          "バーニス",
+          1
+        ],
+        [
+          "復帰勢です、よろしくお願いします",
+          1
+        ]
+      ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -10669,21 +10718,21 @@
         0,
         0,
         0,
-        0,
+        4,
         0,
         0,
         0
       ],
       "weekdayActivity": [
         0,
-        0,
+        4,
         1,
         0,
         0,
         1,
         0
       ],
-      "voiceMinutes": 0,
+      "voiceMinutes": 107.28366666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -11508,6 +11557,104 @@
         1,
         0,
         0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "311736215198105600",
+    {
+      "userId": "311736215198105600",
+      "username": "musette_",
+      "totalMessages": 3,
+      "totalCharacters": 143,
+      "totalWords": 24,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-16T15:12:00.097Z",
+      "lastMessageDate": "2025-06-16T15:21:42.057Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 3,
+      "wordFrequency": [
+        [
+          "みゅぜっと",
+          1
+        ],
+        [
+          "uid",
+          1
+        ],
+        [
+          "1303347124",
+          1
+        ],
+        [
+          "インターノットレベル",
+          1
+        ],
+        [
+          "プロキシランク",
+          1
+        ],
+        [
+          "伝説のプロキシ",
+          1
+        ],
+        [
+          "エレン、ビビアン",
+          1
+        ],
+        [
+          "別ゲー",
+          1
+        ],
+        [
+          "割となんでも（格ゲ、fps等）",
+          1
+        ],
+        [
+          "厳選雑談とか出来たらいいなと思ってます、宜しくお願いします。",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        3,
         0,
         0,
         0,
