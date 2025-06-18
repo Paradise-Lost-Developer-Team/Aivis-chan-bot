@@ -4,12 +4,12 @@
     {
       "userId": "1009318724320378900",
       "username": "33330422713193",
-      "totalMessages": 9,
-      "totalCharacters": 96,
-      "totalWords": 9,
+      "totalMessages": 10,
+      "totalCharacters": 99,
+      "totalWords": 10,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-11T00:43:40.965Z",
-      "lastMessageDate": "2025-05-24T00:28:56.781Z",
+      "lastMessageDate": "2025-06-16T12:01:35.635Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -44,6 +44,10 @@
         [
           "こんにちは",
           1
+        ],
+        [
+          "けゆむ",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -69,20 +73,20 @@
         2,
         0,
         0,
-        0,
+        1,
         0,
         0
       ],
       "weekdayActivity": [
         6,
-        0,
+        1,
         0,
         2,
         0,
         0,
         1
       ],
-      "voiceMinutes": 17.67696666666667,
+      "voiceMinutes": 18.06121666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

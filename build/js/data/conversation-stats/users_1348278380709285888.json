@@ -4,18 +4,18 @@
     {
       "userId": "1356289830048502100",
       "username": "monmonky",
-      "totalMessages": 560,
-      "totalCharacters": 5575,
-      "totalWords": 583,
+      "totalMessages": 567,
+      "totalCharacters": 5623,
+      "totalWords": 589,
       "totalEmojis": 7,
       "firstMessageDate": "2025-04-13T02:08:31.932Z",
-      "lastMessageDate": "2025-06-15T02:16:17.377Z",
-      "mentionsGiven": 62,
+      "lastMessageDate": "2025-06-17T11:59:52.911Z",
+      "mentionsGiven": 63,
       "mentionsReceived": 25,
       "wordFrequency": [
         [
           "<@1348276399412351006>",
-          28
+          29
         ],
         [
           "健太今家？",
@@ -95,7 +95,7 @@
         ],
         [
           "@everyone",
-          11
+          12
         ],
         [
           "いきます",
@@ -619,7 +619,7 @@
         ],
         [
           "今日なんかやる？",
-          1
+          2
         ],
         [
           "一旦通話いるわ",
@@ -1724,6 +1724,10 @@
         [
           "できます",
           1
+        ],
+        [
+          "お前来る？",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1777,21 +1781,21 @@
         37,
         27,
         19,
-        74,
+        79,
         42,
-        131,
+        133,
         81
       ],
       "weekdayActivity": [
         139,
-        66,
-        127,
+        69,
+        131,
         26,
         34,
         59,
         109
       ],
-      "voiceMinutes": 5407.545383333333,
+      "voiceMinutes": 5739.111383333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1810,7 +1814,7 @@
       "firstMessageDate": "2025-04-13T03:41:07.592Z",
       "lastMessageDate": "2025-06-14T15:52:49.082Z",
       "mentionsGiven": 28,
-      "mentionsReceived": 39,
+      "mentionsReceived": 40,
       "wordFrequency": [
         [
           "バリスティック新しくなってる",
@@ -2650,7 +2654,7 @@
         14,
         45
       ],
-      "voiceMinutes": 5800.173033333334,
+      "voiceMinutes": 6105.564783333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2667,14 +2671,14 @@
     {
       "userId": "1349329749423689738",
       "username": "broly.26",
-      "totalMessages": 258,
-      "totalCharacters": 2736,
-      "totalWords": 247,
-      "totalEmojis": 1,
+      "totalMessages": 289,
+      "totalCharacters": 2944,
+      "totalWords": 273,
+      "totalEmojis": 2,
       "firstMessageDate": "2025-04-13T04:35:52.252Z",
-      "lastMessageDate": "2025-06-14T03:12:30.172Z",
-      "mentionsGiven": 28,
-      "mentionsReceived": 20,
+      "lastMessageDate": "2025-06-17T12:06:15.931Z",
+      "mentionsGiven": 32,
+      "mentionsReceived": 21,
       "wordFrequency": [
         [
           "ラッキー",
@@ -2838,7 +2842,7 @@
         ],
         [
           "<@1349329749423689738>",
-          2
+          3
         ],
         [
           "めっちゃいいタイミングできた",
@@ -2978,7 +2982,7 @@
         ],
         [
           "@everyone",
-          2
+          4
         ],
         [
           "わいも",
@@ -3471,11 +3475,79 @@
         [
           "寝ますおやすみ",
           1
+        ],
+        [
+          "8時ぐらいからスプラやりたい",
+          1
+        ],
+        [
+          "@all",
+          1
+        ],
+        [
+          "メンションがわからない",
+          1
+        ],
+        [
+          "スプラに来るんだ",
+          1
+        ],
+        [
+          "@here",
+          1
+        ],
+        [
+          "<@916300992612540467>",
+          2
+        ],
+        [
+          "ちんぽ",
+          1
+        ],
+        [
+          "スプラだなぁ。そうに決まってる。",
+          1
+        ],
+        [
+          "今日はやろう",
+          1
+        ],
+        [
+          "まだ行けないけど通話開いとくね",
+          1
+        ],
+        [
+          "まだ喋れない",
+          1
+        ],
+        [
+          "ギネス",
+          1
+        ],
+        [
+          "お腹ギュルギュル鳴った",
+          1
+        ],
+        [
+          "先スプラやってて",
+          1
+        ],
+        [
+          "ばーか",
+          1
+        ],
+        [
+          "うぇーい",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "😡",
+          1
+        ],
+        [
+          "👍",
           1
         ]
       ],
@@ -3498,23 +3570,23 @@
         1,
         7,
         18,
-        20,
+        23,
         15,
-        30,
-        26,
+        57,
+        27,
         33,
         15
       ],
       "weekdayActivity": [
         60,
-        35,
-        72,
+        50,
+        88,
         7,
         19,
         29,
         36
       ],
-      "voiceMinutes": 2814.6531166666664,
+      "voiceMinutes": 3187.398166666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3526,14 +3598,14 @@
     {
       "userId": "1235942443665588245",
       "username": "hirosan.__86785",
-      "totalMessages": 40,
-      "totalCharacters": 316,
-      "totalWords": 35,
+      "totalMessages": 43,
+      "totalCharacters": 346,
+      "totalWords": 38,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-13T05:03:41.674Z",
-      "lastMessageDate": "2025-06-14T01:03:12.888Z",
+      "lastMessageDate": "2025-06-17T11:35:26.976Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 9,
+      "mentionsReceived": 10,
       "wordFrequency": [
         [
           "後1時間うそだろ",
@@ -3674,6 +3746,18 @@
         [
           "スプラやろー",
           1
+        ],
+        [
+          "10時半ぐらいなら可",
+          1
+        ],
+        [
+          "まじで10時過ぎぐらいからやろう",
+          1
+        ],
+        [
+          "今日こそ",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -3696,23 +3780,23 @@
         0,
         1,
         1,
-        0,
+        1,
         2,
-        4,
+        6,
         10,
         6,
         3
       ],
       "weekdayActivity": [
         4,
-        9,
-        11,
+        10,
+        13,
         1,
         0,
         6,
         9
       ],
-      "voiceMinutes": 3008.8186166666665,
+      "voiceMinutes": 3075.3577333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4102,7 +4186,7 @@
         4,
         16
       ],
-      "voiceMinutes": 2463.0695333333333,
+      "voiceMinutes": 2609.1295333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4114,12 +4198,12 @@
     {
       "userId": "1348400648869384222",
       "username": "dive_tako",
-      "totalMessages": 20,
-      "totalCharacters": 194,
-      "totalWords": 18,
+      "totalMessages": 21,
+      "totalCharacters": 230,
+      "totalWords": 19,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-17T13:01:38.317Z",
-      "lastMessageDate": "2025-06-01T12:11:11.834Z",
+      "lastMessageDate": "2025-06-16T11:32:14.984Z",
       "mentionsGiven": 3,
       "mentionsReceived": 5,
       "wordFrequency": [
@@ -4182,6 +4266,10 @@
         [
           "ｲｷｽｷﾞｲｲｲｲｲｲｲｲｲ",
           1
+        ],
+        [
+          "https://lite.tiktok.com/t/zskvs9rn6/",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -4206,21 +4294,21 @@
         2,
         2,
         1,
-        0,
+        1,
         7,
         1,
         0
       ],
       "weekdayActivity": [
         3,
-        0,
+        1,
         6,
         0,
         1,
         5,
         5
       ],
-      "voiceMinutes": 357.7439166666667,
+      "voiceMinutes": 528.30315,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

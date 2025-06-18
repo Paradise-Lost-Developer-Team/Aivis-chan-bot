@@ -4,12 +4,12 @@
     {
       "userId": "670585552667410432",
       "username": "yomogi2525",
-      "totalMessages": 43,
-      "totalCharacters": 401,
-      "totalWords": 40,
+      "totalMessages": 49,
+      "totalCharacters": 448,
+      "totalWords": 46,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-31T04:12:48.630Z",
-      "lastMessageDate": "2025-06-05T06:50:47.899Z",
+      "lastMessageDate": "2025-06-17T14:21:30.757Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -144,6 +144,26 @@
         [
           "わいもぎさんですよ",
           1
+        ],
+        [
+          "cury",
+          1
+        ],
+        [
+          "cw前線しない？",
+          1
+        ],
+        [
+          "めんつこれなんだけど",
+          1
+        ],
+        [
+          "はじまっちゃった",
+          1
+        ],
+        [
+          "メンションしなかった僕が悪い",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -170,13 +190,13 @@
         0,
         0,
         0,
-        0,
-        0
+        4,
+        2
       ],
       "weekdayActivity": [
         0,
         0,
-        0,
+        6,
         0,
         2,
         0,
@@ -194,14 +214,14 @@
     {
       "userId": "440298983538032660",
       "username": "wuso",
-      "totalMessages": 1238,
-      "totalCharacters": 12078,
-      "totalWords": 1352,
-      "totalEmojis": 23,
+      "totalMessages": 1252,
+      "totalCharacters": 12151,
+      "totalWords": 1371,
+      "totalEmojis": 24,
       "firstMessageDate": "2025-05-31T04:12:49.713Z",
-      "lastMessageDate": "2025-06-15T06:48:51.487Z",
+      "lastMessageDate": "2025-06-17T07:29:55.058Z",
       "mentionsGiven": 10,
-      "mentionsReceived": 13,
+      "mentionsReceived": 14,
       "wordFrequency": [
         [
           "ああああああああああああああああああああああああああああああああああ",
@@ -501,7 +521,7 @@
         ],
         [
           ">rs",
-          22
+          30
         ],
         [
           "普通にジャンプ",
@@ -1793,7 +1813,7 @@
         ],
         [
           "new",
-          2
+          4
         ],
         [
           "farm",
@@ -4262,6 +4282,34 @@
         [
           "bye",
           1
+        ],
+        [
+          "wow",
+          1
+        ],
+        [
+          "e>rs",
+          1
+        ],
+        [
+          "top",
+          1
+        ],
+        [
+          "play",
+          1
+        ],
+        [
+          "best",
+          1
+        ],
+        [
+          "performance",
+          1
+        ],
+        [
+          "時代が来た",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4303,7 +4351,7 @@
         ],
         [
           "💀",
-          1
+          2
         ],
         [
           "✖",
@@ -4329,11 +4377,11 @@
         64,
         122,
         137,
-        229,
-        318,
-        104,
+        230,
+        328,
+        105,
         85,
-        117,
+        119,
         11,
         0,
         0,
@@ -4342,8 +4390,8 @@
       ],
       "weekdayActivity": [
         721,
-        63,
-        4,
+        65,
+        16,
         2,
         3,
         258,
@@ -4361,13 +4409,13 @@
     {
       "userId": "211040356236656640",
       "username": "yowai",
-      "totalMessages": 94,
-      "totalCharacters": 1279,
-      "totalWords": 103,
+      "totalMessages": 95,
+      "totalCharacters": 1285,
+      "totalWords": 104,
       "totalEmojis": 3,
       "firstMessageDate": "2025-05-31T04:17:28.025Z",
-      "lastMessageDate": "2025-06-15T06:45:52.620Z",
-      "mentionsGiven": 14,
+      "lastMessageDate": "2025-06-17T08:44:02.275Z",
+      "mentionsGiven": 15,
       "mentionsReceived": 4,
       "wordFrequency": [
         [
@@ -4681,6 +4729,10 @@
         [
           "https://x.com/vidhvatm/status/1932125930555883826]",
           1
+        ],
+        [
+          "政治家だねぇ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4707,7 +4759,7 @@
         4,
         43,
         2,
-        0,
+        1,
         1,
         0,
         1,
@@ -4718,7 +4770,7 @@
       "weekdayActivity": [
         65,
         11,
-        2,
+        3,
         1,
         6,
         8,
@@ -4736,12 +4788,12 @@
     {
       "userId": "1217809024406519852",
       "username": "cury0642",
-      "totalMessages": 10,
-      "totalCharacters": 121,
-      "totalWords": 11,
-      "totalEmojis": 2,
+      "totalMessages": 14,
+      "totalCharacters": 175,
+      "totalWords": 17,
+      "totalEmojis": 3,
       "firstMessageDate": "2025-05-31T05:08:46.230Z",
-      "lastMessageDate": "2025-06-09T14:49:21.364Z",
+      "lastMessageDate": "2025-06-17T13:45:30.315Z",
       "mentionsGiven": 3,
       "mentionsReceived": 9,
       "wordFrequency": [
@@ -4780,6 +4832,22 @@
         [
           "krのチームもう枠ないがするし",
           1
+        ],
+        [
+          "<:erikblush:1300847046353227806>",
+          1
+        ],
+        [
+          "tenzou",
+          1
+        ],
+        [
+          "osu",
+          1
+        ],
+        [
+          "みてなかったｗｐ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4789,6 +4857,10 @@
         ],
         [
           "🐮",
+          1
+        ],
+        [
+          "<:erikblush:1300847046353227806>",
           1
         ]
       ],
@@ -4809,19 +4881,19 @@
         0,
         2,
         0,
-        1,
+        2,
         0,
         0,
         0,
         0,
         0,
-        0,
+        3,
         2
       ],
       "weekdayActivity": [
         3,
         5,
-        0,
+        4,
         0,
         0,
         0,

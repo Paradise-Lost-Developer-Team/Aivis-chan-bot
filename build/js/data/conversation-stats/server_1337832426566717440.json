@@ -1,8 +1,8 @@
 {
   "serverId": "1337832426566717440",
   "serverName": "藤ビビ",
-  "totalMessages": 381,
-  "totalCharacters": 4627,
+  "totalMessages": 392,
+  "totalCharacters": 4843,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,10 +11,10 @@
       {
         "channelId": "1337832426566717442",
         "channelName": "一般",
-        "totalMessages": 310,
+        "totalMessages": 321,
         "messageByUsers": {},
         "hourlyActivity": [
-          2,
+          11,
           0,
           0,
           0,
@@ -22,7 +22,7 @@
           0,
           0,
           5,
-          0,
+          1,
           3,
           1,
           0,
@@ -37,13 +37,13 @@
           15,
           2,
           29,
-          19
+          20
         ],
         "weekdayActivity": [
           10,
           33,
-          199,
-          4,
+          201,
+          13,
           63,
           1,
           0
@@ -184,7 +184,7 @@
     ]
   ],
   "hourlyActivity": [
-    2,
+    11,
     0,
     0,
     0,
@@ -192,7 +192,7 @@
     0,
     0,
     5,
-    0,
+    1,
     3,
     1,
     0,
@@ -207,18 +207,18 @@
     51,
     26,
     35,
-    19
+    20
   ],
   "weekdayActivity": [
     10,
     33,
-    203,
-    8,
+    205,
+    17,
     126,
     1,
     0
   ],
-  "averageMessageLength": 12.144356955380577,
+  "averageMessageLength": 12.354591836734693,
   "messageDistribution": [
     [
       "2025-04-15",
@@ -250,6 +250,14 @@
     ],
     [
       "2025-06-01",
+      10
+    ],
+    [
+      "2025-06-16",
+      1
+    ],
+    [
+      "2025-06-17",
       10
     ]
   ],

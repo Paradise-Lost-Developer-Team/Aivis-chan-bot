@@ -1,8 +1,8 @@
 {
   "serverId": "1362033799906463794",
   "serverName": "ぼくとわたしのすてきなディスコード（非公式）",
-  "totalMessages": 11,
-  "totalCharacters": 102,
+  "totalMessages": 12,
+  "totalCharacters": 105,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1362037895208108153",
         "channelName": "チーム１",
-        "totalMessages": 9,
+        "totalMessages": 10,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -35,13 +35,13 @@
           2,
           0,
           0,
-          0,
+          1,
           0,
           0
         ],
         "weekdayActivity": [
           6,
-          0,
+          1,
           0,
           1,
           1,
@@ -117,20 +117,20 @@
     4,
     0,
     0,
-    0,
+    1,
     0,
     0
   ],
   "weekdayActivity": [
     6,
-    0,
+    1,
     0,
     2,
     2,
     0,
     1
   ],
-  "averageMessageLength": 9.272727272727273,
+  "averageMessageLength": 8.75,
   "messageDistribution": [
     [
       "2025-05-11",
@@ -146,6 +146,10 @@
     ],
     [
       "2025-05-24",
+      1
+    ],
+    [
+      "2025-06-16",
       1
     ]
   ],

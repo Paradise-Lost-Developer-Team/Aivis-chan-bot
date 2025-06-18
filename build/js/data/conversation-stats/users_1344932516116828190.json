@@ -14981,5 +14981,62 @@
       "reactionGiven": 0,
       "commandUsage": []
     }
+  ],
+  [
+    "1137001408294551654",
+    {
+      "userId": "1137001408294551654",
+      "username": "tonkuma",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-16T08:34:37.089Z",
+      "lastMessageDate": "2025-06-16T08:34:36.976Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
   ]
 ]

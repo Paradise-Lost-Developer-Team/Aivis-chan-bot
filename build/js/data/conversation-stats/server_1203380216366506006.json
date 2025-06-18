@@ -1,8 +1,8 @@
 {
   "serverId": "1203380216366506006",
   "serverName": "ゲーミングマンション建設予定地",
-  "totalMessages": 902,
-  "totalCharacters": 16824,
+  "totalMessages": 1001,
+  "totalCharacters": 18144,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,14 +143,14 @@
       {
         "channelId": "1373924813432950894",
         "channelName": "管理人室",
-        "totalMessages": 300,
+        "totalMessages": 394,
         "messageByUsers": {},
         "hourlyActivity": [
-          3,
-          0,
+          51,
+          5,
+          4,
+          34,
           2,
-          12,
-          1,
           9,
           0,
           0,
@@ -162,8 +162,8 @@
           0,
           0,
           0,
-          0,
-          1,
+          11,
+          6,
           102,
           66,
           51,
@@ -174,7 +174,7 @@
         "weekdayActivity": [
           2,
           144,
-          118,
+          212,
           17,
           0,
           16,
@@ -231,16 +231,16 @@
       {
         "channelId": "1204226924503892049",
         "channelName": "音楽掲示板",
-        "totalMessages": 140,
+        "totalMessages": 143,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
           3,
           4,
           8,
-          12,
+          14,
           11,
-          2,
+          3,
           27,
           8,
           2,
@@ -262,7 +262,7 @@
         "weekdayActivity": [
           4,
           8,
-          37,
+          40,
           25,
           35,
           10,
@@ -401,16 +401,60 @@
           0
         ]
       }
+    ],
+    [
+      "1203446351937933422",
+      {
+        "channelId": "1203446351937933422",
+        "channelName": "ワールドアトラス（雑談）",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    109,
-    3,
-    7,
-    29,
-    78,
+    157,
+    8,
+    9,
+    51,
+    81,
     35,
-    29,
+    30,
     29,
     9,
     4,
@@ -420,10 +464,10 @@
     16,
     18,
     26,
-    58,
-    14,
+    69,
+    19,
     105,
-    74,
+    76,
     51,
     101,
     46,
@@ -431,14 +475,14 @@
   ],
   "weekdayActivity": [
     52,
-    266,
-    193,
+    268,
+    290,
     93,
     128,
     139,
     31
   ],
-  "averageMessageLength": 18.65188470066519,
+  "averageMessageLength": 18.125874125874127,
   "messageDistribution": [
     [
       "2025-05-19",
@@ -523,6 +567,14 @@
     [
       "2025-06-15",
       2
+    ],
+    [
+      "2025-06-16",
+      83
+    ],
+    [
+      "2025-06-17",
+      16
     ]
   ],
   "mostActiveUser": "1244716750981824584",

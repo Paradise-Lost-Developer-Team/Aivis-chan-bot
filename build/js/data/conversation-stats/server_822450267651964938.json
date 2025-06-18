@@ -1,8 +1,8 @@
 {
   "serverId": "822450267651964938",
   "serverName": "身内鯖",
-  "totalMessages": 2568,
-  "totalCharacters": 43191,
+  "totalMessages": 2678,
+  "totalCharacters": 46133,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "852217602159935508",
         "channelName": "色々なid",
-        "totalMessages": 32,
+        "totalMessages": 33,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -33,7 +33,7 @@
           1,
           3,
           0,
-          1,
+          2,
           0,
           5,
           1,
@@ -42,7 +42,7 @@
         "weekdayActivity": [
           2,
           1,
-          2,
+          3,
           16,
           3,
           3,
@@ -55,13 +55,13 @@
       {
         "channelId": "822450267651964941",
         "channelName": "雑談",
-        "totalMessages": 60,
+        "totalMessages": 62,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
           7,
           0,
-          1,
+          2,
           0,
           0,
           0,
@@ -77,7 +77,7 @@
           2,
           1,
           3,
-          1,
+          2,
           0,
           2,
           0,
@@ -86,7 +86,7 @@
         "weekdayActivity": [
           23,
           13,
-          3,
+          5,
           7,
           3,
           3,
@@ -99,7 +99,7 @@
       {
         "channelId": "822450267651964944",
         "channelName": "Gaming",
-        "totalMessages": 1892,
+        "totalMessages": 1893,
         "messageByUsers": {},
         "hourlyActivity": [
           88,
@@ -118,7 +118,7 @@
           40,
           48,
           74,
-          167,
+          168,
           62,
           243,
           198,
@@ -129,7 +129,7 @@
         ],
         "weekdayActivity": [
           176,
-          483,
+          484,
           365,
           150,
           161,
@@ -583,11 +583,11 @@
       {
         "channelId": "1224323813999640647",
         "channelName": "Gaming",
-        "totalMessages": 383,
+        "totalMessages": 484,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
-          0,
+          2,
           0,
           1,
           0,
@@ -601,20 +601,20 @@
           59,
           23,
           3,
-          38,
-          13,
-          64,
-          17,
-          50,
-          5,
-          24,
-          14,
+          76,
+          29,
+          77,
+          31,
+          55,
+          11,
+          27,
+          18,
           1
         ],
         "weekdayActivity": [
           18,
-          27,
-          2,
+          108,
+          22,
           68,
           75,
           95,
@@ -671,7 +671,7 @@
       {
         "channelId": "1124845184983781426",
         "channelName": "minecraft",
-        "totalMessages": 1,
+        "totalMessages": 6,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -691,8 +691,8 @@
           0,
           0,
           0,
-          0,
-          0,
+          1,
+          4,
           0,
           0,
           0,
@@ -701,7 +701,7 @@
         ],
         "weekdayActivity": [
           1,
-          0,
+          5,
           0,
           0,
           0,
@@ -713,9 +713,9 @@
   ],
   "hourlyActivity": [
     89,
-    21,
+    23,
     35,
-    113,
+    114,
     0,
     2,
     0,
@@ -727,26 +727,26 @@
     116,
     93,
     66,
-    135,
-    193,
-    151,
-    307,
-    309,
-    155,
-    236,
-    226,
+    173,
+    210,
+    165,
+    325,
+    316,
+    161,
+    239,
+    230,
     54
   ],
   "weekdayActivity": [
     243,
-    588,
-    382,
+    675,
+    405,
     281,
     252,
     513,
     309
   ],
-  "averageMessageLength": 16.81892523364486,
+  "averageMessageLength": 17.226661687826738,
   "messageDistribution": [
     [
       "2025-04-16",
@@ -959,6 +959,14 @@
     [
       "2025-06-15",
       18
+    ],
+    [
+      "2025-06-16",
+      90
+    ],
+    [
+      "2025-06-17",
+      20
     ]
   ],
   "mostActiveUser": "864421178353516544",

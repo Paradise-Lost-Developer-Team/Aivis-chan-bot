@@ -1,8 +1,8 @@
 {
   "serverId": "1278973297765257269",
   "serverName": "ぴょんぴょん",
-  "totalMessages": 147,
-  "totalCharacters": 3315,
+  "totalMessages": 148,
+  "totalCharacters": 3319,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -187,7 +187,7 @@
       {
         "channelId": "1374020595511201822",
         "channelName": "帰ってくるまでリーヨ〜🎵リーヨ〜🎵",
-        "totalMessages": 48,
+        "totalMessages": 49,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -210,14 +210,14 @@
           3,
           3,
           3,
-          5,
+          6,
           1,
           6,
           4
         ],
         "weekdayActivity": [
           5,
-          6,
+          7,
           9,
           9,
           4,
@@ -248,21 +248,21 @@
     4,
     12,
     14,
-    20,
+    21,
     1,
     14,
     9
   ],
   "weekdayActivity": [
     10,
-    6,
+    7,
     14,
     9,
     44,
     28,
     36
   ],
-  "averageMessageLength": 22.551020408163264,
+  "averageMessageLength": 22.425675675675677,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -379,6 +379,10 @@
     [
       "2025-06-14",
       2
+    ],
+    [
+      "2025-06-16",
+      1
     ]
   ],
   "mostActiveUser": "1135516087849582642",

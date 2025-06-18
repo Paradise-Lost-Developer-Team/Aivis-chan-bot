@@ -1,8 +1,8 @@
 {
   "serverId": "926435671873323010",
   "serverName": "ぼるでも鯖",
-  "totalMessages": 4737,
-  "totalCharacters": 67153,
+  "totalMessages": 4754,
+  "totalCharacters": 67345,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -319,7 +319,7 @@
       {
         "channelId": "926452166124765254",
         "channelName": "雑談チャット",
-        "totalMessages": 480,
+        "totalMessages": 487,
         "messageByUsers": {},
         "hourlyActivity": [
           16,
@@ -334,14 +334,14 @@
           2,
           1,
           4,
-          5,
+          7,
           9,
           24,
           56,
           11,
           31,
+          17,
           13,
-          12,
           44,
           5,
           12,
@@ -349,8 +349,8 @@
         ],
         "weekdayActivity": [
           32,
-          79,
-          39,
+          84,
+          41,
           180,
           9,
           29,
@@ -627,10 +627,10 @@
       {
         "channelId": "1141792487522971718",
         "channelName": "写真チャット",
-        "totalMessages": 105,
+        "totalMessages": 110,
         "messageByUsers": {},
         "hourlyActivity": [
-          5,
+          6,
           2,
           3,
           6,
@@ -641,7 +641,7 @@
           1,
           2,
           0,
-          1,
+          2,
           1,
           5,
           4,
@@ -653,13 +653,13 @@
           15,
           16,
           3,
-          7
+          10
         ],
         "weekdayActivity": [
           11,
           2,
-          7,
-          31,
+          11,
+          32,
           2,
           14,
           38
@@ -1375,21 +1375,21 @@
       {
         "channelId": "1200879654257578106",
         "channelName": "雑談チャット2",
-        "totalMessages": 8,
+        "totalMessages": 13,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
           0,
           2,
+          2,
           0,
-          0,
-          0,
+          1,
           0,
           0,
           0,
           0,
           3,
-          0,
+          2,
           0,
           0,
           0,
@@ -1406,8 +1406,8 @@
         "weekdayActivity": [
           3,
           3,
-          1,
-          0,
+          4,
+          2,
           1,
           0,
           0
@@ -1592,41 +1592,41 @@
     ]
   ],
   "hourlyActivity": [
-    266,
+    267,
     286,
     322,
+    156,
     154,
-    154,
-    192,
+    193,
     165,
     231,
     213,
     237,
     272,
-    251,
-    141,
+    254,
+    143,
     246,
     135,
     106,
     43,
     42,
-    37,
-    390,
+    41,
+    391,
     355,
     224,
     64,
-    211
+    214
   ],
   "weekdayActivity": [
     2021,
-    480,
-    353,
-    373,
+    485,
+    362,
+    376,
     170,
     692,
     648
   ],
-  "averageMessageLength": 14.17627190204771,
+  "averageMessageLength": 14.16596550273454,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -1851,6 +1851,14 @@
     [
       "2025-06-15",
       3
+    ],
+    [
+      "2025-06-16",
+      6
+    ],
+    [
+      "2025-06-17",
+      11
     ]
   ],
   "mostActiveUser": "640891438497792000",

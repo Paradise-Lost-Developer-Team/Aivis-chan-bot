@@ -8405,12 +8405,12 @@
     {
       "userId": "1090902011450499154",
       "username": "ayap4946",
-      "totalMessages": 405,
-      "totalCharacters": 11534,
-      "totalWords": 808,
+      "totalMessages": 413,
+      "totalCharacters": 11574,
+      "totalWords": 812,
       "totalEmojis": 75,
       "firstMessageDate": "2025-05-05T06:13:41.244Z",
-      "lastMessageDate": "2025-06-04T14:39:43.699Z",
+      "lastMessageDate": "2025-06-16T13:54:42.676Z",
       "mentionsGiven": 30,
       "mentionsReceived": 24,
       "wordFrequency": [
@@ -9765,6 +9765,18 @@
         [
           "kontikusyo-!!!!!!!!!!!!!!!!!!!",
           1
+        ],
+        [
+          "それおもしろいとおもってるの",
+          1
+        ],
+        [
+          "いく！！",
+          1
+        ],
+        [
+          "コーヒー豆はニガいのでたべるのやめましょう",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -9880,19 +9892,19 @@
         17,
         5,
         13,
-        72,
+        80,
         18
       ],
       "weekdayActivity": [
         175,
-        64,
+        72,
         52,
         36,
         24,
         21,
         33
       ],
-      "voiceMinutes": 7620.3251833333325,
+      "voiceMinutes": 7620.373833333332,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -19984,12 +19996,12 @@
     {
       "userId": "841318545631084554",
       "username": "tako9061",
-      "totalMessages": 64,
-      "totalCharacters": 1162,
-      "totalWords": 89,
-      "totalEmojis": 8,
+      "totalMessages": 68,
+      "totalCharacters": 1203,
+      "totalWords": 93,
+      "totalEmojis": 9,
       "firstMessageDate": "2025-05-12T18:15:02.874Z",
-      "lastMessageDate": "2025-05-18T08:25:23.434Z",
+      "lastMessageDate": "2025-06-16T13:53:58.754Z",
       "mentionsGiven": 2,
       "mentionsReceived": 14,
       "wordFrequency": [
@@ -20324,12 +20336,28 @@
         [
           "って思ったんやけど",
           1
+        ],
+        [
+          "飯テロ❤️",
+          1
+        ],
+        [
+          "ジャックダニエルは",
+          1
+        ],
+        [
+          "激まずなので買うのやめましょう",
+          1
+        ],
+        [
+          "コーヒー豆はにがーです",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "❤",
-          7
+          8
         ],
         [
           "🤣",
@@ -20359,12 +20387,12 @@
         6,
         0,
         1,
-        0,
+        4,
         5
       ],
       "weekdayActivity": [
         13,
-        0,
+        4,
         20,
         1,
         7,
@@ -23422,12 +23450,12 @@
     {
       "userId": "1337794172190720071",
       "username": "nikorasu0902_25007",
-      "totalMessages": 2,
-      "totalCharacters": 9,
-      "totalWords": 2,
+      "totalMessages": 17,
+      "totalCharacters": 13,
+      "totalWords": 4,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-24T14:29:44.883Z",
-      "lastMessageDate": "2025-05-25T13:37:32.785Z",
+      "lastMessageDate": "2025-06-16T13:51:40.813Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -23464,19 +23492,19 @@
         0,
         0,
         0,
-        1,
+        16,
         1
       ],
       "weekdayActivity": [
         1,
-        0,
+        15,
         0,
         0,
         0,
         0,
         1
       ],
-      "voiceMinutes": 1.7220333333333335,
+      "voiceMinutes": 1.7571500000000002,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

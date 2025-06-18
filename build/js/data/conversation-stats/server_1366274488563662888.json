@@ -1,8 +1,8 @@
 {
   "serverId": "1366274488563662888",
   "serverName": "不審者情報提供サーバー",
-  "totalMessages": 3980,
-  "totalCharacters": 40919,
+  "totalMessages": 4047,
+  "totalCharacters": 41673,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -539,10 +539,10 @@
       {
         "channelId": "1382566182472777789",
         "channelName": "free-chat",
-        "totalMessages": 71,
+        "totalMessages": 138,
         "messageByUsers": {},
         "hourlyActivity": [
-          20,
+          22,
           1,
           1,
           1,
@@ -558,19 +558,19 @@
           1,
           2,
           5,
+          6,
           2,
-          2,
-          2,
-          5,
+          24,
+          17,
+          4,
           3,
-          0,
-          10,
-          7
+          11,
+          29
         ],
         "weekdayActivity": [
           6,
-          0,
-          0,
+          23,
+          44,
           0,
           16,
           13,
@@ -668,7 +668,7 @@
     ]
   ],
   "hourlyActivity": [
-    421,
+    423,
     335,
     11,
     38,
@@ -684,25 +684,25 @@
     244,
     185,
     178,
-    99,
+    103,
     129,
-    178,
-    175,
-    408,
-    199,
-    232,
-    353
+    200,
+    187,
+    409,
+    202,
+    233,
+    375
   ],
   "weekdayActivity": [
     463,
-    818,
-    505,
+    841,
+    549,
     469,
     474,
     496,
     755
   ],
-  "averageMessageLength": 10.281155778894473,
+  "averageMessageLength": 10.297257227575983,
   "messageDistribution": [
     [
       "2025-04-28",
@@ -899,6 +899,14 @@
     [
       "2025-06-15",
       6
+    ],
+    [
+      "2025-06-16",
+      25
+    ],
+    [
+      "2025-06-17",
+      42
     ]
   ],
   "mostActiveUser": "1175078732743061545",

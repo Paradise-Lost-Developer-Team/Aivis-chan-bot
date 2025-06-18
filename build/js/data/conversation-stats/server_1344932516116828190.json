@@ -1,7 +1,7 @@
 {
   "serverId": "1344932516116828190",
   "serverName": "学生たちの集い場",
-  "totalMessages": 2919,
+  "totalMessages": 2920,
   "totalCharacters": 35573,
   "activeUsers": 0,
   "userStats": {},
@@ -55,7 +55,7 @@
       {
         "channelId": "1344932516703764587",
         "channelName": "🎉welcome！",
-        "totalMessages": 86,
+        "totalMessages": 87,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -75,7 +75,7 @@
           3,
           2,
           5,
-          6,
+          7,
           6,
           4,
           12,
@@ -85,7 +85,7 @@
         ],
         "weekdayActivity": [
           13,
-          10,
+          11,
           9,
           15,
           12,
@@ -509,7 +509,7 @@
     8,
     14,
     107,
-    299,
+    300,
     172,
     42,
     37,
@@ -519,14 +519,14 @@
   ],
   "weekdayActivity": [
     464,
-    556,
+    557,
     215,
     453,
     222,
     231,
     778
   ],
-  "averageMessageLength": 12.186707776635835,
+  "averageMessageLength": 12.182534246575342,
   "messageDistribution": [
     [
       "2025-05-06",
@@ -679,6 +679,10 @@
     [
       "2025-06-14",
       10
+    ],
+    [
+      "2025-06-16",
+      1
     ]
   ],
   "mostActiveUser": "1135447213842112563",

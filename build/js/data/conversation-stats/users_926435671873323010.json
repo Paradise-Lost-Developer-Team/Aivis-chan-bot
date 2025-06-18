@@ -219,12 +219,12 @@
     {
       "userId": "641613427667632132",
       "username": "yokocha",
-      "totalMessages": 509,
-      "totalCharacters": 4227,
-      "totalWords": 510,
+      "totalMessages": 515,
+      "totalCharacters": 4310,
+      "totalWords": 516,
       "totalEmojis": 8,
       "firstMessageDate": "2025-04-12T22:12:52.483Z",
-      "lastMessageDate": "2025-06-15T06:28:48.391Z",
+      "lastMessageDate": "2025-06-17T18:04:22.598Z",
       "mentionsGiven": 10,
       "mentionsReceived": 32,
       "wordFrequency": [
@@ -1919,6 +1919,30 @@
         [
           "あちー",
           1
+        ],
+        [
+          "東京あるある",
+          1
+        ],
+        [
+          "アッツ",
+          1
+        ],
+        [
+          "https://x.com/denfaminicogame/status/1934497967198912973?s=46",
+          1
+        ],
+        [
+          "これやりたい",
+          1
+        ],
+        [
+          "大悪口",
+          1
+        ],
+        [
+          "144p",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1955,7 +1979,7 @@
         3,
         9,
         53,
-        10,
+        11,
         2,
         2,
         1,
@@ -1963,25 +1987,25 @@
         15,
         2,
         48,
-        14,
-        0,
+        15,
+        2,
         35,
         7,
         30,
         4,
         9,
-        3,
+        4,
         92,
         100,
         47,
         1,
-        0
+        1
       ],
       "weekdayActivity": [
         91,
-        71,
-        37,
-        82,
+        72,
+        41,
+        83,
         1,
         191,
         36
@@ -1998,13 +2022,13 @@
     {
       "userId": "1286988510989123718",
       "username": "3xqlly.",
-      "totalMessages": 1348,
-      "totalCharacters": 12914,
-      "totalWords": 1347,
+      "totalMessages": 1355,
+      "totalCharacters": 12976,
+      "totalWords": 1355,
       "totalEmojis": 57,
       "firstMessageDate": "2025-04-12T22:15:19.349Z",
-      "lastMessageDate": "2025-06-15T00:36:03.890Z",
-      "mentionsGiven": 47,
+      "lastMessageDate": "2025-06-17T18:04:02.513Z",
+      "mentionsGiven": 48,
       "mentionsReceived": 32,
       "wordFrequency": [
         [
@@ -3365,7 +3389,7 @@
         ],
         [
           "えぐい",
-          1
+          2
         ],
         [
           "炊飯器歌えよ",
@@ -4365,7 +4389,7 @@
         ],
         [
           "あるある",
-          1
+          2
         ],
         [
           "おけおけ(^т",
@@ -5093,7 +5117,7 @@
         ],
         [
           "<@644720778008461372>",
-          1
+          2
         ],
         [
           "よお！",
@@ -6142,6 +6166,22 @@
         [
           "<a:hachiexcited:1377245408425934948>",
           1
+        ],
+        [
+          "人身事故でとまった",
+          1
+        ],
+        [
+          "新宿おるん！？",
+          1
+        ],
+        [
+          "好きそうなのおった",
+          1
+        ],
+        [
+          "しぬおもろい",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -6291,10 +6331,10 @@
         ]
       ],
       "hourlyActivity": [
-        177,
+        178,
         32,
         80,
-        12,
+        13,
         1,
         0,
         2,
@@ -6302,15 +6342,15 @@
         25,
         20,
         11,
-        48,
+        50,
         90,
         141,
         66,
         41,
         34,
         18,
-        10,
-        95,
+        12,
+        96,
         186,
         41,
         19,
@@ -6318,9 +6358,9 @@
       ],
       "weekdayActivity": [
         378,
-        167,
-        192,
-        110,
+        170,
+        194,
+        112,
         66,
         163,
         272
@@ -14469,12 +14509,12 @@
     {
       "userId": "682890145141358614",
       "username": "namekuzi8280",
-      "totalMessages": 45,
-      "totalCharacters": 340,
-      "totalWords": 49,
+      "totalMessages": 46,
+      "totalCharacters": 342,
+      "totalWords": 50,
       "totalEmojis": 1,
       "firstMessageDate": "2025-04-18T10:28:04.709Z",
-      "lastMessageDate": "2025-06-10T18:01:19.542Z",
+      "lastMessageDate": "2025-06-16T09:14:42.332Z",
       "mentionsGiven": 6,
       "mentionsReceived": 6,
       "wordFrequency": [
@@ -14672,7 +14712,7 @@
         0,
         1,
         0,
-        2,
+        3,
         3,
         2,
         2,
@@ -14681,7 +14721,7 @@
       ],
       "weekdayActivity": [
         4,
-        2,
+        3,
         0,
         28,
         3,
@@ -15245,14 +15285,14 @@
     {
       "userId": "644720778008461372",
       "username": "sakuramochi.913",
-      "totalMessages": 18,
-      "totalCharacters": 141,
-      "totalWords": 17,
+      "totalMessages": 20,
+      "totalCharacters": 160,
+      "totalWords": 19,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-19T15:12:33.374Z",
-      "lastMessageDate": "2025-05-30T06:46:11.955Z",
+      "lastMessageDate": "2025-06-17T14:17:25.606Z",
       "mentionsGiven": 2,
-      "mentionsReceived": 3,
+      "mentionsReceived": 4,
       "wordFrequency": [
         [
           "ぇぇぇぇ大丈夫？？？？？？",
@@ -15321,6 +15361,14 @@
         [
           "なんかながれてきたー",
           1
+        ],
+        [
+          "あっかわいいむり",
+          1
+        ],
+        [
+          "頭悪そうな顔しやがって",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -15348,12 +15396,12 @@
         2,
         1,
         0,
-        3
+        5
       ],
       "weekdayActivity": [
         5,
         4,
-        0,
+        2,
         1,
         0,
         3,
@@ -18934,12 +18982,12 @@
     {
       "userId": "617529753594757146",
       "username": "spicybroth",
-      "totalMessages": 3,
-      "totalCharacters": 90,
-      "totalWords": 4,
+      "totalMessages": 4,
+      "totalCharacters": 116,
+      "totalWords": 5,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-17T14:02:41.985Z",
-      "lastMessageDate": "2025-05-21T17:22:36.542Z",
+      "lastMessageDate": "2025-06-16T20:06:31.869Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
       "wordFrequency": [
@@ -18954,6 +19002,10 @@
         [
           "https://www.youtube.com/watch?v=0rls80hrivq",
           1
+        ],
+        [
+          "おはよう。昨日は日本に着きました、でも眠れないよww",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -18963,7 +19015,7 @@
         2,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0,
@@ -18986,7 +19038,7 @@
       "weekdayActivity": [
         0,
         0,
-        1,
+        2,
         0,
         1,
         0,

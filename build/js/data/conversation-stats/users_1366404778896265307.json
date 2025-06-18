@@ -188,14 +188,14 @@
     {
       "userId": "1273197814138146872",
       "username": "musuka.desu",
-      "totalMessages": 154,
-      "totalCharacters": 1730,
-      "totalWords": 164,
+      "totalMessages": 163,
+      "totalCharacters": 1778,
+      "totalWords": 172,
       "totalEmojis": 3,
       "firstMessageDate": "2025-05-05T13:55:50.832Z",
-      "lastMessageDate": "2025-06-14T12:52:51.663Z",
-      "mentionsGiven": 37,
-      "mentionsReceived": 10,
+      "lastMessageDate": "2025-06-17T09:49:21.785Z",
+      "mentionsGiven": 38,
+      "mentionsReceived": 11,
       "wordFrequency": [
         [
           "こんきつbad",
@@ -712,6 +712,38 @@
         [
           "あきらlove♡",
           1
+        ],
+        [
+          "wow",
+          1
+        ],
+        [
+          "金ねぇっつの",
+          1
+        ],
+        [
+          "話聞いてた？",
+          1
+        ],
+        [
+          "間を取ってプロトコルか",
+          1
+        ],
+        [
+          "プロトコル泣いてるべ",
+          1
+        ],
+        [
+          "やめる",
+          1
+        ],
+        [
+          "何買うんだよ",
+          1
+        ],
+        [
+          "要らね",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -747,23 +779,23 @@
         0,
         0,
         4,
-        29,
-        14,
+        31,
+        19,
         43,
-        28,
+        29,
         24,
-        4
+        5
       ],
       "weekdayActivity": [
         12,
-        41,
-        13,
+        48,
+        15,
         11,
         24,
         12,
         41
       ],
-      "voiceMinutes": 4240.714016666667,
+      "voiceMinutes": 4480.894616666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -775,14 +807,14 @@
     {
       "userId": "1206367467077898282",
       "username": "ruka.3a",
-      "totalMessages": 79,
-      "totalCharacters": 817,
-      "totalWords": 84,
+      "totalMessages": 84,
+      "totalCharacters": 863,
+      "totalWords": 89,
       "totalEmojis": 2,
       "firstMessageDate": "2025-05-05T14:38:48.328Z",
-      "lastMessageDate": "2025-06-12T10:54:20.666Z",
-      "mentionsGiven": 10,
-      "mentionsReceived": 15,
+      "lastMessageDate": "2025-06-16T11:59:42.683Z",
+      "mentionsGiven": 12,
+      "mentionsReceived": 16,
       "wordFrequency": [
         [
           "名前ルカ(ハム)",
@@ -930,7 +962,7 @@
         ],
         [
           "<@1273197814138146872>",
-          1
+          2
         ],
         [
           "すこしきて",
@@ -1063,6 +1095,18 @@
         [
           "あ、了解です…",
           1
+        ],
+        [
+          "そぶりんばい",
+          1
+        ],
+        [
+          "rgxより素振りんでしょ",
+          1
+        ],
+        [
+          "いやいや",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1091,22 +1135,22 @@
         3,
         0,
         5,
-        16,
         20,
+        21,
         24,
         9,
         1
       ],
       "weekdayActivity": [
         5,
-        14,
+        19,
         6,
         11,
         9,
         0,
         34
       ],
-      "voiceMinutes": 5910.016833333335,
+      "voiceMinutes": 6162.307850000002,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1347,7 +1391,7 @@
         1,
         11
       ],
-      "voiceMinutes": 329.63808333333327,
+      "voiceMinutes": 330.71604999999994,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1645,14 +1689,14 @@
     {
       "userId": "716558624217890867",
       "username": "k4yle",
-      "totalMessages": 119,
-      "totalCharacters": 1211,
-      "totalWords": 140,
+      "totalMessages": 128,
+      "totalCharacters": 1303,
+      "totalWords": 149,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-06T01:56:07.469Z",
-      "lastMessageDate": "2025-06-14T16:28:37.026Z",
-      "mentionsGiven": 19,
-      "mentionsReceived": 15,
+      "lastMessageDate": "2025-06-17T09:49:16.183Z",
+      "mentionsGiven": 20,
+      "mentionsReceived": 17,
       "wordFrequency": [
         [
           "@everyone",
@@ -2053,6 +2097,34 @@
         [
           "オニだけほしい",
           1
+        ],
+        [
+          "はよrgx買えよ",
+          1
+        ],
+        [
+          "聞こえるわけない",
+          1
+        ],
+        [
+          "そのフォーセイクンのパチモンやめたほうがいいぜ",
+          1
+        ],
+        [
+          "そんなスキンあったね",
+          1
+        ],
+        [
+          "これ如きでイキるんじゃないぞ貴様",
+          1
+        ],
+        [
+          "ほら早くコンビニ行ってきな？",
+          1
+        ],
+        [
+          "ネオフロ以外ある？",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -2075,23 +2147,23 @@
         1,
         4,
         3,
-        11,
-        16,
+        13,
+        22,
         46,
         12,
-        15,
+        16,
         0
       ],
       "weekdayActivity": [
         6,
-        8,
-        12,
+        15,
+        14,
         12,
         31,
         11,
         39
       ],
-      "voiceMinutes": 1181.4204666666667,
+      "voiceMinutes": 1181.50615,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2943,7 +3015,7 @@
         0,
         1
       ],
-      "voiceMinutes": 871.2506166666667,
+      "voiceMinutes": 871.4055000000001,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2955,21 +3027,30 @@
     {
       "userId": "1382987915738742844",
       "username": "tapioko0519",
-      "totalMessages": 2,
-      "totalCharacters": 3,
-      "totalWords": 1,
-      "totalEmojis": 0,
+      "totalMessages": 4,
+      "totalCharacters": 11,
+      "totalWords": 3,
+      "totalEmojis": 1,
       "firstMessageDate": "2025-06-13T07:48:16.888Z",
-      "lastMessageDate": "2025-06-14T12:19:54.613Z",
+      "lastMessageDate": "2025-06-16T14:31:27.316Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
           "かもん",
           1
+        ],
+        [
+          "もう辞める？",
+          1
         ]
       ],
-      "emojiFrequency": [],
+      "emojiFrequency": [
+        [
+          "😭",
+          1
+        ]
+      ],
       "hourlyActivity": [
         0,
         0,
@@ -2994,11 +3075,11 @@
         0,
         1,
         0,
-        0
+        2
       ],
       "weekdayActivity": [
         0,
-        0,
+        2,
         0,
         0,
         0,

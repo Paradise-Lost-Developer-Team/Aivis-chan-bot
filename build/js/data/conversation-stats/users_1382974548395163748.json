@@ -4,12 +4,12 @@
     {
       "userId": "1012637967979921428",
       "username": "tanayuna02",
-      "totalMessages": 82,
-      "totalCharacters": 3503,
-      "totalWords": 189,
+      "totalMessages": 137,
+      "totalCharacters": 4812,
+      "totalWords": 268,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-13T07:05:11.619Z",
-      "lastMessageDate": "2025-06-15T05:27:58.968Z",
+      "lastMessageDate": "2025-06-17T15:38:11.663Z",
       "mentionsGiven": 19,
       "mentionsReceived": 2,
       "wordFrequency": [
@@ -263,27 +263,27 @@
         ],
         [
           "m!p",
-          15
+          27
         ],
         [
           "https://www.youtube.com/watch?v=ddas8lucyd0&list=plck-ahhvihbpqwofrwitlas-sblipkfr6",
-          5
+          8
         ],
         [
           "https://www.youtube.com/watch?v=udxxy3kldvc&list=plfptffqiogfbvs1_nh6hkikdds3jui1fs&index=1",
-          7
+          11
         ],
         [
           "m!shuffle",
-          6
+          11
         ],
         [
           "repeat",
-          6
+          11
         ],
         [
           "queue",
-          6
+          11
         ],
         [
           "2025-06-13t21:17:44.054000+00:00",
@@ -375,7 +375,7 @@
         ],
         [
           "m!s",
-          1
+          27
         ],
         [
           "yes",
@@ -400,29 +400,73 @@
         [
           "推奨メモリは10gbくらいです",
           1
+        ],
+        [
+          "ただいま",
+          1
+        ],
+        [
+          "https://www.youtube.com/playlist?list=plck-ahhvihbpqwofrwitlas-sblipkfr6",
+          3
+        ],
+        [
+          "n!s",
+          5
+        ],
+        [
+          "m!sm",
+          1
+        ],
+        [
+          "https://youtu.be/vxzvnuscs7c?list=plck-ahhvihbpqwofrwitlas-sblipkfr6",
+          1
+        ],
+        [
+          "https://youtu.be/vxzvnuscs7c",
+          1
+        ],
+        [
+          "今日原神でもやるか...",
+          1
+        ],
+        [
+          "<@&1382974548659540045>ランク低い人でもぜひ",
+          1
+        ],
+        [
+          "いってら",
+          1
+        ],
+        [
+          "https://www.youtube.com/watch?v=udxxy3kldvc&list=plfptffqiogfbvs1",
+          1
+        ],
+        [
+          "これだから",
+          1
         ]
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
-        1,
+        5,
         9,
         1,
         3,
         0,
+        43,
         0,
         0,
         0,
         0,
         0,
-        0,
-        10,
+        12,
         2,
         3,
         8,
-        0,
-        22,
+        1,
+        23,
         11,
-        3,
+        7,
         3,
         2,
         0,
@@ -431,14 +475,14 @@
       ],
       "weekdayActivity": [
         19,
-        0,
-        0,
-        0,
+        5,
+        46,
+        4,
         0,
         33,
         30
       ],
-      "voiceMinutes": 2225.8631333333333,
+      "voiceMinutes": 2713.23355,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1344,12 +1388,12 @@
     {
       "userId": "889077987729899560",
       "username": "hokuto_021105",
-      "totalMessages": 4,
-      "totalCharacters": 138,
-      "totalWords": 11,
-      "totalEmojis": 2,
+      "totalMessages": 10,
+      "totalCharacters": 244,
+      "totalWords": 17,
+      "totalEmojis": 4,
       "firstMessageDate": "2025-06-13T09:03:10.715Z",
-      "lastMessageDate": "2025-06-14T12:21:23.368Z",
+      "lastMessageDate": "2025-06-17T15:52:02.034Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -1396,6 +1440,30 @@
         [
           "何でか知らんけど通帳こやへん…",
           1
+        ],
+        [
+          "お疲れ様です🍵",
+          1
+        ],
+        [
+          "ps5民。",
+          1
+        ],
+        [
+          "なんや、通知こらへんけどメンション以外。",
+          1
+        ],
+        [
+          "何故だ🤔",
+          1
+        ],
+        [
+          "リプメンションもそれすくむんだよね。",
+          1
+        ],
+        [
+          "コミュニティだけなんか分からんけど、コミュニティサーバーだけメンションだけされるんは辞めて欲しいな…",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1406,10 +1474,18 @@
         [
           "♂",
           1
+        ],
+        [
+          "🍵",
+          1
+        ],
+        [
+          "🤔",
+          1
         ]
       ],
       "hourlyActivity": [
-        0,
+        5,
         0,
         0,
         0,
@@ -1431,14 +1507,14 @@
         0,
         0,
         1,
-        0,
+        1,
         0
       ],
       "weekdayActivity": [
         0,
+        1,
         0,
-        0,
-        0,
+        5,
         0,
         3,
         1
@@ -1740,12 +1816,12 @@
     {
       "userId": "1103964893931130960",
       "username": "veerlnui_jp",
-      "totalMessages": 3,
-      "totalCharacters": 132,
-      "totalWords": 10,
+      "totalMessages": 8,
+      "totalCharacters": 190,
+      "totalWords": 15,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-14T07:56:17.780Z",
-      "lastMessageDate": "2025-06-14T08:05:24.515Z",
+      "lastMessageDate": "2025-06-17T10:06:31.040Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -1788,6 +1864,26 @@
         [
           "浮上率:テンションによるけど基本的高、体調悪いときは低",
           1
+        ],
+        [
+          "花粉症かかったかも",
+          1
+        ],
+        [
+          "耳鼻科行ってきま",
+          1
+        ],
+        [
+          "ただいま",
+          1
+        ],
+        [
+          "耳鼻科予約いっぱいだったからとりあえず市販の目薬とか買ってきた",
+          1
+        ],
+        [
+          "飯行ってきま",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -1808,10 +1904,10 @@
         0,
         0,
         0,
-        2,
+        4,
         1,
         0,
-        0,
+        3,
         0,
         0,
         0,
@@ -1820,7 +1916,7 @@
       "weekdayActivity": [
         0,
         0,
-        0,
+        5,
         0,
         0,
         0,
@@ -2180,7 +2276,7 @@
         0,
         30
       ],
-      "voiceMinutes": 251.42025,
+      "voiceMinutes": 251.45678333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

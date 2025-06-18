@@ -1,8 +1,8 @@
 {
   "serverId": "666176278600089601",
   "serverName": "どんどん村☃",
-  "totalMessages": 1613,
-  "totalCharacters": 11113,
+  "totalMessages": 1638,
+  "totalCharacters": 11409,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -99,11 +99,11 @@
       {
         "channelId": "1051436349233844254",
         "channelName": "💬￤𝚝𝚊𝚕𝚔",
-        "totalMessages": 123,
+        "totalMessages": 148,
         "messageByUsers": {},
         "hourlyActivity": [
           16,
-          15,
+          16,
           3,
           3,
           4,
@@ -122,16 +122,16 @@
           9,
           0,
           7,
-          13,
-          12,
+          35,
+          14,
           24,
           9
         ],
         "weekdayActivity": [
           21,
           23,
-          24,
-          25,
+          48,
+          26,
           4,
           10,
           16
@@ -185,7 +185,7 @@
   ],
   "hourlyActivity": [
     22,
-    279,
+    280,
     244,
     324,
     235,
@@ -204,21 +204,21 @@
     26,
     26,
     49,
-    56,
-    86,
+    78,
+    88,
     26,
     13
   ],
   "weekdayActivity": [
     937,
     140,
-    119,
-    111,
+    143,
+    112,
     11,
     25,
     270
   ],
-  "averageMessageLength": 6.889646621202727,
+  "averageMessageLength": 6.965201465201465,
   "messageDistribution": [
     [
       "2025-04-25",
@@ -363,6 +363,10 @@
     [
       "2025-06-14",
       3
+    ],
+    [
+      "2025-06-17",
+      25
     ]
   ],
   "mostActiveUser": "589103719837204490",

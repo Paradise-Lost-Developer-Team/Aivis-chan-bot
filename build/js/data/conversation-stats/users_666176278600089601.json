@@ -788,12 +788,12 @@
     {
       "userId": "424387825945935902",
       "username": "y4t1",
-      "totalMessages": 32,
-      "totalCharacters": 299,
-      "totalWords": 32,
+      "totalMessages": 38,
+      "totalCharacters": 346,
+      "totalWords": 42,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-25T13:52:33.887Z",
-      "lastMessageDate": "2025-06-13T16:48:33.861Z",
+      "lastMessageDate": "2025-06-17T12:39:06.381Z",
       "mentionsGiven": 2,
       "mentionsReceived": 5,
       "wordFrequency": [
@@ -839,7 +839,7 @@
         ],
         [
           "you",
-          1
+          2
         ],
         [
           "ねりゅ",
@@ -864,6 +864,22 @@
         [
           "<@667612862877007902>",
           1
+        ],
+        [
+          "どんどん逃げるまじか",
+          1
+        ],
+        [
+          "雑魚め",
+          1
+        ],
+        [
+          "need",
+          2
+        ],
+        [
+          "healing",
+          2
         ]
       ],
       "emojiFrequency": [],
@@ -888,21 +904,21 @@
         1,
         0,
         2,
-        0,
-        1,
+        5,
+        2,
         1,
         0
       ],
       "weekdayActivity": [
         19,
         0,
-        3,
+        9,
         4,
         0,
         1,
         5
       ],
-      "voiceMinutes": 4231.491566666666,
+      "voiceMinutes": 4497.749199999999,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -914,14 +930,14 @@
     {
       "userId": "873224961425293312",
       "username": "nemu9028",
-      "totalMessages": 10,
-      "totalCharacters": 83,
-      "totalWords": 9,
+      "totalMessages": 16,
+      "totalCharacters": 162,
+      "totalWords": 15,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-25T14:00:09.078Z",
-      "lastMessageDate": "2025-05-17T15:01:02.279Z",
+      "lastMessageDate": "2025-06-17T11:22:57.950Z",
       "mentionsGiven": 2,
-      "mentionsReceived": 6,
+      "mentionsReceived": 7,
       "wordFrequency": [
         [
           "tintin",
@@ -950,6 +966,30 @@
         [
           "dosita",
           1
+        ],
+        [
+          "yakinmaeyawa",
+          1
+        ],
+        [
+          "omaemosyadobayaro",
+          1
+        ],
+        [
+          "kyaukarariri-suyade",
+          1
+        ],
+        [
+          "kyokara",
+          1
+        ],
+        [
+          "atarasikunatta",
+          1
+        ],
+        [
+          "iretoitene",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -974,7 +1014,7 @@
         0,
         0,
         0,
-        0,
+        6,
         1,
         1,
         4
@@ -982,7 +1022,7 @@
       "weekdayActivity": [
         2,
         0,
-        3,
+        9,
         1,
         0,
         4,
@@ -1000,13 +1040,13 @@
     {
       "userId": "589103719837204490",
       "username": "doncha_7",
-      "totalMessages": 1286,
-      "totalCharacters": 8037,
-      "totalWords": 1325,
-      "totalEmojis": 10,
+      "totalMessages": 1298,
+      "totalCharacters": 8190,
+      "totalWords": 1338,
+      "totalEmojis": 11,
       "firstMessageDate": "2025-04-25T16:22:03.215Z",
-      "lastMessageDate": "2025-06-14T18:13:06.789Z",
-      "mentionsGiven": 3,
+      "lastMessageDate": "2025-06-17T16:28:48.687Z",
+      "mentionsGiven": 4,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
@@ -2807,7 +2847,7 @@
         ],
         [
           "<@873224961425293312>",
-          1
+          2
         ],
         [
           "オーメン銭湯",
@@ -2999,7 +3039,7 @@
         ],
         [
           "やったことない",
-          1
+          2
         ],
         [
           "png40",
@@ -4900,6 +4940,50 @@
         [
           "605",
           1
+        ],
+        [
+          "valo",
+          1
+        ],
+        [
+          "からにげるなｈ",
+          1
+        ],
+        [
+          "降参させろ",
+          1
+        ],
+        [
+          "カードゲームやろ？",
+          1
+        ],
+        [
+          "あれ前からなかった",
+          1
+        ],
+        [
+          "課金しないと人権ないってレビューあるけどけんぱにぼこされる感じ？",
+          1
+        ],
+        [
+          "ゴッフィ",
+          1
+        ],
+        [
+          "とりまちょっと触ってみるね",
+          1
+        ],
+        [
+          "<:kenpa:1382381564964372542>",
+          1
+        ],
+        [
+          "もうつかった",
+          1
+        ],
+        [
+          "どりゃすみ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4942,11 +5026,15 @@
         [
           "❤",
           1
+        ],
+        [
+          "<:kenpa:1382381564964372542>",
+          1
         ]
       ],
       "hourlyActivity": [
         0,
-        209,
+        210,
         231,
         302,
         213,
@@ -4965,21 +5053,21 @@
         5,
         23,
         0,
-        33,
-        62,
+        43,
+        63,
         4,
         0
       ],
       "weekdayActivity": [
         857,
         114,
-        80,
-        31,
+        91,
+        32,
         0,
         0,
         204
       ],
-      "voiceMinutes": 99.04743333333334,
+      "voiceMinutes": 337.0509166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -5290,7 +5378,7 @@
         1,
         4
       ],
-      "voiceMinutes": 4247.485233333334,
+      "voiceMinutes": 4471.4141500000005,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -5545,15 +5633,20 @@
     {
       "userId": "597718335056248832",
       "username": "nemutai4583",
-      "totalMessages": 2,
-      "totalCharacters": 0,
-      "totalWords": 0,
+      "totalMessages": 3,
+      "totalCharacters": 17,
+      "totalWords": 1,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-13T16:06:27.089Z",
-      "lastMessageDate": "2025-06-13T21:21:29.256Z",
+      "lastMessageDate": "2025-06-17T11:34:35.705Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
-      "wordFrequency": [],
+      "wordFrequency": [
+        [
+          "初期はどのゲームでも多少はそうやろ",
+          1
+        ]
+      ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -5576,7 +5669,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0
@@ -5584,7 +5677,7 @@
       "weekdayActivity": [
         0,
         0,
-        0,
+        1,
         1,
         0,
         0,
@@ -5668,7 +5761,7 @@
         1,
         0
       ],
-      "voiceMinutes": 1570.4212333333335,
+      "voiceMinutes": 1791.0898666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

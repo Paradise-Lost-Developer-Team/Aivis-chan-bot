@@ -4,12 +4,12 @@
     {
       "userId": "1312586535471677491",
       "username": "serori_551",
-      "totalMessages": 439,
-      "totalCharacters": 4459,
-      "totalWords": 448,
+      "totalMessages": 440,
+      "totalCharacters": 4467,
+      "totalWords": 449,
       "totalEmojis": 22,
       "firstMessageDate": "2025-05-28T17:01:15.572Z",
-      "lastMessageDate": "2025-06-13T15:06:36.129Z",
+      "lastMessageDate": "2025-06-16T14:25:47.511Z",
       "mentionsGiven": 7,
       "mentionsReceived": 9,
       "wordFrequency": [
@@ -1448,6 +1448,10 @@
         [
           "https://koi-mikuji.omikuji-do.com/wordpress/wp-content/uploads/2024/03/pic_953479567_65f04d7ee3768.png",
           1
+        ],
+        [
+          "今日話さないの？",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1532,11 +1536,11 @@
         0,
         4,
         4,
-        14
+        15
       ],
       "weekdayActivity": [
         22,
-        74,
+        75,
         26,
         58,
         206,

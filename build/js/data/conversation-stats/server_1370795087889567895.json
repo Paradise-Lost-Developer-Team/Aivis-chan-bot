@@ -1,8 +1,8 @@
 {
   "serverId": "1370795087889567895",
   "serverName": "バウンティ部屋貼り",
-  "totalMessages": 3171,
-  "totalCharacters": 33572,
+  "totalMessages": 3314,
+  "totalCharacters": 34894,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1370795088489349173",
         "channelName": "一般",
-        "totalMessages": 1035,
+        "totalMessages": 1042,
         "messageByUsers": {},
         "hourlyActivity": [
           80,
@@ -27,22 +27,22 @@
           3,
           11,
           14,
-          69,
+          71,
           64,
           63,
           55,
-          32,
+          34,
           49,
           102,
-          46,
+          49,
           78,
           78,
           160
         ],
         "weekdayActivity": [
           85,
-          109,
-          165,
+          112,
+          169,
           123,
           201,
           175,
@@ -55,7 +55,7 @@
       {
         "channelId": "1370795088489349174",
         "channelName": "一般",
-        "totalMessages": 2136,
+        "totalMessages": 2272,
         "messageByUsers": {},
         "hourlyActivity": [
           210,
@@ -73,20 +73,20 @@
           0,
           6,
           2,
-          20,
+          21,
           106,
-          368,
-          49,
-          213,
-          36,
-          20,
+          424,
+          78,
+          259,
+          38,
+          22,
           62,
           244
         ],
         "weekdayActivity": [
           88,
-          383,
-          308,
+          463,
+          364,
           100,
           680,
           452,
@@ -109,28 +109,28 @@
     3,
     11,
     14,
-    75,
+    77,
     66,
-    83,
+    84,
     161,
-    400,
-    98,
-    315,
-    82,
-    98,
+    458,
+    127,
+    361,
+    87,
+    100,
     140,
     404
   ],
   "weekdayActivity": [
     173,
-    492,
-    473,
+    575,
+    533,
     223,
     881,
     627,
     302
   ],
-  "averageMessageLength": 10.58719646799117,
+  "averageMessageLength": 10.529269764634883,
   "messageDistribution": [
     [
       "2025-05-15",
@@ -259,8 +259,16 @@
     [
       "2025-06-15",
       24
+    ],
+    [
+      "2025-06-16",
+      83
+    ],
+    [
+      "2025-06-17",
+      60
     ]
   ],
-  "mostActiveUser": "1342392715517886554",
+  "mostActiveUser": "1311286520879124541",
   "mostActiveChannel": "1370795088489349174"
 }

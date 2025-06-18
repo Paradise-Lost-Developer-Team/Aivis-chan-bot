@@ -1,8 +1,8 @@
 {
   "serverId": "1324000084773310464",
   "serverName": "バウンティラーッシュ！！",
-  "totalMessages": 450,
-  "totalCharacters": 3602,
+  "totalMessages": 570,
+  "totalCharacters": 4582,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,12 +11,12 @@
       {
         "channelId": "1324000084773310468",
         "channelName": "一般",
-        "totalMessages": 436,
+        "totalMessages": 551,
         "messageByUsers": {},
         "hourlyActivity": [
-          189,
-          102,
-          20,
+          222,
+          137,
+          58,
           5,
           9,
           0,
@@ -35,15 +35,15 @@
           0,
           0,
           0,
-          1,
-          67,
-          40
+          5,
+          71,
+          41
         ],
         "weekdayActivity": [
           59,
-          181,
-          13,
-          73,
+          189,
+          111,
+          82,
           22,
           13,
           75
@@ -55,10 +55,10 @@
       {
         "channelId": "1324000084773310467",
         "channelName": "一般",
-        "totalMessages": 14,
+        "totalMessages": 19,
         "messageByUsers": {},
         "hourlyActivity": [
-          0,
+          2,
           4,
           0,
           0,
@@ -78,15 +78,15 @@
           0,
           0,
           0,
-          0,
+          3,
           0,
           0,
           5
         ],
         "weekdayActivity": [
           0,
+          5,
           2,
-          0,
           0,
           5,
           3,
@@ -96,9 +96,9 @@
     ]
   ],
   "hourlyActivity": [
-    189,
-    106,
-    20,
+    224,
+    141,
+    58,
     5,
     9,
     0,
@@ -116,21 +116,21 @@
     0,
     0,
     0,
-    0,
-    1,
-    67,
-    45
+    3,
+    5,
+    71,
+    46
   ],
   "weekdayActivity": [
     59,
-    183,
-    13,
-    73,
+    194,
+    113,
+    82,
     27,
     16,
     79
   ],
-  "averageMessageLength": 8.004444444444445,
+  "averageMessageLength": 8.03859649122807,
   "messageDistribution": [
     [
       "2025-05-18",
@@ -199,6 +199,14 @@
     [
       "2025-06-13",
       1
+    ],
+    [
+      "2025-06-16",
+      110
+    ],
+    [
+      "2025-06-17",
+      10
     ]
   ],
   "mostActiveUser": "961556255120433162",

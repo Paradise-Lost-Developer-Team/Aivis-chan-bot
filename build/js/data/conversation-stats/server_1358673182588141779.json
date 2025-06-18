@@ -1,8 +1,8 @@
 {
   "serverId": "1358673182588141779",
   "serverName": "うくてのさば",
-  "totalMessages": 630,
-  "totalCharacters": 5580,
+  "totalMessages": 632,
+  "totalCharacters": 5596,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -99,7 +99,7 @@
       {
         "channelId": "1358679052923437237",
         "channelName": "🗣｜雑談！",
-        "totalMessages": 158,
+        "totalMessages": 160,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -124,13 +124,13 @@
           3,
           4,
           4,
-          4,
+          6,
           2
         ],
         "weekdayActivity": [
           17,
           33,
-          0,
+          2,
           21,
           74,
           10,
@@ -250,19 +250,19 @@
     33,
     7,
     130,
-    8,
+    10,
     124
   ],
   "weekdayActivity": [
     30,
     128,
-    11,
+    13,
     45,
     338,
     68,
     10
   ],
-  "averageMessageLength": 8.857142857142858,
+  "averageMessageLength": 8.854430379746836,
   "messageDistribution": [
     [
       "2025-05-22",
@@ -327,6 +327,10 @@
     [
       "2025-06-14",
       3
+    ],
+    [
+      "2025-06-17",
+      2
     ]
   ],
   "mostActiveUser": "827458758644727830",

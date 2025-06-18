@@ -1360,12 +1360,12 @@
     {
       "userId": "738774333056352278",
       "username": "kute1108",
-      "totalMessages": 136,
-      "totalCharacters": 1358,
-      "totalWords": 134,
+      "totalMessages": 138,
+      "totalCharacters": 1374,
+      "totalWords": 136,
       "totalEmojis": 3,
       "firstMessageDate": "2025-05-22T13:02:25.260Z",
-      "lastMessageDate": "2025-06-14T12:21:35.139Z",
+      "lastMessageDate": "2025-06-17T13:45:58.444Z",
       "mentionsGiven": 9,
       "mentionsReceived": 8,
       "wordFrequency": [
@@ -1852,6 +1852,14 @@
         [
           "tekanandeorenimo",
           1
+        ],
+        [
+          "フェアレディzかっこいい",
+          1
+        ],
+        [
+          "ください",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1891,13 +1899,13 @@
         2,
         2,
         3,
-        7,
+        9,
         21
       ],
       "weekdayActivity": [
         9,
         38,
-        7,
+        9,
         15,
         42,
         18,

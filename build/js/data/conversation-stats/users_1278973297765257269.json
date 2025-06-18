@@ -850,12 +850,12 @@
     {
       "userId": "1253320873612410900",
       "username": "104ten",
-      "totalMessages": 38,
-      "totalCharacters": 219,
-      "totalWords": 37,
+      "totalMessages": 39,
+      "totalCharacters": 223,
+      "totalWords": 38,
       "totalEmojis": 4,
       "firstMessageDate": "2025-04-18T14:04:30.148Z",
-      "lastMessageDate": "2025-06-14T13:22:38.592Z",
+      "lastMessageDate": "2025-06-16T11:36:33.077Z",
       "mentionsGiven": 1,
       "mentionsReceived": 2,
       "wordFrequency": [
@@ -994,6 +994,10 @@
         [
           "さぼりーよ",
           1
+        ],
+        [
+          "29りよ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1023,14 +1027,14 @@
         1,
         2,
         6,
-        9,
+        10,
         1,
         4,
         2
       ],
       "weekdayActivity": [
         3,
-        3,
+        4,
         4,
         4,
         13,

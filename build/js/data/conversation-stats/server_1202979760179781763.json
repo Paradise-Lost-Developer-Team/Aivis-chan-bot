@@ -1,8 +1,8 @@
 {
   "serverId": "1202979760179781763",
   "serverName": "3Farms(Sparrow,Duck,Gorilla)",
-  "totalMessages": 45074,
-  "totalCharacters": 648693,
+  "totalMessages": 46397,
+  "totalCharacters": 667429,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,15 +11,15 @@
       {
         "channelId": "1337081762999701504",
         "channelName": "因子周回聞き専",
-        "totalMessages": 15067,
+        "totalMessages": 16104,
         "messageByUsers": {},
         "hourlyActivity": [
-          1737,
-          1785,
-          1505,
-          1231,
-          594,
-          156,
+          1942,
+          1883,
+          1611,
+          1324,
+          654,
+          189,
           68,
           5,
           0,
@@ -34,16 +34,16 @@
           109,
           201,
           290,
-          871,
-          1366,
-          1653,
-          1886
+          961,
+          1470,
+          1768,
+          2019
         ],
         "weekdayActivity": [
           1936,
-          1781,
-          2027,
-          2735,
+          1833,
+          2443,
+          3304,
           2948,
           1576,
           1000
@@ -187,39 +187,39 @@
       {
         "channelId": "1202985912561049620",
         "channelName": "あひる雑談",
-        "totalMessages": 435,
+        "totalMessages": 483,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
           16,
-          5,
+          7,
           4,
           5,
           4,
           2,
           2,
-          18,
+          20,
           5,
           24,
           13,
           50,
           38,
-          13,
-          12,
-          11,
-          16,
-          16,
-          25,
-          40,
-          25,
+          14,
           15,
-          14
+          13,
+          18,
+          16,
+          26,
+          45,
+          37,
+          32,
+          15
         ],
         "weekdayActivity": [
           49,
-          52,
-          76,
-          51,
+          71,
+          103,
+          53,
           18,
           52,
           81
@@ -363,7 +363,7 @@
       {
         "channelId": "1204418497678016542",
         "channelName": "麻雀麻雀麻雀麻雀麻雀麻雀麻雀麻雀",
-        "totalMessages": 147,
+        "totalMessages": 155,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -383,18 +383,18 @@
           5,
           5,
           4,
-          2,
           4,
+          9,
           9,
           11,
           27,
           13,
-          14
+          15
         ],
         "weekdayActivity": [
           8,
           38,
-          37,
+          45,
           12,
           17,
           22,
@@ -451,7 +451,7 @@
       {
         "channelId": "1202996005306630154",
         "channelName": "パチンコパチスロ限界集落",
-        "totalMessages": 86,
+        "totalMessages": 88,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -475,14 +475,14 @@
           5,
           2,
           6,
-          12,
-          12,
+          13,
+          13,
           1
         ],
         "weekdayActivity": [
           8,
           24,
-          7,
+          9,
           8,
           13,
           7,
@@ -539,7 +539,7 @@
       {
         "channelId": "1202996352225910935",
         "channelName": "その他ゲーム集落",
-        "totalMessages": 79,
+        "totalMessages": 80,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -563,13 +563,13 @@
           7,
           6,
           17,
-          7,
+          8,
           5,
           0
         ],
         "weekdayActivity": [
           5,
-          12,
+          13,
           13,
           11,
           14,
@@ -627,7 +627,7 @@
       {
         "channelId": "1202989549869862952",
         "channelName": "雑談１",
-        "totalMessages": 240,
+        "totalMessages": 242,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -653,11 +653,11 @@
           35,
           9,
           6,
-          11
+          13
         ],
         "weekdayActivity": [
           24,
-          31,
+          33,
           23,
           31,
           57,
@@ -891,10 +891,10 @@
       {
         "channelId": "1346097015448141857",
         "channelName": "麻雀缶詰部屋聞き専",
-        "totalMessages": 3551,
+        "totalMessages": 3760,
         "messageByUsers": {},
         "hourlyActivity": [
-          921,
+          959,
           217,
           52,
           59,
@@ -915,14 +915,14 @@
           0,
           0,
           72,
-          364,
-          581,
-          845
+          422,
+          667,
+          872
         ],
         "weekdayActivity": [
           836,
-          13,
-          157,
+          184,
+          195,
           531,
           71,
           489,
@@ -1067,10 +1067,10 @@
       {
         "channelId": "1275095436608274514",
         "channelName": "結果報告",
-        "totalMessages": 26,
+        "totalMessages": 28,
         "messageByUsers": {},
         "hourlyActivity": [
-          5,
+          7,
           1,
           0,
           0,
@@ -1098,7 +1098,7 @@
         "weekdayActivity": [
           4,
           0,
-          0,
+          2,
           0,
           3,
           11,
@@ -1243,20 +1243,18 @@
       {
         "channelId": "1318931432005042226",
         "channelName": "連絡・お知らせ",
-        "totalMessages": 2,
+        "totalMessages": 12,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
+          1,
           0,
           0,
           0,
           0,
           0,
-          0,
-          0,
-          0,
-          0,
-          0,
+          1,
+          4,
           0,
           0,
           0,
@@ -1267,15 +1265,17 @@
           0,
           0,
           1,
-          0,
+          1,
+          1,
+          2,
           0,
           1
         ],
         "weekdayActivity": [
           0,
           1,
-          0,
-          0,
+          9,
+          1,
           1,
           0,
           0
@@ -1331,7 +1331,7 @@
       {
         "channelId": "1204416560874135553",
         "channelName": "あひる対抗戦",
-        "totalMessages": 17,
+        "totalMessages": 20,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -1354,15 +1354,15 @@
           2,
           0,
           1,
-          5,
-          0,
+          7,
+          1,
           0,
           0
         ],
         "weekdayActivity": [
           7,
           3,
-          2,
+          5,
           0,
           2,
           1,
@@ -2123,7 +2123,7 @@
       {
         "channelId": "1383586676135297214",
         "channelName": "賢さ2枚編成開拓所",
-        "totalMessages": 5,
+        "totalMessages": 6,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -2142,7 +2142,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -2153,7 +2153,7 @@
         ],
         "weekdayActivity": [
           5,
-          0,
+          1,
           0,
           0,
           0,
@@ -2164,41 +2164,41 @@
     ]
   ],
   "hourlyActivity": [
-    7142,
-    5331,
-    3875,
-    2787,
-    1424,
-    872,
+    7387,
+    5430,
+    3983,
+    2880,
+    1484,
+    905,
     375,
-    102,
-    65,
+    103,
+    71,
     32,
     93,
     62,
     315,
     165,
-    463,
-    519,
-    320,
-    280,
-    423,
-    513,
-    1822,
-    4300,
-    6306,
-    7488
+    464,
+    522,
+    323,
+    284,
+    429,
+    515,
+    1919,
+    4479,
+    6525,
+    7652
   ],
   "weekdayActivity": [
     7953,
-    5589,
-    5160,
-    5229,
+    5835,
+    5665,
+    5801,
     4596,
     6531,
     10016
   ],
-  "averageMessageLength": 14.391733593646004,
+  "averageMessageLength": 14.385175765674505,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -2459,6 +2459,14 @@
     [
       "2025-06-15",
       240
+    ],
+    [
+      "2025-06-16",
+      319
+    ],
+    [
+      "2025-06-17",
+      1004
     ]
   ],
   "mostActiveUser": "386884999670005773",

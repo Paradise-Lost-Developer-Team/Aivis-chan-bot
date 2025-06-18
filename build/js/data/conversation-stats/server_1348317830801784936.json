@@ -1,8 +1,8 @@
 {
   "serverId": "1348317830801784936",
   "serverName": "コマタナ",
-  "totalMessages": 628,
-  "totalCharacters": 5627,
+  "totalMessages": 629,
+  "totalCharacters": 5635,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1348317832772849735",
         "channelName": "雑談",
-        "totalMessages": 443,
+        "totalMessages": 444,
         "messageByUsers": {},
         "hourlyActivity": [
           147,
@@ -81,11 +81,11 @@
           0,
           6,
           5,
-          27
+          28
         ],
         "weekdayActivity": [
           38,
-          121,
+          122,
           48,
           100,
           38,
@@ -119,18 +119,18 @@
     0,
     6,
     5,
-    27
+    28
   ],
   "weekdayActivity": [
     38,
-    121,
+    122,
     48,
     100,
     223,
     38,
     60
   ],
-  "averageMessageLength": 8.960191082802547,
+  "averageMessageLength": 8.958664546899842,
   "messageDistribution": [
     [
       "2025-05-28",
@@ -199,6 +199,10 @@
     [
       "2025-06-13",
       3
+    ],
+    [
+      "2025-06-16",
+      1
     ]
   ],
   "mostActiveUser": "1312586535471677491",

@@ -1,8 +1,8 @@
 {
   "serverId": "1348278380709285888",
   "serverName": "やべぇモンハンたのしぃ",
-  "totalMessages": 1191,
-  "totalCharacters": 13212,
+  "totalMessages": 1233,
+  "totalCharacters": 13534,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1348278381309067307",
         "channelName": "一般",
-        "totalMessages": 845,
+        "totalMessages": 874,
         "messageByUsers": {},
         "hourlyActivity": [
           7,
@@ -32,17 +32,17 @@
           9,
           34,
           75,
-          75,
+          79,
           56,
-          125,
-          102,
-          81,
+          148,
+          103,
+          82,
           31
         ],
         "weekdayActivity": [
           104,
-          118,
-          191,
+          131,
+          207,
           39,
           52,
           74,
@@ -55,7 +55,7 @@
       {
         "channelId": "1349296987169624086",
         "channelName": "聞き専",
-        "totalMessages": 298,
+        "totalMessages": 302,
         "messageByUsers": {},
         "hourlyActivity": [
           11,
@@ -78,15 +78,15 @@
           1,
           0,
           0,
-          0,
+          4,
           0,
           85,
           77
         ],
         "weekdayActivity": [
           62,
-          17,
-          42,
+          20,
+          43,
           0,
           0,
           32,
@@ -225,6 +225,50 @@
           0
         ]
       }
+    ],
+    [
+      "1352237576072986725",
+      {
+        "channelId": "1352237576072986725",
+        "channelName": "スプラ",
+        "totalMessages": 9,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          8,
+          0,
+          1,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          4,
+          5,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
@@ -246,23 +290,23 @@
     13,
     39,
     88,
-    77,
+    81,
     57,
-    163,
-    105,
-    200,
+    198,
+    106,
+    202,
     119
   ],
   "weekdayActivity": [
     288,
-    146,
-    274,
+    166,
+    296,
     65,
     81,
     117,
     220
   ],
-  "averageMessageLength": 11.093198992443325,
+  "averageMessageLength": 10.976480129764802,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -483,6 +527,14 @@
     [
       "2025-06-15",
       3
+    ],
+    [
+      "2025-06-16",
+      20
+    ],
+    [
+      "2025-06-17",
+      22
     ]
   ],
   "mostActiveUser": "1356289830048502100",
