@@ -18664,5 +18664,62 @@
       "reactionGiven": 0,
       "commandUsage": []
     }
+  ],
+  [
+    "1182122103286272003",
+    {
+      "userId": "1182122103286272003",
+      "username": "microlot",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-19T01:02:41.626Z",
+      "lastMessageDate": "2025-06-19T01:02:41.514Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
   ]
 ]
