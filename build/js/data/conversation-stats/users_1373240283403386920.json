@@ -7207,12 +7207,12 @@
     {
       "userId": "1204676937876774952",
       "username": "re_mo.22",
-      "totalMessages": 15,
-      "totalCharacters": 121,
-      "totalWords": 14,
+      "totalMessages": 17,
+      "totalCharacters": 131,
+      "totalWords": 16,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-17T22:42:17.500Z",
-      "lastMessageDate": "2025-06-07T13:47:32.973Z",
+      "lastMessageDate": "2025-06-18T19:27:54.015Z",
       "mentionsGiven": 3,
       "mentionsReceived": 2,
       "wordFrequency": [
@@ -7267,15 +7267,23 @@
         [
           "あの顔で会おうと思えるんだ",
           1
+        ],
+        [
+          "どつくぞしぬ",
+          1
+        ],
+        [
+          "おきてる",
+          1
         ]
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
+        1,
         0,
         0,
         0,
-        0,
-        0,
+        1,
         0,
         0,
         1,
@@ -7301,7 +7309,7 @@
         1,
         0,
         0,
-        2,
+        4,
         1,
         4
       ],
@@ -8894,12 +8902,12 @@
     {
       "userId": "1365719162248368300",
       "username": "osushitabetai0952_84832",
-      "totalMessages": 108,
-      "totalCharacters": 661,
-      "totalWords": 96,
+      "totalMessages": 114,
+      "totalCharacters": 698,
+      "totalWords": 102,
       "totalEmojis": 1,
       "firstMessageDate": "2025-05-18T13:17:26.053Z",
-      "lastMessageDate": "2025-06-15T07:11:09.864Z",
+      "lastMessageDate": "2025-06-19T00:07:19.370Z",
       "mentionsGiven": 1,
       "mentionsReceived": 10,
       "wordFrequency": [
@@ -9206,6 +9214,26 @@
         [
           "(家で)しぬ",
           1
+        ],
+        [
+          "今日も今日とて働きます",
+          1
+        ],
+        [
+          "もーほんま勘弁",
+          1
+        ],
+        [
+          "ほんま堪忍",
+          1
+        ],
+        [
+          "だれかまだおきてる？",
+          1
+        ],
+        [
+          "おそ笑",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -9215,7 +9243,7 @@
         ]
       ],
       "hourlyActivity": [
-        14,
+        16,
         16,
         0,
         6,
@@ -9224,16 +9252,16 @@
         0,
         0,
         4,
-        0,
-        0,
-        0,
-        0,
         1,
+        0,
         0,
         0,
         2,
         0,
-        1,
+        0,
+        2,
+        0,
+        3,
         1,
         11,
         4,
@@ -9244,8 +9272,8 @@
         12,
         18,
         15,
-        12,
-        21,
+        15,
+        24,
         13,
         17
       ],
@@ -9261,12 +9289,12 @@
     {
       "userId": "1373267909035692138",
       "username": "be09327",
-      "totalMessages": 286,
-      "totalCharacters": 1345,
-      "totalWords": 277,
+      "totalMessages": 288,
+      "totalCharacters": 1351,
+      "totalWords": 279,
       "totalEmojis": 1,
       "firstMessageDate": "2025-05-18T13:32:23.129Z",
-      "lastMessageDate": "2025-06-15T07:31:35.960Z",
+      "lastMessageDate": "2025-06-18T09:17:50.962Z",
       "mentionsGiven": 4,
       "mentionsReceived": 14,
       "wordFrequency": [
@@ -9456,7 +9484,7 @@
         ],
         [
           "がんばれ",
-          1
+          2
         ],
         [
           "寝てんじゃ無い？",
@@ -10053,10 +10081,10 @@
         1,
         0,
         5,
-        7,
+        8,
         3,
         0,
-        0,
+        1,
         19,
         35,
         11,
@@ -10067,7 +10095,7 @@
         9,
         43,
         73,
-        58,
+        60,
         29,
         16,
         58

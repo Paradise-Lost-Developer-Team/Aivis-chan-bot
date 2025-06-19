@@ -338,12 +338,12 @@
     {
       "userId": "1005716357154885713",
       "username": "disc_nanashi",
-      "totalMessages": 53,
-      "totalCharacters": 9099,
-      "totalWords": 487,
+      "totalMessages": 54,
+      "totalCharacters": 9128,
+      "totalWords": 489,
       "totalEmojis": 4,
       "firstMessageDate": "2025-05-05T14:52:29.809Z",
-      "lastMessageDate": "2025-06-14T09:17:18.793Z",
+      "lastMessageDate": "2025-06-18T05:55:28.606Z",
       "mentionsGiven": 0,
       "mentionsReceived": 4,
       "wordFrequency": [
@@ -1062,6 +1062,14 @@
         [
           "サーバーの閉鎖に伴い、このスレッドはロックされました。",
           1
+        ],
+        [
+          "エラーコード:0でクラッシュする",
+          1
+        ],
+        [
+          "→create関係のバグ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1097,7 +1105,7 @@
         0,
         4,
         0,
-        0,
+        1,
         6,
         3,
         6,
@@ -1112,7 +1120,7 @@
         1,
         5,
         11,
-        7,
+        8,
         0,
         16,
         13

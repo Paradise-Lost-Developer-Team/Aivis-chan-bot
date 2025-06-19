@@ -1,8 +1,8 @@
 {
   "serverId": "1170743900856664114",
   "serverName": "FreakyWijariek",
-  "totalMessages": 2851,
-  "totalCharacters": 45147,
+  "totalMessages": 2936,
+  "totalCharacters": 46539,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1262930964334641315",
         "channelName": "jomok jomok mabok",
-        "totalMessages": 355,
+        "totalMessages": 362,
         "messageByUsers": {},
         "hourlyActivity": [
           36,
@@ -37,13 +37,13 @@
           20,
           44,
           63,
-          124
+          131
         ],
         "weekdayActivity": [
           44,
           7,
           54,
-          2,
+          9,
           15,
           40,
           193
@@ -55,7 +55,7 @@
       {
         "channelId": "1170743901330608151",
         "channelName": "percakapan-org-jomok-skizo",
-        "totalMessages": 2460,
+        "totalMessages": 2538,
         "messageByUsers": {},
         "hourlyActivity": [
           78,
@@ -66,29 +66,29 @@
           0,
           0,
           5,
-          18,
+          23,
           13,
           45,
-          124,
-          101,
-          90,
+          125,
+          102,
+          91,
           84,
           113,
-          69,
-          58,
+          78,
+          60,
           56,
-          59,
-          281,
-          639,
-          300,
+          66,
+          293,
+          664,
+          315,
           271
         ],
         "weekdayActivity": [
           295,
           205,
           543,
-          284,
-          232,
+          357,
+          237,
           203,
           698
         ]
@@ -236,33 +236,33 @@
     0,
     0,
     5,
-    18,
+    23,
     13,
     47,
-    125,
-    114,
-    97,
+    126,
+    115,
+    98,
     104,
     131,
-    75,
-    66,
+    84,
+    68,
     60,
-    59,
-    301,
-    684,
-    376,
-    395
+    66,
+    313,
+    709,
+    391,
+    402
   ],
   "weekdayActivity": [
     341,
     212,
     599,
-    289,
-    256,
+    369,
+    261,
     243,
     911
   ],
-  "averageMessageLength": 15.835496317081725,
+  "averageMessageLength": 15.851158038147139,
   "messageDistribution": [
     [
       "2025-05-20",
@@ -375,6 +375,10 @@
     [
       "2025-06-17",
       49
+    ],
+    [
+      "2025-06-18",
+      85
     ]
   ],
   "mostActiveUser": "892247377900081162",
