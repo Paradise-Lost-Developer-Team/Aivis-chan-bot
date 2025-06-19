@@ -1,7 +1,7 @@
 {
   "serverId": "1244876556950835283",
   "serverName": "Paradise Lost Zenless Zone Zero鯖",
-  "totalMessages": 1160,
+  "totalMessages": 1161,
   "totalCharacters": 34572,
   "activeUsers": 0,
   "userStats": {},
@@ -319,7 +319,7 @@
       {
         "channelId": "1244876557655343168",
         "channelName": "🚪ようこそ",
-        "totalMessages": 181,
+        "totalMessages": 182,
         "messageByUsers": {},
         "hourlyActivity": [
           13,
@@ -332,7 +332,7 @@
           4,
           13,
           7,
-          9,
+          10,
           7,
           9,
           6,
@@ -352,7 +352,7 @@
           14,
           43,
           35,
-          20,
+          21,
           38,
           10
         ]
@@ -2086,7 +2086,7 @@
     13,
     37,
     20,
-    37,
+    38,
     40,
     53,
     55,
@@ -2106,11 +2106,11 @@
     174,
     198,
     145,
-    156,
+    157,
     217,
     101
   ],
-  "averageMessageLength": 29.80344827586207,
+  "averageMessageLength": 29.77777777777778,
   "messageDistribution": [
     [
       "2025-04-26",
@@ -2330,7 +2330,7 @@
     ],
     [
       "2025-06-19",
-      1
+      2
     ]
   ],
   "mostActiveUser": "459694418383994880",

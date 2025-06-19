@@ -1,8 +1,8 @@
 {
   "serverId": "1333082050651230262",
   "serverName": "学生ゆったり荘",
-  "totalMessages": 150287,
-  "totalCharacters": 1524954,
+  "totalMessages": 150299,
+  "totalCharacters": 1525037,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -275,7 +275,7 @@
       {
         "channelId": "1333082051473047684",
         "channelName": "☕│雑談",
-        "totalMessages": 17640,
+        "totalMessages": 17652,
         "messageByUsers": {},
         "hourlyActivity": [
           2063,
@@ -288,7 +288,7 @@
           658,
           660,
           453,
-          437,
+          449,
           243,
           485,
           528,
@@ -308,7 +308,7 @@
           1491,
           1885,
           3781,
-          1827,
+          1839,
           3318,
           1868
         ]
@@ -4858,7 +4858,7 @@
     3745,
     4326,
     3040,
-    4635,
+    4647,
     4256,
     6569,
     7311,
@@ -4878,11 +4878,11 @@
     19779,
     20720,
     22968,
-    18765,
+    18777,
     20076,
     21404
   ],
-  "averageMessageLength": 10.146945510922436,
+  "averageMessageLength": 10.146687602711928,
   "messageDistribution": [
     [
       "2025-04-26",
@@ -5102,7 +5102,7 @@
     ],
     [
       "2025-06-19",
-      47
+      59
     ]
   ],
   "mostActiveUser": "1275052409013670033",
