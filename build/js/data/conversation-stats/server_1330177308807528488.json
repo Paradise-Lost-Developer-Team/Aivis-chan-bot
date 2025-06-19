@@ -1,8 +1,8 @@
 {
   "serverId": "1330177308807528488",
   "serverName": "眠時昨晩",
-  "totalMessages": 204,
-  "totalCharacters": 3012,
+  "totalMessages": 293,
+  "totalCharacters": 3801,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1330201261836079145",
         "channelName": "VC    1",
-        "totalMessages": 178,
+        "totalMessages": 256,
         "messageByUsers": {},
         "hourlyActivity": [
           13,
@@ -36,14 +36,14 @@
           9,
           6,
           1,
-          19,
-          36
+          75,
+          58
         ],
         "weekdayActivity": [
           110,
           0,
           24,
-          0,
+          78,
           0,
           0,
           44
@@ -55,7 +55,7 @@
       {
         "channelId": "1368818354978033715",
         "channelName": "メンション呼び出し",
-        "totalMessages": 17,
+        "totalMessages": 26,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -81,13 +81,13 @@
           1,
           0,
           0,
-          1
+          10
         ],
         "weekdayActivity": [
           14,
           0,
           2,
-          0,
+          9,
           0,
           0,
           1
@@ -99,7 +99,7 @@
       {
         "channelId": "1330177308807528493",
         "channelName": "入口",
-        "totalMessages": 7,
+        "totalMessages": 9,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -125,13 +125,13 @@
           3,
           1,
           1,
-          0
+          2
         ],
         "weekdayActivity": [
           1,
           0,
           4,
-          0,
+          2,
           0,
           0,
           2
@@ -250,19 +250,19 @@
     16,
     11,
     3,
-    20,
-    37
+    76,
+    70
   ],
   "weekdayActivity": [
     125,
     0,
     31,
-    0,
+    89,
     0,
     0,
     48
   ],
-  "averageMessageLength": 14.764705882352942,
+  "averageMessageLength": 12.972696245733788,
   "messageDistribution": [
     [
       "2025-06-07",
@@ -279,6 +279,10 @@
     [
       "2025-06-14",
       4
+    ],
+    [
+      "2025-06-18",
+      89
     ]
   ],
   "mostActiveUser": "1259181242302201968",

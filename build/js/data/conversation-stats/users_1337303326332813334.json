@@ -4,12 +4,12 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 13,
-      "totalCharacters": 834,
-      "totalWords": 43,
+      "totalMessages": 15,
+      "totalCharacters": 916,
+      "totalWords": 51,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-27T11:49:12.354Z",
-      "lastMessageDate": "2025-06-04T08:19:26.456Z",
+      "lastMessageDate": "2025-06-16T07:34:33.468Z",
       "mentionsGiven": 5,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -160,6 +160,30 @@
         [
           "ご利用者様のお声はbotに聞こえるようになっておりません。",
           1
+        ],
+        [
+          "<t:1749994378:d>",
+          1
+        ],
+        [
+          "aivis",
+          2
+        ],
+        [
+          "chan",
+          2
+        ],
+        [
+          "botのlinux移行開始",
+          1
+        ],
+        [
+          "<t:1750059268:f>",
+          1
+        ],
+        [
+          "botのlinux移行終了",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -180,7 +204,7 @@
         0,
         2,
         1,
-        2,
+        4,
         3,
         0,
         0,
@@ -191,7 +215,7 @@
       ],
       "weekdayActivity": [
         2,
-        5,
+        7,
         0,
         5,
         1,
