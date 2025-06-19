@@ -12988,5 +12988,99 @@
       "reactionGiven": 0,
       "commandUsage": []
     }
+  ],
+  [
+    "937638687993397268",
+    {
+      "userId": "937638687993397268",
+      "username": "sikisen2000",
+      "totalMessages": 1,
+      "totalCharacters": 120,
+      "totalWords": 26,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-19T00:58:33.360Z",
+      "lastMessageDate": "2025-06-19T00:58:33.256Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "しきせん",
+          1
+        ],
+        [
+          "uid",
+          1
+        ],
+        [
+          "821701385",
+          1
+        ],
+        [
+          "冒険ランク",
+          1
+        ],
+        [
+          "世界ランク",
+          1
+        ],
+        [
+          "アルレッキーノ",
+          1
+        ],
+        [
+          "別ゲー",
+          1
+        ],
+        [
+          "vrchat",
+          1
+        ],
+        [
+          ":⠀サボりがちで弱いですが仲良くしてくれると嬉しいです🫶",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
   ]
 ]

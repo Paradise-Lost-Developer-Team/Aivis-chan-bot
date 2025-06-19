@@ -1,7 +1,7 @@
 {
   "serverId": "1380197916345372742",
   "serverName": "ひるまひま？",
-  "totalMessages": 3330,
+  "totalMessages": 3331,
   "totalCharacters": 42840,
   "activeUsers": 0,
   "userStats": {},
@@ -11,7 +11,7 @@
       {
         "channelId": "1380197917717168300",
         "channelName": "ようこそ",
-        "totalMessages": 105,
+        "totalMessages": 106,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -24,7 +24,7 @@
           1,
           4,
           4,
-          1,
+          2,
           4,
           8,
           5,
@@ -44,7 +44,7 @@
           9,
           18,
           7,
-          9,
+          10,
           32,
           14
         ]
@@ -1074,7 +1074,7 @@
     20,
     150,
     190,
-    77,
+    78,
     93,
     85,
     105,
@@ -1094,11 +1094,11 @@
     691,
     288,
     162,
-    177,
+    178,
     830,
     391
   ],
-  "averageMessageLength": 12.864864864864865,
+  "averageMessageLength": 12.861002701891325,
   "messageDistribution": [
     [
       "2025-06-05",
@@ -1155,6 +1155,10 @@
     [
       "2025-06-18",
       16
+    ],
+    [
+      "2025-06-19",
+      1
     ]
   ],
   "mostActiveUser": "1185899007533387840",

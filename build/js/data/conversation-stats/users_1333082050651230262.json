@@ -9072,14 +9072,14 @@
     {
       "userId": "1119157300775628922",
       "username": "kuronusshi",
-      "totalMessages": 252,
-      "totalCharacters": 2091,
-      "totalWords": 247,
+      "totalMessages": 260,
+      "totalCharacters": 2143,
+      "totalWords": 255,
       "totalEmojis": 2,
       "firstMessageDate": "2025-06-16T09:06:33.756Z",
-      "lastMessageDate": "2025-06-19T00:55:15.839Z",
-      "mentionsGiven": 27,
-      "mentionsReceived": 23,
+      "lastMessageDate": "2025-06-19T01:11:43.639Z",
+      "mentionsGiven": 28,
+      "mentionsReceived": 28,
       "wordFrequency": [
         [
           "https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q12189433437",
@@ -9924,6 +9924,34 @@
         [
           "等価交換",
           1
+        ],
+        [
+          "先生に何も言われん",
+          1
+        ],
+        [
+          "俺だけ()",
+          1
+        ],
+        [
+          "でも成績4か5だよ",
+          1
+        ],
+        [
+          "赤点もない！",
+          1
+        ],
+        [
+          "そーそ",
+          1
+        ],
+        [
+          "そーだよ",
+          1
+        ],
+        [
+          "先生の目の前でipad触ってる",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -9947,7 +9975,7 @@
         9,
         4,
         13,
-        0,
+        8,
         0,
         5,
         0,
@@ -9967,7 +9995,7 @@
         28,
         110,
         72,
-        42,
+        50,
         0,
         0
       ],
@@ -16218,14 +16246,14 @@
     {
       "userId": "1141948586788126741",
       "username": "makelittle_35268",
-      "totalMessages": 225,
-      "totalCharacters": 2030,
-      "totalWords": 235,
+      "totalMessages": 235,
+      "totalCharacters": 2134,
+      "totalWords": 245,
       "totalEmojis": 4,
       "firstMessageDate": "2025-06-17T06:52:58.464Z",
-      "lastMessageDate": "2025-06-19T00:55:52.672Z",
-      "mentionsGiven": 101,
-      "mentionsReceived": 29,
+      "lastMessageDate": "2025-06-19T01:11:46.281Z",
+      "mentionsGiven": 106,
+      "mentionsReceived": 30,
       "wordFrequency": [
         [
           "ピーポー",
@@ -16481,7 +16509,7 @@
         ],
         [
           "すごいわ",
-          1
+          2
         ],
         [
           "１里ありまくる",
@@ -17070,6 +17098,42 @@
         [
           "いいねそうしよう",
           1
+        ],
+        [
+          "てか授業中にするのか、勇気あるな",
+          1
+        ],
+        [
+          "やばいじゃん",
+          1
+        ],
+        [
+          "中学生なの？",
+          1
+        ],
+        [
+          "だったらいいか",
+          1
+        ],
+        [
+          "自分の一つ上",
+          1
+        ],
+        [
+          "そんな変わらんけど",
+          1
+        ],
+        [
+          "ちゃんとできてたらいい",
+          1
+        ],
+        [
+          "今日登校して授業受けてる？",
+          1
+        ],
+        [
+          "登校してipad見てるの？オンラインとかじゃなくて？",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -17089,7 +17153,7 @@
         7,
         0,
         10,
-        0,
+        10,
         0,
         0,
         2,
@@ -17109,7 +17173,7 @@
         0,
         18,
         107,
-        100,
+        110,
         0,
         0
       ],

@@ -6929,13 +6929,13 @@
     {
       "userId": "1028965805884440608",
       "username": "aen0622",
-      "totalMessages": 294,
-      "totalCharacters": 3392,
-      "totalWords": 290,
+      "totalMessages": 295,
+      "totalCharacters": 3414,
+      "totalWords": 291,
       "totalEmojis": 42,
       "firstMessageDate": "2025-05-01T14:07:51.949Z",
-      "lastMessageDate": "2025-06-17T07:29:38.466Z",
-      "mentionsGiven": 43,
+      "lastMessageDate": "2025-06-19T01:11:13.158Z",
+      "mentionsGiven": 44,
       "mentionsReceived": 21,
       "wordFrequency": [
         [
@@ -7012,7 +7012,7 @@
         ],
         [
           "<@1266664269886259211>",
-          14
+          15
         ],
         [
           "おめでとう",
@@ -7596,7 +7596,7 @@
         3,
         1,
         20,
-        27,
+        28,
         35,
         6,
         3,
@@ -7616,7 +7616,7 @@
         74,
         28,
         36,
-        50,
+        51,
         31,
         35
       ],
@@ -7639,7 +7639,7 @@
       "firstMessageDate": "2025-05-01T14:07:52.999Z",
       "lastMessageDate": "2025-06-18T13:24:17.438Z",
       "mentionsGiven": 58,
-      "mentionsReceived": 33,
+      "mentionsReceived": 34,
       "wordFrequency": [
         [
           "<@1175078732743061545>",

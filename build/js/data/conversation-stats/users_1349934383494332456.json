@@ -9615,13 +9615,13 @@
     {
       "userId": "451313704575959043",
       "username": "laser_vomit",
-      "totalMessages": 31,
+      "totalMessages": 34,
       "totalCharacters": 666,
       "totalWords": 31,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-02T14:11:41.720Z",
-      "lastMessageDate": "2025-06-18T23:55:06.877Z",
-      "mentionsGiven": 9,
+      "lastMessageDate": "2025-06-19T01:06:29.278Z",
+      "mentionsGiven": 12,
       "mentionsReceived": 1,
       "wordFrequency": [
         [
@@ -9733,7 +9733,7 @@
         2,
         1,
         0,
-        0,
+        3,
         1,
         0,
         0,
@@ -9753,7 +9753,7 @@
         9,
         4,
         3,
-        4,
+        7,
         1,
         9
       ],
@@ -20358,7 +20358,7 @@
       "firstMessageDate": "2025-06-18T15:56:08.092Z",
       "lastMessageDate": "2025-06-18T16:04:23.535Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 4,
+      "mentionsReceived": 5,
       "wordFrequency": [
         [
           "ﾖﾛｼｸｵﾈｶﾞｲｼﾏｽ",
@@ -20522,7 +20522,7 @@
       "firstMessageDate": "2025-06-18T16:18:19.084Z",
       "lastMessageDate": "2025-06-18T16:18:24.825Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 3,
+      "mentionsReceived": 4,
       "wordFrequency": [],
       "emojiFrequency": [],
       "hourlyActivity": [
@@ -20579,7 +20579,7 @@
       "firstMessageDate": "2025-06-18T16:45:19.334Z",
       "lastMessageDate": "2025-06-18T16:45:19.235Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [],
       "emojiFrequency": [],
       "hourlyActivity": [
