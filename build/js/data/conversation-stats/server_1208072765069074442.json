@@ -1,8 +1,8 @@
 {
   "serverId": "1208072765069074442",
   "serverName": "コミュニティ「TSUSHIWA」",
-  "totalMessages": 20,
-  "totalCharacters": 14,
+  "totalMessages": 36,
+  "totalCharacters": 326,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1208072766926889072",
         "channelName": "システムメッセージ",
-        "totalMessages": 19,
+        "totalMessages": 29,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -31,19 +31,19 @@
           2,
           0,
           1,
-          1,
           2,
-          6,
           3,
-          3,
+          8,
+          4,
+          7,
           0,
-          1
+          2
         ],
         "weekdayActivity": [
           3,
-          5,
-          0,
-          0,
+          7,
+          6,
+          2,
           0,
           0,
           11
@@ -93,6 +93,138 @@
           0
         ]
       }
+    ],
+    [
+      "1384079905377091584",
+      {
+        "channelId": "1384079905377091584",
+        "channelName": "自己紹介",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1384160997375217787",
+      {
+        "channelId": "1384160997375217787",
+        "channelName": "自己紹介",
+        "totalMessages": 3,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1254040586374090775",
+      {
+        "channelId": "1254040586374090775",
+        "channelName": "ロール付与",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
@@ -113,24 +245,24 @@
     2,
     0,
     1,
-    1,
     2,
-    6,
     4,
-    3,
-    0,
-    1
+    8,
+    5,
+    7,
+    5,
+    2
   ],
   "weekdayActivity": [
     3,
+    14,
     6,
-    0,
-    0,
+    2,
     0,
     0,
     11
   ],
-  "averageMessageLength": 0.7,
+  "averageMessageLength": 9.055555555555555,
   "messageDistribution": [
     [
       "2025-05-31",
@@ -147,6 +279,18 @@
     [
       "2025-06-15",
       3
+    ],
+    [
+      "2025-06-16",
+      8
+    ],
+    [
+      "2025-06-17",
+      6
+    ],
+    [
+      "2025-06-18",
+      2
     ]
   ],
   "mostActiveUser": "747686547968491521",

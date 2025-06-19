@@ -118,13 +118,13 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 76,
-      "totalCharacters": 7581,
-      "totalWords": 429,
+      "totalMessages": 77,
+      "totalCharacters": 7598,
+      "totalWords": 431,
       "totalEmojis": 8,
       "firstMessageDate": "2025-04-18T10:51:15.960Z",
-      "lastMessageDate": "2025-06-14T10:36:45.248Z",
-      "mentionsGiven": 39,
+      "lastMessageDate": "2025-06-17T01:02:24.797Z",
+      "mentionsGiven": 40,
       "mentionsReceived": 11,
       "wordFrequency": [
         [
@@ -1222,6 +1222,14 @@
         [
           "<@1308846992906129428>",
           1
+        ],
+        [
+          "こちらこそ",
+          1
+        ],
+        [
+          "ありがとうございました",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1265,7 +1273,7 @@
         0,
         0,
         0,
-        5,
+        6,
         7,
         0,
         3,
@@ -1283,7 +1291,7 @@
       "weekdayActivity": [
         12,
         3,
-        5,
+        6,
         11,
         15,
         20,
@@ -1814,12 +1822,12 @@
     {
       "userId": "1005716357154885713",
       "username": "disc_nanashi",
-      "totalMessages": 67,
-      "totalCharacters": 10489,
-      "totalWords": 585,
+      "totalMessages": 68,
+      "totalCharacters": 10518,
+      "totalWords": 587,
       "totalEmojis": 4,
       "firstMessageDate": "2025-04-21T01:58:11.121Z",
-      "lastMessageDate": "2025-06-14T09:17:18.793Z",
+      "lastMessageDate": "2025-06-18T05:55:28.606Z",
       "mentionsGiven": 0,
       "mentionsReceived": 4,
       "wordFrequency": [
@@ -2694,6 +2702,14 @@
         [
           "サーバーの閉鎖に伴い、このスレッドはロックされました。",
           1
+        ],
+        [
+          "エラーコード:0でクラッシュする",
+          1
+        ],
+        [
+          "→create関係のバグ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2729,7 +2745,7 @@
         12,
         4,
         0,
-        0,
+        1,
         6,
         3,
         6,
@@ -2744,7 +2760,7 @@
         1,
         18,
         11,
-        7,
+        8,
         0,
         17,
         13
@@ -6322,14 +6338,14 @@
     {
       "userId": "1308846992906129428",
       "username": "haaaak0906",
-      "totalMessages": 24,
-      "totalCharacters": 774,
-      "totalWords": 26,
-      "totalEmojis": 4,
+      "totalMessages": 26,
+      "totalCharacters": 874,
+      "totalWords": 28,
+      "totalEmojis": 6,
       "firstMessageDate": "2025-06-12T02:17:26.868Z",
-      "lastMessageDate": "2025-06-14T10:00:42.177Z",
+      "lastMessageDate": "2025-06-16T14:49:10.450Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 9,
+      "mentionsReceived": 10,
       "wordFrequency": [
         [
           "最近レンタルサーバーを借りてマイクラをプレイしようかなと思ってconohaを借りたのですが、クライアントmodは適応されているのにサーバーmodが適応されないのはどうやって治せばいいのですか？",
@@ -6434,6 +6450,14 @@
         [
           "軽く確認した感じ前提modが足りない…ということはなさそうでした",
           1
+        ],
+        [
+          "conohaがmodに対応していないのでは？と思い一度xサーバーの方でも同じように行いましたが、storagebox以外は敵王されたのでこのまま鯖移動して終わりにします",
+          1
+        ],
+        [
+          "ありがとうございました🙇‍♀️",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -6447,6 +6471,14 @@
         ],
         [
           "💦",
+          1
+        ],
+        [
+          "🙇",
+          1
+        ],
+        [
+          "♀",
           1
         ]
       ],
@@ -6474,11 +6506,11 @@
         0,
         6,
         2,
-        1
+        3
       ],
       "weekdayActivity": [
         0,
-        0,
+        2,
         0,
         0,
         16,

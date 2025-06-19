@@ -118,15 +118,84 @@
     {
       "userId": "747686547968491521",
       "username": "tachikawa1214",
-      "totalMessages": 6,
-      "totalCharacters": 0,
-      "totalWords": 0,
+      "totalMessages": 15,
+      "totalCharacters": 248,
+      "totalWords": 21,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-02T09:34:38.685Z",
-      "lastMessageDate": "2025-06-15T07:05:15.544Z",
-      "mentionsGiven": 4,
+      "lastMessageDate": "2025-06-18T11:30:53.258Z",
+      "mentionsGiven": 6,
       "mentionsReceived": 0,
-      "wordFrequency": [],
+      "wordFrequency": [
+        [
+          "【テンプレート】",
+          2
+        ],
+        [
+          "名前:",
+          1
+        ],
+        [
+          "ゲーム上の名前:",
+          1
+        ],
+        [
+          "使用キャラ:",
+          1
+        ],
+        [
+          "プラットフォーム:",
+          1
+        ],
+        [
+          "プレイしている時間帯:",
+          2
+        ],
+        [
+          "他にやっているゲーム（スタンプ含め）:",
+          1
+        ],
+        [
+          "一言:",
+          1
+        ],
+        [
+          "名前:タチカワ",
+          1
+        ],
+        [
+          "ゲーム上の名前:タチカワ",
+          1
+        ],
+        [
+          "使用キャラ:豪鬼、ザンギエフ",
+          1
+        ],
+        [
+          "プラットフォーム:steam",
+          1
+        ],
+        [
+          "20:00〜23:00",
+          1
+        ],
+        [
+          "いつでも",
+          1
+        ],
+        [
+          "他にやっているゲーム（スタンプ含め）:アイマスシリーズ、nikke",
+          1
+        ],
+        [
+          "一言:一応サーバー主です。意見等あればお気軽に。",
+          1
+        ],
+        [
+          "格ゲー自体は初心者なのでお手柔らかに…",
+          1
+        ]
+      ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -148,22 +217,22 @@
         1,
         0,
         1,
+        3,
         2,
-        1,
-        0,
-        0,
+        2,
+        5,
         1
       ],
       "weekdayActivity": [
         1,
-        2,
-        0,
-        0,
+        7,
+        3,
+        1,
         0,
         0,
         3
       ],
-      "voiceMinutes": 693.56825,
+      "voiceMinutes": 693.6630333333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -620,6 +689,381 @@
         0,
         0,
         0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "962508909900341348",
+    {
+      "userId": "962508909900341348",
+      "username": "waito9",
+      "totalMessages": 2,
+      "totalCharacters": 64,
+      "totalWords": 12,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-16T09:55:22.775Z",
+      "lastMessageDate": "2025-06-16T09:57:45.212Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "waito",
+          1
+        ],
+        [
+          "読み方",
+          1
+        ],
+        [
+          "ワイト",
+          1
+        ],
+        [
+          "好きなこと",
+          1
+        ],
+        [
+          "読書・ゲーム",
+          1
+        ],
+        [
+          "好きなゲームジャンル",
+          1
+        ],
+        [
+          "特になし",
+          1
+        ],
+        [
+          "？？？もそう思います",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1384174881771618506",
+    {
+      "userId": "1384174881771618506",
+      "username": "tachikawa0801",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-16T14:20:58.264Z",
+      "lastMessageDate": "2025-06-16T14:20:58.075Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "weekdayActivity": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0.09885,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "337477743996436480",
+    {
+      "userId": "337477743996436480",
+      "username": "dubia9519",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-17T10:43:22.681Z",
+      "lastMessageDate": "2025-06-17T10:43:22.524Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0.0868,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "415313336100585475",
+    {
+      "userId": "415313336100585475",
+      "username": "uijing11",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-17T12:21:00.215Z",
+      "lastMessageDate": "2025-06-17T12:21:00.014Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1384430978411270296",
+    {
+      "userId": "1384430978411270296",
+      "username": "shuishengshengwu",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-17T12:45:32.759Z",
+      "lastMessageDate": "2025-06-17T12:45:32.548Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "882612435935174666",
+    {
+      "userId": "882612435935174666",
+      "username": "renanochuke",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-18T08:17:45.130Z",
+      "lastMessageDate": "2025-06-18T08:17:45.033Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 1,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        1,
         0,
         0,
         0

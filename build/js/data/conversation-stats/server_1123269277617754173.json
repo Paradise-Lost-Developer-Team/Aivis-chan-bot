@@ -1,8 +1,8 @@
 {
   "serverId": "1123269277617754173",
   "serverName": "世界の超常現象探求サークル",
-  "totalMessages": 12,
-  "totalCharacters": 997,
+  "totalMessages": 16,
+  "totalCharacters": 1516,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -187,7 +187,7 @@
       {
         "channelId": "1123361736813187073",
         "channelName": "conspiracy-theory",
-        "totalMessages": 3,
+        "totalMessages": 4,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
@@ -206,7 +206,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -219,7 +219,7 @@
           1,
           0,
           0,
-          0,
+          1,
           1,
           1,
           0
@@ -269,6 +269,50 @@
           0
         ]
       }
+    ],
+    [
+      "1123274615502946304",
+      {
+        "channelId": "1123274615502946304",
+        "channelName": "world-prediction",
+        "totalMessages": 3,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
@@ -288,25 +332,25 @@
     0,
     1,
     0,
-    1,
     3,
+    4,
     0,
     0,
-    1,
+    2,
     1,
     0,
     0
   ],
   "weekdayActivity": [
     3,
-    0,
+    2,
     1,
-    3,
+    5,
     4,
     1,
     0
   ],
-  "averageMessageLength": 83.08333333333333,
+  "averageMessageLength": 94.75,
   "messageDistribution": [
     [
       "2025-06-04",
@@ -330,6 +374,14 @@
     ],
     [
       "2025-06-12",
+      2
+    ],
+    [
+      "2025-06-16",
+      2
+    ],
+    [
+      "2025-06-18",
       2
     ]
   ],

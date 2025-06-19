@@ -1,8 +1,8 @@
 {
   "serverId": "822450267651964938",
   "serverName": "身内鯖",
-  "totalMessages": 1534,
-  "totalCharacters": 27571,
+  "totalMessages": 1779,
+  "totalCharacters": 32930,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -187,7 +187,7 @@
       {
         "channelId": "822450267651964944",
         "channelName": "Gaming",
-        "totalMessages": 997,
+        "totalMessages": 998,
         "messageByUsers": {},
         "hourlyActivity": [
           80,
@@ -206,7 +206,7 @@
           9,
           2,
           16,
-          140,
+          141,
           54,
           214,
           77,
@@ -217,7 +217,7 @@
         ],
         "weekdayActivity": [
           115,
-          198,
+          199,
           246,
           144,
           56,
@@ -231,13 +231,13 @@
       {
         "channelId": "822450267651964941",
         "channelName": "雑談",
-        "totalMessages": 29,
+        "totalMessages": 31,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
           6,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -253,7 +253,7 @@
           2,
           1,
           3,
-          0,
+          1,
           0,
           1,
           0,
@@ -262,7 +262,7 @@
         "weekdayActivity": [
           1,
           13,
-          2,
+          4,
           7,
           1,
           3,
@@ -319,7 +319,7 @@
       {
         "channelId": "852217602159935508",
         "channelName": "色々なid",
-        "totalMessages": 18,
+        "totalMessages": 19,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -341,7 +341,7 @@
           0,
           1,
           0,
-          0,
+          1,
           0,
           4,
           1,
@@ -350,7 +350,7 @@
         "weekdayActivity": [
           0,
           0,
-          0,
+          1,
           16,
           0,
           1,
@@ -407,11 +407,11 @@
       {
         "channelId": "1224323813999640647",
         "channelName": "Gaming",
-        "totalMessages": 382,
+        "totalMessages": 580,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
-          0,
+          2,
           0,
           1,
           0,
@@ -425,21 +425,21 @@
           59,
           23,
           3,
-          38,
+          113,
+          37,
+          92,
+          41,
+          57,
           13,
-          64,
-          16,
-          50,
-          5,
-          24,
-          14,
+          49,
+          18,
           1
         ],
         "weekdayActivity": [
           17,
-          27,
-          2,
-          68,
+          109,
+          22,
+          164,
           75,
           95,
           98
@@ -451,7 +451,7 @@
       {
         "channelId": "1224703971474804746",
         "channelName": "迷言一覧",
-        "totalMessages": 5,
+        "totalMessages": 36,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -469,8 +469,8 @@
           0,
           0,
           0,
-          0,
-          0,
+          27,
+          4,
           0,
           5,
           0,
@@ -483,7 +483,7 @@
           0,
           0,
           0,
-          0,
+          31,
           5,
           0,
           0
@@ -495,7 +495,7 @@
       {
         "channelId": "1124845184983781426",
         "channelName": "minecraft",
-        "totalMessages": 1,
+        "totalMessages": 13,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -515,19 +515,19 @@
           0,
           0,
           0,
+          2,
+          4,
           0,
-          0,
-          0,
-          0,
+          6,
           0,
           0,
           0
         ],
         "weekdayActivity": [
           1,
+          5,
           0,
-          0,
-          0,
+          7,
           0,
           0,
           0
@@ -537,9 +537,9 @@
   ],
   "hourlyActivity": [
     81,
-    7,
+    9,
     1,
-    2,
+    3,
     0,
     2,
     0,
@@ -551,26 +551,26 @@
     85,
     44,
     10,
-    60,
-    163,
+    162,
+    192,
+    169,
+    272,
     139,
-    243,
-    130,
-    67,
-    152,
-    182,
+    81,
+    177,
+    186,
     52
   ],
   "weekdayActivity": [
     143,
+    363,
     275,
-    252,
-    265,
+    399,
     140,
     252,
     207
   ],
-  "averageMessageLength": 17.973272490221643,
+  "averageMessageLength": 18.510399100618326,
   "messageDistribution": [
     [
       "2025-05-26",
@@ -655,6 +655,18 @@
     [
       "2025-06-15",
       17
+    ],
+    [
+      "2025-06-16",
+      91
+    ],
+    [
+      "2025-06-17",
+      20
+    ],
+    [
+      "2025-06-18",
+      134
     ]
   ],
   "mostActiveUser": "864421178353516544",

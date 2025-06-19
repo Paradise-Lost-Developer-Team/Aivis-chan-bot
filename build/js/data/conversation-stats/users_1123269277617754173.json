@@ -4,14 +4,14 @@
     {
       "userId": "1107210702105620510",
       "username": "subaru2012",
-      "totalMessages": 12,
-      "totalCharacters": 997,
-      "totalWords": 47,
+      "totalMessages": 16,
+      "totalCharacters": 1516,
+      "totalWords": 68,
       "totalEmojis": 3,
       "firstMessageDate": "2025-06-04T08:05:13.534Z",
-      "lastMessageDate": "2025-06-12T15:54:07.093Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
+      "lastMessageDate": "2025-06-18T11:23:45.869Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 1,
       "wordFrequency": [
         [
           "/join",
@@ -184,6 +184,74 @@
         [
           "http://totalnewsjp.com/2025/06/12/covid19-1678/",
           1
+        ],
+        [
+          "異世界探求系youtube",
+          1
+        ],
+        [
+          "ch「bttp」のライブにゲスト出演決定!!｜中津川",
+          1
+        ],
+        [
+          "subaru",
+          1
+        ],
+        [
+          "nakatsugawa",
+          1
+        ],
+        [
+          "<@1107210702105620510>",
+          1
+        ],
+        [
+          "https://note.com/subaru2012/n/nb3a24d1cfa32?sub_rt=share_pb",
+          1
+        ],
+        [
+          "予告が少しフライング気味でした",
+          1
+        ],
+        [
+          "(๑>؂<๑)",
+          1
+        ],
+        [
+          "タイトルもサムネも予告なく変更するかもしれないとの事。確定するのは週半ばかも",
+          1
+        ],
+        [
+          "【規制だけは光速の速さw】オンラインカジノ広告禁止法成立",
+          1
+        ],
+        [
+          "2025年6月18日、参議院で改正ギャンブル等依存症対策基本法が可決され、オンラインカジノの広告・宣伝行為が禁止されることになりました。この法律は、オンラインカジノへのアクセスを抑制し、ギャンブル依存症対策の一環として施行されます。法案成立により、広告を規制する具体的な措置が期待されています。",
+          1
+        ],
+        [
+          "【見逃し予告】",
+          1
+        ],
+        [
+          "ナオキマンの都市伝説ワイドショー#9.5：【最終回直前】7月5日終末論を徹底予習",
+          1
+        ],
+        [
+          "6月14日(土)",
+          1
+        ],
+        [
+          "22:00",
+          1
+        ],
+        [
+          "22:25",
+          1
+        ],
+        [
+          "https://abema.tv/channels/abema-special/slots/bzb2mxssx6axwq",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -217,20 +285,20 @@
         0,
         1,
         0,
-        1,
         3,
+        4,
         0,
         0,
-        1,
+        2,
         1,
         0,
         0
       ],
       "weekdayActivity": [
         3,
-        0,
+        2,
         1,
-        3,
+        5,
         4,
         1,
         0
