@@ -348,7 +348,7 @@ const ffmpegFactory = {
             '-ac', '1',           // モノラル
             '-i', 'pipe:0',
             // 48kHz にリサンプル＆ノイズ除去・フェード
-            '-af', 'aresample=48000,silenceremove=start_periods=1:start_silence=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
+            '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
             // Opus エンコード設定
             '-c:a', 'libopus',
             '-ar', '48000',        // 出力は Opus のサポートする 48 kHz
