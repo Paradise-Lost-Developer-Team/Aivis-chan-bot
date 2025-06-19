@@ -95,12 +95,12 @@
     }
   },
   {
-    "name": "fumifumi",
-    "speaker_uuid": "754d769b-7128-4172-964e-b10945d55e39",
+    "name": "にせ",
+    "speaker_uuid": "bf56410a-d8e6-430d-a477-f789e16206d3",
     "styles": [
       {
         "name": "ノーマル",
-        "id": 606865152,
+        "id": 1937616896,
         "type": "talk"
       }
     ],
@@ -110,12 +110,12 @@
     }
   },
   {
-    "name": "にせ",
-    "speaker_uuid": "bf56410a-d8e6-430d-a477-f789e16206d3",
+    "name": "まい",
+    "speaker_uuid": "41b7785f-35cc-4089-a360-dd8a63da5e75",
     "styles": [
       {
         "name": "ノーマル",
-        "id": 1937616896,
+        "id": 1431611904,
         "type": "talk"
       }
     ],
@@ -180,41 +180,6 @@
     }
   },
   {
-    "name": "凛音エル",
-    "speaker_uuid": "d2c99ca6-73e5-486c-994e-ee0ce2d74928",
-    "styles": [
-      {
-        "name": "ノーマル",
-        "id": 1388823424,
-        "type": "talk"
-      },
-      {
-        "name": "Angry",
-        "id": 1388823425,
-        "type": "talk"
-      },
-      {
-        "name": "Fear",
-        "id": 1388823426,
-        "type": "talk"
-      },
-      {
-        "name": "Happy",
-        "id": 1388823427,
-        "type": "talk"
-      },
-      {
-        "name": "Sad",
-        "id": 1388823428,
-        "type": "talk"
-      }
-    ],
-    "version": "1.0.0",
-    "supported_features": {
-      "permitted_synthesis_morphing": "NOTHING"
-    }
-  },
-  {
     "name": "花音",
     "speaker_uuid": "b1ca560f-f212-4e67-ab7d-0a4f5afb75a8",
     "styles": [
@@ -230,42 +195,12 @@
     }
   },
   {
-    "name": "阿井田 茂",
-    "speaker_uuid": "561e4e59-3bc9-4726-9028-44a3c12a6f1d",
+    "name": "蒼月ハヤテ",
+    "speaker_uuid": "a82fc628-f166-427f-b568-4c4f94921629",
     "styles": [
       {
         "name": "ノーマル",
-        "id": 1310138976,
-        "type": "talk"
-      },
-      {
-        "name": "Calm",
-        "id": 1310138977,
-        "type": "talk"
-      },
-      {
-        "name": "Far",
-        "id": 1310138978,
-        "type": "talk"
-      },
-      {
-        "name": "Heavy",
-        "id": 1310138979,
-        "type": "talk"
-      },
-      {
-        "name": "Mid",
-        "id": 1310138980,
-        "type": "talk"
-      },
-      {
-        "name": "Shout",
-        "id": 1310138981,
-        "type": "talk"
-      },
-      {
-        "name": "Surprise",
-        "id": 1310138982,
+        "id": 593129376,
         "type": "talk"
       }
     ],

@@ -1,21 +1,21 @@
 {
+  "1360141361550200862": {
+    "<:slack:1363097861281022033>": {
+      "pronunciation": "スラック",
+      "accentType": 2,
+      "wordType": "PROPER_NOUN"
+    },
+    "丈慈": {
+      "pronunciation": "ジョウジ",
+      "accentType": 0,
+      "wordType": "PERSON_GIVEN_NAME"
+    }
+  },
   "966557943271133235": {
     "Optifine": {
       "pronunciation": "オプティファイン",
       "accentType": 1,
       "wordType": "PROPER_NOUN"
-    }
-  },
-  "1333082050651230262": {
-    "御冬": {
-      "pronunciation": "ミフユ",
-      "accentType": 1,
-      "wordType": "PERSON_NAME"
-    },
-    "ごふゆ": {
-      "pronunciation": "ミフユ",
-      "accentType": 2,
-      "wordType": "PERSON_NAME"
     }
   }
 }

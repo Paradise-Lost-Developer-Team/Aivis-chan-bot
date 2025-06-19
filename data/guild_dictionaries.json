@@ -1,26 +1,26 @@
 {
   "966557943271133235": {
-    "刻靖": {
-      "pronunciation": "コクセイ",
-      "accent_type": 2,
-      "word_type": "PERSON_NAME"
-    },
     "璃月": {
       "pronunciation": "リーユェ",
       "accent_type": 1,
       "word_type": "PROPER_NOUN"
     },
-    "海灯祭": {
-      "pronunciation": "カイトウサイ",
-      "accent_type": 2,
-      "word_type": "PROPER_NOUN"
+    "聖龍": {
+      "pronunciation": "セイリュウ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
     }
   },
   "1202979760179781763": {
-    "🤔": {
-      "pronunciation": "カンガエルカオ",
-      "accent_type": 0,
-      "word_type": "PERSON_GIVEN_NAME"
+    "w": {
+      "pronunciation": "ワラ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "テスト": {
+      "pronunciation": "テステス",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
     }
   },
   "1317015435043934228": {
@@ -30,18 +30,11 @@
       "wordType": "PERSON_NAME"
     }
   },
-  "1333082050651230262": {
-    "歌志軒": {
-      "pronunciation": "カジケン",
-      "accentType": 0,
-      "wordType": "ORGANIZATION_NAME"
-    }
-  },
-  "1351930674335973386": {
-    "宇宙": {
-      "pronunciation": "スペース",
+  "1348660763858047099": {
+    "🍆": {
+      "pronunciation": "ナス",
       "accentType": 1,
-      "wordType": "PROPER_NOUN"
+      "wordType": "COMMON_NOUN"
     }
   }
 }

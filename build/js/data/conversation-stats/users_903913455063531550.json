@@ -78,3 +78,83 @@
     }
   ]
 ]
+[
+  [
+    "386884999670005773",
+    {
+      "userId": "386884999670005773",
+      "username": "kyarakon.",
+      "totalMessages": 7,
+      "totalCharacters": 262,
+      "totalWords": 5,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-16T17:08:51.536Z",
+      "lastMessageDate": "2025-06-13T09:11:59.328Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "https://youtube.com/shorts/bbilav9vjou?si=ce3ozlvspzwqtzv5",
+          1
+        ],
+        [
+          "テステフ",
+          1
+        ],
+        [
+          "https://youtube.com/shorts/29kmpbjhmfo?si=hznjndvohy3xupeu",
+          1
+        ],
+        [
+          "https://youtube.com/shorts/qr7crbolxn8?si=nkq4jz4rvgylkywj",
+          1
+        ],
+        [
+          "https://x.com/panda_umaprsk/status/1933422567995683159?t=9is_enq640v-l4u0mttvfw&s=19",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        2,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        2,
+        0,
+        1,
+        0,
+        1,
+        3,
+        0
+      ],
+      "voiceMinutes": 50.08713333333333,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

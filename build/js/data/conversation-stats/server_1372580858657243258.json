@@ -1,0 +1,230 @@
+{
+  "serverId": "1372580858657243258",
+  "serverName": "どこかのコミュニティ３",
+  "totalMessages": 17,
+  "totalCharacters": 129,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1374811412773474344",
+      {
+        "channelId": "1374811412773474344",
+        "channelName": "vc1-聞き専",
+        "totalMessages": 7,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          7,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1374799008454676671",
+      {
+        "channelId": "1374799008454676671",
+        "channelName": "vc1",
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1374804300269883392",
+      {
+        "channelId": "1374804300269883392",
+        "channelName": "あーテステス",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1374865623649353973",
+      {
+        "channelId": "1374865623649353973",
+        "channelName": "テンプレート",
+        "totalMessages": 3,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    12,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    17,
+    0,
+    0
+  ],
+  "averageMessageLength": 7.588235294117647,
+  "messageDistribution": [
+    [
+      "2025-05-21",
+      17
+    ]
+  ],
+  "mostActiveUser": "1334729786274086925",
+  "mostActiveChannel": "1374811412773474344"
+}
