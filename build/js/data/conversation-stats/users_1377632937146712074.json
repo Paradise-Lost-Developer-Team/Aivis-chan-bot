@@ -1538,12 +1538,12 @@
     {
       "userId": "1275052409013670033",
       "username": "m1fyu_osk2135",
-      "totalMessages": 213,
-      "totalCharacters": 2630,
-      "totalWords": 244,
+      "totalMessages": 214,
+      "totalCharacters": 2639,
+      "totalWords": 245,
       "totalEmojis": 15,
       "firstMessageDate": "2025-05-29T16:07:55.449Z",
-      "lastMessageDate": "2025-06-11T17:05:26.590Z",
+      "lastMessageDate": "2025-06-18T17:02:54.289Z",
       "mentionsGiven": 6,
       "mentionsReceived": 9,
       "wordFrequency": [
@@ -2318,6 +2318,10 @@
         [
           "ブロックされてたの忘れてた",
           1
+        ],
+        [
+          "ここ改造しようかな",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2361,7 +2365,7 @@
       "hourlyActivity": [
         4,
         25,
-        25,
+        26,
         64,
         0,
         0,
@@ -2389,7 +2393,7 @@
         8,
         0,
         51,
-        15,
+        16,
         98,
         1
       ],

@@ -1,8 +1,8 @@
 {
   "serverId": "1344932516116828190",
   "serverName": "学生たちの集い場",
-  "totalMessages": 2920,
-  "totalCharacters": 35573,
+  "totalMessages": 3625,
+  "totalCharacters": 40923,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,11 +11,11 @@
       {
         "channelId": "1344932516922130461",
         "channelName": "聞き専①",
-        "totalMessages": 1665,
+        "totalMessages": 2102,
         "messageByUsers": {},
         "hourlyActivity": [
-          577,
-          132,
+          663,
+          228,
           65,
           10,
           1,
@@ -36,15 +36,15 @@
           20,
           5,
           99,
-          172,
-          469
+          186,
+          710
         ],
         "weekdayActivity": [
           378,
           477,
           156,
-          71,
-          176,
+          326,
+          358,
           50,
           357
         ]
@@ -55,7 +55,7 @@
       {
         "channelId": "1344932516703764587",
         "channelName": "🎉welcome！",
-        "totalMessages": 87,
+        "totalMessages": 88,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -81,13 +81,13 @@
           12,
           10,
           11,
-          9
+          10
         ],
         "weekdayActivity": [
           13,
           11,
           9,
-          15,
+          16,
           12,
           11,
           16
@@ -99,7 +99,7 @@
       {
         "channelId": "1344932516922130453",
         "channelName": "📇自己紹介",
-        "totalMessages": 65,
+        "totalMessages": 66,
         "messageByUsers": {},
         "hourlyActivity": [
           5,
@@ -125,13 +125,13 @@
           10,
           6,
           12,
-          4
+          5
         ],
         "weekdayActivity": [
           6,
           9,
           9,
-          14,
+          15,
           10,
           6,
           11
@@ -143,10 +143,10 @@
       {
         "channelId": "1344932517106421791",
         "channelName": "雑談①",
-        "totalMessages": 552,
+        "totalMessages": 570,
         "messageByUsers": {},
         "hourlyActivity": [
-          31,
+          37,
           118,
           261,
           24,
@@ -169,14 +169,14 @@
           10,
           7,
           18,
-          55
+          67
         ],
         "weekdayActivity": [
           56,
           39,
           35,
-          5,
-          21,
+          17,
+          27,
           2,
           394
         ]
@@ -231,12 +231,12 @@
       {
         "channelId": "1344932517106421795",
         "channelName": "勉強",
-        "totalMessages": 382,
+        "totalMessages": 616,
         "messageByUsers": {},
         "hourlyActivity": [
-          9,
+          235,
           4,
-          2,
+          5,
           9,
           0,
           0,
@@ -257,14 +257,14 @@
           0,
           0,
           0,
-          7
+          12
         ],
         "weekdayActivity": [
           7,
           18,
           4,
-          346,
-          2,
+          351,
+          231,
           5,
           0
         ]
@@ -489,12 +489,100 @@
           0
         ]
       }
+    ],
+    [
+      "1384921834453209138",
+      {
+        "channelId": "1384921834453209138",
+        "channelName": "勉強2",
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          2,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1384928413600452608",
+      {
+        "channelId": "1384928413600452608",
+        "channelName": "勉強中2",
+        "totalMessages": 9,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          8,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          9,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    628,
-    257,
-    329,
+    946,
+    363,
+    336,
     45,
     5,
     0,
@@ -514,19 +602,19 @@
     42,
     37,
     176,
-    215,
-    544
+    229,
+    804
   ],
   "weekdayActivity": [
     464,
     557,
     215,
-    453,
-    222,
+    727,
+    653,
     231,
     778
   ],
-  "averageMessageLength": 12.182534246575342,
+  "averageMessageLength": 11.289103448275862,
   "messageDistribution": [
     [
       "2025-05-06",
@@ -683,8 +771,12 @@
     [
       "2025-06-16",
       1
+    ],
+    [
+      "2025-06-18",
+      705
     ]
   ],
-  "mostActiveUser": "1135447213842112563",
+  "mostActiveUser": "1334941601499185203",
   "mostActiveChannel": "1344932516922130461"
 }

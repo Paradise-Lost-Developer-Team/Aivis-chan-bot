@@ -1,8 +1,8 @@
 {
   "serverId": "1351827918569078855",
   "serverName": "学生雑談・ゲーム鯖",
-  "totalMessages": 4589,
-  "totalCharacters": 67620,
+  "totalMessages": 4593,
+  "totalCharacters": 67658,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,10 +143,10 @@
       {
         "channelId": "1351828892301787217",
         "channelName": "🗣┣雑談",
-        "totalMessages": 1237,
+        "totalMessages": 1239,
         "messageByUsers": {},
         "hourlyActivity": [
-          7,
+          8,
           7,
           12,
           38,
@@ -168,15 +168,15 @@
           17,
           18,
           6,
-          157,
+          158,
           52
         ],
         "weekdayActivity": [
           701,
           261,
           83,
-          37,
-          52,
+          38,
+          53,
           20,
           83
         ]
@@ -803,10 +803,10 @@
       {
         "channelId": "1351829589810479114",
         "channelName": "👾┣げーむ①",
-        "totalMessages": 301,
+        "totalMessages": 303,
         "messageByUsers": {},
         "hourlyActivity": [
-          7,
+          8,
           1,
           0,
           5,
@@ -829,14 +829,14 @@
           3,
           23,
           35,
-          9
+          10
         ],
         "weekdayActivity": [
           15,
           5,
           32,
-          15,
-          5,
+          16,
+          6,
           188,
           41
         ]
@@ -1196,7 +1196,7 @@
     ]
   ],
   "hourlyActivity": [
-    201,
+    203,
     175,
     126,
     109,
@@ -1218,19 +1218,19 @@
     180,
     102,
     125,
-    358,
-    169
+    359,
+    170
   ],
   "weekdayActivity": [
     1140,
     881,
     349,
-    1491,
-    154,
+    1493,
+    156,
     321,
     253
   ],
-  "averageMessageLength": 14.73523643495315,
+  "averageMessageLength": 14.730677117352492,
   "messageDistribution": [
     [
       "2025-05-05",
@@ -1367,6 +1367,10 @@
     [
       "2025-06-16",
       27
+    ],
+    [
+      "2025-06-18",
+      4
     ]
   ],
   "mostActiveUser": "1097204925915734016",

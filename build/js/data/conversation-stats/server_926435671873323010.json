@@ -1,8 +1,8 @@
 {
   "serverId": "926435671873323010",
   "serverName": "ぼるでも鯖",
-  "totalMessages": 4754,
-  "totalCharacters": 67345,
+  "totalMessages": 4755,
+  "totalCharacters": 67371,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -627,7 +627,7 @@
       {
         "channelId": "1141792487522971718",
         "channelName": "写真チャット",
-        "totalMessages": 110,
+        "totalMessages": 111,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -652,14 +652,14 @@
           9,
           15,
           16,
-          3,
+          4,
           10
         ],
         "weekdayActivity": [
           11,
           2,
           11,
-          32,
+          33,
           2,
           14,
           38
@@ -1614,19 +1614,19 @@
     391,
     355,
     224,
-    64,
+    65,
     214
   ],
   "weekdayActivity": [
     2021,
     485,
     362,
-    376,
+    377,
     170,
     692,
     648
   ],
-  "averageMessageLength": 14.16596550273454,
+  "averageMessageLength": 14.168454258675078,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -1859,6 +1859,10 @@
     [
       "2025-06-17",
       11
+    ],
+    [
+      "2025-06-18",
+      1
     ]
   ],
   "mostActiveUser": "640891438497792000",

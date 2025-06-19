@@ -1,8 +1,8 @@
 {
   "serverId": "1084205224438288444",
   "serverName": "お寿司",
-  "totalMessages": 1880,
-  "totalCharacters": 19399,
+  "totalMessages": 1888,
+  "totalCharacters": 19550,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -231,11 +231,11 @@
       {
         "channelId": "1168028156435894362",
         "channelName": "bot",
-        "totalMessages": 61,
+        "totalMessages": 67,
         "messageByUsers": {},
         "hourlyActivity": [
-          1,
-          5,
+          4,
+          8,
           0,
           0,
           0,
@@ -264,16 +264,60 @@
           17,
           11,
           3,
-          7,
+          13,
           9,
+          0
+        ]
+      }
+    ],
+    [
+      "1084205225121955991",
+      {
+        "channelId": "1084205225121955991",
+        "channelName": "入室",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
           0
         ]
       }
     ]
   ],
   "hourlyActivity": [
-    6,
-    9,
+    11,
+    12,
     0,
     2,
     0,
@@ -302,11 +346,11 @@
     82,
     30,
     4,
-    227,
+    235,
     425,
     309
   ],
-  "averageMessageLength": 10.318617021276596,
+  "averageMessageLength": 10.354872881355933,
   "messageDistribution": [
     [
       "2025-05-31",
@@ -379,6 +423,10 @@
     [
       "2025-06-17",
       23
+    ],
+    [
+      "2025-06-18",
+      8
     ]
   ],
   "mostActiveUser": "440298983538032660",

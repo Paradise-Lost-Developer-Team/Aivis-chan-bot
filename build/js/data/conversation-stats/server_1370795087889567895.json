@@ -1,8 +1,8 @@
 {
   "serverId": "1370795087889567895",
   "serverName": "バウンティ部屋貼り",
-  "totalMessages": 3314,
-  "totalCharacters": 34894,
+  "totalMessages": 3332,
+  "totalCharacters": 35060,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,10 +11,10 @@
       {
         "channelId": "1370795088489349173",
         "channelName": "一般",
-        "totalMessages": 1042,
+        "totalMessages": 1060,
         "messageByUsers": {},
         "hourlyActivity": [
-          80,
+          81,
           21,
           61,
           7,
@@ -25,26 +25,26 @@
           8,
           6,
           3,
-          11,
-          14,
+          13,
+          19,
           71,
           64,
           63,
           55,
-          34,
-          49,
+          38,
+          50,
           102,
           49,
           78,
-          78,
-          160
+          80,
+          163
         ],
         "weekdayActivity": [
           85,
           112,
           169,
-          123,
-          201,
+          140,
+          202,
           175,
           177
         ]
@@ -96,7 +96,7 @@
     ]
   ],
   "hourlyActivity": [
-    290,
+    291,
     462,
     270,
     120,
@@ -107,30 +107,30 @@
     9,
     6,
     3,
-    11,
-    14,
+    13,
+    19,
     77,
     66,
     84,
     161,
-    458,
-    127,
+    462,
+    128,
     361,
     87,
     100,
-    140,
-    404
+    142,
+    407
   ],
   "weekdayActivity": [
     173,
     575,
     533,
-    223,
-    881,
+    240,
+    882,
     627,
     302
   ],
-  "averageMessageLength": 10.529269764634883,
+  "averageMessageLength": 10.522208883553422,
   "messageDistribution": [
     [
       "2025-05-15",
@@ -267,6 +267,10 @@
     [
       "2025-06-17",
       60
+    ],
+    [
+      "2025-06-18",
+      18
     ]
   ],
   "mostActiveUser": "1311286520879124541",

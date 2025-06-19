@@ -1,8 +1,8 @@
 {
   "serverId": "822450267651964938",
   "serverName": "身内鯖",
-  "totalMessages": 2678,
-  "totalCharacters": 46133,
+  "totalMessages": 2812,
+  "totalCharacters": 48537,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -583,7 +583,7 @@
       {
         "channelId": "1224323813999640647",
         "channelName": "Gaming",
-        "totalMessages": 484,
+        "totalMessages": 580,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -601,13 +601,13 @@
           59,
           23,
           3,
-          76,
-          29,
-          77,
-          31,
-          55,
-          11,
-          27,
+          113,
+          37,
+          92,
+          41,
+          57,
+          13,
+          49,
           18,
           1
         ],
@@ -615,7 +615,7 @@
           18,
           108,
           22,
-          68,
+          164,
           75,
           95,
           98
@@ -627,7 +627,7 @@
       {
         "channelId": "1224703971474804746",
         "channelName": "迷言一覧",
-        "totalMessages": 5,
+        "totalMessages": 36,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -645,8 +645,8 @@
           0,
           0,
           0,
-          0,
-          0,
+          27,
+          4,
           0,
           5,
           0,
@@ -659,7 +659,7 @@
           0,
           0,
           0,
-          0,
+          31,
           5,
           0,
           0
@@ -671,7 +671,7 @@
       {
         "channelId": "1124845184983781426",
         "channelName": "minecraft",
-        "totalMessages": 6,
+        "totalMessages": 13,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -691,10 +691,10 @@
           0,
           0,
           0,
-          1,
+          2,
           4,
           0,
-          0,
+          6,
           0,
           0,
           0
@@ -703,7 +703,7 @@
           1,
           5,
           0,
-          0,
+          7,
           0,
           0,
           0
@@ -727,13 +727,13 @@
     116,
     93,
     66,
-    173,
-    210,
-    165,
-    325,
-    316,
-    161,
-    239,
+    237,
+    222,
+    181,
+    335,
+    318,
+    169,
+    261,
     230,
     54
   ],
@@ -741,12 +741,12 @@
     243,
     675,
     405,
-    281,
+    415,
     252,
     513,
     309
   ],
-  "averageMessageLength": 17.226661687826738,
+  "averageMessageLength": 17.260668563300143,
   "messageDistribution": [
     [
       "2025-04-16",
@@ -967,6 +967,10 @@
     [
       "2025-06-17",
       20
+    ],
+    [
+      "2025-06-18",
+      134
     ]
   ],
   "mostActiveUser": "864421178353516544",

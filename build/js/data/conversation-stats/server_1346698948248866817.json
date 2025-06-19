@@ -1,8 +1,8 @@
 {
   "serverId": "1346698948248866817",
   "serverName": "ZNE大学声優サークル",
-  "totalMessages": 139,
-  "totalCharacters": 2678,
+  "totalMessages": 143,
+  "totalCharacters": 2910,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1346698948860973061",
         "channelName": "ご意見・ご要望💬",
-        "totalMessages": 36,
+        "totalMessages": 38,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -78,7 +78,7 @@
           8,
           1,
           0,
-          6,
+          8,
           0,
           0,
           2
@@ -87,7 +87,7 @@
           2,
           2,
           7,
-          11,
+          13,
           2,
           8,
           4
@@ -143,7 +143,7 @@
       {
         "channelId": "1346699799822336000",
         "channelName": "自己紹介👫",
-        "totalMessages": 5,
+        "totalMessages": 6,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -166,7 +166,7 @@
           1,
           0,
           0,
-          1,
+          2,
           0,
           0,
           1
@@ -175,7 +175,7 @@
           0,
           1,
           2,
-          0,
+          1,
           0,
           1,
           1
@@ -275,7 +275,7 @@
       {
         "channelId": "1346698948860973062",
         "channelName": "声優になりたい！🎤",
-        "totalMessages": 2,
+        "totalMessages": 3,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -296,7 +296,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -307,7 +307,7 @@
           0,
           0,
           2,
-          0,
+          1,
           0,
           0,
           0
@@ -378,9 +378,9 @@
     0,
     2,
     9,
-    1,
     2,
-    7,
+    2,
+    10,
     1,
     88,
     7
@@ -389,12 +389,12 @@
     2,
     5,
     104,
-    11,
+    15,
     2,
     9,
     6
   ],
-  "averageMessageLength": 19.26618705035971,
+  "averageMessageLength": 20.34965034965035,
   "messageDistribution": [
     [
       "2025-05-05",
@@ -451,6 +451,10 @@
     [
       "2025-06-10",
       2
+    ],
+    [
+      "2025-06-18",
+      4
     ]
   ],
   "mostActiveUser": "720198633739386921",

@@ -1,8 +1,8 @@
 {
   "serverId": "1380197916345372742",
   "serverName": "ひるまひま？",
-  "totalMessages": 3314,
-  "totalCharacters": 42671,
+  "totalMessages": 3330,
+  "totalCharacters": 42840,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1380197917717168300",
         "channelName": "ようこそ",
-        "totalMessages": 102,
+        "totalMessages": 105,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -21,8 +21,8 @@
           1,
           2,
           3,
-          0,
-          3,
+          1,
+          4,
           4,
           1,
           4,
@@ -37,14 +37,14 @@
           2,
           9,
           9,
-          7
+          8
         ],
         "weekdayActivity": [
           16,
           9,
           18,
-          6,
           7,
+          9,
           32,
           14
         ]
@@ -55,7 +55,7 @@
       {
         "channelId": "1380213864163184740",
         "channelName": "☼元気に挨拶☼",
-        "totalMessages": 47,
+        "totalMessages": 50,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -65,8 +65,8 @@
           0,
           3,
           10,
-          3,
-          5,
+          4,
+          7,
           0,
           12,
           2,
@@ -88,7 +88,7 @@
           6,
           5,
           2,
-          8,
+          11,
           14,
           7
         ]
@@ -143,7 +143,7 @@
       {
         "channelId": "1380200157873705132",
         "channelName": "👥自己紹介",
-        "totalMessages": 75,
+        "totalMessages": 76,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -169,13 +169,13 @@
           0,
           7,
           9,
-          4
+          5
         ],
         "weekdayActivity": [
           13,
           8,
           11,
-          2,
+          3,
           3,
           26,
           12
@@ -231,18 +231,18 @@
       {
         "channelId": "1380199830730707066",
         "channelName": "💭雑談",
-        "totalMessages": 516,
+        "totalMessages": 520,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
           14,
           17,
-          0,
-          1,
+          2,
+          2,
           1,
           10,
           12,
-          63,
+          64,
           115,
           0,
           4,
@@ -264,7 +264,7 @@
           37,
           35,
           24,
-          9,
+          13,
           131,
           73
         ]
@@ -319,12 +319,12 @@
       {
         "channelId": "1380199827589300234",
         "channelName": "📣募集",
-        "totalMessages": 51,
+        "totalMessages": 52,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
           6,
-          0,
+          1,
           0,
           0,
           0,
@@ -352,7 +352,7 @@
           12,
           3,
           7,
-          7,
+          8,
           10,
           8
         ]
@@ -671,12 +671,12 @@
       {
         "channelId": "1380213859016642670",
         "channelName": "作業",
-        "totalMessages": 307,
+        "totalMessages": 311,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
           0,
-          0,
+          4,
           0,
           0,
           0,
@@ -704,7 +704,7 @@
           218,
           0,
           0,
-          89,
+          93,
           0,
           0
         ]
@@ -1066,13 +1066,13 @@
   "hourlyActivity": [
     268,
     98,
-    86,
-    12,
-    3,
+    91,
+    14,
+    4,
     13,
     27,
-    18,
-    146,
+    20,
+    150,
     190,
     77,
     93,
@@ -1087,18 +1087,18 @@
     100,
     183,
     60,
-    55
+    57
   ],
   "weekdayActivity": [
     791,
     691,
     288,
-    160,
-    163,
+    162,
+    177,
     830,
     391
   ],
-  "averageMessageLength": 12.875980687990344,
+  "averageMessageLength": 12.864864864864865,
   "messageDistribution": [
     [
       "2025-06-05",
@@ -1151,6 +1151,10 @@
     [
       "2025-06-17",
       80
+    ],
+    [
+      "2025-06-18",
+      16
     ]
   ],
   "mostActiveUser": "1185899007533387840",

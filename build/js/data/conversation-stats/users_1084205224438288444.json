@@ -214,14 +214,14 @@
     {
       "userId": "440298983538032660",
       "username": "wuso",
-      "totalMessages": 1252,
-      "totalCharacters": 12151,
-      "totalWords": 1371,
+      "totalMessages": 1253,
+      "totalCharacters": 12153,
+      "totalWords": 1372,
       "totalEmojis": 24,
       "firstMessageDate": "2025-05-31T04:12:49.713Z",
-      "lastMessageDate": "2025-06-17T07:29:55.058Z",
+      "lastMessageDate": "2025-06-18T15:31:43.229Z",
       "mentionsGiven": 10,
-      "mentionsReceived": 14,
+      "mentionsReceived": 15,
       "wordFrequency": [
         [
           "ああああああああああああああああああああああああああああああああああ",
@@ -4363,7 +4363,7 @@
         ]
       ],
       "hourlyActivity": [
-        5,
+        6,
         3,
         0,
         2,
@@ -4393,7 +4393,7 @@
         65,
         16,
         2,
-        3,
+        4,
         258,
         187
       ],
@@ -4409,13 +4409,13 @@
     {
       "userId": "211040356236656640",
       "username": "yowai",
-      "totalMessages": 95,
-      "totalCharacters": 1285,
-      "totalWords": 104,
+      "totalMessages": 100,
+      "totalCharacters": 1434,
+      "totalWords": 113,
       "totalEmojis": 3,
       "firstMessageDate": "2025-05-31T04:17:28.025Z",
-      "lastMessageDate": "2025-06-17T08:44:02.275Z",
-      "mentionsGiven": 15,
+      "lastMessageDate": "2025-06-18T16:03:44.933Z",
+      "mentionsGiven": 16,
       "mentionsReceived": 4,
       "wordFrequency": [
         [
@@ -4444,7 +4444,7 @@
         ],
         [
           "<@440298983538032660>",
-          6
+          7
         ],
         [
           "見てこれ",
@@ -4668,7 +4668,7 @@
         ],
         [
           ">osutop",
-          3
+          4
         ],
         [
           "gurt:yo",
@@ -4733,6 +4733,30 @@
         [
           "政治家だねぇ",
           1
+        ],
+        [
+          "new",
+          1
+        ],
+        [
+          "top",
+          1
+        ],
+        [
+          "play",
+          1
+        ],
+        [
+          "[bruh~4](https://cdn.discordapp.com/emojis/864764030672961546.webp?size=48&name=bruh%7e4)",
+          1
+        ],
+        [
+          "なんか行けたわ",
+          1
+        ],
+        [
+          "こっちも行けそう",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4742,8 +4766,8 @@
         ]
       ],
       "hourlyActivity": [
-        0,
-        3,
+        2,
+        6,
         0,
         0,
         0,
@@ -4772,7 +4796,7 @@
         11,
         3,
         1,
-        6,
+        11,
         8,
         1
       ],
@@ -6762,6 +6786,63 @@
         0
       ],
       "voiceMinutes": 5.15545,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "697107201722024077",
+    {
+      "userId": "697107201722024077",
+      "username": "mx10002",
+      "totalMessages": 2,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-18T15:30:57.607Z",
+      "lastMessageDate": "2025-06-18T15:31:00.087Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

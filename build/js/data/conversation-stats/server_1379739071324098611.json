@@ -1,8 +1,8 @@
 {
   "serverId": "1379739071324098611",
   "serverName": "話して遊べる集いの場",
-  "totalMessages": 821,
-  "totalCharacters": 15757,
+  "totalMessages": 904,
+  "totalCharacters": 17315,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1381971397676498997",
         "channelName": "自己紹介",
-        "totalMessages": 53,
+        "totalMessages": 56,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -29,13 +29,13 @@
           2,
           0,
           1,
-          4,
+          5,
           2,
           2,
           4,
           2,
-          9,
-          2,
+          10,
+          3,
           3,
           3
         ],
@@ -43,7 +43,7 @@
           8,
           2,
           7,
-          12,
+          15,
           13,
           2,
           9
@@ -55,7 +55,7 @@
       {
         "channelId": "1381973438255595591",
         "channelName": "雑談",
-        "totalMessages": 239,
+        "totalMessages": 282,
         "messageByUsers": {},
         "hourlyActivity": [
           20,
@@ -70,15 +70,15 @@
           0,
           0,
           0,
-          11,
+          12,
           7,
           10,
           8,
-          5,
-          0,
+          38,
+          3,
           19,
           22,
-          36,
+          42,
           15,
           22,
           7
@@ -87,7 +87,7 @@
           33,
           5,
           14,
-          79,
+          122,
           74,
           12,
           22
@@ -143,7 +143,7 @@
       {
         "channelId": "1381973744498769971",
         "channelName": "飯テロ",
-        "totalMessages": 7,
+        "totalMessages": 9,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -167,7 +167,7 @@
           2,
           0,
           0,
-          0,
+          2,
           0,
           1
         ],
@@ -175,7 +175,7 @@
           2,
           0,
           1,
-          3,
+          5,
           1,
           0,
           0
@@ -275,10 +275,10 @@
       {
         "channelId": "1381977501152182272",
         "channelName": "通話募集",
-        "totalMessages": 7,
+        "totalMessages": 8,
         "messageByUsers": {},
         "hourlyActivity": [
-          0,
+          1,
           0,
           0,
           0,
@@ -308,7 +308,7 @@
           1,
           4,
           1,
-          1,
+          2,
           0,
           0
         ]
@@ -363,7 +363,7 @@
       {
         "channelId": "1381971232693551194",
         "channelName": "新規さん挨拶",
-        "totalMessages": 218,
+        "totalMessages": 228,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -381,21 +381,21 @@
           12,
           5,
           6,
-          11,
+          13,
           23,
-          1,
+          2,
           10,
           7,
-          37,
-          8,
-          16,
+          41,
+          10,
+          17,
           3
         ],
         "weekdayActivity": [
           34,
           10,
           31,
-          40,
+          50,
           47,
           11,
           45
@@ -407,7 +407,7 @@
       {
         "channelId": "1381973580665065502",
         "channelName": "ひとりごと",
-        "totalMessages": 4,
+        "totalMessages": 13,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -431,15 +431,15 @@
           0,
           0,
           4,
-          0,
-          0,
+          7,
+          2,
           0
         ],
         "weekdayActivity": [
           0,
           0,
           0,
-          4,
+          13,
           0,
           0,
           0
@@ -495,7 +495,7 @@
       {
         "channelId": "1381983709229613166",
         "channelName": "👤ai-chat",
-        "totalMessages": 18,
+        "totalMessages": 21,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -513,9 +513,9 @@
           0,
           0,
           0,
-          0,
+          1,
           12,
-          0,
+          2,
           0,
           0,
           0,
@@ -527,7 +527,7 @@
           0,
           0,
           0,
-          6,
+          9,
           12,
           0,
           0
@@ -539,11 +539,11 @@
       {
         "channelId": "1381970194641059951",
         "channelName": "📢アナウンス",
-        "totalMessages": 10,
+        "totalMessages": 12,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
-          0,
+          1,
           0,
           0,
           0,
@@ -559,7 +559,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           3,
@@ -571,8 +571,8 @@
           2,
           0,
           1,
-          1,
-          6,
+          2,
+          7,
           0,
           0
         ]
@@ -671,10 +671,10 @@
       {
         "channelId": "1381974877799710820",
         "channelName": "🎮ゲーム会話",
-        "totalMessages": 4,
+        "totalMessages": 6,
         "messageByUsers": {},
         "hourlyActivity": [
-          0,
+          1,
           0,
           0,
           0,
@@ -697,14 +697,14 @@
           0,
           0,
           0,
-          0
+          1
         ],
         "weekdayActivity": [
           0,
           0,
           0,
-          3,
-          0,
+          4,
+          1,
           0,
           1
         ]
@@ -759,10 +759,10 @@
       {
         "channelId": "1381977747769000100",
         "channelName": "雑談",
-        "totalMessages": 2,
+        "totalMessages": 3,
         "messageByUsers": {},
         "hourlyActivity": [
-          1,
+          2,
           0,
           0,
           0,
@@ -792,7 +792,7 @@
           0,
           1,
           1,
-          0,
+          1,
           0,
           0
         ]
@@ -841,11 +841,55 @@
           0
         ]
       }
+    ],
+    [
+      "1382001790672699585",
+      {
+        "channelId": "1382001790672699585",
+        "channelName": "画像動画",
+        "totalMessages": 7,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          7,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    29,
-    40,
+    32,
+    41,
     28,
     31,
     14,
@@ -856,29 +900,29 @@
     0,
     1,
     2,
-    25,
+    26,
     13,
-    17,
-    30,
-    47,
-    6,
+    18,
+    40,
+    80,
+    13,
     43,
     31,
-    100,
-    236,
-    61,
-    20
+    111,
+    248,
+    64,
+    21
   ],
   "weekdayActivity": [
     80,
     19,
     65,
-    162,
-    391,
+    241,
+    395,
     26,
     78
   ],
-  "averageMessageLength": 19.192448233861146,
+  "averageMessageLength": 19.153761061946902,
   "messageDistribution": [
     [
       "2025-06-10",
@@ -911,6 +955,10 @@
     [
       "2025-06-17",
       43
+    ],
+    [
+      "2025-06-18",
+      83
     ]
   ],
   "mostActiveUser": "715840411364491305",

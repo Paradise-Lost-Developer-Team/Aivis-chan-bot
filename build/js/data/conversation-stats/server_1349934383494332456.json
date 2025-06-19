@@ -1,8 +1,8 @@
 {
   "serverId": "1349934383494332456",
   "serverName": "🎀みんなと楽しむゲームの鯖🎀",
-  "totalMessages": 2142,
-  "totalCharacters": 31410,
+  "totalMessages": 2299,
+  "totalCharacters": 33575,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,11 +11,11 @@
       {
         "channelId": "1349934384089661462",
         "channelName": "│🍓│🎀ウェルカム🎀",
-        "totalMessages": 414,
+        "totalMessages": 438,
         "messageByUsers": {},
         "hourlyActivity": [
-          40,
-          17,
+          43,
+          25,
           11,
           2,
           6,
@@ -30,21 +30,21 @@
           12,
           13,
           18,
-          10,
-          12,
-          22,
+          13,
+          16,
           23,
-          59,
+          23,
+          62,
           39,
           23,
-          23
+          25
         ],
         "weekdayActivity": [
           65,
           61,
           63,
-          29,
-          46,
+          42,
+          57,
           56,
           94
         ]
@@ -55,11 +55,11 @@
       {
         "channelId": "1355528973324521656",
         "channelName": "│🎀│🎀自己紹介ノート📓🎀",
-        "totalMessages": 108,
+        "totalMessages": 115,
         "messageByUsers": {},
         "hourlyActivity": [
           10,
-          3,
+          5,
           3,
           1,
           1,
@@ -75,20 +75,20 @@
           3,
           7,
           3,
-          1,
           3,
+          5,
           5,
           18,
           8,
           5,
-          13
+          14
         ],
         "weekdayActivity": [
           26,
           16,
           18,
-          5,
-          11,
+          10,
+          13,
           12,
           20
         ]
@@ -1155,10 +1155,10 @@
       {
         "channelId": "1374942423444095149",
         "channelName": "│📸│マルチの写真📸",
-        "totalMessages": 15,
+        "totalMessages": 17,
         "messageByUsers": {},
         "hourlyActivity": [
-          7,
+          9,
           0,
           0,
           0,
@@ -1188,7 +1188,7 @@
           2,
           2,
           4,
-          2,
+          4,
           2,
           2
         ]
@@ -1199,7 +1199,7 @@
       {
         "channelId": "1360233566348251309",
         "channelName": "│🍚│ご飯テロ",
-        "totalMessages": 18,
+        "totalMessages": 20,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1216,7 +1216,7 @@
           0,
           0,
           0,
-          1,
+          3,
           0,
           2,
           0,
@@ -1231,7 +1231,7 @@
           6,
           2,
           4,
-          0,
+          2,
           4,
           1,
           1
@@ -1243,7 +1243,7 @@
       {
         "channelId": "1349994584708612199",
         "channelName": "│📷│写真📸動画📷",
-        "totalMessages": 29,
+        "totalMessages": 30,
         "messageByUsers": {},
         "hourlyActivity": [
           9,
@@ -1269,13 +1269,13 @@
           3,
           4,
           1,
-          2
+          3
         ],
         "weekdayActivity": [
           4,
           11,
           2,
-          0,
+          1,
           2,
           10,
           0
@@ -1991,7 +1991,7 @@
       {
         "channelId": "1380118445538017342",
         "channelName": "│📱│スマホゲームの部屋",
-        "totalMessages": 24,
+        "totalMessages": 32,
         "messageByUsers": {},
         "hourlyActivity": [
           10,
@@ -2016,14 +2016,14 @@
           0,
           0,
           2,
-          0,
-          1
+          2,
+          7
         ],
         "weekdayActivity": [
           0,
           0,
           4,
-          10,
+          18,
           1,
           7,
           2
@@ -2123,18 +2123,18 @@
       {
         "channelId": "1380445270101328003",
         "channelName": "│🔰│新規雑談",
-        "totalMessages": 243,
+        "totalMessages": 258,
         "messageByUsers": {},
         "hourlyActivity": [
-          3,
+          6,
           0,
           0,
           0,
           1,
           9,
           0,
-          22,
-          16,
+          23,
+          17,
           11,
           1,
           2,
@@ -2144,19 +2144,19 @@
           3,
           1,
           0,
-          6,
+          8,
           14,
-          9,
+          13,
           71,
           53,
-          16
+          20
         ],
         "weekdayActivity": [
           10,
           81,
           32,
-          10,
-          2,
+          20,
+          7,
           63,
           45
         ]
@@ -2343,7 +2343,7 @@
       {
         "channelId": "1380447378519101491",
         "channelName": "│💁🏼│通話募集",
-        "totalMessages": 17,
+        "totalMessages": 20,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -2359,7 +2359,7 @@
           0,
           0,
           0,
-          0,
+          2,
           0,
           1,
           0,
@@ -2368,14 +2368,14 @@
           3,
           3,
           3,
-          0,
+          1,
           0
         ],
         "weekdayActivity": [
           2,
           5,
           3,
-          1,
+          4,
           1,
           1,
           4
@@ -2431,7 +2431,7 @@
       {
         "channelId": "1380445924932714506",
         "channelName": "│🔰│新規雑談通話①",
-        "totalMessages": 160,
+        "totalMessages": 176,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -2455,15 +2455,15 @@
           0,
           0,
           0,
-          11,
-          52,
+          15,
+          64,
           38
         ],
         "weekdayActivity": [
           0,
           59,
           25,
-          0,
+          16,
           0,
           0,
           76
@@ -2475,7 +2475,7 @@
       {
         "channelId": "1369230551940333680",
         "channelName": "│🎀│ディス速│",
-        "totalMessages": 1,
+        "totalMessages": 2,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -2499,7 +2499,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0
         ],
@@ -2507,7 +2507,7 @@
           0,
           1,
           0,
-          0,
+          1,
           0,
           0,
           0
@@ -3047,10 +3047,10 @@
       {
         "channelId": "1381876182622146652",
         "channelName": "🔰新規雑談",
-        "totalMessages": 343,
+        "totalMessages": 355,
         "messageByUsers": {},
         "hourlyActivity": [
-          2,
+          4,
           0,
           0,
           0,
@@ -3071,16 +3071,16 @@
           8,
           18,
           137,
-          46,
+          47,
           68,
-          64
+          73
         ],
         "weekdayActivity": [
           8,
           63,
           50,
-          10,
-          81,
+          20,
+          83,
           1,
           130
         ]
@@ -3267,7 +3267,7 @@
       {
         "channelId": "1361927321086464110",
         "channelName": "│🎧│音楽🎶",
-        "totalMessages": 1,
+        "totalMessages": 2,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -3292,14 +3292,14 @@
           0,
           1,
           0,
-          0,
+          1,
           0
         ],
         "weekdayActivity": [
           0,
           0,
           0,
-          0,
+          1,
           1,
           0,
           0
@@ -3701,44 +3701,264 @@
           0
         ]
       }
+    ],
+    [
+      "1383950576995274832",
+      {
+        "channelId": "1383950576995274832",
+        "channelName": "│📱│スマホゲーム募集用",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1380447795026067496",
+      {
+        "channelId": "1380447795026067496",
+        "channelName": "│🔰│通話聞き専用①",
+        "totalMessages": 45,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          35,
+          7
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          45,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1384852073841033308",
+      {
+        "channelId": "1384852073841033308",
+        "channelName": "スマブラ！",
+        "totalMessages": 12,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          12,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          12,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1384878006648049674",
+      {
+        "channelId": "1384878006648049674",
+        "channelName": "モンハンライズマルチ募集します",
+        "totalMessages": 6,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          1,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          6,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1385045192876359770",
+      {
+        "channelId": "1385045192876359770",
+        "channelName": "Madcatz製品整備情報",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    105,
-    26,
+    115,
+    36,
     18,
     3,
     10,
     24,
     8,
-    51,
-    104,
+    52,
+    106,
     50,
     10,
     17,
     25,
-    28,
-    85,
+    32,
+    89,
     131,
-    66,
-    73,
-    124,
+    69,
+    79,
+    129,
     133,
-    289,
-    244,
-    316,
-    202
+    308,
+    255,
+    368,
+    232
   ],
   "weekdayActivity": [
     197,
     338,
     290,
-    99,
-    227,
+    233,
+    250,
     313,
     678
   ],
-  "averageMessageLength": 14.663865546218487,
+  "averageMessageLength": 14.604175728577642,
   "messageDistribution": [
     [
       "2025-05-29",
@@ -3819,6 +4039,10 @@
     [
       "2025-06-17",
       186
+    ],
+    [
+      "2025-06-18",
+      157
     ]
   ],
   "mostActiveUser": "1348883439381643316",

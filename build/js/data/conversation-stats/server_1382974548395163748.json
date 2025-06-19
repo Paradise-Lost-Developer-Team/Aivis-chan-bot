@@ -1,8 +1,8 @@
 {
   "serverId": "1382974548395163748",
   "serverName": "Blade & Games Server",
-  "totalMessages": 240,
-  "totalCharacters": 6931,
+  "totalMessages": 247,
+  "totalCharacters": 7170,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,7 +143,7 @@
       {
         "channelId": "1382974550408564823",
         "channelName": "🎂誕生日",
-        "totalMessages": 1,
+        "totalMessages": 3,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -160,11 +160,11 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           1,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -175,7 +175,7 @@
           0,
           0,
           0,
-          0,
+          2,
           0,
           1,
           0
@@ -187,7 +187,7 @@
       {
         "channelId": "1382974550630858754",
         "channelName": "雑談",
-        "totalMessages": 43,
+        "totalMessages": 44,
         "messageByUsers": {},
         "hourlyActivity": [
           5,
@@ -208,7 +208,7 @@
           1,
           7,
           2,
-          2,
+          3,
           6,
           1,
           1,
@@ -219,7 +219,7 @@
           0,
           2,
           7,
-          5,
+          6,
           0,
           9,
           20
@@ -319,7 +319,7 @@
       {
         "channelId": "1382974551058812939",
         "channelName": "🎧音楽bot",
-        "totalMessages": 74,
+        "totalMessages": 77,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -338,8 +338,8 @@
           1,
           0,
           0,
-          3,
           5,
+          6,
           6,
           0,
           0,
@@ -351,7 +351,7 @@
           12,
           4,
           43,
-          3,
+          6,
           0,
           5,
           7
@@ -451,10 +451,10 @@
       {
         "channelId": "1382974550630858759",
         "channelName": "通話マルチ募集部屋",
-        "totalMessages": 2,
+        "totalMessages": 3,
         "messageByUsers": {},
         "hourlyActivity": [
-          0,
+          1,
           0,
           0,
           0,
@@ -484,7 +484,7 @@
           0,
           1,
           0,
-          0,
+          1,
           0,
           1
         ]
@@ -580,7 +580,7 @@
     ]
   ],
   "hourlyActivity": [
-    20,
+    21,
     11,
     1,
     3,
@@ -594,11 +594,11 @@
     18,
     4,
     3,
-    8,
+    9,
     1,
-    40,
-    18,
-    17,
+    42,
+    19,
+    19,
     10,
     9,
     5,
@@ -609,12 +609,12 @@
     31,
     6,
     51,
-    9,
-    0,
+    15,
+    1,
     61,
     82
   ],
-  "averageMessageLength": 28.879166666666666,
+  "averageMessageLength": 29.02834008097166,
   "messageDistribution": [
     [
       "2025-06-13",
@@ -635,6 +635,10 @@
     [
       "2025-06-17",
       17
+    ],
+    [
+      "2025-06-18",
+      7
     ]
   ],
   "mostActiveUser": "1012637967979921428",

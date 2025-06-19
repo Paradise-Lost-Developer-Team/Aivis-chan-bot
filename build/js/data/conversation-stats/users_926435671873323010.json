@@ -2022,12 +2022,12 @@
     {
       "userId": "1286988510989123718",
       "username": "3xqlly.",
-      "totalMessages": 1355,
-      "totalCharacters": 12976,
-      "totalWords": 1355,
+      "totalMessages": 1356,
+      "totalCharacters": 13002,
+      "totalWords": 1357,
       "totalEmojis": 57,
       "firstMessageDate": "2025-04-12T22:15:19.349Z",
-      "lastMessageDate": "2025-06-17T18:04:02.513Z",
+      "lastMessageDate": "2025-06-18T13:21:09.239Z",
       "mentionsGiven": 48,
       "mentionsReceived": 32,
       "wordFrequency": [
@@ -6182,6 +6182,14 @@
         [
           "しぬおもろい",
           1
+        ],
+        [
+          "ここの餃子美味しかった",
+          1
+        ],
+        [
+          "1枚目は醤油ラーメンも美味い",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -6353,14 +6361,14 @@
         96,
         186,
         41,
-        19,
+        20,
         163
       ],
       "weekdayActivity": [
         378,
         170,
         194,
-        112,
+        113,
         66,
         163,
         272

@@ -1,8 +1,8 @@
 {
   "serverId": "1348660763858047099",
   "serverName": "🍆サーバ",
-  "totalMessages": 13076,
-  "totalCharacters": 177718,
+  "totalMessages": 13124,
+  "totalCharacters": 178321,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,7 +143,7 @@
       {
         "channelId": "1352197862846365737",
         "channelName": "雑談",
-        "totalMessages": 9456,
+        "totalMessages": 9462,
         "messageByUsers": {},
         "hourlyActivity": [
           1196,
@@ -165,17 +165,17 @@
           137,
           325,
           249,
-          184,
+          187,
           281,
           509,
-          1942,
+          1945,
           1609
         ],
         "weekdayActivity": [
           1599,
           1265,
           1357,
-          1325,
+          1331,
           705,
           498,
           1644
@@ -627,7 +627,7 @@
       {
         "channelId": "1348975754741809172",
         "channelName": "通話チャット",
-        "totalMessages": 192,
+        "totalMessages": 234,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -642,24 +642,24 @@
           12,
           10,
           12,
-          2,
-          2,
+          5,
           3,
-          10,
-          17,
-          7,
+          3,
           24,
-          31,
+          17,
+          13,
+          34,
+          35,
           13,
           19,
-          8,
+          12,
           8
         ],
         "weekdayActivity": [
           51,
           38,
           5,
-          12,
+          54,
           21,
           32,
           33
@@ -680,29 +680,29 @@
     128,
     142,
     347,
-    142,
-    229,
+    145,
+    230,
     300,
-    437,
+    451,
     400,
-    563,
-    407,
-    364,
+    569,
+    417,
+    371,
     474,
     738,
-    2444,
+    2451,
     2099
   ],
   "weekdayActivity": [
     2644,
     1818,
     1816,
-    1830,
+    1878,
     1355,
     916,
     2697
   ],
-  "averageMessageLength": 13.59115937595595,
+  "averageMessageLength": 13.587397135019812,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -971,6 +971,10 @@
     [
       "2025-06-17",
       14
+    ],
+    [
+      "2025-06-18",
+      48
     ]
   ],
   "mostActiveUser": "1220676205490208830",

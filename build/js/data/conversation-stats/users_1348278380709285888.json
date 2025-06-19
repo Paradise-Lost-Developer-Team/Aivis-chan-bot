@@ -2654,7 +2654,7 @@
         14,
         45
       ],
-      "voiceMinutes": 6105.564783333334,
+      "voiceMinutes": 6264.219766666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3808,12 +3808,12 @@
     {
       "userId": "1235942815037657119",
       "username": "yukimin0864",
-      "totalMessages": 95,
-      "totalCharacters": 745,
-      "totalWords": 86,
+      "totalMessages": 100,
+      "totalCharacters": 772,
+      "totalWords": 91,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-13T05:04:07.657Z",
-      "lastMessageDate": "2025-06-14T13:25:08.188Z",
+      "lastMessageDate": "2025-06-18T13:51:56.756Z",
       "mentionsGiven": 0,
       "mentionsReceived": 9,
       "wordFrequency": [
@@ -4148,6 +4148,26 @@
         [
           "やるならば",
           1
+        ],
+        [
+          "すまん",
+          1
+        ],
+        [
+          "まじですまん",
+          1
+        ],
+        [
+          "死んで詫びたいレベル",
+          1
+        ],
+        [
+          "まじごめん",
+          1
+        ],
+        [
+          "ガチ神",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -4174,14 +4194,14 @@
         5,
         26,
         8,
-        8,
+        13,
         11
       ],
       "weekdayActivity": [
         25,
         19,
         12,
-        14,
+        19,
         5,
         4,
         16

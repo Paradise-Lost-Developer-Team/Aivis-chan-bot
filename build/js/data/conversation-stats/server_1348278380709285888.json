@@ -1,8 +1,8 @@
 {
   "serverId": "1348278380709285888",
   "serverName": "やべぇモンハンたのしぃ",
-  "totalMessages": 1233,
-  "totalCharacters": 13534,
+  "totalMessages": 1238,
+  "totalCharacters": 13561,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1348278381309067307",
         "channelName": "一般",
-        "totalMessages": 874,
+        "totalMessages": 879,
         "messageByUsers": {},
         "hourlyActivity": [
           7,
@@ -36,14 +36,14 @@
           56,
           148,
           103,
-          82,
+          87,
           31
         ],
         "weekdayActivity": [
           104,
           131,
           207,
-          39,
+          44,
           52,
           74,
           193
@@ -294,19 +294,19 @@
     57,
     198,
     106,
-    202,
+    207,
     119
   ],
   "weekdayActivity": [
     288,
     166,
     296,
-    65,
+    70,
     81,
     117,
     220
   ],
-  "averageMessageLength": 10.976480129764802,
+  "averageMessageLength": 10.953957996768983,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -535,6 +535,10 @@
     [
       "2025-06-17",
       22
+    ],
+    [
+      "2025-06-18",
+      5
     ]
   ],
   "mostActiveUser": "1356289830048502100",

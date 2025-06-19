@@ -4,13 +4,13 @@
     {
       "userId": "1342392715517886554",
       "username": "yoshimaru0042",
-      "totalMessages": 656,
-      "totalCharacters": 9063,
-      "totalWords": 783,
-      "totalEmojis": 186,
+      "totalMessages": 668,
+      "totalCharacters": 9169,
+      "totalWords": 794,
+      "totalEmojis": 197,
       "firstMessageDate": "2025-05-15T06:21:30.506Z",
-      "lastMessageDate": "2025-06-17T04:06:41.878Z",
-      "mentionsGiven": 41,
+      "lastMessageDate": "2025-06-18T15:24:29.076Z",
+      "mentionsGiven": 42,
       "mentionsReceived": 40,
       "wordFrequency": [
         [
@@ -2063,7 +2063,7 @@
         ],
         [
           "😟😟",
-          7
+          8
         ],
         [
           "皆集合やね",
@@ -2095,7 +2095,7 @@
         ],
         [
           "暇人集合～☺",
-          2
+          4
         ],
         [
           "🥺🥺",
@@ -2300,12 +2300,40 @@
         [
           "暇人集合～！",
           1
+        ],
+        [
+          "😭😭😭",
+          1
+        ],
+        [
+          "萎えた🥺",
+          1
+        ],
+        [
+          "雷元素のスカークがでた🥺",
+          1
+        ],
+        [
+          "50％外してもうたわ",
+          1
+        ],
+        [
+          "こっから天井まで原石貯めて確定で取りに行きます🫡",
+          1
+        ],
+        [
+          "今日からまたガチャ禁生活スタートします🫡",
+          1
+        ],
+        [
+          "通話しましょ～☺",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "☺",
-          70
+          73
         ],
         [
           "😳",
@@ -2313,7 +2341,7 @@
         ],
         [
           "😡",
-          20
+          21
         ],
         [
           "😂",
@@ -2333,7 +2361,7 @@
         ],
         [
           "🥺",
-          8
+          10
         ],
         [
           "😏",
@@ -2353,7 +2381,7 @@
         ],
         [
           "😟",
-          20
+          22
         ],
         [
           "🙂",
@@ -2386,10 +2414,14 @@
         [
           "😥",
           1
+        ],
+        [
+          "😭",
+          3
         ]
       ],
       "hourlyActivity": [
-        43,
+        44,
         100,
         70,
         2,
@@ -2400,30 +2432,30 @@
         3,
         1,
         0,
-        6,
-        7,
+        8,
+        11,
         29,
         18,
         26,
         32,
-        109,
-        17,
+        111,
+        18,
         41,
         17,
         28,
-        34,
+        36,
         71
       ],
       "weekdayActivity": [
         36,
         86,
         56,
-        32,
-        228,
+        43,
+        229,
         164,
         54
       ],
-      "voiceMinutes": 5563.0939333333345,
+      "voiceMinutes": 5705.446316666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4934,7 +4966,7 @@
         59,
         18
       ],
-      "voiceMinutes": 1879.7341999999999,
+      "voiceMinutes": 1989.6703333333332,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4946,13 +4978,13 @@
     {
       "userId": "1277974427337756706",
       "username": "tomodayo0424",
-      "totalMessages": 251,
-      "totalCharacters": 2517,
-      "totalWords": 245,
-      "totalEmojis": 66,
+      "totalMessages": 254,
+      "totalCharacters": 2543,
+      "totalWords": 247,
+      "totalEmojis": 68,
       "firstMessageDate": "2025-05-15T06:22:45.362Z",
-      "lastMessageDate": "2025-06-17T09:51:03.162Z",
-      "mentionsGiven": 20,
+      "lastMessageDate": "2025-06-18T14:11:52.377Z",
+      "mentionsGiven": 21,
       "mentionsReceived": 27,
       "wordFrequency": [
         [
@@ -5790,6 +5822,14 @@
         [
           "火力高笑",
           1
+        ],
+        [
+          "どんまい☆",
+          1
+        ],
+        [
+          "僕は今友達と通話してるから行けなさそう😿",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -5819,7 +5859,7 @@
         ],
         [
           "😿",
-          3
+          4
         ],
         [
           "😃",
@@ -5848,6 +5888,10 @@
         [
           "🙄",
           1
+        ],
+        [
+          "☆",
+          1
         ]
       ],
       "hourlyActivity": [
@@ -5863,29 +5907,29 @@
         1,
         0,
         0,
-        0,
+        1,
         12,
         14,
         9,
         10,
-        11,
+        12,
         10,
         10,
         5,
         3,
         14,
-        42
+        43
       ],
       "weekdayActivity": [
         50,
         30,
         29,
-        26,
+        29,
         32,
         55,
         29
       ],
-      "voiceMinutes": 5165.242499999999,
+      "voiceMinutes": 5234.44695,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -8620,12 +8664,12 @@
     {
       "userId": "1036036931508772904",
       "username": "toto_0502",
-      "totalMessages": 17,
-      "totalCharacters": 141,
-      "totalWords": 17,
-      "totalEmojis": 2,
+      "totalMessages": 18,
+      "totalCharacters": 154,
+      "totalWords": 18,
+      "totalEmojis": 3,
       "firstMessageDate": "2025-05-15T14:13:15.695Z",
-      "lastMessageDate": "2025-06-10T07:33:21.436Z",
+      "lastMessageDate": "2025-06-18T08:10:10.196Z",
       "mentionsGiven": 4,
       "mentionsReceived": 4,
       "wordFrequency": [
@@ -8684,12 +8728,16 @@
         [
           "暇なんで大丈夫ですよ😊",
           1
+        ],
+        [
+          "自分は遠慮しときますね😊",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "😊",
-          2
+          3
         ]
       ],
       "hourlyActivity": [
@@ -8710,7 +8758,7 @@
         4,
         0,
         2,
-        1,
+        2,
         1,
         0,
         2,
@@ -8722,7 +8770,7 @@
         4,
         2,
         5,
-        0,
+        1,
         2,
         4,
         0
@@ -11615,7 +11663,7 @@
         7,
         18
       ],
-      "voiceMinutes": 1133.0682499999998,
+      "voiceMinutes": 1197.8146166666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -13781,6 +13829,73 @@
         0
       ],
       "voiceMinutes": 313.3675166666667,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1359848573629501490",
+    {
+      "userId": "1359848573629501490",
+      "username": "22tuyoi",
+      "totalMessages": 2,
+      "totalCharacters": 21,
+      "totalWords": 1,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-06-18T14:11:44.752Z",
+      "lastMessageDate": "2025-06-18T14:12:04.011Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 2,
+      "wordFrequency": [
+        [
+          "よろしくお願いいたします(*´︶`*)♥️",
+          1
+        ]
+      ],
+      "emojiFrequency": [
+        [
+          "♥",
+          1
+        ]
+      ],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 65.40685,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

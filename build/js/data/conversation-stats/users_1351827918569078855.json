@@ -4,13 +4,13 @@
     {
       "userId": "1114599348588785855",
       "username": "saiyazumii318",
-      "totalMessages": 668,
-      "totalCharacters": 11569,
-      "totalWords": 899,
+      "totalMessages": 669,
+      "totalCharacters": 11590,
+      "totalWords": 900,
       "totalEmojis": 58,
       "firstMessageDate": "2025-05-05T03:44:14.850Z",
-      "lastMessageDate": "2025-06-09T14:41:34.213Z",
-      "mentionsGiven": 127,
+      "lastMessageDate": "2025-06-18T13:39:54.361Z",
+      "mentionsGiven": 128,
       "mentionsReceived": 123,
       "wordFrequency": [
         [
@@ -2640,6 +2640,10 @@
         [
           "まってるぞ",
           1
+        ],
+        [
+          "<@984797985516970044>",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2739,19 +2743,19 @@
         46,
         23,
         14,
-        19,
+        20,
         24
       ],
       "weekdayActivity": [
         332,
         52,
         51,
-        146,
+        147,
         27,
         3,
         57
       ],
-      "voiceMinutes": 4602.9699500000015,
+      "voiceMinutes": 4726.286866666668,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3649,7 +3653,7 @@
         7,
         2
       ],
-      "voiceMinutes": 4940.997250000001,
+      "voiceMinutes": 5091.264483333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -9904,7 +9908,7 @@
         21,
         33
       ],
-      "voiceMinutes": 7620.373833333332,
+      "voiceMinutes": 7721.547816666665,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -12859,7 +12863,7 @@
         2,
         6
       ],
-      "voiceMinutes": 799.25175,
+      "voiceMinutes": 856.37315,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -23147,14 +23151,14 @@
     {
       "userId": "984797985516970044",
       "username": "fukaneko",
-      "totalMessages": 17,
-      "totalCharacters": 152,
-      "totalWords": 17,
+      "totalMessages": 18,
+      "totalCharacters": 154,
+      "totalWords": 18,
       "totalEmojis": 1,
       "firstMessageDate": "2025-05-18T13:01:35.380Z",
-      "lastMessageDate": "2025-06-01T11:09:03.686Z",
+      "lastMessageDate": "2025-06-18T15:19:39.977Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 0,
+      "mentionsReceived": 1,
       "wordFrequency": [
         [
           "知らない人ばっかだせ（",
@@ -23224,7 +23228,7 @@
         ]
       ],
       "hourlyActivity": [
-        0,
+        1,
         0,
         0,
         0,
@@ -23254,11 +23258,11 @@
         1,
         0,
         0,
-        0,
+        1,
         0,
         0
       ],
-      "voiceMinutes": 71.68433333333334,
+      "voiceMinutes": 169.34185000000002,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -23450,12 +23454,12 @@
     {
       "userId": "1337794172190720071",
       "username": "nikorasu0902_25007",
-      "totalMessages": 17,
-      "totalCharacters": 13,
-      "totalWords": 4,
+      "totalMessages": 18,
+      "totalCharacters": 15,
+      "totalWords": 5,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-24T14:29:44.883Z",
-      "lastMessageDate": "2025-06-16T13:51:40.813Z",
+      "lastMessageDate": "2025-06-18T15:06:07.477Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -23470,7 +23474,7 @@
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
-        0,
+        1,
         0,
         0,
         0,
@@ -23500,11 +23504,11 @@
         15,
         0,
         0,
-        0,
+        1,
         0,
         1
       ],
-      "voiceMinutes": 1.7571500000000002,
+      "voiceMinutes": 2.9292333333333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -23598,15 +23602,20 @@
     {
       "userId": "1104236140032172033",
       "username": "neos_memz",
-      "totalMessages": 1,
-      "totalCharacters": 0,
-      "totalWords": 0,
+      "totalMessages": 2,
+      "totalCharacters": 13,
+      "totalWords": 1,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-01T08:42:52.453Z",
-      "lastMessageDate": "2025-06-01T08:42:52.216Z",
+      "lastMessageDate": "2025-06-18T14:44:35.449Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
-      "wordFrequency": [],
+      "wordFrequency": [
+        [
+          "イカゲーム1のあのじじいか",
+          1
+        ]
+      ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -23632,18 +23641,18 @@
         0,
         0,
         0,
-        0
+        1
       ],
       "weekdayActivity": [
         1,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0
       ],
-      "voiceMinutes": 162.82225,
+      "voiceMinutes": 213.79045,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
