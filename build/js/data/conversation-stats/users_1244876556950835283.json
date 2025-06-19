@@ -870,7 +870,7 @@
         31,
         9
       ],
-      "voiceMinutes": 7348.949333333334,
+      "voiceMinutes": 7349.193266666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1116,12 +1116,12 @@
     {
       "userId": "1099951692205785088",
       "username": "1325weiya",
-      "totalMessages": 26,
-      "totalCharacters": 910,
-      "totalWords": 28,
+      "totalMessages": 28,
+      "totalCharacters": 979,
+      "totalWords": 30,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-27T04:08:42.842Z",
-      "lastMessageDate": "2025-06-16T14:23:27.954Z",
+      "lastMessageDate": "2025-06-18T10:30:17.862Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -1232,6 +1232,14 @@
         [
           "https://x.com/zzzproxy/status/1932730859108643047",
           1
+        ],
+        [
+          "https://x.com/cmzgg/status/1935276307308290102",
+          1
+        ],
+        [
+          "キャラを演じる配役一同があまりにも濃すぎて爆笑",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -1255,7 +1263,7 @@
         0,
         1,
         2,
-        3,
+        5,
         4,
         6,
         1,
@@ -1265,7 +1273,7 @@
         5,
         2,
         5,
-        3,
+        5,
         3,
         8,
         0
@@ -1947,13 +1955,13 @@
     {
       "userId": "451040830266933258",
       "username": "avid_diva",
-      "totalMessages": 89,
-      "totalCharacters": 1513,
-      "totalWords": 69,
-      "totalEmojis": 3,
+      "totalMessages": 91,
+      "totalCharacters": 1564,
+      "totalWords": 70,
+      "totalEmojis": 4,
       "firstMessageDate": "2025-04-28T03:59:57.469Z",
-      "lastMessageDate": "2025-06-17T03:10:09.337Z",
-      "mentionsGiven": 31,
+      "lastMessageDate": "2025-06-18T23:46:15.258Z",
+      "mentionsGiven": 32,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
@@ -2207,6 +2215,10 @@
         [
           "めろすぐ～",
           1
+        ],
+        [
+          "サーバーブーストありがとうございます！<:5_agent_s:1304299695342096414>",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2217,10 +2229,14 @@
         [
           "♡",
           1
+        ],
+        [
+          "<:5_agent_s:1304299695342096414>",
+          1
         ]
       ],
       "hourlyActivity": [
-        2,
+        3,
         0,
         0,
         3,
@@ -2228,7 +2244,7 @@
         1,
         2,
         0,
-        0,
+        1,
         2,
         1,
         1,
@@ -2250,7 +2266,7 @@
         1,
         50,
         9,
-        5,
+        7,
         15,
         5
       ],
@@ -2271,14 +2287,14 @@
     {
       "userId": "1014950118509776986",
       "username": "uta_love",
-      "totalMessages": 66,
-      "totalCharacters": 6159,
-      "totalWords": 198,
-      "totalEmojis": 5,
+      "totalMessages": 68,
+      "totalCharacters": 6254,
+      "totalWords": 202,
+      "totalEmojis": 7,
       "firstMessageDate": "2025-04-28T15:15:50.831Z",
-      "lastMessageDate": "2025-06-08T04:22:47.844Z",
+      "lastMessageDate": "2025-06-18T07:18:38.652Z",
       "mentionsGiven": 5,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "<@338382662735757312>",
@@ -2767,6 +2783,22 @@
         [
           "このフォーラムを閉じます。",
           1
+        ],
+        [
+          "良い歌ですな〜♪♪",
+          1
+        ],
+        [
+          "https://youtu.be/pdmrs2wy2eg?si=_isbkk1dgartqc_z",
+          1
+        ],
+        [
+          "ゼンゼロ1周年を記念して創られたpvとの事。",
+          1
+        ],
+        [
+          "聴いてみたけど感動しました！",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2781,6 +2813,10 @@
         [
           "♂",
           1
+        ],
+        [
+          "♪",
+          2
         ]
       ],
       "hourlyActivity": [
@@ -2800,7 +2836,7 @@
         13,
         6,
         0,
-        7,
+        9,
         1,
         0,
         0,
@@ -2813,7 +2849,7 @@
         15,
         16,
         3,
-        0,
+        2,
         0,
         17,
         15
@@ -3118,12 +3154,12 @@
     {
       "userId": "1092738161718857728",
       "username": "jp_nes",
-      "totalMessages": 11,
+      "totalMessages": 12,
       "totalCharacters": 210,
       "totalWords": 11,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-29T04:13:42.553Z",
-      "lastMessageDate": "2025-05-29T01:29:17.006Z",
+      "lastMessageDate": "2025-06-18T13:37:29.191Z",
       "mentionsGiven": 2,
       "mentionsReceived": 3,
       "wordFrequency": [
@@ -3196,14 +3232,14 @@
         0,
         1,
         0,
-        0,
+        1,
         0
       ],
       "weekdayActivity": [
         0,
         2,
         1,
-        0,
+        1,
         7,
         0,
         1
@@ -3501,18 +3537,18 @@
     {
       "userId": "698876997207851029",
       "username": "akimicho",
-      "totalMessages": 2,
-      "totalCharacters": 80,
-      "totalWords": 5,
+      "totalMessages": 3,
+      "totalCharacters": 114,
+      "totalWords": 7,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-01T12:00:37.712Z",
-      "lastMessageDate": "2025-05-17T12:20:29.297Z",
+      "lastMessageDate": "2025-06-18T12:42:58.095Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
           "<@&1244876556950835284>",
-          2
+          3
         ],
         [
           "日課ゼンゼロ",
@@ -3524,6 +3560,10 @@
         ],
         [
           "ディスク厳選したりする",
+          1
+        ],
+        [
+          "いろいろやります！！",
           1
         ]
       ],
@@ -3550,7 +3590,7 @@
         0,
         0,
         0,
-        2,
+        3,
         0,
         0
       ],
@@ -3558,12 +3598,12 @@
         0,
         0,
         0,
-        0,
+        1,
         1,
         0,
         1
       ],
-      "voiceMinutes": 919.6804,
+      "voiceMinutes": 1009.1644833333332,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -6742,13 +6782,13 @@
     {
       "userId": "397711505728077827",
       "username": "minapin",
-      "totalMessages": 26,
-      "totalCharacters": 839,
-      "totalWords": 71,
+      "totalMessages": 27,
+      "totalCharacters": 860,
+      "totalWords": 72,
       "totalEmojis": 7,
       "firstMessageDate": "2025-05-11T01:11:24.347Z",
-      "lastMessageDate": "2025-06-08T13:59:48.438Z",
-      "mentionsGiven": 6,
+      "lastMessageDate": "2025-06-18T10:17:09.422Z",
+      "mentionsGiven": 7,
       "mentionsReceived": 6,
       "wordFrequency": [
         [
@@ -6950,6 +6990,10 @@
         [
           "誰と合うんだろう！ジェーンかな？",
           1
+        ],
+        [
+          "原神でも記念pv作ってた人だ！歌詞いいー！",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -7002,7 +7046,7 @@
         1,
         1,
         2,
-        1,
+        2,
         3,
         2,
         2,
@@ -7012,12 +7056,12 @@
         4,
         1,
         2,
-        5,
+        6,
         3,
         6,
         5
       ],
-      "voiceMinutes": 358.6358,
+      "voiceMinutes": 431.9480666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -7538,7 +7582,7 @@
         9,
         0
       ],
-      "voiceMinutes": 20.290616666666665,
+      "voiceMinutes": 97.96876666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -8885,7 +8929,7 @@
         2,
         0
       ],
-      "voiceMinutes": 490.4158166666667,
+      "voiceMinutes": 527.0961,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -8942,7 +8986,7 @@
         0,
         0
       ],
-      "voiceMinutes": 0,
+      "voiceMinutes": 52.83513333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -9004,7 +9048,7 @@
         0,
         0
       ],
-      "voiceMinutes": 192.17471666666668,
+      "voiceMinutes": 263.70758333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -11657,6 +11701,68 @@
         3,
         0,
         0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1153141951781146794",
+    {
+      "userId": "1153141951781146794",
+      "username": "s.t_0922",
+      "totalMessages": 3,
+      "totalCharacters": 70,
+      "totalWords": 1,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-18T23:44:21.736Z",
+      "lastMessageDate": "2025-06-19T00:02:25.762Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 2,
+      "wordFrequency": [
+        [
+          "質問です。儀玄を引いたのですが…餅武器は必須でしょうか？餅武器も引こうと思って引いたのですが…すり抜けてしまってどうしようかなと迷っています",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        3,
         0,
         0
       ],

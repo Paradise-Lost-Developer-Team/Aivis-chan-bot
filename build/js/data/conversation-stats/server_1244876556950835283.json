@@ -1,8 +1,8 @@
 {
   "serverId": "1244876556950835283",
   "serverName": "Paradise Lost Zenless Zone Zero鯖",
-  "totalMessages": 1148,
-  "totalCharacters": 34232,
+  "totalMessages": 1160,
+  "totalCharacters": 34572,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -99,7 +99,7 @@
       {
         "channelId": "1244891874997571657",
         "channelName": "zzz募集",
-        "totalMessages": 47,
+        "totalMessages": 48,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -123,7 +123,7 @@
           3,
           8,
           9,
-          9,
+          10,
           2,
           0
         ],
@@ -131,7 +131,7 @@
           10,
           12,
           8,
-          2,
+          3,
           5,
           5,
           5
@@ -143,7 +143,7 @@
       {
         "channelId": "1244927002130124841",
         "channelName": "ZZZトーク",
-        "totalMessages": 112,
+        "totalMessages": 117,
         "messageByUsers": {},
         "hourlyActivity": [
           4,
@@ -162,10 +162,10 @@
           5,
           9,
           9,
-          3,
+          5,
           10,
           3,
-          5,
+          8,
           3,
           15,
           5,
@@ -175,7 +175,7 @@
           19,
           11,
           8,
-          17,
+          22,
           9,
           28,
           20
@@ -319,10 +319,10 @@
       {
         "channelId": "1244876557655343168",
         "channelName": "🚪ようこそ",
-        "totalMessages": 176,
+        "totalMessages": 181,
         "messageByUsers": {},
         "hourlyActivity": [
-          12,
+          13,
           3,
           2,
           10,
@@ -330,7 +330,7 @@
           1,
           5,
           4,
-          10,
+          13,
           7,
           9,
           7,
@@ -344,15 +344,15 @@
           12,
           11,
           10,
-          14,
+          15,
           10
         ],
         "weekdayActivity": [
           21,
           14,
           43,
-          34,
-          16,
+          35,
+          20,
           38,
           10
         ]
@@ -2029,10 +2029,54 @@
           3
         ]
       }
+    ],
+    [
+      "1385047033693470731",
+      {
+        "channelId": "1385047033693470731",
+        "channelName": "儀玄について",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    114,
+    115,
     31,
     15,
     16,
@@ -2040,33 +2084,33 @@
     3,
     9,
     13,
-    34,
-    19,
+    37,
+    20,
     37,
     40,
     53,
     55,
     54,
     41,
-    41,
+    43,
     42,
     72,
-    132,
+    135,
     101,
-    84,
-    81,
+    85,
+    82,
     59
   ],
   "weekdayActivity": [
     169,
     174,
     198,
-    138,
-    151,
+    145,
+    156,
     217,
     101
   ],
-  "averageMessageLength": 29.818815331010452,
+  "averageMessageLength": 29.80344827586207,
   "messageDistribution": [
     [
       "2025-04-26",
@@ -2279,6 +2323,14 @@
     [
       "2025-06-17",
       4
+    ],
+    [
+      "2025-06-18",
+      11
+    ],
+    [
+      "2025-06-19",
+      1
     ]
   ],
   "mostActiveUser": "459694418383994880",
