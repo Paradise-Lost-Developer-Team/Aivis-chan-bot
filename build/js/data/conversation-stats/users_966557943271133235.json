@@ -6646,12 +6646,12 @@
     {
       "userId": "1181572462618607719",
       "username": "cha_l_tea",
-      "totalMessages": 182,
-      "totalCharacters": 2970,
-      "totalWords": 195,
+      "totalMessages": 183,
+      "totalCharacters": 2984,
+      "totalWords": 196,
       "totalEmojis": 11,
       "firstMessageDate": "2025-06-16T07:37:38.461Z",
-      "lastMessageDate": "2025-06-19T00:12:56.382Z",
+      "lastMessageDate": "2025-06-19T00:50:24.204Z",
       "mentionsGiven": 6,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -7398,6 +7398,10 @@
         [
           "朝だぞおきろー！！<:d_raidenshogun4:1225617290045816933>",
           1
+        ],
+        [
+          "野良秘境に妖刀スカークいたな",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -7448,7 +7452,7 @@
         0,
         0,
         0,
-        10,
+        11,
         0,
         0,
         1,
@@ -7469,7 +7473,7 @@
         39,
         8,
         117,
-        18,
+        19,
         0,
         0
       ],

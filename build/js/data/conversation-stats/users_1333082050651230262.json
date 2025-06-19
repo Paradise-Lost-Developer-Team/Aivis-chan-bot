@@ -2142,14 +2142,14 @@
     {
       "userId": "1320237643442946108",
       "username": "mocho12345",
-      "totalMessages": 20,
-      "totalCharacters": 107,
-      "totalWords": 20,
+      "totalMessages": 24,
+      "totalCharacters": 133,
+      "totalWords": 24,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-16T07:18:17.877Z",
-      "lastMessageDate": "2025-06-18T09:29:47.203Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 4,
+      "lastMessageDate": "2025-06-19T00:56:11.051Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 5,
       "wordFrequency": [
         [
           "清楚っぽい",
@@ -2206,6 +2206,18 @@
         [
           "こんな人だっけ?",
           1
+        ],
+        [
+          "焼いてみたい",
+          1
+        ],
+        [
+          "いいじゃんちょっとくらい",
+          1
+        ],
+        [
+          "サイコじゃん",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -2219,7 +2231,7 @@
         0,
         0,
         5,
-        0,
+        4,
         0,
         2,
         0,
@@ -2240,7 +2252,7 @@
         3,
         9,
         8,
-        0,
+        4,
         0,
         0
       ],
@@ -9060,14 +9072,14 @@
     {
       "userId": "1119157300775628922",
       "username": "kuronusshi",
-      "totalMessages": 239,
-      "totalCharacters": 2003,
-      "totalWords": 234,
+      "totalMessages": 252,
+      "totalCharacters": 2091,
+      "totalWords": 247,
       "totalEmojis": 2,
       "firstMessageDate": "2025-06-16T09:06:33.756Z",
-      "lastMessageDate": "2025-06-18T23:49:45.820Z",
-      "mentionsGiven": 26,
-      "mentionsReceived": 21,
+      "lastMessageDate": "2025-06-19T00:55:15.839Z",
+      "mentionsGiven": 27,
+      "mentionsReceived": 23,
       "wordFrequency": [
         [
           "https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q12189433437",
@@ -9868,6 +9880,50 @@
         [
           "アウト☆",
           1
+        ],
+        [
+          "これが普通か",
+          1
+        ],
+        [
+          "扇風機近すぎて",
+          1
+        ],
+        [
+          "目が痛い",
+          1
+        ],
+        [
+          "扇風機とガチ恋距離",
+          1
+        ],
+        [
+          "ドライアイなるわ！！",
+          1
+        ],
+        [
+          "授業中だけどipad触れるのよ",
+          1
+        ],
+        [
+          "アイコンはロボだぜ",
+          1
+        ],
+        [
+          "やめなさい",
+          1
+        ],
+        [
+          "デリートシーケンス",
+          1
+        ],
+        [
+          "だめだよ！？",
+          1
+        ],
+        [
+          "等価交換",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -9890,7 +9946,7 @@
         4,
         9,
         4,
-        0,
+        13,
         0,
         0,
         5,
@@ -9911,7 +9967,7 @@
         28,
         110,
         72,
-        29,
+        42,
         0,
         0
       ],
@@ -16162,14 +16218,14 @@
     {
       "userId": "1141948586788126741",
       "username": "makelittle_35268",
-      "totalMessages": 215,
-      "totalCharacters": 1942,
-      "totalWords": 225,
-      "totalEmojis": 3,
+      "totalMessages": 225,
+      "totalCharacters": 2030,
+      "totalWords": 235,
+      "totalEmojis": 4,
       "firstMessageDate": "2025-06-17T06:52:58.464Z",
-      "lastMessageDate": "2025-06-18T22:54:48.897Z",
-      "mentionsGiven": 98,
-      "mentionsReceived": 27,
+      "lastMessageDate": "2025-06-19T00:55:52.672Z",
+      "mentionsGiven": 101,
+      "mentionsReceived": 29,
       "wordFrequency": [
         [
           "ピーポー",
@@ -16457,7 +16513,7 @@
         ],
         [
           "いいね👍️",
-          1
+          2
         ],
         [
           "強く生きろよ",
@@ -16978,12 +17034,48 @@
         [
           "近いところはあるね",
           1
+        ],
+        [
+          "平日の朝だもんな",
+          1
+        ],
+        [
+          "とりさんはなんなの？",
+          1
+        ],
+        [
+          "平日の朝に行動できる人限られると思うんだけど",
+          1
+        ],
+        [
+          "とりさんなのに？",
+          1
+        ],
+        [
+          "同じです",
+          1
+        ],
+        [
+          "こっちはスマホですけど",
+          1
+        ],
+        [
+          "なるほどね",
+          1
+        ],
+        [
+          "サイコじゃん",
+          1
+        ],
+        [
+          "いいねそうしよう",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "👍",
-          3
+          4
         ]
       ],
       "hourlyActivity": [
@@ -16996,7 +17088,7 @@
         0,
         7,
         0,
-        0,
+        10,
         0,
         0,
         0,
@@ -17017,7 +17109,7 @@
         0,
         18,
         107,
-        90,
+        100,
         0,
         0
       ],

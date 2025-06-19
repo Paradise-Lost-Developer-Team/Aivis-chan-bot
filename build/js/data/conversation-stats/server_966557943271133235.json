@@ -1,8 +1,8 @@
 {
   "serverId": "966557943271133235",
   "serverName": "Paradise Lost 原神鯖",
-  "totalMessages": 2736,
-  "totalCharacters": 35535,
+  "totalMessages": 2737,
+  "totalCharacters": 35549,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1188834319586836571",
         "channelName": "原神トーク",
-        "totalMessages": 98,
+        "totalMessages": 99,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
@@ -67,7 +67,7 @@
           0,
           0,
           1,
-          0,
+          1,
           0,
           4,
           6,
@@ -88,7 +88,7 @@
           16,
           26,
           56,
-          0,
+          1,
           0,
           0
         ]
@@ -1953,7 +1953,7 @@
     0,
     4,
     82,
-    85,
+    86,
     3,
     22,
     67,
@@ -1974,11 +1974,11 @@
     835,
     802,
     930,
-    169,
+    170,
     0,
     0
   ],
-  "averageMessageLength": 12.987938596491228,
+  "averageMessageLength": 12.988308366824992,
   "messageDistribution": [
     [
       "2025-06-16",
@@ -1994,7 +1994,7 @@
     ],
     [
       "2025-06-19",
-      51
+      52
     ]
   ],
   "mostActiveUser": "778827415018537020",
