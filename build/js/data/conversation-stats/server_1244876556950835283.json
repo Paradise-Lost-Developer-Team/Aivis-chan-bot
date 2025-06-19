@@ -1,8 +1,8 @@
 {
   "serverId": "1244876556950835283",
   "serverName": "Paradise Lost Zenless Zone Zero鯖",
-  "totalMessages": 1485,
-  "totalCharacters": 42637,
+  "totalMessages": 1512,
+  "totalCharacters": 43373,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1244927002130124841",
         "channelName": "ZZZトーク",
-        "totalMessages": 143,
+        "totalMessages": 150,
         "messageByUsers": {},
         "hourlyActivity": [
           4,
@@ -26,14 +26,14 @@
           8,
           8,
           11,
-          8,
+          10,
           16,
           11,
           9,
-          6,
+          8,
           10,
           3,
-          5,
+          8,
           3,
           15,
           5,
@@ -42,8 +42,8 @@
         "weekdayActivity": [
           23,
           15,
-          8,
-          26,
+          10,
+          31,
           11,
           28,
           28
@@ -187,10 +187,10 @@
       {
         "channelId": "1244876557655343168",
         "channelName": "🚪ようこそ",
-        "totalMessages": 225,
+        "totalMessages": 238,
         "messageByUsers": {},
         "hourlyActivity": [
-          10,
+          13,
           4,
           4,
           10,
@@ -198,29 +198,29 @@
           1,
           5,
           5,
-          12,
+          15,
           7,
           9,
           9,
           9,
           8,
           8,
-          5,
+          6,
           9,
           7,
           9,
           13,
-          11,
-          9,
-          16,
+          15,
+          10,
+          17,
           14
         ],
         "weekdayActivity": [
           24,
-          13,
+          17,
+          48,
           44,
-          43,
-          20,
+          24,
           41,
           11
         ]
@@ -231,7 +231,7 @@
       {
         "channelId": "1244891874997571657",
         "channelName": "zzz募集",
-        "totalMessages": 58,
+        "totalMessages": 60,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -254,16 +254,16 @@
           3,
           4,
           9,
+          12,
           11,
-          10,
           2,
           0
         ],
         "weekdayActivity": [
           11,
-          11,
+          12,
           10,
-          4,
+          5,
           6,
           6,
           6
@@ -275,7 +275,7 @@
       {
         "channelId": "1244876558330499104",
         "channelName": "VC1 雑談",
-        "totalMessages": 462,
+        "totalMessages": 464,
         "messageByUsers": {},
         "hourlyActivity": [
           90,
@@ -301,11 +301,11 @@
           69,
           40,
           26,
-          35
+          37
         ],
         "weekdayActivity": [
           73,
-          83,
+          85,
           96,
           49,
           93,
@@ -319,10 +319,10 @@
       {
         "channelId": "1244876557822984214",
         "channelName": "📄自己紹介",
-        "totalMessages": 24,
+        "totalMessages": 26,
         "messageByUsers": {},
         "hourlyActivity": [
-          3,
+          4,
           1,
           0,
           1,
@@ -342,15 +342,15 @@
           0,
           0,
           2,
-          1,
+          2,
           1,
           3,
           0
         ],
         "weekdayActivity": [
           2,
-          2,
-          6,
+          3,
+          7,
           4,
           0,
           6,
@@ -2381,10 +2381,54 @@
           3
         ]
       }
+    ],
+    [
+      "1385047033693470731",
+      {
+        "channelId": "1385047033693470731",
+        "channelName": "儀玄について",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    120,
+    124,
     38,
     26,
     17,
@@ -2392,33 +2436,33 @@
     4,
     9,
     21,
-    40,
-    31,
+    43,
+    32,
     40,
     46,
-    69,
+    71,
     77,
     72,
-    49,
-    51,
+    50,
+    53,
     48,
     79,
-    143,
-    125,
-    166,
-    133,
-    79
+    146,
+    131,
+    168,
+    134,
+    81
   ],
   "weekdayActivity": [
     194,
-    183,
-    226,
-    315,
-    195,
+    191,
+    233,
+    322,
+    200,
     239,
     133
   ],
-  "averageMessageLength": 28.71178451178451,
+  "averageMessageLength": 28.68584656084656,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -2675,6 +2719,22 @@
     [
       "2025-06-15",
       3
+    ],
+    [
+      "2025-06-16",
+      11
+    ],
+    [
+      "2025-06-17",
+      4
+    ],
+    [
+      "2025-06-18",
+      11
+    ],
+    [
+      "2025-06-19",
+      1
     ]
   ],
   "mostActiveUser": "459694418383994880",

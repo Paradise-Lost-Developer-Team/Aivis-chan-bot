@@ -377,12 +377,12 @@
     {
       "userId": "1099951692205785088",
       "username": "1325weiya",
-      "totalMessages": 36,
-      "totalCharacters": 1196,
-      "totalWords": 39,
+      "totalMessages": 39,
+      "totalCharacters": 1314,
+      "totalWords": 42,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-13T03:44:39.983Z",
-      "lastMessageDate": "2025-06-09T15:12:14.412Z",
+      "lastMessageDate": "2025-06-18T10:30:17.862Z",
       "mentionsGiven": 1,
       "mentionsReceived": 2,
       "wordFrequency": [
@@ -537,6 +537,18 @@
         [
           "二人目の支援きたわね…",
           1
+        ],
+        [
+          "https://x.com/zzzproxy/status/1932730859108643047",
+          1
+        ],
+        [
+          "https://x.com/cmzgg/status/1935276307308290102",
+          1
+        ],
+        [
+          "キャラを演じる配役一同があまりにも濃すぎて爆笑",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -560,22 +572,22 @@
         1,
         1,
         2,
-        4,
+        6,
         4,
         6,
         1,
-        0
+        1
       ],
       "weekdayActivity": [
         8,
-        1,
+        2,
         7,
-        7,
+        9,
         3,
         10,
         0
       ],
-      "voiceMinutes": 3871.984733333333,
+      "voiceMinutes": 3973.0024166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -862,12 +874,12 @@
     {
       "userId": "698876997207851029",
       "username": "akimicho",
-      "totalMessages": 5,
-      "totalCharacters": 169,
-      "totalWords": 9,
+      "totalMessages": 6,
+      "totalCharacters": 203,
+      "totalWords": 11,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-13T10:47:03.602Z",
-      "lastMessageDate": "2025-05-17T12:20:29.297Z",
+      "lastMessageDate": "2025-06-18T12:42:58.095Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -881,7 +893,7 @@
         ],
         [
           "<@&1244876556950835284>",
-          3
+          4
         ],
         [
           "日課ゼンゼロしながら新トレーラーの感想とか話す",
@@ -897,6 +909,10 @@
         ],
         [
           "ディスク厳選したりする",
+          1
+        ],
+        [
+          "いろいろやります！！",
           1
         ]
       ],
@@ -923,7 +939,7 @@
         0,
         1,
         2,
-        2,
+        3,
         0,
         0
       ],
@@ -931,12 +947,12 @@
         3,
         0,
         0,
-        0,
+        1,
         1,
         0,
         1
       ],
-      "voiceMinutes": 1624.1020666666666,
+      "voiceMinutes": 1781.8682666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1261,7 +1277,7 @@
         9,
         1
       ],
-      "voiceMinutes": 20.290216666666666,
+      "voiceMinutes": 97.96315,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1273,13 +1289,13 @@
     {
       "userId": "322775025528864768",
       "username": "bud0u",
-      "totalMessages": 28,
+      "totalMessages": 29,
       "totalCharacters": 950,
       "totalWords": 58,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-13T12:03:59.002Z",
-      "lastMessageDate": "2025-06-15T05:05:05.825Z",
-      "mentionsGiven": 9,
+      "lastMessageDate": "2025-06-17T12:22:02.571Z",
+      "mentionsGiven": 10,
       "mentionsReceived": 1,
       "wordFrequency": [
         [
@@ -1470,20 +1486,20 @@
         3,
         3,
         4,
-        6,
+        7,
         5,
         0
       ],
       "weekdayActivity": [
         7,
         1,
-        3,
+        4,
         3,
         1,
         3,
         10
       ],
-      "voiceMinutes": 4567.242183333333,
+      "voiceMinutes": 4686.020533333332,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1495,13 +1511,13 @@
     {
       "userId": "459694418383994880",
       "username": "noko_tsuchinoko",
-      "totalMessages": 242,
-      "totalCharacters": 6197,
-      "totalWords": 239,
-      "totalEmojis": 63,
+      "totalMessages": 245,
+      "totalCharacters": 6256,
+      "totalWords": 241,
+      "totalEmojis": 65,
       "firstMessageDate": "2025-04-13T13:43:52.780Z",
-      "lastMessageDate": "2025-06-15T05:01:28.189Z",
-      "mentionsGiven": 52,
+      "lastMessageDate": "2025-06-17T06:23:40.629Z",
+      "mentionsGiven": 54,
       "mentionsReceived": 4,
       "wordFrequency": [
         [
@@ -2307,6 +2323,10 @@
         [
           "同症状が出た場合は、ゲーム内「その他→フィードバック」から公式へ報告をお願いします～👌",
           1
+        ],
+        [
+          "<@&1244876556950835284>月曜から夜更かし。良ければ、ウィークリーいっしょにやりましょ～🐺",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2348,11 +2368,11 @@
         ],
         [
           "🐺",
-          1
+          2
         ],
         [
           "👌",
-          3
+          4
         ],
         [
           "🤔",
@@ -2463,26 +2483,26 @@
         8,
         14,
         12,
-        17,
+        18,
         11,
         11,
         10,
         11,
-        13,
+        15,
         13,
         22,
         17
       ],
       "weekdayActivity": [
         38,
-        39,
-        35,
+        41,
+        36,
         39,
         26,
         40,
         25
       ],
-      "voiceMinutes": 9231.6011,
+      "voiceMinutes": 9450.095616666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2551,13 +2571,13 @@
     {
       "userId": "451040830266933258",
       "username": "avid_diva",
-      "totalMessages": 111,
-      "totalCharacters": 2200,
-      "totalWords": 94,
-      "totalEmojis": 4,
+      "totalMessages": 115,
+      "totalCharacters": 2309,
+      "totalWords": 97,
+      "totalEmojis": 5,
       "firstMessageDate": "2025-04-13T17:11:25.236Z",
-      "lastMessageDate": "2025-06-14T03:52:06.970Z",
-      "mentionsGiven": 43,
+      "lastMessageDate": "2025-06-18T23:46:15.258Z",
+      "mentionsGiven": 44,
       "mentionsReceived": 2,
       "wordFrequency": [
         [
@@ -2899,6 +2919,18 @@
         [
           "https://x.com/zzz_goods/status/1933390563560337658",
           1
+        ],
+        [
+          "https://x.com/heiankyo_327/status/1934808781759947213",
+          1
+        ],
+        [
+          "めろすぐ～",
+          1
+        ],
+        [
+          "サーバーブーストありがとうございます！<:5_agent_s:1304299695342096414>",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2909,10 +2941,14 @@
         [
           "♡",
           1
+        ],
+        [
+          "<:5_agent_s:1304299695342096414>",
+          1
         ]
       ],
       "hourlyActivity": [
-        2,
+        3,
         0,
         2,
         3,
@@ -2920,11 +2956,11 @@
         1,
         2,
         2,
-        1,
         2,
         2,
         2,
-        5,
+        2,
+        7,
         6,
         7,
         2,
@@ -2940,9 +2976,9 @@
       "weekdayActivity": [
         5,
         7,
-        53,
+        55,
         14,
-        10,
+        12,
         16,
         6
       ],
@@ -3110,12 +3146,12 @@
     {
       "userId": "1031167854671839282",
       "username": "yuta020260",
-      "totalMessages": 25,
+      "totalMessages": 26,
       "totalCharacters": 1976,
       "totalWords": 63,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-14T14:55:47.018Z",
-      "lastMessageDate": "2025-06-07T17:04:52.721Z",
+      "lastMessageDate": "2025-06-16T14:21:19.340Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -3377,18 +3413,18 @@
         0,
         0,
         0,
-        5
+        6
       ],
       "weekdayActivity": [
         14,
-        1,
+        2,
         0,
         0,
         6,
         0,
         4
       ],
-      "voiceMinutes": 1887.1853499999995,
+      "voiceMinutes": 1997.7314833333328,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3689,7 +3725,7 @@
         0,
         1
       ],
-      "voiceMinutes": 1780.1087500000003,
+      "voiceMinutes": 1853.0275333333338,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3701,14 +3737,14 @@
     {
       "userId": "1014950118509776986",
       "username": "uta_love",
-      "totalMessages": 71,
-      "totalCharacters": 6631,
-      "totalWords": 212,
-      "totalEmojis": 5,
+      "totalMessages": 73,
+      "totalCharacters": 6726,
+      "totalWords": 216,
+      "totalEmojis": 7,
       "firstMessageDate": "2025-04-16T03:32:46.762Z",
-      "lastMessageDate": "2025-06-08T04:22:47.844Z",
+      "lastMessageDate": "2025-06-18T07:18:38.652Z",
       "mentionsGiven": 5,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "こんにちは！お久しぶりです！",
@@ -4253,6 +4289,22 @@
         [
           "このフォーラムを閉じます。",
           1
+        ],
+        [
+          "良い歌ですな〜♪♪",
+          1
+        ],
+        [
+          "https://youtu.be/pdmrs2wy2eg?si=_isbkk1dgartqc_z",
+          1
+        ],
+        [
+          "ゼンゼロ1周年を記念して創られたpvとの事。",
+          1
+        ],
+        [
+          "聴いてみたけど感動しました！",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -4267,6 +4319,10 @@
         [
           "♂",
           1
+        ],
+        [
+          "♪",
+          2
         ]
       ],
       "hourlyActivity": [
@@ -4286,7 +4342,7 @@
         13,
         6,
         0,
-        7,
+        9,
         1,
         0,
         0,
@@ -4299,7 +4355,7 @@
         15,
         16,
         3,
-        4,
+        6,
         0,
         17,
         16
@@ -4809,7 +4865,7 @@
         3,
         3
       ],
-      "voiceMinutes": 1654.7094000000002,
+      "voiceMinutes": 1701.303316666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4928,7 +4984,7 @@
         0,
         0
       ],
-      "voiceMinutes": 1522.0144166666669,
+      "voiceMinutes": 1536.3720000000003,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -7135,12 +7191,12 @@
     {
       "userId": "1092738161718857728",
       "username": "jp_nes",
-      "totalMessages": 13,
+      "totalMessages": 14,
       "totalCharacters": 285,
       "totalWords": 23,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-23T13:06:32.899Z",
-      "lastMessageDate": "2025-05-29T01:29:17.006Z",
+      "lastMessageDate": "2025-06-18T13:37:29.191Z",
       "mentionsGiven": 2,
       "mentionsReceived": 3,
       "wordFrequency": [
@@ -7261,14 +7317,14 @@
         0,
         1,
         0,
-        1,
+        2,
         0
       ],
       "weekdayActivity": [
         0,
         2,
         1,
-        1,
+        2,
         8,
         0,
         1
@@ -10250,7 +10306,7 @@
         0,
         3
       ],
-      "voiceMinutes": 1756.0725499999999,
+      "voiceMinutes": 1801.46265,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -10262,13 +10318,13 @@
     {
       "userId": "397711505728077827",
       "username": "minapin",
-      "totalMessages": 26,
-      "totalCharacters": 839,
-      "totalWords": 71,
+      "totalMessages": 27,
+      "totalCharacters": 860,
+      "totalWords": 72,
       "totalEmojis": 7,
       "firstMessageDate": "2025-05-11T01:11:24.339Z",
-      "lastMessageDate": "2025-06-08T13:59:48.438Z",
-      "mentionsGiven": 6,
+      "lastMessageDate": "2025-06-18T10:17:09.422Z",
+      "mentionsGiven": 7,
       "mentionsReceived": 6,
       "wordFrequency": [
         [
@@ -10470,6 +10526,10 @@
         [
           "誰と合うんだろう！ジェーンかな？",
           1
+        ],
+        [
+          "原神でも記念pv作ってた人だ！歌詞いいー！",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -10522,7 +10582,7 @@
         1,
         1,
         2,
-        1,
+        2,
         3,
         2,
         2,
@@ -10532,12 +10592,12 @@
         4,
         1,
         2,
-        5,
+        6,
         3,
         6,
         5
       ],
-      "voiceMinutes": 358.63576666666665,
+      "voiceMinutes": 431.94804999999997,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -11752,7 +11812,7 @@
         2,
         0
       ],
-      "voiceMinutes": 490.41610000000003,
+      "voiceMinutes": 527.0966833333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -11809,7 +11869,7 @@
         0,
         0
       ],
-      "voiceMinutes": 0,
+      "voiceMinutes": 52.83533333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -11871,7 +11931,7 @@
         0,
         0
       ],
-      "voiceMinutes": 192.17396666666667,
+      "voiceMinutes": 263.70695,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -13442,15 +13502,44 @@
     {
       "userId": "171601894383419392",
       "username": "tintin_soldier",
-      "totalMessages": 2,
-      "totalCharacters": 0,
-      "totalWords": 0,
+      "totalMessages": 6,
+      "totalCharacters": 87,
+      "totalWords": 20,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-10T07:38:34.228Z",
-      "lastMessageDate": "2025-06-13T03:30:23.873Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
-      "wordFrequency": [],
+      "lastMessageDate": "2025-06-16T11:41:00.229Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 2,
+      "wordFrequency": [
+        [
+          "しんご",
+          1
+        ],
+        [
+          "インターノットレベル",
+          1
+        ],
+        [
+          "プロキシランク",
+          1
+        ],
+        [
+          "シュエン",
+          1
+        ],
+        [
+          "シーザー",
+          1
+        ],
+        [
+          "バーニス",
+          1
+        ],
+        [
+          "復帰勢です、よろしくお願いします",
+          1
+        ]
+      ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -13473,21 +13562,21 @@
         0,
         0,
         0,
-        0,
+        4,
         0,
         0,
         0
       ],
       "weekdayActivity": [
         0,
-        0,
+        4,
         1,
         0,
         0,
         1,
         0
       ],
-      "voiceMinutes": 0,
+      "voiceMinutes": 107.28396666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -14314,6 +14403,166 @@
         0,
         0,
         0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "311736215198105600",
+    {
+      "userId": "311736215198105600",
+      "username": "musette_",
+      "totalMessages": 3,
+      "totalCharacters": 143,
+      "totalWords": 24,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-16T15:12:00.096Z",
+      "lastMessageDate": "2025-06-16T15:21:42.057Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 3,
+      "wordFrequency": [
+        [
+          "みゅぜっと",
+          1
+        ],
+        [
+          "uid",
+          1
+        ],
+        [
+          "1303347124",
+          1
+        ],
+        [
+          "インターノットレベル",
+          1
+        ],
+        [
+          "プロキシランク",
+          1
+        ],
+        [
+          "伝説のプロキシ",
+          1
+        ],
+        [
+          "エレン、ビビアン",
+          1
+        ],
+        [
+          "別ゲー",
+          1
+        ],
+        [
+          "割となんでも（格ゲ、fps等）",
+          1
+        ],
+        [
+          "厳選雑談とか出来たらいいなと思ってます、宜しくお願いします。",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1153141951781146794",
+    {
+      "userId": "1153141951781146794",
+      "username": "s.t_0922",
+      "totalMessages": 3,
+      "totalCharacters": 70,
+      "totalWords": 1,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-18T23:44:21.737Z",
+      "lastMessageDate": "2025-06-19T00:02:25.762Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 2,
+      "wordFrequency": [
+        [
+          "質問です。儀玄を引いたのですが…餅武器は必須でしょうか？餅武器も引こうと思って引いたのですが…すり抜けてしまってどうしようかなと迷っています",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        3,
         0,
         0
       ],

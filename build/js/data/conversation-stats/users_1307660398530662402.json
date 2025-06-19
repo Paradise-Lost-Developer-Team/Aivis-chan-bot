@@ -4,12 +4,12 @@
     {
       "userId": "401597548965658625",
       "username": "white_dambi",
-      "totalMessages": 21,
-      "totalCharacters": 325,
-      "totalWords": 20,
+      "totalMessages": 23,
+      "totalCharacters": 330,
+      "totalWords": 21,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-30T12:27:49.568Z",
-      "lastMessageDate": "2025-06-13T10:22:40.369Z",
+      "lastMessageDate": "2025-06-17T10:55:17.246Z",
       "mentionsGiven": 10,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -48,6 +48,10 @@
         [
           "なにが",
           1
+        ],
+        [
+          "11:02",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -71,7 +75,7 @@
         1,
         1,
         4,
-        7,
+        9,
         2,
         3,
         0,
@@ -79,14 +83,14 @@
       ],
       "weekdayActivity": [
         2,
-        4,
-        0,
+        5,
+        1,
         4,
         2,
         8,
         1
       ],
-      "voiceMinutes": 12490.346499999998,
+      "voiceMinutes": 13157.376266666664,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -789,7 +793,7 @@
         44,
         105
       ],
-      "voiceMinutes": 4431.854633333334,
+      "voiceMinutes": 4472.717200000001,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -976,7 +980,7 @@
         1,
         1
       ],
-      "voiceMinutes": 3138.051683333334,
+      "voiceMinutes": 3334.752933333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1107,7 +1111,7 @@
         13,
         14
       ],
-      "voiceMinutes": 7173.051216666669,
+      "voiceMinutes": 7619.170483333335,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1365,12 +1369,12 @@
     {
       "userId": "681158093635452930",
       "username": "kstuka",
-      "totalMessages": 43,
+      "totalMessages": 45,
       "totalCharacters": 573,
       "totalWords": 51,
       "totalEmojis": 1,
       "firstMessageDate": "2025-05-06T16:22:32.381Z",
-      "lastMessageDate": "2025-06-14T16:41:52.180Z",
+      "lastMessageDate": "2025-06-18T14:52:22.341Z",
       "mentionsGiven": 4,
       "mentionsReceived": 8,
       "wordFrequency": [
@@ -1577,18 +1581,18 @@
         1,
         4,
         1,
-        1
+        3
       ],
       "weekdayActivity": [
         3,
         7,
         21,
-        3,
+        5,
         1,
         8,
         0
       ],
-      "voiceMinutes": 2021.4008166666665,
+      "voiceMinutes": 2082.6028666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

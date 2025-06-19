@@ -1,8 +1,8 @@
 {
   "serverId": "1310469854402314250",
   "serverName": "Japan Mineraft Mods",
-  "totalMessages": 360,
-  "totalCharacters": 25319,
+  "totalMessages": 364,
+  "totalCharacters": 25465,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -319,7 +319,7 @@
       {
         "channelId": "1310469855304089653",
         "channelName": "メモ",
-        "totalMessages": 12,
+        "totalMessages": 13,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -336,7 +336,7 @@
           2,
           2,
           0,
-          0,
+          1,
           5,
           0,
           1,
@@ -351,7 +351,7 @@
           0,
           7,
           3,
-          1,
+          2,
           0,
           1,
           0
@@ -1551,7 +1551,7 @@
       {
         "channelId": "1382546316005212310",
         "channelName": "サーバーMODだけ適応されない",
-        "totalMessages": 38,
+        "totalMessages": 41,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1564,7 +1564,7 @@
           0,
           0,
           0,
-          0,
+          1,
           11,
           1,
           0,
@@ -1577,12 +1577,12 @@
           1,
           7,
           2,
-          4
+          6
         ],
         "weekdayActivity": [
           0,
-          0,
-          0,
+          2,
+          1,
           0,
           27,
           5,
@@ -1734,11 +1734,11 @@
     1,
     1,
     1,
-    13,
+    14,
     32,
     8,
     6,
-    10,
+    11,
     15,
     23,
     39,
@@ -1747,18 +1747,18 @@
     57,
     33,
     22,
-    10
+    12
   ],
   "weekdayActivity": [
     49,
+    43,
     41,
-    40,
-    45,
+    46,
     52,
     89,
     44
   ],
-  "averageMessageLength": 70.33055555555555,
+  "averageMessageLength": 69.95879120879121,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -1926,6 +1926,18 @@
     ],
     [
       "2025-06-15",
+      1
+    ],
+    [
+      "2025-06-16",
+      2
+    ],
+    [
+      "2025-06-17",
+      1
+    ],
+    [
+      "2025-06-18",
       1
     ]
   ],
