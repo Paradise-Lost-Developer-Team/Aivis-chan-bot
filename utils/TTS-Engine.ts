@@ -638,9 +638,6 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
         ffmpeg = result.ffmpeg;
         resource = result.resource;
         
-        // 元のバッファを即座に破棄
-        (fullBuffer as any) = null;
-        
         player.play(resource);
         await entersState(player, AudioPlayerStatus.Playing, 5000);
         await entersState(player, AudioPlayerStatus.Idle, 60000);
