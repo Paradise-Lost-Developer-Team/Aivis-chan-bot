@@ -1,0 +1,207 @@
+[
+  [
+    "862008327118782484",
+    {
+      "userId": "862008327118782484",
+      "username": "amat0_",
+      "totalMessages": 45,
+      "totalCharacters": 196,
+      "totalWords": 45,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-16T11:45:46.820Z",
+      "lastMessageDate": "2025-04-16T12:09:21.071Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "test",
+          12
+        ],
+        [
+          "resisiter",
+          1
+        ],
+        [
+          "expltion",
+          1
+        ],
+        [
+          "explotion",
+          1
+        ],
+        [
+          "strowberry",
+          1
+        ],
+        [
+          "こっちだと喋らない",
+          1
+        ],
+        [
+          "123",
+          1
+        ],
+        [
+          "こんばんは",
+          3
+        ],
+        [
+          "ぼーい",
+          1
+        ],
+        [
+          "あーーーーー",
+          1
+        ],
+        [
+          "あ～～",
+          1
+        ],
+        [
+          "隣の客はよく柿食う客だ",
+          1
+        ],
+        [
+          "aiueo",
+          1
+        ],
+        [
+          "あ～～～～～",
+          1
+        ],
+        [
+          "わーーーー",
+          1
+        ],
+        [
+          "あいうえお",
+          1
+        ],
+        [
+          "こんにちは",
+          1
+        ],
+        [
+          "ha?",
+          1
+        ],
+        [
+          "なんでよ",
+          1
+        ],
+        [
+          "あ、ほんとにきらい",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        35,
+        10,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        45,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 23.766199999999998,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": [
+        [
+          "r",
+          1
+        ]
+      ]
+    }
+  ],
+  [
+    "837858360585748532",
+    {
+      "userId": "837858360585748532",
+      "username": "summer_colors_sky",
+      "totalMessages": 2,
+      "totalCharacters": 8,
+      "totalWords": 2,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-16T11:55:30.557Z",
+      "lastMessageDate": "2025-04-16T12:05:16.533Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "オラ悟空",
+          2
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

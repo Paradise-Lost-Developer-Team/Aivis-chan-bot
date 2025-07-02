@@ -1,5 +1,6 @@
 [
   [
+<<<<<<< HEAD
     "954732622813220944",
     {
       "userId": "954732622813220944",
@@ -86,20 +87,32 @@
     }
   ],
   [
+=======
+>>>>>>> origin
     "809627147333140531",
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
+<<<<<<< HEAD
       "totalMessages": 183,
       "totalCharacters": 6061,
       "totalWords": 204,
       "totalEmojis": 32,
       "firstMessageDate": "2025-04-13T13:14:05.165Z",
       "lastMessageDate": "2025-06-24T03:15:58.041Z",
+=======
+      "totalMessages": 79,
+      "totalCharacters": 1577,
+      "totalWords": 100,
+      "totalEmojis": 6,
+      "firstMessageDate": "2025-04-28T04:32:44.393Z",
+      "lastMessageDate": "2025-06-18T02:45:35.609Z",
+>>>>>>> origin
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
+<<<<<<< HEAD
           "こんばんは、アレクちゃんだよ",
           4
         ],
@@ -138,6 +151,10 @@
         [
           "<:electric:1254307521557037077>",
           1
+=======
+          "こんにちは！",
+          3
+>>>>>>> origin
         ],
         [
           "今日の天気は晴れだね！",
@@ -156,10 +173,13 @@
           1
         ],
         [
+<<<<<<< HEAD
           "七対子",
           1
         ],
         [
+=======
+>>>>>>> origin
           "あああ",
           7
         ],
@@ -196,6 +216,13 @@
           2
         ],
         [
+<<<<<<< HEAD
+=======
+          "ねぇねぇ、聞いて聞いてっ！今日ね、学校の帰りにかわいいカフェ見つけたの！外観がふわふわの雲みたいで、なんかメルヘンチックっていうの？中に入ったら、ふんわり甘い香りがして、思わずニヤけちゃった〜。んでね！頼んだパンケーキが、ほんっっっとに美味しくてさ、ふわっふわで、ナイフ入れた瞬間、しゅわ〜って音がして、もう、感動しちゃったっ♪",
+          6
+        ],
+        [
+>>>>>>> origin
           "こんにちは！ありがとう",
           2
         ],
@@ -246,15 +273,19 @@
         [
           "ああああああ",
           1
+<<<<<<< HEAD
         ],
         [
           "こんにちは！！！",
           3
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
         [
           "♪",
+<<<<<<< HEAD
           29
         ],
         [
@@ -264,18 +295,25 @@
         [
           "<:Electric:1254307521557037077>",
           1
+=======
+          6
+>>>>>>> origin
         ]
       ],
       "hourlyActivity": [
         0,
+<<<<<<< HEAD
         23,
         16,
         19,
         3,
+=======
+>>>>>>> origin
         0,
         0,
         0,
         0,
+<<<<<<< HEAD
         8,
         1,
         11,
@@ -302,6 +340,38 @@
         1
       ],
       "voiceMinutes": 552.4413,
+=======
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        12,
+        12,
+        10,
+        0,
+        4,
+        0,
+        0,
+        2,
+        17,
+        18,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        69,
+        0,
+        4,
+        2,
+        4,
+        0
+      ],
+      "voiceMinutes": 313.57598333333334,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -317,7 +387,11 @@
       "totalCharacters": 5,
       "totalWords": 3,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-04-28T05:42:05.796Z",
+=======
+      "firstMessageDate": "2025-04-28T05:42:05.776Z",
+>>>>>>> origin
       "lastMessageDate": "2025-04-28T05:42:21.040Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,

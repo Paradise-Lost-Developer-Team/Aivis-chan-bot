@@ -4,6 +4,7 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
+<<<<<<< HEAD
       "totalMessages": 81,
       "totalCharacters": 3142,
       "totalWords": 119,
@@ -151,10 +152,24 @@
         ],
         [
           "ああっ",
+=======
+      "totalMessages": 33,
+      "totalCharacters": 416,
+      "totalWords": 43,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-04-27T11:33:08.015Z",
+      "lastMessageDate": "2025-05-26T02:33:10.387Z",
+      "mentionsGiven": 2,
+      "mentionsReceived": 1,
+      "wordFrequency": [
+        [
+          "なんでしゃべんないんだ？",
+>>>>>>> origin
           1
         ],
         [
           "こんにちは！",
+<<<<<<< HEAD
           2
         ],
         [
@@ -207,6 +222,12 @@
         ],
         [
           "なんでしゃべんないんだ？",
+=======
+          1
+        ],
+        [
+          "ねぇねぇ、聞いて聞いてっ！今日ね、学校の帰りにかわいいカフェ見つけたの！外観がふわふわの雲みたいで、なんかメルヘンチックっていうの？中に入ったら、ふんわり甘い香りがして、思わずニヤけちゃった〜。んでね！頼んだパンケーキが、ほんっっっとに美味しくてさ、ふわっふわで、ナイフ入れた瞬間、しゅわ〜って音がして、もう、感動しちゃったっ♪",
+>>>>>>> origin
           1
         ],
         [
@@ -241,11 +262,15 @@
       "emojiFrequency": [
         [
           "♪",
+<<<<<<< HEAD
           10
         ],
         [
           "<:0_Bennett_Thumbs1up:1055132567059304468>",
           2
+=======
+          1
+>>>>>>> origin
         ]
       ],
       "hourlyActivity": [
@@ -253,13 +278,17 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         4,
+=======
+>>>>>>> origin
         0,
         0,
         0,
         0,
         0,
         0,
+<<<<<<< HEAD
         6,
         7,
         6,
@@ -271,10 +300,25 @@
         3,
         12,
         7,
+=======
+        0,
+        1,
+        1,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        1,
+        12,
+        5,
+>>>>>>> origin
         5,
         5
       ],
       "weekdayActivity": [
+<<<<<<< HEAD
         36,
         31,
         5,
@@ -450,12 +494,17 @@
         1,
         0,
         1,
+=======
+        28,
+        5,
+>>>>>>> origin
         0,
         0,
         0,
         0,
         0
       ],
+<<<<<<< HEAD
       "weekdayActivity": [
         0,
         3,
@@ -585,6 +634,9 @@
         0
       ],
       "voiceMinutes": 0,
+=======
+      "voiceMinutes": 1930.1236666666668,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -600,7 +652,11 @@
       "totalCharacters": 25,
       "totalWords": 2,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-05-05T03:50:49.510Z",
+=======
+      "firstMessageDate": "2025-05-05T03:50:49.506Z",
+>>>>>>> origin
       "lastMessageDate": "2025-05-13T07:05:48.277Z",
       "mentionsGiven": 1,
       "mentionsReceived": 0,
@@ -650,7 +706,82 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 714.5971166666667,
+=======
+      "voiceMinutes": 714.5984666666668,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1005716357154885713",
+    {
+      "userId": "1005716357154885713",
+      "username": "disc_nanashi",
+      "totalMessages": 2,
+      "totalCharacters": 45,
+      "totalWords": 2,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-05-18T11:50:57.941Z",
+      "lastMessageDate": "2025-05-18T12:22:47.616Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 1,
+      "wordFrequency": [
+        [
+          "<:0_bennett_thumbs1up:1055132567059304468>",
+          1
+        ],
+        [
+          "aaa",
+          1
+        ]
+      ],
+      "emojiFrequency": [
+        [
+          "<:0_Bennett_Thumbs1up:1055132567059304468>",
+          1
+        ]
+      ],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 390.52925,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -666,7 +797,11 @@
       "totalCharacters": 2,
       "totalWords": 1,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-05-18T13:34:44.171Z",
+=======
+      "firstMessageDate": "2025-05-18T13:34:44.170Z",
+>>>>>>> origin
       "lastMessageDate": "2025-05-18T13:34:43.711Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -723,7 +858,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-05-18T23:38:03.987Z",
+=======
+      "firstMessageDate": "2025-05-18T23:38:03.993Z",
+>>>>>>> origin
       "lastMessageDate": "2025-05-18T23:38:03.831Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,

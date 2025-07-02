@@ -4,6 +4,7 @@
     {
       "userId": "715840411364491305",
       "username": "reika.0821",
+<<<<<<< HEAD
       "totalMessages": 690,
       "totalCharacters": 17346,
       "totalWords": 1021,
@@ -12,6 +13,16 @@
       "lastMessageDate": "2025-07-02T07:07:36.049Z",
       "mentionsGiven": 306,
       "mentionsReceived": 51,
+=======
+      "totalMessages": 323,
+      "totalCharacters": 8876,
+      "totalWords": 509,
+      "totalEmojis": 21,
+      "firstMessageDate": "2025-06-10T14:40:23.873Z",
+      "lastMessageDate": "2025-06-18T16:53:43.387Z",
+      "mentionsGiven": 163,
+      "mentionsReceived": 31,
+>>>>>>> origin
       "wordFrequency": [
         [
           "?help",
@@ -239,7 +250,11 @@
         ],
         [
           "<@&1382293136134508627>",
+<<<<<<< HEAD
           9
+=======
+          4
+>>>>>>> origin
         ],
         [
           "<@&1382197771762925698>",
@@ -275,7 +290,11 @@
         ],
         [
           "これでファイノン引きに行きます",
+<<<<<<< HEAD
           2
+=======
+          1
+>>>>>>> origin
         ],
         [
           "<@650641640456716298>",
@@ -287,11 +306,19 @@
         ],
         [
           "<#1381971397676498997>",
+<<<<<<< HEAD
           47
         ],
         [
           "をお願いします！",
           41
+=======
+          22
+        ],
+        [
+          "をお願いします！",
+          18
+>>>>>>> origin
         ],
         [
           "初メンバー✨",
@@ -355,7 +382,11 @@
         ],
         [
           "<@1275410498103279687>",
+<<<<<<< HEAD
           4
+=======
+          3
+>>>>>>> origin
         ],
         [
           "3日前ぐらいから色々設定してて、ようやく今日完成したところです！",
@@ -391,7 +422,11 @@
         ],
         [
           "よろしくお願いします～！",
+<<<<<<< HEAD
           32
+=======
+          14
+>>>>>>> origin
         ],
         [
           "シージ昨日から新しいモード増えましたね！！",
@@ -531,7 +566,11 @@
         ],
         [
           "いいですね～",
+<<<<<<< HEAD
           3
+=======
+          1
+>>>>>>> origin
         ],
         [
           "パスのあの黄色いレインコートのスキンめっちゃ好き",
@@ -563,7 +602,11 @@
         ],
         [
           "よろしくお願いします〜！",
+<<<<<<< HEAD
           25
+=======
+          13
+>>>>>>> origin
         ],
         [
           "雑談したい所ですが眠いのでまたお昼頃に…💤",
@@ -607,11 +650,19 @@
         ],
         [
           "@everyone",
+<<<<<<< HEAD
           4
         ],
         [
           "おはようございます〜",
           3
+=======
+          2
+        ],
+        [
+          "おはようございます〜",
+          1
+>>>>>>> origin
         ],
         [
           "この度は【話せて遊べる集いの場】にお集まり頂きありがとうございます、おかげさまで公開2日目で既に14人ものメンバーが集まっております",
@@ -635,7 +686,11 @@
         ],
         [
           "omg",
+<<<<<<< HEAD
           4
+=======
+          2
+>>>>>>> origin
         ],
         [
           "バイト飲食はおすすめしないです",
@@ -647,7 +702,11 @@
         ],
         [
           "よろしくお願いします！",
+<<<<<<< HEAD
           2
+=======
+          1
+>>>>>>> origin
         ],
         [
           "lolやってるんですか！自分も最近始めました〜",
@@ -1039,7 +1098,11 @@
         ],
         [
           "/bn",
+<<<<<<< HEAD
           2
+=======
+          1
+>>>>>>> origin
         ],
         [
           "<@892701686500560908>",
@@ -1146,6 +1209,25 @@
           1
         ],
         [
+<<<<<<< HEAD
+=======
+          "からあげ",
+          1
+        ],
+        [
+          "<@1334436031487017024>",
+          1
+        ],
+        [
+          "ow2いいですね〜",
+          1
+        ],
+        [
+          "マウガよく使います",
+          1
+        ],
+        [
+>>>>>>> origin
           "バイト終わりー",
           1
         ],
@@ -1167,7 +1249,11 @@
         ],
         [
           "<@&1382293173627519069>",
+<<<<<<< HEAD
           7
+=======
+          4
+>>>>>>> origin
         ],
         [
           "マイクラ鯖立てたのにlolするそうです",
@@ -1388,6 +1474,7 @@
         [
           "@げーう",
           1
+<<<<<<< HEAD
         ],
         [
           "あつすぎませんか",
@@ -2876,6 +2963,8 @@
         [
           "<@864045663829884958>",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
@@ -2889,6 +2978,7 @@
         ],
         [
           "🤔",
+<<<<<<< HEAD
           7
         ],
         [
@@ -2909,10 +2999,21 @@
         ],
         [
           "💀",
+=======
+          4
+        ],
+        [
+          "💤",
+          1
+        ],
+        [
+          "🥲",
+>>>>>>> origin
           1
         ]
       ],
       "hourlyActivity": [
+<<<<<<< HEAD
         30,
         26,
         38,
@@ -2948,13 +3049,54 @@
         67
       ],
       "voiceMinutes": 1604.7194,
+=======
+        11,
+        14,
+        13,
+        7,
+        2,
+        9,
+        0,
+        2,
+        14,
+        0,
+        1,
+        1,
+        11,
+        8,
+        9,
+        15,
+        25,
+        4,
+        27,
+        20,
+        49,
+        46,
+        23,
+        12
+      ],
+      "weekdayActivity": [
+        27,
+        8,
+        38,
+        109,
+        95,
+        14,
+        32
+      ],
+      "voiceMinutes": 1002.2195333333333,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
       "commandUsage": [
         [
           "bn",
+<<<<<<< HEAD
           2
+=======
+          1
+>>>>>>> origin
         ],
         [
           "bg",
@@ -2968,6 +3110,7 @@
     {
       "userId": "1275052409013670033",
       "username": "m1fyu_osk2135",
+<<<<<<< HEAD
       "totalMessages": 59,
       "totalCharacters": 476,
       "totalWords": 66,
@@ -2976,6 +3119,16 @@
       "lastMessageDate": "2025-06-23T12:56:43.774Z",
       "mentionsGiven": 3,
       "mentionsReceived": 7,
+=======
+      "totalMessages": 57,
+      "totalCharacters": 463,
+      "totalWords": 64,
+      "totalEmojis": 4,
+      "firstMessageDate": "2025-06-10T15:11:45.642Z",
+      "lastMessageDate": "2025-06-12T13:30:19.639Z",
+      "mentionsGiven": 3,
+      "mentionsReceived": 6,
+>>>>>>> origin
       "wordFrequency": [
         [
           "できそー？",
@@ -3176,10 +3329,13 @@
         [
           "おつー",
           1
+<<<<<<< HEAD
         ],
         [
           "いつの間にか増えてんね",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
@@ -3220,22 +3376,36 @@
         1,
         0,
         4,
+<<<<<<< HEAD
         1,
         3,
         36,
+=======
+        0,
+        3,
+        35,
+>>>>>>> origin
         9,
         0
       ],
       "weekdayActivity": [
         0,
+<<<<<<< HEAD
         2,
+=======
+        0,
+>>>>>>> origin
         0,
         12,
         45,
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 77.1145,
+=======
+      "voiceMinutes": 77.11438333333334,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3251,7 +3421,11 @@
       "totalCharacters": 183,
       "totalWords": 15,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T09:57:39.438Z",
+=======
+      "firstMessageDate": "2025-06-11T09:57:39.434Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T10:44:47.336Z",
       "mentionsGiven": 1,
       "mentionsReceived": 4,
@@ -3365,7 +3539,11 @@
       "totalCharacters": 181,
       "totalWords": 17,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T11:12:49.940Z",
+=======
+      "firstMessageDate": "2025-06-11T11:12:49.935Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T23:39:34.320Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -3491,7 +3669,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T11:14:21.068Z",
+=======
+      "firstMessageDate": "2025-06-11T11:14:21.426Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T11:14:21.132Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -3544,6 +3726,7 @@
     {
       "userId": "1275410498103279687",
       "username": "cy.zrn.t",
+<<<<<<< HEAD
       "totalMessages": 38,
       "totalCharacters": 577,
       "totalWords": 41,
@@ -3552,6 +3735,16 @@
       "lastMessageDate": "2025-07-01T04:26:01.962Z",
       "mentionsGiven": 0,
       "mentionsReceived": 16,
+=======
+      "totalMessages": 25,
+      "totalCharacters": 373,
+      "totalWords": 28,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-06-11T11:15:35.687Z",
+      "lastMessageDate": "2025-06-18T15:09:08.106Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 9,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】燐寸",
@@ -3656,6 +3849,7 @@
         [
           "マイクラこれサーバー側描画距離12maxっぽい",
           1
+<<<<<<< HEAD
         ],
         [
           "マイクラ僕以外ログインしたとこみたことないかも",
@@ -3708,6 +3902,8 @@
         [
           "かうか",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
@@ -3730,6 +3926,7 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         1,
         0,
         1,
@@ -3741,10 +3938,24 @@
         12,
         1,
         3
+=======
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        7,
+        7,
+        1,
+        2
+>>>>>>> origin
       ],
       "weekdayActivity": [
         1,
         0,
+<<<<<<< HEAD
         3,
         26,
         7,
@@ -3752,6 +3963,15 @@
         0
       ],
       "voiceMinutes": 486.20641666666666,
+=======
+        2,
+        17,
+        5,
+        0,
+        0
+      ],
+      "voiceMinutes": 486.2065666666666,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3767,7 +3987,11 @@
       "totalCharacters": 114,
       "totalWords": 10,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T11:23:23.255Z",
+=======
+      "firstMessageDate": "2025-06-11T11:23:23.260Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T11:51:03.355Z",
       "mentionsGiven": 1,
       "mentionsReceived": 4,
@@ -3865,7 +4089,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T11:26:23.141Z",
+=======
+      "firstMessageDate": "2025-06-11T11:26:23.132Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T11:26:23.144Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -3918,6 +4146,7 @@
     {
       "userId": "1211983692306841634",
       "username": "syoborn2",
+<<<<<<< HEAD
       "totalMessages": 33,
       "totalCharacters": 271,
       "totalWords": 30,
@@ -3926,6 +4155,16 @@
       "lastMessageDate": "2025-07-01T12:34:43.937Z",
       "mentionsGiven": 10,
       "mentionsReceived": 15,
+=======
+      "totalMessages": 8,
+      "totalCharacters": 60,
+      "totalWords": 7,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-11T11:41:21.520Z",
+      "lastMessageDate": "2025-06-14T16:06:05.575Z",
+      "mentionsGiven": 4,
+      "mentionsReceived": 6,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】しょぼーん",
@@ -3954,6 +4193,7 @@
         [
           "ごめんなさい",
           1
+<<<<<<< HEAD
         ],
         [
           "これどういうことや？",
@@ -4038,11 +4278,14 @@
         [
           "何人でも",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
+<<<<<<< HEAD
         3,
         5,
         0,
@@ -4074,6 +4317,39 @@
         3,
         4,
         10,
+=======
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        2,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        2,
+        0,
+        0,
+        3,
+        3,
+        0,
+>>>>>>> origin
         0
       ],
       "voiceMinutes": 0,
@@ -4088,12 +4364,21 @@
     {
       "userId": "964060213504274492",
       "username": "rei_504_77",
+<<<<<<< HEAD
       "totalMessages": 94,
       "totalCharacters": 828,
       "totalWords": 103,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-11T12:11:28.562Z",
       "lastMessageDate": "2025-06-20T03:48:11.006Z",
+=======
+      "totalMessages": 93,
+      "totalCharacters": 824,
+      "totalWords": 102,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-11T12:11:28.563Z",
+      "lastMessageDate": "2025-06-12T13:10:47.571Z",
+>>>>>>> origin
       "mentionsGiven": 1,
       "mentionsReceived": 10,
       "wordFrequency": [
@@ -4436,10 +4721,13 @@
         [
           "3回戦(らすと)始まるよー！",
           1
+<<<<<<< HEAD
         ],
         [
           "早いなぁ",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [],
@@ -4456,7 +4744,11 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         1,
+=======
+        0,
+>>>>>>> origin
         0,
         0,
         0,
@@ -4475,10 +4767,17 @@
         0,
         5,
         88,
+<<<<<<< HEAD
         1,
         0
       ],
       "voiceMinutes": 92.78798333333333,
+=======
+        0,
+        0
+      ],
+      "voiceMinutes": 92.79496666666668,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4494,7 +4793,11 @@
       "totalCharacters": 67,
       "totalWords": 9,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T13:18:35.357Z",
+=======
+      "firstMessageDate": "2025-06-11T13:18:35.354Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T13:35:07.407Z",
       "mentionsGiven": 2,
       "mentionsReceived": 4,
@@ -4584,7 +4887,11 @@
       "totalCharacters": 686,
       "totalWords": 71,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T13:20:14.529Z",
+=======
+      "firstMessageDate": "2025-06-11T13:20:14.533Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T13:05:10.366Z",
       "mentionsGiven": 8,
       "mentionsReceived": 12,
@@ -4886,7 +5193,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 89.80331666666667,
+=======
+      "voiceMinutes": 89.80278333333332,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -4902,7 +5213,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T13:33:35.288Z",
+=======
+      "firstMessageDate": "2025-06-11T13:33:35.273Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T13:33:35.025Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -4959,7 +5274,11 @@
       "totalCharacters": 110,
       "totalWords": 12,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T15:59:04.540Z",
+=======
+      "firstMessageDate": "2025-06-11T15:59:04.542Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T12:11:25.684Z",
       "mentionsGiven": 0,
       "mentionsReceived": 5,
@@ -5045,7 +5364,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 70.42935,
+=======
+      "voiceMinutes": 70.43576666666667,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -5061,7 +5384,11 @@
       "totalCharacters": 86,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T16:17:44.273Z",
+=======
+      "firstMessageDate": "2025-06-11T16:17:44.272Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T16:19:01.570Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -5139,6 +5466,7 @@
     {
       "userId": "1006581121506627688",
       "username": "shell5415",
+<<<<<<< HEAD
       "totalMessages": 44,
       "totalCharacters": 755,
       "totalWords": 65,
@@ -5147,6 +5475,16 @@
       "lastMessageDate": "2025-06-25T07:52:10.144Z",
       "mentionsGiven": 5,
       "mentionsReceived": 10,
+=======
+      "totalMessages": 30,
+      "totalCharacters": 627,
+      "totalWords": 54,
+      "totalEmojis": 2,
+      "firstMessageDate": "2025-06-11T17:14:48.855Z",
+      "lastMessageDate": "2025-06-18T06:03:03.444Z",
+      "mentionsGiven": 3,
+      "mentionsReceived": 7,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】シェル(ぐりずb)",
@@ -5311,6 +5649,7 @@
         [
           "野球以外でなんか続いてるのこれしかない",
           1
+<<<<<<< HEAD
         ],
         [
           "なんかしでかしたんすか？",
@@ -5355,12 +5694,15 @@
         [
           "できる",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
         [
           "🚹",
           2
+<<<<<<< HEAD
         ],
         [
           "🙆",
@@ -5369,11 +5711,17 @@
         [
           "♀",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "hourlyActivity": [
         0,
+<<<<<<< HEAD
         5,
+=======
+        0,
+>>>>>>> origin
         3,
         9,
         0,
@@ -5384,21 +5732,35 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         5,
         3,
         2,
         3,
         2,
+=======
+        4,
+        2,
+        1,
+        3,
+        0,
+>>>>>>> origin
         1,
         0,
         0,
         0,
+<<<<<<< HEAD
         7,
         4,
+=======
+        6,
+        1,
+>>>>>>> origin
         0
       ],
       "weekdayActivity": [
         0,
+<<<<<<< HEAD
         3,
         5,
         9,
@@ -5407,6 +5769,16 @@
         0
       ],
       "voiceMinutes": 160.24838333333332,
+=======
+        0,
+        0,
+        4,
+        26,
+        0,
+        0
+      ],
+      "voiceMinutes": 160.25504999999998,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -5508,7 +5880,11 @@
       "totalCharacters": 40,
       "totalWords": 8,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-11T18:16:33.407Z",
+=======
+      "firstMessageDate": "2025-06-11T18:16:33.406Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-11T18:53:10.257Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
@@ -5591,6 +5967,7 @@
     {
       "userId": "1113749004686213140",
       "username": "kaname_1487",
+<<<<<<< HEAD
       "totalMessages": 15,
       "totalCharacters": 361,
       "totalWords": 29,
@@ -5599,6 +5976,16 @@
       "lastMessageDate": "2025-06-28T17:32:28.422Z",
       "mentionsGiven": 2,
       "mentionsReceived": 7,
+=======
+      "totalMessages": 10,
+      "totalCharacters": 257,
+      "totalWords": 23,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-06-11T23:08:28.788Z",
+      "lastMessageDate": "2025-06-12T06:20:36.067Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 5,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】かなめ",
@@ -5671,6 +6058,7 @@
         [
           "暇というか学マスしながらなんすけど",
           1
+<<<<<<< HEAD
         ],
         [
           "彼氏が余裕なさそ〜だなーって時皆さんどうします～？",
@@ -5695,22 +6083,32 @@
         [
           "なんかそっと寄り添うみたいな感じっすかね…",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
         [
           "🙇",
           1
+<<<<<<< HEAD
         ],
         [
           "🙏",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "hourlyActivity": [
         0,
+<<<<<<< HEAD
         1,
         4,
+=======
+        0,
+        0,
+>>>>>>> origin
         0,
         0,
         0,
@@ -5734,7 +6132,11 @@
         0
       ],
       "weekdayActivity": [
+<<<<<<< HEAD
         5,
+=======
+        0,
+>>>>>>> origin
         0,
         0,
         0,
@@ -5742,7 +6144,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 92.90815,
+=======
+      "voiceMinutes": 92.9083,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -5758,7 +6164,11 @@
       "totalCharacters": 81,
       "totalWords": 9,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T02:49:29.765Z",
+=======
+      "firstMessageDate": "2025-06-12T02:49:29.766Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T05:12:07.733Z",
       "mentionsGiven": 1,
       "mentionsReceived": 3,
@@ -5848,7 +6258,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T03:10:05.543Z",
+=======
+      "firstMessageDate": "2025-06-12T03:10:05.551Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T03:10:05.288Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -5905,7 +6319,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T05:03:33.836Z",
+=======
+      "firstMessageDate": "2025-06-12T05:03:33.859Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T05:03:33.593Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -6048,6 +6466,7 @@
     {
       "userId": "1119157300775628922",
       "username": "kuronusshi",
+<<<<<<< HEAD
       "totalMessages": 26,
       "totalCharacters": 269,
       "totalWords": 30,
@@ -6056,6 +6475,16 @@
       "lastMessageDate": "2025-07-01T07:29:03.626Z",
       "mentionsGiven": 2,
       "mentionsReceived": 6,
+=======
+      "totalMessages": 22,
+      "totalCharacters": 223,
+      "totalWords": 26,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-12T06:21:02.241Z",
+      "lastMessageDate": "2025-06-13T07:16:39.725Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 4,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】とり",
@@ -6156,6 +6585,7 @@
         [
           "今頃バイトピークかな",
           1
+<<<<<<< HEAD
         ],
         [
           "今日休みだけどバイトなの辛い",
@@ -6172,6 +6602,8 @@
         [
           "コンパスやってるやついねーかな",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [],
@@ -6186,6 +6618,7 @@
         0,
         1,
         0,
+<<<<<<< HEAD
         1,
         0,
         0,
@@ -6193,6 +6626,15 @@
         1,
         6,
         17,
+=======
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        16,
+>>>>>>> origin
         0,
         0,
         0,
@@ -6203,8 +6645,13 @@
       ],
       "weekdayActivity": [
         0,
+<<<<<<< HEAD
         3,
         1,
+=======
+        0,
+        0,
+>>>>>>> origin
         0,
         20,
         2,
@@ -6226,7 +6673,11 @@
       "totalCharacters": 438,
       "totalWords": 18,
       "totalEmojis": 2,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T06:33:18.830Z",
+=======
+      "firstMessageDate": "2025-06-12T06:33:18.827Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T07:06:20.296Z",
       "mentionsGiven": 4,
       "mentionsReceived": 4,
@@ -6365,7 +6816,11 @@
       "totalCharacters": 77,
       "totalWords": 12,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T07:32:38.107Z",
+=======
+      "firstMessageDate": "2025-06-12T07:32:38.104Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T12:37:45.215Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -6448,7 +6903,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 9.4395,
+=======
+      "voiceMinutes": 9.439533333333333,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -6464,7 +6923,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T07:40:00.402Z",
+=======
+      "firstMessageDate": "2025-06-12T07:40:00.406Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T07:40:00.275Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -6521,7 +6984,11 @@
       "totalCharacters": 87,
       "totalWords": 7,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T10:55:38.683Z",
+=======
+      "firstMessageDate": "2025-06-12T10:55:38.659Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T10:58:36.288Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -6612,7 +7079,11 @@
       "totalCharacters": 70,
       "totalWords": 7,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T11:43:23.253Z",
+=======
+      "firstMessageDate": "2025-06-12T11:43:23.277Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T12:37:37.264Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -6682,7 +7153,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 5.3665666666666665,
+=======
+      "voiceMinutes": 5.366116666666667,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -6694,6 +7169,7 @@
     {
       "userId": "1175238141846769724",
       "username": "kenpin0363",
+<<<<<<< HEAD
       "totalMessages": 115,
       "totalCharacters": 570,
       "totalWords": 75,
@@ -6702,6 +7178,16 @@
       "lastMessageDate": "2025-07-01T13:46:24.367Z",
       "mentionsGiven": 46,
       "mentionsReceived": 5,
+=======
+      "totalMessages": 37,
+      "totalCharacters": 194,
+      "totalWords": 21,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-12T16:43:15.921Z",
+      "lastMessageDate": "2025-06-18T12:35:50.121Z",
+      "mentionsGiven": 21,
+      "mentionsReceived": 1,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】kenpin",
@@ -6776,6 +7262,7 @@
           1
         ],
         [
+<<<<<<< HEAD
           "あちい",
           2
         ],
@@ -7023,6 +7510,53 @@
           1
         ]
       ]
+=======
+          "よろしく！",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        7,
+        6,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        4,
+        0,
+        5,
+        0,
+        3,
+        2,
+        3,
+        1
+      ],
+      "weekdayActivity": [
+        17,
+        1,
+        5,
+        2,
+        0,
+        3,
+        9
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+>>>>>>> origin
     }
   ],
   [
@@ -7034,7 +7568,11 @@
       "totalCharacters": 116,
       "totalWords": 10,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T17:04:51.558Z",
+=======
+      "firstMessageDate": "2025-06-12T17:04:51.566Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T06:49:12.008Z",
       "mentionsGiven": 1,
       "mentionsReceived": 3,
@@ -7132,7 +7670,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-12T19:26:32.656Z",
+=======
+      "firstMessageDate": "2025-06-12T19:26:32.654Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-12T19:26:32.302Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -7189,7 +7731,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-13T12:59:02.299Z",
+=======
+      "firstMessageDate": "2025-06-13T12:59:02.305Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-13T12:59:02.006Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -7246,7 +7792,11 @@
       "totalCharacters": 90,
       "totalWords": 8,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-13T16:36:37.575Z",
+=======
+      "firstMessageDate": "2025-06-13T16:36:37.581Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-13T17:33:12.560Z",
       "mentionsGiven": 1,
       "mentionsReceived": 1,
@@ -7336,7 +7886,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-13T17:24:19.368Z",
+=======
+      "firstMessageDate": "2025-06-13T17:24:19.369Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-13T17:24:19.168Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -7393,7 +7947,11 @@
       "totalCharacters": 59,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-13T18:37:38.217Z",
+=======
+      "firstMessageDate": "2025-06-13T18:37:38.212Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-13T18:44:14.416Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -7475,7 +8033,11 @@
       "totalCharacters": 83,
       "totalWords": 7,
       "totalEmojis": 2,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-13T19:27:41.142Z",
+=======
+      "firstMessageDate": "2025-06-13T19:27:41.140Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-13T19:30:15.559Z",
       "mentionsGiven": 1,
       "mentionsReceived": 3,
@@ -7570,7 +8132,11 @@
       "totalCharacters": 90,
       "totalWords": 9,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-13T20:35:49.701Z",
+=======
+      "firstMessageDate": "2025-06-13T20:35:49.700Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-13T20:50:22.084Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -7664,7 +8230,11 @@
       "totalCharacters": 78,
       "totalWords": 8,
       "totalEmojis": 5,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T07:26:45.988Z",
+=======
+      "firstMessageDate": "2025-06-14T07:26:45.995Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T04:16:37.720Z",
       "mentionsGiven": 1,
       "mentionsReceived": 2,
@@ -7775,7 +8345,11 @@
       "totalCharacters": 60,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T09:35:16.852Z",
+=======
+      "firstMessageDate": "2025-06-14T09:35:16.856Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T09:52:07.956Z",
       "mentionsGiven": 1,
       "mentionsReceived": 3,
@@ -7857,7 +8431,11 @@
       "totalCharacters": 77,
       "totalWords": 7,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T11:31:24.709Z",
+=======
+      "firstMessageDate": "2025-06-14T11:31:24.701Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T11:41:47.381Z",
       "mentionsGiven": 2,
       "mentionsReceived": 5,
@@ -8018,7 +8596,11 @@
         0,
         3
       ],
+<<<<<<< HEAD
       "voiceMinutes": 208.41898333333333,
+=======
+      "voiceMinutes": 208.41901666666666,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -8034,7 +8616,11 @@
       "totalCharacters": 142,
       "totalWords": 11,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T11:40:35.618Z",
+=======
+      "firstMessageDate": "2025-06-14T11:40:35.608Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T13:13:29.851Z",
       "mentionsGiven": 1,
       "mentionsReceived": 5,
@@ -8194,7 +8780,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T13:42:25.504Z",
+=======
+      "firstMessageDate": "2025-06-14T13:42:25.953Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T13:42:25.358Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -8251,7 +8841,11 @@
       "totalCharacters": 153,
       "totalWords": 13,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T15:16:21.780Z",
+=======
+      "firstMessageDate": "2025-06-14T15:16:21.784Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T15:29:20.175Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -8361,7 +8955,11 @@
       "totalCharacters": 91,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T16:19:17.281Z",
+=======
+      "firstMessageDate": "2025-06-14T16:19:17.290Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T16:29:39.356Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
@@ -8443,7 +9041,11 @@
       "totalCharacters": 67,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-14T21:46:54.728Z",
+=======
+      "firstMessageDate": "2025-06-14T21:46:54.734Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-14T21:59:42.663Z",
       "mentionsGiven": 1,
       "mentionsReceived": 2,
@@ -8525,7 +9127,11 @@
       "totalCharacters": 72,
       "totalWords": 6,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-15T03:08:26.957Z",
+=======
+      "firstMessageDate": "2025-06-15T03:08:26.927Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T03:28:46.383Z",
       "mentionsGiven": 1,
       "mentionsReceived": 4,
@@ -8612,7 +9218,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-15T05:18:13.445Z",
+=======
+      "firstMessageDate": "2025-06-15T05:18:13.428Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T05:18:13.257Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -8669,7 +9279,11 @@
       "totalCharacters": 66,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-15T06:32:11.365Z",
+=======
+      "firstMessageDate": "2025-06-15T06:32:11.373Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T06:33:38.016Z",
       "mentionsGiven": 1,
       "mentionsReceived": 4,
@@ -8751,7 +9365,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-15T07:18:27.973Z",
+=======
+      "firstMessageDate": "2025-06-15T07:18:27.971Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T07:18:27.819Z",
       "mentionsGiven": 0,
       "mentionsReceived": 2,
@@ -8808,7 +9426,11 @@
       "totalCharacters": 73,
       "totalWords": 6,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-15T07:19:46.786Z",
+=======
+      "firstMessageDate": "2025-06-15T07:19:46.787Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T07:28:15.162Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -8891,6 +9513,7 @@
     {
       "userId": "1377971194531287080",
       "username": "ono0372_87212",
+<<<<<<< HEAD
       "totalMessages": 14,
       "totalCharacters": 61,
       "totalWords": 6,
@@ -8898,6 +9521,15 @@
       "firstMessageDate": "2025-06-15T07:53:49.302Z",
       "lastMessageDate": "2025-06-21T10:48:13.981Z",
       "mentionsGiven": 12,
+=======
+      "totalMessages": 11,
+      "totalCharacters": 61,
+      "totalWords": 6,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-15T07:53:49.304Z",
+      "lastMessageDate": "2025-06-18T11:57:39.152Z",
+      "mentionsGiven": 9,
+>>>>>>> origin
       "mentionsReceived": 4,
       "wordFrequency": [
         [
@@ -8934,7 +9566,11 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         1,
+=======
+        0,
+>>>>>>> origin
         0,
         0,
         0,
@@ -8946,8 +9582,13 @@
         5,
         1,
         0,
+<<<<<<< HEAD
         1,
         3,
+=======
+        0,
+        2,
+>>>>>>> origin
         0,
         0,
         1
@@ -8957,9 +9598,106 @@
         4,
         3,
         1,
+<<<<<<< HEAD
         1,
         1,
         1
+=======
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1334436031487017024",
+    {
+      "userId": "1334436031487017024",
+      "username": "meeow_xoxo",
+      "totalMessages": 3,
+      "totalCharacters": 51,
+      "totalWords": 7,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-06-15T09:15:28.598Z",
+      "lastMessageDate": "2025-06-15T09:18:37.294Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 3,
+      "wordFrequency": [
+        [
+          "【名前】しす",
+          1
+        ],
+        [
+          "【年齢】１５",
+          1
+        ],
+        [
+          "【性別】男",
+          1
+        ],
+        [
+          "【誕生日】",
+          1
+        ],
+        [
+          "【最近ハマっている事】",
+          1
+        ],
+        [
+          "【何か一言！】",
+          1
+        ],
+        [
+          "よろです👀",
+          1
+        ]
+      ],
+      "emojiFrequency": [
+        [
+          "👀",
+          1
+        ]
+      ],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+>>>>>>> origin
       ],
       "voiceMinutes": 0,
       "responseTime": 0,
@@ -8973,13 +9711,22 @@
     {
       "userId": "1343771352208904274",
       "username": "dora_tofu_60194",
+<<<<<<< HEAD
       "totalMessages": 48,
+=======
+      "totalMessages": 11,
+>>>>>>> origin
       "totalCharacters": 111,
       "totalWords": 7,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-16T06:39:13.958Z",
+<<<<<<< HEAD
       "lastMessageDate": "2025-06-28T04:50:53.055Z",
       "mentionsGiven": 38,
+=======
+      "lastMessageDate": "2025-06-18T11:34:03.962Z",
+      "mentionsGiven": 7,
+>>>>>>> origin
       "mentionsReceived": 3,
       "wordFrequency": [
         [
@@ -9013,6 +9760,7 @@
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
+<<<<<<< HEAD
         1,
         2,
         12,
@@ -9046,6 +9794,41 @@
         7,
         5,
         5
+=======
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        3,
+        0,
+        2,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        3,
+        5,
+        3,
+        0,
+        0,
+        0
+>>>>>>> origin
       ],
       "voiceMinutes": 0,
       "responseTime": 0,
@@ -9059,6 +9842,7 @@
     {
       "userId": "1141948586788126741",
       "username": "makelittle_35268",
+<<<<<<< HEAD
       "totalMessages": 7,
       "totalCharacters": 98,
       "totalWords": 10,
@@ -9066,6 +9850,15 @@
       "firstMessageDate": "2025-06-16T13:25:50.319Z",
       "lastMessageDate": "2025-06-22T16:36:41.301Z",
       "mentionsGiven": 4,
+=======
+      "totalMessages": 5,
+      "totalCharacters": 94,
+      "totalWords": 9,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-16T13:25:50.299Z",
+      "lastMessageDate": "2025-06-18T06:07:25.283Z",
+      "mentionsGiven": 2,
+>>>>>>> origin
       "mentionsReceived": 4,
       "wordFrequency": [
         [
@@ -9103,15 +9896,19 @@
         [
           "あなたが恐れていることは何ですか?",
           1
+<<<<<<< HEAD
         ],
         [
           "同じだわ",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
+<<<<<<< HEAD
         1,
         0,
         0,
@@ -9126,6 +9923,22 @@
         0,
         2,
         0,
+=======
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+>>>>>>> origin
         1,
         0,
         0,
@@ -9138,11 +9951,19 @@
       ],
       "weekdayActivity": [
         0,
+<<<<<<< HEAD
         4,
         1,
         1,
         0,
         1,
+=======
+        3,
+        1,
+        1,
+        0,
+        0,
+>>>>>>> origin
         0
       ],
       "voiceMinutes": 0,
@@ -9243,7 +10064,11 @@
       "totalCharacters": 83,
       "totalWords": 10,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-16T16:42:03.734Z",
+=======
+      "firstMessageDate": "2025-06-16T16:42:03.739Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-16T16:43:14.429Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -9317,7 +10142,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 0.21236666666666668,
+=======
+      "voiceMinutes": 0.21228333333333332,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -9333,7 +10162,11 @@
       "totalCharacters": 65,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-16T17:02:39.872Z",
+=======
+      "firstMessageDate": "2025-06-16T17:02:39.881Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-16T17:03:44.274Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
@@ -9415,7 +10248,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-16T19:19:27.778Z",
+=======
+      "firstMessageDate": "2025-06-16T19:19:27.772Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-16T19:19:27.561Z",
       "mentionsGiven": 0,
       "mentionsReceived": 4,
@@ -9472,7 +10309,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-16T19:53:16.459Z",
+=======
+      "firstMessageDate": "2025-06-16T19:53:16.458Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-16T19:53:16.355Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -9525,6 +10366,7 @@
     {
       "userId": "1345007524734042272",
       "username": "realyoeden",
+<<<<<<< HEAD
       "totalMessages": 2,
       "totalCharacters": 38,
       "totalWords": 2,
@@ -9543,6 +10385,17 @@
           1
         ]
       ],
+=======
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-17T03:57:14.754Z",
+      "lastMessageDate": "2025-06-17T03:57:14.657Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 4,
+      "wordFrequency": [],
+>>>>>>> origin
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -9565,7 +10418,11 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         1,
+=======
+        0,
+>>>>>>> origin
         0,
         0,
         0
@@ -9575,11 +10432,19 @@
         0,
         1,
         0,
+<<<<<<< HEAD
         1,
         0,
         0
       ],
       "voiceMinutes": 155.46468333333334,
+=======
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 134.69936666666666,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -9595,7 +10460,11 @@
       "totalCharacters": 62,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-17T11:31:47.032Z",
+=======
+      "firstMessageDate": "2025-06-17T11:31:47.031Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-17T11:33:32.118Z",
       "mentionsGiven": 0,
       "mentionsReceived": 4,
@@ -9661,7 +10530,11 @@
         0,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 118.41261666666666,
+=======
+      "voiceMinutes": 118.41273333333334,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -9677,7 +10550,11 @@
       "totalCharacters": 64,
       "totalWords": 6,
       "totalEmojis": 1,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-17T18:38:57.934Z",
+=======
+      "firstMessageDate": "2025-06-17T18:38:57.933Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-17T18:56:29.598Z",
       "mentionsGiven": 1,
       "mentionsReceived": 2,
@@ -9764,7 +10641,11 @@
       "totalCharacters": 0,
       "totalWords": 0,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-17T19:16:44.655Z",
+=======
+      "firstMessageDate": "2025-06-17T19:16:44.644Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-17T19:16:44.540Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -9817,6 +10698,7 @@
     {
       "userId": "1104001979258245151",
       "username": "legoputideth",
+<<<<<<< HEAD
       "totalMessages": 33,
       "totalCharacters": 866,
       "totalWords": 42,
@@ -9825,6 +10707,16 @@
       "lastMessageDate": "2025-06-25T02:12:20.552Z",
       "mentionsGiven": 3,
       "mentionsReceived": 8,
+=======
+      "totalMessages": 25,
+      "totalCharacters": 714,
+      "totalWords": 33,
+      "totalEmojis": 2,
+      "firstMessageDate": "2025-06-18T06:23:34.867Z",
+      "lastMessageDate": "2025-06-18T08:35:05.267Z",
+      "mentionsGiven": 3,
+      "mentionsReceived": 7,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】れごぷち、ぷち",
@@ -9953,6 +10845,7 @@
         [
           "aiが地球を守るために人間を地球から消すという選択肢を提示する可能性はありますか🤔",
           1
+<<<<<<< HEAD
         ],
         [
           "高校入ったらバイトしようと思ってるけど毎日入れたほうがいいのかそれとも週末に一気に入れたほうがいいのかわからない😩",
@@ -9989,6 +10882,8 @@
         [
           "どうにかできないのかな",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
@@ -9999,10 +10894,13 @@
         [
           "🤔",
           1
+<<<<<<< HEAD
         ],
         [
           "😩",
           2
+=======
+>>>>>>> origin
         ]
       ],
       "hourlyActivity": [
@@ -10017,12 +10915,21 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         1,
         0,
         0,
         0,
         6,
         23,
+=======
+        0,
+        0,
+        0,
+        0,
+        2,
+        20,
+>>>>>>> origin
         3,
         0,
         0,
@@ -10033,6 +10940,7 @@
       ],
       "weekdayActivity": [
         0,
+<<<<<<< HEAD
         6,
         0,
         26,
@@ -10041,6 +10949,16 @@
         0
       ],
       "voiceMinutes": 31.8724,
+=======
+        0,
+        0,
+        25,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -10056,7 +10974,11 @@
       "totalCharacters": 97,
       "totalWords": 9,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-18T11:05:33.920Z",
+=======
+      "firstMessageDate": "2025-06-18T11:05:33.918Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-18T11:38:50.572Z",
       "mentionsGiven": 0,
       "mentionsReceived": 5,
@@ -10150,10 +11072,17 @@
       "totalCharacters": 69,
       "totalWords": 6,
       "totalEmojis": 0,
+<<<<<<< HEAD
       "firstMessageDate": "2025-06-18T12:57:33.308Z",
       "lastMessageDate": "2025-06-18T12:59:15.369Z",
       "mentionsGiven": 0,
       "mentionsReceived": 3,
+=======
+      "firstMessageDate": "2025-06-18T12:57:33.292Z",
+      "lastMessageDate": "2025-06-18T12:59:15.369Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 1,
+>>>>>>> origin
       "wordFrequency": [
         [
           "【名前】影猫",
@@ -10222,6 +11151,7 @@
       "reactionGiven": 0,
       "commandUsage": []
     }
+<<<<<<< HEAD
   ],
   [
     "1383779715675848866",
@@ -15505,5 +16435,7 @@
       "reactionGiven": 0,
       "commandUsage": []
     }
+=======
+>>>>>>> origin
   ]
 ]

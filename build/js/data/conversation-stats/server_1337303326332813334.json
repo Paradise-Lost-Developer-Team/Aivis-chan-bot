@@ -1,12 +1,19 @@
 {
   "serverId": "1337303326332813334",
+<<<<<<< HEAD
   "serverName": "Aivis Chan Bot - サポート",
   "totalMessages": 89,
   "totalCharacters": 4611,
+=======
+  "serverName": "Aivis Chan Bot - サポート by Paradise Lost Server",
+  "totalMessages": 50,
+  "totalCharacters": 1076,
+>>>>>>> origin
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
     [
+<<<<<<< HEAD
       "1337315898859585579",
       {
         "channelId": "1337315898859585579",
@@ -16,6 +23,20 @@
         "hourlyActivity": [
           0,
           1,
+=======
+      "1337315825606197248",
+      {
+        "channelId": "1337315825606197248",
+        "channelName": "対応中の問題",
+        "totalMessages": 6,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+>>>>>>> origin
           0,
           0,
           0,
@@ -26,16 +47,20 @@
           0,
           0,
           1,
+<<<<<<< HEAD
           0,
           0,
           6,
           1,
           1,
+=======
+>>>>>>> origin
           1,
           0,
           0,
           0,
           0,
+<<<<<<< HEAD
           0,
           0
         ],
@@ -44,6 +69,18 @@
           5,
           0,
           3,
+=======
+          2,
+          1,
+          1,
+          0
+        ],
+        "weekdayActivity": [
+          2,
+          4,
+          0,
+          0,
+>>>>>>> origin
           0,
           0,
           0
@@ -51,16 +88,25 @@
       }
     ],
     [
+<<<<<<< HEAD
       "1337315825606197248",
       {
         "channelId": "1337315825606197248",
         "channelName": "対応中の問題",
         "totalMessages": 14,
+=======
+      "1337303456272224297",
+      {
+        "channelId": "1337303456272224297",
+        "channelName": "ようこそ",
+        "totalMessages": 39,
+>>>>>>> origin
         "messageByUsers": {},
         "hourlyActivity": [
           0,
           0,
           0,
+<<<<<<< HEAD
           0,
           0,
           0,
@@ -91,6 +137,38 @@
           0,
           0,
           0
+=======
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1,
+          1,
+          3,
+          3,
+          1,
+          1,
+          2,
+          5,
+          7,
+          0,
+          2,
+          2,
+          2,
+          3,
+          3
+        ],
+        "weekdayActivity": [
+          5,
+          6,
+          6,
+          12,
+          2,
+          2,
+          6
+>>>>>>> origin
         ]
       }
     ],
@@ -99,7 +177,11 @@
       {
         "channelId": "1340883723620585505",
         "channelName": "メンテナンス",
+<<<<<<< HEAD
         "totalMessages": 5,
+=======
+        "totalMessages": 4,
+>>>>>>> origin
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -117,7 +199,11 @@
           0,
           0,
           0,
+<<<<<<< HEAD
           1,
+=======
+          0,
+>>>>>>> origin
           2,
           1,
           0,
@@ -128,7 +214,11 @@
           0
         ],
         "weekdayActivity": [
+<<<<<<< HEAD
           1,
+=======
+          0,
+>>>>>>> origin
           3,
           0,
           0,
@@ -139,10 +229,17 @@
       }
     ],
     [
+<<<<<<< HEAD
       "1337309140053262336",
       {
         "channelId": "1337309140053262336",
         "channelName": "moderator-chat",
+=======
+      "1337315898859585579",
+      {
+        "channelId": "1337315898859585579",
+        "channelName": "お知らせ",
+>>>>>>> origin
         "totalMessages": 1,
         "messageByUsers": {},
         "hourlyActivity": [
@@ -160,6 +257,7 @@
           0,
           0,
           0,
+<<<<<<< HEAD
           0,
           0,
           0,
@@ -172,12 +270,15 @@
           0
         ],
         "weekdayActivity": [
+=======
+>>>>>>> origin
           1,
           0,
           0,
           0,
           0,
           0,
+<<<<<<< HEAD
           0
         ]
       }
@@ -223,22 +324,47 @@
           3,
           3,
           7
+=======
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+>>>>>>> origin
         ]
       }
     ]
   ],
   "hourlyActivity": [
+<<<<<<< HEAD
     1,
     2,
     0,
     1,
     0,
     2,
+=======
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+>>>>>>> origin
     0,
     1,
     0,
     1,
     2,
+<<<<<<< HEAD
     6,
     6,
     3,
@@ -305,6 +431,34 @@
       1
     ],
     [
+=======
+    3,
+    3,
+    1,
+    3,
+    3,
+    7,
+    8,
+    0,
+    2,
+    4,
+    3,
+    4,
+    3
+  ],
+  "weekdayActivity": [
+    7,
+    13,
+    6,
+    13,
+    3,
+    2,
+    6
+  ],
+  "averageMessageLength": 21.52,
+  "messageDistribution": [
+    [
+>>>>>>> origin
       "2025-04-27",
       2
     ],
@@ -403,6 +557,7 @@
     [
       "2025-06-16",
       2
+<<<<<<< HEAD
     ],
     [
       "2025-06-21",
@@ -431,6 +586,8 @@
     [
       "2025-07-02",
       3
+=======
+>>>>>>> origin
     ]
   ],
   "mostActiveUser": "809627147333140531",

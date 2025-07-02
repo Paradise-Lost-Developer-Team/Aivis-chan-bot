@@ -4,6 +4,7 @@
     {
       "userId": "1107210702105620510",
       "username": "subaru2012",
+<<<<<<< HEAD
       "totalMessages": 36,
       "totalCharacters": 4228,
       "totalWords": 197,
@@ -12,6 +13,16 @@
       "lastMessageDate": "2025-07-01T13:33:24.860Z",
       "mentionsGiven": 7,
       "mentionsReceived": 7,
+=======
+      "totalMessages": 17,
+      "totalCharacters": 1584,
+      "totalWords": 70,
+      "totalEmojis": 3,
+      "firstMessageDate": "2025-06-04T08:05:13.536Z",
+      "lastMessageDate": "2025-06-18T11:23:45.869Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 1,
+>>>>>>> origin
       "wordFrequency": [
         [
           "/join",
@@ -186,6 +197,7 @@
           1
         ],
         [
+<<<<<<< HEAD
           "異世界探求系youtube",
           2
         ],
@@ -204,6 +216,34 @@
         [
           "<@1107210702105620510>",
           7
+=======
+          "イスラム教徒による神社への放火",
+          1
+        ],
+        [
+          "https://x.com/urakawakiyo/status/1934102370771968035",
+          1
+        ],
+        [
+          "異世界探求系youtube",
+          1
+        ],
+        [
+          "ch「bttp」のライブにゲスト出演決定!!｜中津川",
+          1
+        ],
+        [
+          "subaru",
+          1
+        ],
+        [
+          "nakatsugawa",
+          1
+        ],
+        [
+          "<@1107210702105620510>",
+          1
+>>>>>>> origin
         ],
         [
           "https://note.com/subaru2012/n/nb3a24d1cfa32?sub_rt=share_pb",
@@ -243,7 +283,11 @@
         ],
         [
           "22:00",
+<<<<<<< HEAD
           2
+=======
+          1
+>>>>>>> origin
         ],
         [
           "22:25",
@@ -252,6 +296,7 @@
         [
           "https://abema.tv/channels/abema-special/slots/bzb2mxssx6axwq",
           1
+<<<<<<< HEAD
         ],
         [
           "【スターシップ36号🚀打ち上げ直前に爆発🔥】",
@@ -572,12 +617,18 @@
         [
           "https://note.com/subaru2012/n/n7380c7b6f0a6?sub_rt=share_pb",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [
         [
           "🚀",
+<<<<<<< HEAD
           2
+=======
+          1
+>>>>>>> origin
         ],
         [
           "⛩",
@@ -586,10 +637,13 @@
         [
           "👇",
           1
+<<<<<<< HEAD
         ],
         [
           "🔥",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "hourlyActivity": [
@@ -597,14 +651,22 @@
         0,
         0,
         0,
+<<<<<<< HEAD
         1,
         1,
         0,
         2,
+=======
+        0,
+        0,
+        0,
+        0,
+>>>>>>> origin
         0,
         0,
         0,
         2,
+<<<<<<< HEAD
         3,
         1,
         3,
@@ -628,6 +690,31 @@
         5
       ],
       "voiceMinutes": 5.885050000000001,
+=======
+        1,
+        0,
+        1,
+        0,
+        3,
+        4,
+        1,
+        0,
+        2,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        4,
+        2,
+        1,
+        5,
+        4,
+        1,
+        0
+      ],
+      "voiceMinutes": 5.883966666666667,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 [2025-06-10T20-00-30.875Z] [uncaughtException] write EPIPE
+=======
+[2025-06-10T20-00-30.850Z] [uncaughtException] write EPIPE
+>>>>>>> origin
 Error: write EPIPE
     at afterWriteDispatched (node:internal/stream_base_commons:159:15)
     at writeGeneric (node:internal/stream_base_commons:150:3)

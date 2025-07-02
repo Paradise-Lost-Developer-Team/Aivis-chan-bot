@@ -4,12 +4,21 @@
     {
       "userId": "386884999670005773",
       "username": "kyarakon.",
+<<<<<<< HEAD
       "totalMessages": 9,
       "totalCharacters": 1142,
       "totalWords": 59,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-16T17:08:51.544Z",
       "lastMessageDate": "2025-06-21T17:31:11.777Z",
+=======
+      "totalMessages": 7,
+      "totalCharacters": 262,
+      "totalWords": 5,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-16T17:08:51.538Z",
+      "lastMessageDate": "2025-06-13T09:11:59.328Z",
+>>>>>>> origin
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -32,6 +41,7 @@
         [
           "https://x.com/panda_umaprsk/status/1933422567995683159?t=9is_enq640v-l4u0mttvfw&s=19",
           1
+<<<<<<< HEAD
         ],
         [
           "ちょんまげラーメンず",
@@ -196,13 +206,21 @@
         [
           "https://x.com/moju_poke/status/1936416429324255573?t=gb03uxl2x6tmtpsfqjbh2q&s=19",
           1
+=======
+>>>>>>> origin
         ]
       ],
       "emojiFrequency": [],
       "hourlyActivity": [
+<<<<<<< HEAD
         1,
         1,
         2,
+=======
+        0,
+        1,
+        1,
+>>>>>>> origin
         0,
         0,
         0,
@@ -226,7 +244,11 @@
         0
       ],
       "weekdayActivity": [
+<<<<<<< HEAD
         4,
+=======
+        2,
+>>>>>>> origin
         0,
         1,
         0,
@@ -234,7 +256,11 @@
         3,
         0
       ],
+<<<<<<< HEAD
       "voiceMinutes": 50.08808333333333,
+=======
+      "voiceMinutes": 50.08831666666667,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

@@ -1,0 +1,146 @@
+{
+  "serverId": "1368823807363780709",
+  "serverName": "ゲリラ",
+  "totalMessages": 10,
+  "totalCharacters": 1339,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1368823807363780713",
+      {
+        "channelId": "1368823807363780713",
+        "channelName": "一般",
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1368824413985964042",
+      {
+        "channelId": "1368824413985964042",
+        "channelName": "音楽bot",
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    10,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "averageMessageLength": 133.9,
+  "messageDistribution": [
+    [
+      "2025-05-05",
+      9
+    ],
+    [
+      "2025-05-19",
+      1
+    ]
+  ],
+  "mostActiveUser": "1121394385393823746",
+  "mostActiveChannel": "1368824413985964042"
+}

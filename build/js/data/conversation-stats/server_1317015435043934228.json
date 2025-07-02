@@ -1,8 +1,13 @@
 {
   "serverId": "1317015435043934228",
   "serverName": "Alecのサーバー",
+<<<<<<< HEAD
   "totalMessages": 104,
   "totalCharacters": 4076,
+=======
+  "totalMessages": 39,
+  "totalCharacters": 488,
+>>>>>>> origin
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +16,11 @@
       {
         "channelId": "1317015435689984053",
         "channelName": "雑多",
+<<<<<<< HEAD
         "totalMessages": 88,
+=======
+        "totalMessages": 33,
+>>>>>>> origin
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -25,6 +34,7 @@
           0,
           0,
           0,
+<<<<<<< HEAD
           6,
           11,
           5,
@@ -36,13 +46,32 @@
           0,
           12,
           5,
+=======
+          0,
+          1,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          12,
+          6,
+>>>>>>> origin
           6,
           5
         ],
         "weekdayActivity": [
+<<<<<<< HEAD
           30,
           38,
           3,
+=======
+          29,
+          4,
+          0,
+>>>>>>> origin
           0,
           0,
           0,
@@ -55,6 +84,7 @@
       {
         "channelId": "1317015435689984052",
         "channelName": "一般",
+<<<<<<< HEAD
         "totalMessages": 10,
         "messageByUsers": {},
         "hourlyActivity": [
@@ -99,6 +129,8 @@
       {
         "channelId": "1363236529329147976",
         "channelName": "mod",
+=======
+>>>>>>> origin
         "totalMessages": 3,
         "messageByUsers": {},
         "hourlyActivity": [
@@ -106,11 +138,23 @@
           0,
           0,
           0,
+<<<<<<< HEAD
           2,
+=======
+>>>>>>> origin
           0,
           0,
           0,
           0,
+<<<<<<< HEAD
+=======
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+>>>>>>> origin
           0,
           0,
           1,
@@ -120,6 +164,7 @@
           0,
           0,
           0,
+<<<<<<< HEAD
           0,
           0,
           0,
@@ -130,6 +175,13 @@
         "weekdayActivity": [
           2,
           0,
+=======
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+>>>>>>> origin
           1,
           0,
           0,
@@ -276,12 +328,17 @@
     0,
     0,
     0,
+<<<<<<< HEAD
     4,
+=======
+    0,
+>>>>>>> origin
     0,
     0,
     0,
     1,
     0,
+<<<<<<< HEAD
     1,
     8,
     12,
@@ -294,10 +351,25 @@
     4,
     13,
     9,
+=======
+    0,
+    1,
+    2,
+    0,
+    0,
+    3,
+    1,
+    0,
+    0,
+    1,
+    13,
+    6,
+>>>>>>> origin
     6,
     5
   ],
   "weekdayActivity": [
+<<<<<<< HEAD
     39,
     44,
     10,
@@ -339,6 +411,21 @@
     [
       "2025-04-27",
       13
+=======
+    31,
+    7,
+    1,
+    0,
+    0,
+    0,
+    0
+  ],
+  "averageMessageLength": 12.512820512820513,
+  "messageDistribution": [
+    [
+      "2025-04-27",
+      14
+>>>>>>> origin
     ],
     [
       "2025-04-28",

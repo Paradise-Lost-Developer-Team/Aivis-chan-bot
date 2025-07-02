@@ -1,8 +1,13 @@
 {
   "serverId": "1351827918569078855",
   "serverName": "学生雑談・ゲーム鯖",
+<<<<<<< HEAD
   "totalMessages": 4595,
   "totalCharacters": 67686,
+=======
+  "totalMessages": 4593,
+  "totalCharacters": 67658,
+>>>>>>> origin
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -99,11 +104,19 @@
       {
         "channelId": "1351831007095029781",
         "channelName": "📷┣画像・動画",
+<<<<<<< HEAD
         "totalMessages": 94,
         "messageByUsers": {},
         "hourlyActivity": [
           12,
           1,
+=======
+        "totalMessages": 93,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          12,
+          0,
+>>>>>>> origin
           1,
           1,
           0,
@@ -134,7 +147,11 @@
           6,
           7,
           5,
+<<<<<<< HEAD
           7
+=======
+          6
+>>>>>>> origin
         ]
       }
     ],
@@ -187,11 +204,19 @@
       {
         "channelId": "1351827919479246850",
         "channelName": "🚪┣入室通知",
+<<<<<<< HEAD
         "totalMessages": 108,
         "messageByUsers": {},
         "hourlyActivity": [
           5,
           8,
+=======
+        "totalMessages": 107,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          5,
+          7,
+>>>>>>> origin
           2,
           3,
           2,
@@ -216,7 +241,11 @@
           7
         ],
         "weekdayActivity": [
+<<<<<<< HEAD
           23,
+=======
+          22,
+>>>>>>> origin
           26,
           18,
           7,
@@ -1197,7 +1226,11 @@
   ],
   "hourlyActivity": [
     203,
+<<<<<<< HEAD
     177,
+=======
+    175,
+>>>>>>> origin
     126,
     109,
     62,
@@ -1222,15 +1255,25 @@
     170
   ],
   "weekdayActivity": [
+<<<<<<< HEAD
     1141,
+=======
+    1140,
+>>>>>>> origin
     881,
     349,
     1493,
     156,
     321,
+<<<<<<< HEAD
     254
   ],
   "averageMessageLength": 14.730359085963004,
+=======
+    253
+  ],
+  "averageMessageLength": 14.730677117352492,
+>>>>>>> origin
   "messageDistribution": [
     [
       "2025-05-05",
@@ -1371,6 +1414,7 @@
     [
       "2025-06-18",
       4
+<<<<<<< HEAD
     ],
     [
       "2025-06-20",
@@ -1379,6 +1423,8 @@
     [
       "2025-06-28",
       1
+=======
+>>>>>>> origin
     ]
   ],
   "mostActiveUser": "1097204925915734016",

@@ -5,4 +5,8 @@ echo "🔄 ビルド中..."
 npx tsc
 
 echo "🚀 pm2 で起動中..."
+<<<<<<< HEAD
 pm2 start build/js/index.js --name aivis-bot-2nd
+=======
+pm2 start build/js/index.js --name aivis-bot
+>>>>>>> origin

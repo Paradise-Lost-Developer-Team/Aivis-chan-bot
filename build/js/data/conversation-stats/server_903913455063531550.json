@@ -1,8 +1,13 @@
 {
   "serverId": "903913455063531550",
   "serverName": "キャラコンのサーバー",
+<<<<<<< HEAD
   "totalMessages": 9,
   "totalCharacters": 1142,
+=======
+  "totalMessages": 7,
+  "totalCharacters": 262,
+>>>>>>> origin
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,12 +16,21 @@
       {
         "channelId": "1175207840319819897",
         "channelName": "メモ",
+<<<<<<< HEAD
         "totalMessages": 7,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
           0,
           2,
+=======
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          1,
+>>>>>>> origin
           0,
           0,
           0,
@@ -40,7 +54,11 @@
           0
         ],
         "weekdayActivity": [
+<<<<<<< HEAD
           3,
+=======
+          1,
+>>>>>>> origin
           0,
           1,
           0,
@@ -140,9 +158,15 @@
     ]
   ],
   "hourlyActivity": [
+<<<<<<< HEAD
     1,
     1,
     2,
+=======
+    0,
+    1,
+    1,
+>>>>>>> origin
     0,
     0,
     0,
@@ -166,7 +190,11 @@
     0
   ],
   "weekdayActivity": [
+<<<<<<< HEAD
     4,
+=======
+    2,
+>>>>>>> origin
     0,
     1,
     0,
@@ -174,7 +202,11 @@
     3,
     0
   ],
+<<<<<<< HEAD
   "averageMessageLength": 126.88888888888889,
+=======
+  "averageMessageLength": 37.42857142857143,
+>>>>>>> origin
   "messageDistribution": [
     [
       "2025-04-16",
@@ -203,10 +235,13 @@
     [
       "2025-06-13",
       1
+<<<<<<< HEAD
     ],
     [
       "2025-06-21",
       2
+=======
+>>>>>>> origin
     ]
   ],
   "mostActiveUser": "386884999670005773",

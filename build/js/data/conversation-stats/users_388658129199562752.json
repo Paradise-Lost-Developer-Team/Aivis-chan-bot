@@ -8,7 +8,11 @@
       "totalCharacters": 619,
       "totalWords": 17,
       "totalEmojis": 2,
+<<<<<<< HEAD
       "firstMessageDate": "2025-04-15T09:55:05.726Z",
+=======
+      "firstMessageDate": "2025-04-15T09:55:05.725Z",
+>>>>>>> origin
       "lastMessageDate": "2025-06-15T03:31:31.465Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
@@ -123,7 +127,11 @@
         7,
         4
       ],
+<<<<<<< HEAD
       "voiceMinutes": 8.935966666666666,
+=======
+      "voiceMinutes": 11.519116666666665,
+>>>>>>> origin
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

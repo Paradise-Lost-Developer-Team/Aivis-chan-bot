@@ -1,0 +1,102 @@
+{
+  "serverId": "1378957651932876852",
+  "serverName": "Alec / アレクのサーバー",
+  "totalMessages": 7,
+  "totalCharacters": 25,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1378957652758888540",
+      {
+        "channelId": "1378957652758888540",
+        "channelName": "一般",
+        "totalMessages": 7,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          3,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          6,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    3,
+    0,
+    0,
+    0,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    6,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "averageMessageLength": 3.5714285714285716,
+  "messageDistribution": [
+    [
+      "2025-06-02",
+      6
+    ],
+    [
+      "2025-06-18",
+      1
+    ]
+  ],
+  "mostActiveUser": "1005716357154885713",
+  "mostActiveChannel": "1378957652758888540"
+}
