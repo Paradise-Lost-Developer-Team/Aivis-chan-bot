@@ -1,8 +1,8 @@
 {
   "serverId": "1281107107126575114",
   "serverName": "Paradise Lost Test Server",
-  "totalMessages": 82,
-  "totalCharacters": 1582,
+  "totalMessages": 90,
+  "totalCharacters": 1620,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1334452931268968481",
         "channelName": "command-test",
-        "totalMessages": 80,
+        "totalMessages": 88,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -24,11 +24,11 @@
           0,
           0,
           0,
-          0,
+          1,
           4,
-          0,
+          1,
           12,
-          15,
+          21,
           10,
           0,
           4,
@@ -41,10 +41,10 @@
         ],
         "weekdayActivity": [
           0,
-          70,
-          0,
+          76,
+          1,
           4,
-          2,
+          3,
           4,
           0
         ]
@@ -106,11 +106,11 @@
     0,
     0,
     0,
-    0,
+    1,
     4,
-    0,
+    1,
     12,
-    15,
+    21,
     10,
     0,
     4,
@@ -123,14 +123,14 @@
   ],
   "weekdayActivity": [
     0,
-    72,
-    0,
+    78,
+    1,
     4,
-    2,
+    3,
     4,
     0
   ],
-  "averageMessageLength": 19.29268292682927,
+  "averageMessageLength": 18,
   "messageDistribution": [
     [
       "2025-04-28",
@@ -154,6 +154,18 @@
     ],
     [
       "2025-06-18",
+      1
+    ],
+    [
+      "2025-06-19",
+      1
+    ],
+    [
+      "2025-06-23",
+      6
+    ],
+    [
+      "2025-06-24",
       1
     ]
   ],

@@ -74,6 +74,10 @@ function MessageCreate(client) {
             animatedEmojis.forEach(emoji => {
                 messageContent = messageContent.replace(emoji, "動く絵文字");
             });
+            // 添付ファイルがある場合は "添付ファイル" に置換
+            if (message.attachments.size > 0) {
+                messageContent = messageContent.replace(/$/, messageContent.trim() === '' ? "添付ファイル" : " 添付ファイル");
+            }
             // URLを置換
             const urls = messageContent.match(/https?:\/\/\S+/g) || [];
             urls.forEach(url => {
