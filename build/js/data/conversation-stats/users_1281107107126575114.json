@@ -90,12 +90,12 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 175,
-      "totalCharacters": 6023,
-      "totalWords": 196,
+      "totalMessages": 183,
+      "totalCharacters": 6061,
+      "totalWords": 204,
       "totalEmojis": 32,
       "firstMessageDate": "2025-04-13T13:14:05.165Z",
-      "lastMessageDate": "2025-06-18T02:45:35.609Z",
+      "lastMessageDate": "2025-06-24T03:15:58.041Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -125,7 +125,7 @@
         ],
         [
           "こんにちは！",
-          4
+          5
         ],
         [
           "ねぇ、今日はなんだか特別な気がするの。空もいつもより青くて、風も優しいでしょ？こういう日はさ、小さな冒険に出かけたくなるんだ。ね、一緒に行こうよ。きっと、すっごく素敵なことが待ってる気がするの！",
@@ -246,6 +246,10 @@
         [
           "ああああああ",
           1
+        ],
+        [
+          "こんにちは！！！",
+          3
         ]
       ],
       "emojiFrequency": [
@@ -273,11 +277,11 @@
         0,
         0,
         8,
-        0,
-        11,
         1,
+        11,
+        2,
         16,
-        15,
+        21,
         12,
         2,
         5,
@@ -290,14 +294,14 @@
       ],
       "weekdayActivity": [
         79,
-        69,
-        7,
+        75,
+        8,
         4,
-        2,
+        3,
         13,
         1
       ],
-      "voiceMinutes": 548.3448333333332,
+      "voiceMinutes": 552.4413,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
