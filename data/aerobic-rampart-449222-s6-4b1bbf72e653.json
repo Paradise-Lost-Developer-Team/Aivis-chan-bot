@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "aerobic-rampart-449222-s6",
+  "private_key_id": "4b1bbf72e6535529c1b3b19696573c2297dd075d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC4FZTNRN6xfVXj\ns07C4Xl5kXyIayQLxDzX23kT5FTjStCbmLFQEPWTtA7EUWpBXSvfHxy4pSubriZL\nx+MJOv48w8/walOq7r9u8/TwK3SFsyo2q4z1BrKH8P917cH+Moxxt2z9QhnX/pB2\nCoPRDHqm1RT3nvyFAZbtZ6tKiXKxykleLItnkzS15AJaunjxPCOr4T95X7aaMxN+\ni6vNDUjDH1mw2oSLubJZZXRItsHmTLt0dRyzty5LljTU5uIQbBmM6pcG4bjwrL/L\ntcu6lrhYII0FOyNI8ab9S8yu7XJfVqCPnTnsstisHAN8rCQyhUEOrpFrN5I3NF3Z\nx/c9A395AgMBAAECggEABK33xGgVySlIf6tVOzsEHYUHR2iB2BK7ATnBEDJjvgtu\n1iXBjCmCNKkFHxR6wQKfVOKzljYMr75zlsWUDe4D/IN1y8TIL7Y2A5oMBfb01VlC\nn3Uo9imfbDlCJTtQDSg3zcQ97wo5IfaEsZt+0leg3pDYIZtXDAKIVaym/BQWaFKT\nAKrHBqGD62Fp/kW13nuhmOXg/wEdwSghVTG3CXBJMepKylEC9TPiXU7BgMMhJffd\nfGdsm3WQqwgtdP7NgMx8yK74+e+rz5v5aPfjsKgxNGYn0NJl3gEJp33FIhoqKs16\norMc2WUi/OnLB1246tKgYSi16+kD64Xvr4Mo8o2/6QKBgQD1BodcGLZ4jp1LA1HM\nKsZY2PHsLc21TTHCtVV8v8J1Od060kx9daret85yb2mElBOZkXxyAhHk0UwnjPy4\nPsOQjJt8+fAn1CCGRIy4XCQQTIsFrvyMEcf1UQDn7fMhuAD76rqph+fHOq+wcJS7\n71AnwyMp20QHD+XIEQI7bGrBhwKBgQDAVExqZ6wX58NHN34qcMs3OkafEXgSxrkE\n+yTwLken3YsnsC3ydm2MdNsbvO5KXg2TjgKnLXhl94wNGca+n9+cLsCOYuUBZRvl\nLTj0jXyDE12QGVyaOhjYAdEZBLJcLusWoihlSl2aMa/xwUvqe9MvdI7tJwKg5AZ8\nXHb9AuP2/wKBgBHmrDT6STp9kNhOIce8yEjtcJ9EqWa5gQ0smlZG3DocRCFsA9KW\nqikjXJ3XrenVt6jcjC74H76L2/h3wG7lhvwkiaeTywvd35Jvp6hAcxINxYpgwmqp\nUeaGSH6pT74C52+AMqr4FuLjUrqdPwCL91swUn1YW5v4eV0ogPU+cn45AoGAIk2m\nx3+wMR9UNBqQtS8i/7m0KODrwqWREHNe1jva6fTYwf5pY4p95YReJCdhdQArebrl\nfD3e8IjjgN6tFQjc0DWCgKLg54vKGuki9HNb1uEYWgA8BQIBtl00lzrAOTLhGUtY\n2yAVa9Aa6oqoaK0nMJqgd2nyzRF+mqW/T0c5s68CgYBa8IkH+w7hQ16F4K1CJJn8\nchfJW711NN4ABt+vShVQocQ34zA4rrsbAY2VzhrevY3mJlsq9gKlyA6sLz6rw6TK\nsv6Dqq37ygnq7zrvNqKEve99eCM66GWLx7LHPvRlAS0zFhgw98YxihgSY+6hDyOB\n/FrMrW7irwC4G6Tt4vXeSw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "discord-recap-samurai@aerobic-rampart-449222-s6.iam.gserviceaccount.com",
+  "client_id": "117199891224902413372",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/discord-recap-samurai%40aerobic-rampart-449222-s6.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
