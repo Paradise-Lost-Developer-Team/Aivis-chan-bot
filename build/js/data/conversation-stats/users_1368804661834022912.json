@@ -2822,13 +2822,13 @@
     {
       "userId": "1340115718351491112",
       "username": "tarou112200",
-      "totalMessages": 175,
+      "totalMessages": 176,
       "totalCharacters": 2551,
       "totalWords": 202,
       "totalEmojis": 10,
       "firstMessageDate": "2025-05-09T08:33:13.941Z",
-      "lastMessageDate": "2025-06-15T03:04:11.606Z",
-      "mentionsGiven": 17,
+      "lastMessageDate": "2025-06-22T14:07:46.515Z",
+      "mentionsGiven": 18,
       "mentionsReceived": 14,
       "wordFrequency": [
         [
@@ -3578,10 +3578,10 @@
         26,
         9,
         13,
-        17
+        18
       ],
       "weekdayActivity": [
-        71,
+        72,
         4,
         26,
         0,
@@ -4771,6 +4771,116 @@
         2
       ],
       "voiceMinutes": 360.2621666666667,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1366038683236700251",
+    {
+      "userId": "1366038683236700251",
+      "username": "kiku415_67085",
+      "totalMessages": 3,
+      "totalCharacters": 168,
+      "totalWords": 13,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-22T14:07:32.661Z",
+      "lastMessageDate": "2025-06-22T14:16:27.596Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 1,
+      "wordFrequency": [
+        [
+          "初めまして！太郎さんの紹介で参加しましたー！",
+          1
+        ],
+        [
+          "よろしくお願いします",
+          1
+        ],
+        [
+          "■名前",
+          1
+        ],
+        [
+          "harukaze",
+          1
+        ],
+        [
+          "◆推しキャラ",
+          1
+        ],
+        [
+          "カルロッタ",
+          1
+        ],
+        [
+          "■参加できる時間帯",
+          1
+        ],
+        [
+          "20時‐24時",
+          1
+        ],
+        [
+          "休日はいつでも",
+          1
+        ],
+        [
+          "◆一言",
+          1
+        ],
+        [
+          "5月くらいに初めてストーリー終わらせたところです！",
+          1
+        ],
+        [
+          "育成全然終わってない初心者ですが、良ければ遊んでください！",
+          1
+        ],
+        [
+          "今はカルテジアとカルロッタの音骸厳選してます！",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "weekdayActivity": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

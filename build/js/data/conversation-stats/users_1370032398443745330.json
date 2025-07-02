@@ -4,18 +4,38 @@
     {
       "userId": "1077441220181245962",
       "username": "yv1_q2",
-      "totalMessages": 2,
-      "totalCharacters": 6,
-      "totalWords": 2,
+      "totalMessages": 32,
+      "totalCharacters": 221,
+      "totalWords": 29,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-06T06:18:51.920Z",
-      "lastMessageDate": "2025-06-06T06:18:54.926Z",
+      "lastMessageDate": "2025-06-30T01:32:39.825Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
           "おまえら",
           1
+        ],
+        [
+          "。・・・",
+          1
+        ],
+        [
+          "intersection",
+          10
+        ],
+        [
+          "kousaten",
+          4
+        ],
+        [
+          "atmosphere",
+          4
+        ],
+        [
+          "huniki",
+          2
         ]
       ],
       "emojiFrequency": [],
@@ -30,7 +50,7 @@
         0,
         0,
         0,
-        0,
+        28,
         0,
         0,
         0,
@@ -38,7 +58,7 @@
         2,
         0,
         0,
-        0,
+        2,
         0,
         0,
         0,
@@ -47,14 +67,14 @@
       ],
       "weekdayActivity": [
         0,
-        0,
-        0,
+        28,
         0,
         0,
         2,
+        2,
         0
       ],
-      "voiceMinutes": 0,
+      "voiceMinutes": 0.6517,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

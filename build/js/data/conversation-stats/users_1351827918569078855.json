@@ -2755,7 +2755,7 @@
         3,
         57
       ],
-      "voiceMinutes": 4726.286866666668,
+      "voiceMinutes": 4991.630516666668,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3653,7 +3653,7 @@
         7,
         2
       ],
-      "voiceMinutes": 5091.264483333334,
+      "voiceMinutes": 5563.6341833333345,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -8409,12 +8409,12 @@
     {
       "userId": "1090902011450499154",
       "username": "ayap4946",
-      "totalMessages": 413,
-      "totalCharacters": 11574,
-      "totalWords": 812,
+      "totalMessages": 414,
+      "totalCharacters": 11602,
+      "totalWords": 813,
       "totalEmojis": 75,
       "firstMessageDate": "2025-05-05T06:13:41.244Z",
-      "lastMessageDate": "2025-06-16T13:54:42.676Z",
+      "lastMessageDate": "2025-06-20T16:02:42.500Z",
       "mentionsGiven": 30,
       "mentionsReceived": 24,
       "wordFrequency": [
@@ -9781,6 +9781,10 @@
         [
           "コーヒー豆はニガいのでたべるのやめましょう",
           1
+        ],
+        [
+          "https://youtu.be/nhhb9usky6q",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -9875,7 +9879,7 @@
       ],
       "hourlyActivity": [
         8,
-        5,
+        6,
         14,
         25,
         16,
@@ -9906,9 +9910,9 @@
         36,
         24,
         21,
-        33
+        34
       ],
-      "voiceMinutes": 7721.547816666665,
+      "voiceMinutes": 8193.084783333332,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -12123,7 +12127,7 @@
         1,
         51
       ],
-      "voiceMinutes": 492.37375,
+      "voiceMinutes": 497.1111333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -23508,7 +23512,7 @@
         0,
         1
       ],
-      "voiceMinutes": 2.9292333333333334,
+      "voiceMinutes": 3.4114666666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -23652,7 +23656,7 @@
         0,
         0
       ],
-      "voiceMinutes": 213.79045,
+      "voiceMinutes": 245.55126666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -23755,6 +23759,63 @@
         0,
         0,
         1,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1297557385996406914",
+    {
+      "userId": "1297557385996406914",
+      "username": "joy3n",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-28T16:06:14.999Z",
+      "lastMessageDate": "2025-06-28T16:06:14.892Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
         0
       ],
       "weekdayActivity": [

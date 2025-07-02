@@ -1,8 +1,8 @@
 {
   "serverId": "1377632937146712074",
   "serverName": "虚無",
-  "totalMessages": 1508,
-  "totalCharacters": 15967,
+  "totalMessages": 1529,
+  "totalCharacters": 16271,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1377676551096635473",
         "channelName": "雑談",
-        "totalMessages": 630,
+        "totalMessages": 631,
         "messageByUsers": {},
         "hourlyActivity": [
           31,
@@ -31,7 +31,7 @@
           3,
           70,
           62,
-          109,
+          110,
           18,
           69,
           5,
@@ -46,7 +46,7 @@
           329,
           70,
           34,
-          20
+          21
         ]
       }
     ],
@@ -187,7 +187,7 @@
       {
         "channelId": "1377676514468040724",
         "channelName": "雑談2",
-        "totalMessages": 13,
+        "totalMessages": 14,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -207,7 +207,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -222,7 +222,7 @@
           0,
           0,
           0,
-          0
+          1
         ]
       }
     ],
@@ -231,7 +231,7 @@
       {
         "channelId": "1377676569341853787",
         "channelName": "ひとりごと",
-        "totalMessages": 7,
+        "totalMessages": 26,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -246,12 +246,12 @@
           0,
           1,
           0,
+          3,
+          15,
           0,
           0,
           0,
-          0,
-          0,
-          0,
+          1,
           0,
           5,
           0,
@@ -264,9 +264,9 @@
           0,
           0,
           5,
-          2,
+          20,
           0,
-          0
+          1
         ]
       }
     ]
@@ -284,12 +284,12 @@
     4,
     6,
     3,
-    63,
-    3,
+    66,
+    18,
     3,
     70,
     62,
-    110,
+    113,
     18,
     74,
     5,
@@ -302,11 +302,11 @@
     203,
     0,
     335,
-    72,
+    90,
     736,
-    20
+    23
   ],
-  "averageMessageLength": 10.588196286472149,
+  "averageMessageLength": 10.641595814257684,
   "messageDistribution": [
     [
       "2025-05-29",
@@ -362,7 +362,11 @@
     ],
     [
       "2025-06-19",
-      1
+      19
+    ],
+    [
+      "2025-06-21",
+      3
     ]
   ],
   "mostActiveUser": "1362707605843083294",

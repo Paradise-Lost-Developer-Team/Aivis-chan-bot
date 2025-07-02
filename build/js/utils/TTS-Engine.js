@@ -74,6 +74,7 @@ exports.validateMessageLength = validateMessageLength;
 exports.processMessage = processMessage;
 exports.getOrCreateAudioPlayer = getOrCreateAudioPlayer;
 exports.cleanupAudioResources = cleanupAudioResources;
+exports.monitorMemoryUsage = monitorMemoryUsage;
 const voice_1 = require("@discordjs/voice");
 const fs = __importStar(require("fs"));
 const path_1 = __importDefault(require("path"));
@@ -390,7 +391,7 @@ async function fetchWithRetry(url, options = {}, retries = TTS_MAX_RETRIES) {
     }
     throw lastError || new Error('リトライ回数を超過しました');
 }
-// FFmpeg プロセスプール工場
+// FFmpeg プロセスプール工場（メモリ効率化版）
 const ffmpegFactory = {
     create: async () => {
         const ffmpeg = (0, child_process_1.spawn)('ffmpeg', [
@@ -402,42 +403,75 @@ const ffmpegFactory = {
             '-ac', '1', // モノラル
             '-i', 'pipe:0',
             // 48kHz にリサンプル＆ノイズ除去・フェード
-            '-af', 'aresample=48000,silenceremove=start_periods=1:start_silence=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
+            '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
             // Opus エンコード設定
             '-c:a', 'libopus',
-            '-ar', '48000', // 出力は Opus のサポートする 48 kHz
+            '-ar', '48000', // 出力は Opus のサポートする 48 kHz
             '-b:a', '96k',
             '-vbr', 'on',
             '-application', 'audio',
             '-f', 'ogg',
             'pipe:1'
         ], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-        // 追加：stderr を全て拾う
+        // メモリリーク防止：stderr処理を軽量化
         ffmpeg.stderr?.on('data', chunk => {
-            console.error('[ffmpeg stderr]', chunk.toString());
+            // FFmpegのエラーログは必要最小限のみ出力
+            const message = chunk.toString();
+            if (message.includes('error') || message.includes('fatal')) {
+                console.error('[ffmpeg error]', message.slice(0, 200)); // 200文字に制限
+            }
         });
-        ffmpeg.stdin?.on('error', err => console.warn('stdin error:', err));
-        ffmpeg.stdout?.on('error', err => console.warn('stdout error:', err));
+        // エラーハンドリング強化
+        ffmpeg.stdin?.on('error', err => {
+            console.warn('FFmpeg stdin error:', err.message);
+            ffmpeg.kill('SIGKILL'); // 強制終了
+        });
+        ffmpeg.stdout?.on('error', err => {
+            console.warn('FFmpeg stdout error:', err.message);
+            ffmpeg.kill('SIGKILL'); // 強制終了
+        });
         ffmpeg.on('exit', (code, signal) => {
-            console.error(`FFmpeg exit code=${code} signal=${signal}`);
+            console.log(`FFmpeg exit code=${code} signal=${signal}`);
         });
-        ffmpeg.setMaxListeners(50);
+        // リスナー上限を制限（メモリリーク防止）
+        ffmpeg.setMaxListeners(20);
         return ffmpeg;
     },
     destroy: async (cp) => {
         if (cp.killed)
             return;
-        cp.kill();
+        // 段階的な終了処理
+        try {
+            cp.stdin?.end();
+            cp.stdin?.destroy();
+            cp.stdout?.destroy();
+            cp.stderr?.destroy();
+        }
+        catch (e) {
+            console.warn('FFmpeg stream cleanup error:', e);
+        }
+        // プロセス終了
+        cp.kill('SIGTERM');
+        // 1秒後に強制終了
+        setTimeout(() => {
+            if (!cp.killed) {
+                cp.kill('SIGKILL');
+            }
+        }, 1000);
     },
-    validate: async (cp) => !!(cp.stdin && cp.stdin.writable && cp.stdout && cp.stdout.readable)
+    validate: async (cp) => {
+        return !!(cp.stdin && cp.stdin.writable && cp.stdout && cp.stdout.readable && !cp.killed);
+    }
 };
 const ffmpegPool = generic_pool_1.default.createPool(ffmpegFactory, {
-    min: 1,
-    max: 4,
-    idleTimeoutMillis: 30000,
-    evictionRunIntervalMillis: 10000
+    min: 1, // 最小プロセス数
+    max: 3, // 最大プロセス数（メモリ効率化のため削減）
+    idleTimeoutMillis: 15000, // アイドルタイムアウト短縮（15秒）    evictionRunIntervalMillis: 5000, // 定期的なプロセス回収間隔（5秒）
+    acquireTimeoutMillis: 10000, // 取得タイムアウト
+    testOnBorrow: true, // 借用時の検証有効
+    testOnReturn: true // 返却時の検証有効
 });
-// FFmpegプールを使って音声変換を行う
+// FFmpegプールを使って音声変換を行う（メモリ効率化版）
 async function createFFmpegAudioSource(buffer) {
     const ffmpeg = await ffmpegPool.acquire();
     const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
@@ -446,22 +480,39 @@ async function createFFmpegAudioSource(buffer) {
         await ffmpegPool.destroy(ffmpeg);
         return createFFmpegAudioSource(buffer);
     }
-    // ---- ここから修正部分 ----
-    // 以前: 20msごとのチャンク送信でフィルタが何度もリセットされていた
-    // const input = createChunkedStream(buf, 1920);
-    // input.pipe(ffmpeg.stdin!, { end: true });
-    // 修正: 全バッファを一度だけ書き込んで end()
-    ffmpeg.stdin?.write(buf);
-    ffmpeg.stdin?.end();
-    // ---- 修正ここまで ----
-    // Discord用リソース作成
-    const resource = (0, voice_1.createAudioResource)(ffmpeg.stdout, {
-        inputType: voice_1.StreamType.OggOpus,
-        inlineVolume: true,
-    });
-    resource.volume?.setVolume(1.0);
-    // 再生終了後にプールへ返却する責任は呼び出し元
-    return { resource, ffmpeg };
+    try {
+        // 全バッファを一度だけ書き込んで end()（メモリ効率化）
+        ffmpeg.stdin?.write(buf);
+        ffmpeg.stdin?.end();
+        // Discord用リソース作成
+        const resource = (0, voice_1.createAudioResource)(ffmpeg.stdout, {
+            inputType: voice_1.StreamType.OggOpus,
+            inlineVolume: true,
+        });
+        resource.volume?.setVolume(1.0);
+        // エラーハンドリング強化
+        resource.playStream.on('error', (error) => {
+            console.error('Audio resource stream error:', error);
+            try {
+                ffmpegPool.release(ffmpeg).catch(() => { });
+            }
+            catch (e) {
+                console.warn('FFmpeg pool release error during stream error:', e);
+            }
+        });
+        return { resource, ffmpeg };
+    }
+    catch (error) {
+        // エラー時はプロセスを即座に破棄
+        console.error('createFFmpegAudioSource error:', error);
+        try {
+            await ffmpegPool.destroy(ffmpeg);
+        }
+        catch (e) {
+            console.warn('FFmpeg destroy error:', e);
+        }
+        throw error;
+    }
 }
 async function postAudioQuery(text, speaker) {
     try {
@@ -571,7 +622,7 @@ async function speakBufferedChunks(text, speakerId, guildId, maxConcurrency = 1,
     }
     const chunks = chunkText(text);
     console.log("チャンク分割結果:", chunks); // デバッグ用
-    // チャンクごとに合成
+    // チャンクごとに合成（メモリ効率化：必要最小限のバッファのみ保持）
     const results = new Array(chunks.length);
     let currentIndex = 0;
     await Promise.all(Array.from({ length: maxConcurrency }, async () => {
@@ -590,6 +641,8 @@ async function speakBufferedChunks(text, speakerId, guildId, maxConcurrency = 1,
                 // チャンクの先頭・末尾の無音を除去
                 buf = trimSilence(buf);
                 results[idx] = buf;
+                // audioQueryを即座に破棄
+                audioQuery = null;
             }
             catch (e) {
                 console.error(`チャンク ${idx} 合成失敗`, e);
@@ -598,17 +651,27 @@ async function speakBufferedChunks(text, speakerId, guildId, maxConcurrency = 1,
         }
     }));
     const nonEmpty = results.filter(buf => buf.length > 100); // 100バイト未満は無音とみなす
-    if (nonEmpty.length === 0)
+    if (nonEmpty.length === 0) {
+        // 空のバッファを即座に破棄
+        results.length = 0;
         return;
+    }
     const fullBuffer = Buffer.concat(nonEmpty);
+    // 個別バッファを即座に破棄（メモリ効率化）
+    results.length = 0;
+    nonEmpty.length = 0;
     // 1回だけFFmpeg変換して再生
     const player = getOrCreateAudioPlayer(guildId);
     const vc = exports.voiceClients[guildId];
     if (vc)
         vc.subscribe(player);
-    const { resource, ffmpeg } = await createFFmpegAudioSource(fullBuffer);
-    player.play(resource);
+    let ffmpeg = null;
+    let resource = null;
     try {
+        const result = await createFFmpegAudioSource(fullBuffer);
+        ffmpeg = result.ffmpeg;
+        resource = result.resource;
+        player.play(resource);
         await (0, voice_1.entersState)(player, voice_1.AudioPlayerStatus.Playing, 5000);
         await (0, voice_1.entersState)(player, voice_1.AudioPlayerStatus.Idle, 60000);
     }
@@ -616,7 +679,28 @@ async function speakBufferedChunks(text, speakerId, guildId, maxConcurrency = 1,
         console.error("再生中にエラー:", err);
     }
     finally {
-        await ffmpegPool.release(ffmpeg).catch(() => { });
+        // リソースの確実な破棄
+        if (resource) {
+            try {
+                resource.audioPlayer?.stop();
+                resource = null;
+            }
+            catch (e) {
+                console.warn("リソース破棄エラー:", e);
+            }
+        }
+        if (ffmpeg) {
+            try {
+                await ffmpegPool.release(ffmpeg);
+            }
+            catch (e) {
+                console.warn("FFmpegプール解放エラー:", e);
+            }
+        }
+        // メモリ強制開放（Node.jsガベージコレクション促進）
+        if (global.gc) {
+            global.gc();
+        }
     }
 }
 // ギルドごとにVoiceConnectionを確保・再利用する関数
@@ -1127,4 +1211,65 @@ function trimSilence(buffer, threshold = 8) {
     }
     return buffer.slice(start, end);
 }
+// メモリ使用量監視とガベージコレクション制御
+let lastMemoryCheck = 0;
+const MEMORY_CHECK_INTERVAL = 30000; // 30秒間隔
+function monitorMemoryUsage() {
+    const now = Date.now();
+    if (now - lastMemoryCheck < MEMORY_CHECK_INTERVAL)
+        return;
+    lastMemoryCheck = now;
+    const memUsage = process.memoryUsage();
+    const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+    const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
+    const rssUsedMB = Math.round(memUsage.rss / 1024 / 1024);
+    console.log(`メモリ使用量: Heap ${heapUsedMB}/${heapTotalMB}MB, RSS ${rssUsedMB}MB`);
+    // メモリ使用量が高い場合の対策
+    if (heapUsedMB > 512) { // 512MB超過時
+        console.warn(`メモリ使用量が高いです (${heapUsedMB}MB) - ガベージコレクション実行`);
+        if (global.gc) {
+            global.gc();
+        }
+        // FFmpegプールのアイドルプロセスを削減
+        try {
+            ffmpegPool.clear().catch(() => { });
+            console.log('FFmpegプールをクリアしました');
+        }
+        catch (e) {
+            console.warn('FFmpegプールクリアエラー:', e);
+        }
+    }
+}
+// 定期的なメモリ監視を開始
+setInterval(monitorMemoryUsage, MEMORY_CHECK_INTERVAL);
+// プロセス終了時のクリーンアップ
+process.on('exit', () => {
+    console.log('プロセス終了: FFmpegプールをクリーンアップ中...');
+    try {
+        ffmpegPool.drain().then(() => ffmpegPool.clear());
+    }
+    catch (e) {
+        console.warn('終了時クリーンアップエラー:', e);
+    }
+});
+process.on('SIGINT', () => {
+    console.log('SIGINT受信: FFmpegプールをクリーンアップ中...');
+    try {
+        ffmpegPool.drain().then(() => ffmpegPool.clear()).finally(() => process.exit(0));
+    }
+    catch (e) {
+        console.warn('SIGINT時クリーンアップエラー:', e);
+        process.exit(0);
+    }
+});
+process.on('SIGTERM', () => {
+    console.log('SIGTERM受信: FFmpegプールをクリーンアップ中...');
+    try {
+        ffmpegPool.drain().then(() => ffmpegPool.clear()).finally(() => process.exit(0));
+    }
+    catch (e) {
+        console.warn('SIGTERM時クリーンアップエラー:', e);
+        process.exit(0);
+    }
+});
 //# sourceMappingURL=TTS-Engine.js.map

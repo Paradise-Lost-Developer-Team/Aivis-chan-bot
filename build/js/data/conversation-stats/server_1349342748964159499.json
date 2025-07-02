@@ -1,8 +1,8 @@
 {
   "serverId": "1349342748964159499",
   "serverName": "かばにきのサーバー",
-  "totalMessages": 51,
-  "totalCharacters": 333,
+  "totalMessages": 52,
+  "totalCharacters": 355,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1349342748964159503",
         "channelName": "一般",
-        "totalMessages": 20,
+        "totalMessages": 21,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -73,7 +73,7 @@
           0,
           0,
           0,
-          0,
+          1,
           1,
           0,
           0,
@@ -90,7 +90,7 @@
           0,
           5,
           4,
-          11
+          12
         ]
       }
     ]
@@ -111,7 +111,7 @@
     0,
     0,
     2,
-    2,
+    3,
     1,
     7,
     0,
@@ -128,9 +128,9 @@
     1,
     11,
     5,
-    18
+    19
   ],
-  "averageMessageLength": 6.529411764705882,
+  "averageMessageLength": 6.826923076923077,
   "messageDistribution": [
     [
       "2025-05-17",
@@ -158,6 +158,10 @@
     ],
     [
       "2025-06-14",
+      1
+    ],
+    [
+      "2025-06-21",
       1
     ]
   ],

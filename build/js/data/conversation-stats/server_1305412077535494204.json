@@ -1,8 +1,8 @@
 {
   "serverId": "1305412077535494204",
   "serverName": "推奈雅琉のサーバー",
-  "totalMessages": 100,
-  "totalCharacters": 7287,
+  "totalMessages": 103,
+  "totalCharacters": 7298,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1346386715220250685",
         "channelName": "a",
-        "totalMessages": 95,
+        "totalMessages": 98,
         "messageByUsers": {},
         "hourlyActivity": [
           27,
@@ -34,7 +34,7 @@
           3,
           7,
           0,
-          0,
+          3,
           2,
           16,
           13
@@ -42,7 +42,7 @@
         "weekdayActivity": [
           19,
           0,
-          20,
+          23,
           6,
           17,
           18,
@@ -116,7 +116,7 @@
     3,
     7,
     0,
-    0,
+    3,
     2,
     16,
     13
@@ -124,13 +124,13 @@
   "weekdayActivity": [
     19,
     1,
-    20,
+    23,
     6,
     17,
     18,
     19
   ],
-  "averageMessageLength": 72.87,
+  "averageMessageLength": 70.85436893203884,
   "messageDistribution": [
     [
       "2025-05-16",
@@ -199,6 +199,10 @@
     [
       "2025-06-10",
       20
+    ],
+    [
+      "2025-06-24",
+      3
     ]
   ],
   "mostActiveUser": "1012637967979921428",

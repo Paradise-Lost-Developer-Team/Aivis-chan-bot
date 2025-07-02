@@ -1,8 +1,8 @@
 {
   "serverId": "1324000084773310464",
   "serverName": "バウンティラーッシュ！！",
-  "totalMessages": 570,
-  "totalCharacters": 4582,
+  "totalMessages": 729,
+  "totalCharacters": 6184,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,18 +11,18 @@
       {
         "channelId": "1324000084773310468",
         "channelName": "一般",
-        "totalMessages": 551,
+        "totalMessages": 703,
         "messageByUsers": {},
         "hourlyActivity": [
-          222,
-          137,
-          58,
+          266,
+          225,
+          61,
           5,
           9,
           0,
           0,
           1,
-          1,
+          2,
           1,
           0,
           0,
@@ -36,13 +36,13 @@
           0,
           0,
           5,
-          71,
-          41
+          79,
+          49
         ],
         "weekdayActivity": [
-          59,
-          189,
-          111,
+          190,
+          208,
+          113,
           82,
           22,
           13,
@@ -55,7 +55,7 @@
       {
         "channelId": "1324000084773310467",
         "channelName": "一般",
-        "totalMessages": 19,
+        "totalMessages": 26,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
@@ -75,12 +75,12 @@
           1,
           0,
           1,
-          0,
+          6,
           0,
           0,
           3,
           0,
-          0,
+          1,
           5
         ],
         "weekdayActivity": [
@@ -88,7 +88,7 @@
           5,
           2,
           0,
-          5,
+          12,
           3,
           4
         ]
@@ -96,15 +96,15 @@
     ]
   ],
   "hourlyActivity": [
-    224,
-    141,
-    58,
+    268,
+    229,
+    61,
     5,
     9,
     0,
     0,
     2,
-    2,
+    3,
     1,
     1,
     0,
@@ -113,24 +113,24 @@
     1,
     0,
     1,
-    0,
+    6,
     0,
     0,
     3,
     5,
-    71,
-    46
+    80,
+    54
   ],
   "weekdayActivity": [
-    59,
-    194,
-    113,
+    190,
+    213,
+    115,
     82,
-    27,
+    34,
     16,
     79
   ],
-  "averageMessageLength": 8.03859649122807,
+  "averageMessageLength": 8.482853223593965,
   "messageDistribution": [
     [
       "2025-05-18",
@@ -207,6 +207,26 @@
     [
       "2025-06-17",
       10
+    ],
+    [
+      "2025-06-21",
+      131
+    ],
+    [
+      "2025-06-22",
+      3
+    ],
+    [
+      "2025-06-23",
+      2
+    ],
+    [
+      "2025-06-26",
+      7
+    ],
+    [
+      "2025-06-30",
+      16
     ]
   ],
   "mostActiveUser": "961556255120433162",

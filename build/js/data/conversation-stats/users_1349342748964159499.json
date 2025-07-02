@@ -117,7 +117,7 @@
       "firstMessageDate": "2025-05-17T14:07:23.565Z",
       "lastMessageDate": "2025-06-07T08:07:55.542Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "おまえだろ",
@@ -185,7 +185,7 @@
         3,
         5
       ],
-      "voiceMinutes": 430.23539999999997,
+      "voiceMinutes": 495.22169999999994,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -332,13 +332,13 @@
     {
       "userId": "823109859091808277",
       "username": "sena_67404",
-      "totalMessages": 5,
-      "totalCharacters": 104,
-      "totalWords": 5,
+      "totalMessages": 6,
+      "totalCharacters": 126,
+      "totalWords": 6,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-29T07:24:11.427Z",
-      "lastMessageDate": "2025-06-14T13:44:18.449Z",
-      "mentionsGiven": 3,
+      "lastMessageDate": "2025-06-21T06:42:45.796Z",
+      "mentionsGiven": 4,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
@@ -351,7 +351,7 @@
         ],
         [
           "<@1348961669753208905>",
-          1
+          2
         ],
         [
           "https://discord.gg/cetufbge",
@@ -375,7 +375,7 @@
         0,
         0,
         0,
-        0,
+        1,
         1,
         0,
         0,
@@ -392,9 +392,9 @@
         1,
         2,
         1,
-        1
+        2
       ],
-      "voiceMinutes": 737.6922000000001,
+      "voiceMinutes": 803.2684166666668,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

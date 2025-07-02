@@ -188,14 +188,14 @@
     {
       "userId": "1273197814138146872",
       "username": "musuka.desu",
-      "totalMessages": 163,
-      "totalCharacters": 1778,
-      "totalWords": 172,
+      "totalMessages": 188,
+      "totalCharacters": 1890,
+      "totalWords": 191,
       "totalEmojis": 3,
       "firstMessageDate": "2025-05-05T13:55:50.832Z",
-      "lastMessageDate": "2025-06-17T09:49:21.785Z",
-      "mentionsGiven": 38,
-      "mentionsReceived": 11,
+      "lastMessageDate": "2025-06-30T12:29:20.779Z",
+      "mentionsGiven": 41,
+      "mentionsReceived": 12,
       "wordFrequency": [
         [
           "こんきつbad",
@@ -247,7 +247,7 @@
         ],
         [
           "変えない",
-          1
+          2
         ],
         [
           "いいやん",
@@ -519,7 +519,7 @@
         ],
         [
           "@everyone",
-          4
+          5
         ],
         [
           "誰か落ちた？",
@@ -744,6 +744,58 @@
         [
           "要らね",
           1
+        ],
+        [
+          "味方トロール、相手チーター、-29",
+          1
+        ],
+        [
+          "昇格戦やぞ",
+          1
+        ],
+        [
+          "チーターおるんやぞ？",
+          1
+        ],
+        [
+          "ハムはとりあえず来ないよ",
+          1
+        ],
+        [
+          "俺は無理",
+          1
+        ],
+        [
+          "マジかよ",
+          1
+        ],
+        [
+          "昼？！",
+          1
+        ],
+        [
+          "無理っすね",
+          1
+        ],
+        [
+          "しゃーねーな",
+          1
+        ],
+        [
+          "何で今来ちゃうの",
+          1
+        ],
+        [
+          "いらね",
+          1
+        ],
+        [
+          "なんか多いな",
+          1
+        ],
+        [
+          "フルパ@1",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -771,31 +823,31 @@
         0,
         1,
         1,
+        1,
+        0,
+        10,
         0,
         0,
-        4,
-        0,
-        0,
-        0,
-        0,
-        4,
-        31,
+        5,
+        1,
+        5,
+        36,
         19,
         43,
-        29,
+        34,
         24,
-        5
+        6
       ],
       "weekdayActivity": [
         12,
-        48,
-        15,
+        65,
+        21,
         11,
         24,
         12,
-        41
+        43
       ],
-      "voiceMinutes": 4480.894616666667,
+      "voiceMinutes": 5043.973550000001,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -807,14 +859,14 @@
     {
       "userId": "1206367467077898282",
       "username": "ruka.3a",
-      "totalMessages": 84,
-      "totalCharacters": 863,
-      "totalWords": 89,
+      "totalMessages": 86,
+      "totalCharacters": 885,
+      "totalWords": 91,
       "totalEmojis": 2,
       "firstMessageDate": "2025-05-05T14:38:48.328Z",
-      "lastMessageDate": "2025-06-16T11:59:42.683Z",
-      "mentionsGiven": 12,
-      "mentionsReceived": 16,
+      "lastMessageDate": "2025-06-29T12:38:56.146Z",
+      "mentionsGiven": 13,
+      "mentionsReceived": 18,
       "wordFrequency": [
         [
           "名前ルカ(ハム)",
@@ -1107,6 +1159,14 @@
         [
           "いやいや",
           1
+        ],
+        [
+          "コンペの気分じゃない",
+          1
+        ],
+        [
+          "アイアンじゃないもん今は",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1137,12 +1197,12 @@
         5,
         20,
         21,
-        24,
+        26,
         9,
         1
       ],
       "weekdayActivity": [
-        5,
+        7,
         19,
         6,
         11,
@@ -1150,7 +1210,7 @@
         0,
         34
       ],
-      "voiceMinutes": 6211.267300000002,
+      "voiceMinutes": 7178.424083333335,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1162,12 +1222,12 @@
     {
       "userId": "1356490621933715466",
       "username": "take.22213",
-      "totalMessages": 3,
-      "totalCharacters": 137,
-      "totalWords": 3,
-      "totalEmojis": 0,
+      "totalMessages": 26,
+      "totalCharacters": 346,
+      "totalWords": 27,
+      "totalEmojis": 1,
       "firstMessageDate": "2025-05-05T14:40:43.415Z",
-      "lastMessageDate": "2025-05-11T04:52:19.485Z",
+      "lastMessageDate": "2025-06-28T14:44:49.283Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -1182,9 +1242,90 @@
         [
           "オリジンは当たる",
           1
+        ],
+        [
+          "お久です",
+          1
+        ],
+        [
+          "ありがとうございますっ",
+          1
+        ],
+        [
+          "テスト終わったので久しぶりに入れました",
+          1
+        ],
+        [
+          "箱登ったら避けれそうだったよ",
+          1
+        ],
+        [
+          "カメラプラントした壁に付けたら強いですよ",
+          1
+        ],
+        [
+          "any",
+          1
+        ],
+        [
+          "入らないです",
+          1
+        ],
+        [
+          "bからtp",
+          1
+        ],
+        [
+          "a好き",
+          1
+        ],
+        [
+          "bロングチェンバーオペかも",
+          1
+        ],
+        [
+          "つんよ",
+          1
+        ],
+        [
+          "シルバー3",
+          1
+        ],
+        [
+          "ゴールド行きたいけどデバイス重すぎて行けない",
+          1
+        ],
+        [
+          "ちなみに、デュエで守りの時はシェリフ買うかな",
+          1
+        ],
+        [
+          "角が多いからね…",
+          1
+        ],
+        [
+          "カロード楽しそ",
+          1
+        ],
+        [
+          "シェリフ買った方がいいんじゃ？",
+          1
+        ],
+        [
+          "ウェイレイマップ？",
+          1
+        ],
+        [
+          "おつかれさまですっ",
+          1
         ]
       ],
-      "emojiFrequency": [],
+      "emojiFrequency": [
+        [
+          "🤔",
+          1
+        ]
+      ],
       "hourlyActivity": [
         0,
         0,
@@ -1208,8 +1349,8 @@
         0,
         0,
         0,
-        0,
-        2
+        11,
+        14
       ],
       "weekdayActivity": [
         1,
@@ -1218,9 +1359,9 @@
         0,
         0,
         0,
-        0
+        23
       ],
-      "voiceMinutes": 0,
+      "voiceMinutes": 93.94936666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1232,14 +1373,14 @@
     {
       "userId": "1165587758870450267",
       "username": "yunorate",
-      "totalMessages": 28,
-      "totalCharacters": 361,
-      "totalWords": 29,
-      "totalEmojis": 1,
+      "totalMessages": 35,
+      "totalCharacters": 424,
+      "totalWords": 36,
+      "totalEmojis": 3,
       "firstMessageDate": "2025-05-05T14:50:14.975Z",
-      "lastMessageDate": "2025-06-13T11:14:12.937Z",
+      "lastMessageDate": "2025-06-23T09:12:20.684Z",
       "mentionsGiven": 2,
-      "mentionsReceived": 5,
+      "mentionsReceived": 6,
       "wordFrequency": [
         [
           "名前：ゆのらて",
@@ -1348,12 +1489,44 @@
         [
           "シルバーだったらマヂで負ける",
           1
+        ],
+        [
+          "バイト舐めるなよ",
+          1
+        ],
+        [
+          "捻り潰すぞ",
+          1
+        ],
+        [
+          "玉ねぎに屈する雑魚がこの世にいるんか",
+          1
+        ],
+        [
+          "ｵﾆｵﾝ(｢🧅･ω･)｢🧅",
+          1
+        ],
+        [
+          "なにこれ",
+          1
+        ],
+        [
+          "まって",
+          1
+        ],
+        [
+          "月曜もバイトあって鬱",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "♡",
           1
+        ],
+        [
+          "🧅",
+          2
         ]
       ],
       "hourlyActivity": [
@@ -1373,9 +1546,9 @@
         0,
         0,
         0,
+        6,
         1,
-        1,
-        0,
+        2,
         7,
         11,
         2,
@@ -1384,7 +1557,7 @@
       ],
       "weekdayActivity": [
         2,
-        1,
+        8,
         0,
         2,
         11,
@@ -1403,14 +1576,14 @@
     {
       "userId": "1081637099649896549",
       "username": "kobayan.0803",
-      "totalMessages": 68,
-      "totalCharacters": 560,
-      "totalWords": 70,
+      "totalMessages": 69,
+      "totalCharacters": 562,
+      "totalWords": 71,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-05T23:18:07.241Z",
-      "lastMessageDate": "2025-06-12T11:07:59.562Z",
+      "lastMessageDate": "2025-06-30T12:46:16.941Z",
       "mentionsGiven": 7,
-      "mentionsReceived": 9,
+      "mentionsReceived": 10,
       "wordFrequency": [
         [
           "なまえreal",
@@ -1664,13 +1837,13 @@
         1,
         2,
         5,
-        23,
+        24,
         24,
         0
       ],
       "weekdayActivity": [
         9,
-        46,
+        47,
         3,
         4,
         2,
@@ -1689,18 +1862,18 @@
     {
       "userId": "716558624217890867",
       "username": "k4yle",
-      "totalMessages": 128,
-      "totalCharacters": 1303,
-      "totalWords": 149,
-      "totalEmojis": 0,
+      "totalMessages": 174,
+      "totalCharacters": 1865,
+      "totalWords": 200,
+      "totalEmojis": 1,
       "firstMessageDate": "2025-05-06T01:56:07.469Z",
-      "lastMessageDate": "2025-06-17T09:49:16.183Z",
-      "mentionsGiven": 20,
-      "mentionsReceived": 17,
+      "lastMessageDate": "2025-07-01T11:19:38.713Z",
+      "mentionsGiven": 30,
+      "mentionsReceived": 21,
       "wordFrequency": [
         [
           "@everyone",
-          9
+          11
         ],
         [
           "pc直りました",
@@ -1724,7 +1897,7 @@
         ],
         [
           "<@1206367467077898282>",
-          7
+          9
         ],
         [
           "yes",
@@ -1736,11 +1909,11 @@
         ],
         [
           "<@1273197814138146872>",
-          3
+          4
         ],
         [
           "おまえもや",
-          1
+          2
         ],
         [
           "valo開いてる時点で強制ですね",
@@ -1768,7 +1941,7 @@
         ],
         [
           "<@1081637099649896549>",
-          2
+          3
         ],
         [
           "ふるぱ",
@@ -1960,7 +2133,7 @@
         ],
         [
           "<@1165587758870450267>",
-          1
+          2
         ],
         [
           "人狼終わったからふるぱね",
@@ -2125,9 +2298,166 @@
         [
           "ネオフロ以外ある？",
           1
+        ],
+        [
+          "そんなことで泣くんじゃない少年",
+          1
+        ],
+        [
+          "お前らワイの昇格戦で遊んどるやんけ",
+          1
+        ],
+        [
+          "変わらんぞ",
+          1
+        ],
+        [
+          "変わりません",
+          1
+        ],
+        [
+          "負けたことには変わりないんで",
+          1
+        ],
+        [
+          "あきら垢ログアウトしてるだけだよ",
+          1
+        ],
+        [
+          "木曜の昼と金曜の昼できるやつ2日ほど山口大国離れるから",
+          1
+        ],
+        [
+          "帰国は月曜",
+          1
+        ],
+        [
+          "暇そうなやつこい",
+          1
+        ],
+        [
+          "ばかたれ共こい",
+          1
+        ],
+        [
+          "来ます",
+          1
+        ],
+        [
+          "らいんしたから",
+          1
+        ],
+        [
+          "<@1065573112470581288>",
+          1
+        ],
+        [
+          "<@1259119338657550340>",
+          1
+        ],
+        [
+          "ほら来そう",
+          1
+        ],
+        [
+          "ばろ以外ある？",
+          1
+        ],
+        [
+          "今期末",
+          1
+        ],
+        [
+          "昼おわりなんだ☆",
+          1
+        ],
+        [
+          "早退しとけ",
+          1
+        ],
+        [
+          "あざした",
+          1
+        ],
+        [
+          "捻れるかな？",
+          1
+        ],
+        [
+          "早退をするのだ",
+          1
+        ],
+        [
+          "あげるよ",
+          1
+        ],
+        [
+          "いまからでもいい？",
+          1
+        ],
+        [
+          "おくれる",
+          1
+        ],
+        [
+          "<@1372067861824147530>",
+          2
+        ],
+        [
+          "お前調子のんなよカス",
+          2
+        ],
+        [
+          "萩往還サボってばろやっても上達しないんだからやめとけ",
+          1
+        ],
+        [
+          "私も風邪ひいてましたけど",
+          1
+        ],
+        [
+          "ガイジかよ",
+          1
+        ],
+        [
+          "ぼけはよこい",
+          1
+        ],
+        [
+          "だから",
+          1
+        ],
+        [
+          "アイアンなんすわ",
+          1
+        ],
+        [
+          "今だけね",
+          1
+        ],
+        [
+          "<@1382987915738742844>",
+          1
+        ],
+        [
+          "おれ首吊って死なんとあかんらしいわwwww",
+          1
+        ],
+        [
+          "これる？",
+          1
+        ],
+        [
+          "valo",
+          1
         ]
       ],
-      "emojiFrequency": [],
+      "emojiFrequency": [
+        [
+          "☆",
+          1
+        ]
+      ],
       "hourlyActivity": [
         1,
         1,
@@ -2140,30 +2470,30 @@
         0,
         0,
         2,
-        1,
-        1,
+        6,
+        6,
         2,
         0,
-        1,
+        20,
+        8,
         4,
-        3,
-        13,
-        22,
-        46,
-        12,
         16,
+        22,
+        48,
+        18,
+        17,
         0
       ],
       "weekdayActivity": [
-        6,
-        15,
-        14,
-        12,
-        31,
         11,
-        39
+        45,
+        17,
+        12,
+        34,
+        11,
+        44
       ],
-      "voiceMinutes": 1181.50615,
+      "voiceMinutes": 1373.1671833333335,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2392,7 +2722,7 @@
         0,
         0
       ],
-      "voiceMinutes": 420.27235,
+      "voiceMinutes": 635.61215,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2462,7 +2792,7 @@
         0,
         0
       ],
-      "voiceMinutes": 349.6019,
+      "voiceMinutes": 563.0356166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2538,7 +2868,7 @@
       "firstMessageDate": "2025-05-25T02:05:49.814Z",
       "lastMessageDate": "2025-06-07T16:03:32.329Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "タピオカ",
@@ -2633,7 +2963,7 @@
         0,
         5
       ],
-      "voiceMinutes": 3165.415316666666,
+      "voiceMinutes": 3637.751349999999,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2723,14 +3053,14 @@
     {
       "userId": "1372067861824147530",
       "username": "l1nzx.",
-      "totalMessages": 11,
-      "totalCharacters": 34,
-      "totalWords": 7,
+      "totalMessages": 18,
+      "totalCharacters": 75,
+      "totalWords": 12,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-30T06:54:52.363Z",
-      "lastMessageDate": "2025-06-13T08:14:40.469Z",
+      "lastMessageDate": "2025-06-28T02:30:05.532Z",
       "mentionsGiven": 1,
-      "mentionsReceived": 1,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "グリッチポップbuy",
@@ -2742,6 +3072,22 @@
         ],
         [
           "なにに？",
+          1
+        ],
+        [
+          "かぜひいただけなんですけど",
+          1
+        ],
+        [
+          "いいましたよわたし",
+          1
+        ],
+        [
+          "それはしらないです",
+          1
+        ],
+        [
+          "勝手にしてください",
           1
         ]
       ],
@@ -2757,8 +3103,8 @@
         0,
         0,
         0,
-        0,
-        0,
+        1,
+        6,
         0,
         0,
         0,
@@ -2779,9 +3125,9 @@
         0,
         8,
         3,
-        0
+        7
       ],
-      "voiceMinutes": 291.8311166666667,
+      "voiceMinutes": 428.3057,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2851,7 +3197,7 @@
         4,
         0
       ],
-      "voiceMinutes": 821.4825000000001,
+      "voiceMinutes": 1243.1336166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2945,7 +3291,7 @@
         0,
         2
       ],
-      "voiceMinutes": 89.0796,
+      "voiceMinutes": 134.2179,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2957,14 +3303,14 @@
     {
       "userId": "1259119338657550340",
       "username": "mu08180",
-      "totalMessages": 5,
-      "totalCharacters": 23,
-      "totalWords": 5,
+      "totalMessages": 11,
+      "totalCharacters": 54,
+      "totalWords": 11,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-04T12:01:02.422Z",
-      "lastMessageDate": "2025-06-14T12:48:08.835Z",
+      "lastMessageDate": "2025-06-23T06:53:44.240Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 2,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "これからリア友とエペする",
@@ -2976,6 +3322,26 @@
         ],
         [
           "ごめん",
+          1
+        ],
+        [
+          "なにすんの？",
+          1
+        ],
+        [
+          "木曜の昼と金曜の昼？",
+          1
+        ],
+        [
+          "俺学校ある",
+          1
+        ],
+        [
+          "高校説明会",
+          1
+        ],
+        [
+          "乙した",
           1
         ]
       ],
@@ -2996,7 +3362,7 @@
         0,
         0,
         0,
-        0,
+        6,
         0,
         0,
         0,
@@ -3008,14 +3374,14 @@
       ],
       "weekdayActivity": [
         0,
-        0,
+        6,
         0,
         1,
         3,
         0,
         1
       ],
-      "voiceMinutes": 871.4055000000001,
+      "voiceMinutes": 1080.6327166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3027,14 +3393,14 @@
     {
       "userId": "1382987915738742844",
       "username": "tapioko0519",
-      "totalMessages": 4,
-      "totalCharacters": 11,
-      "totalWords": 3,
+      "totalMessages": 11,
+      "totalCharacters": 58,
+      "totalWords": 9,
       "totalEmojis": 1,
       "firstMessageDate": "2025-06-13T07:48:16.888Z",
-      "lastMessageDate": "2025-06-16T14:31:27.316Z",
+      "lastMessageDate": "2025-06-30T12:15:38.701Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 0,
+      "mentionsReceived": 1,
       "wordFrequency": [
         [
           "かもん",
@@ -3042,6 +3408,30 @@
         ],
         [
           "もう辞める？",
+          1
+        ],
+        [
+          "ハムさんと喧嘩したりとおる？",
+          1
+        ],
+        [
+          "昼無理に決まってんだろ",
+          1
+        ],
+        [
+          "買うの？",
+          1
+        ],
+        [
+          "うぇーい",
+          1
+        ],
+        [
+          "何時？",
+          1
+        ],
+        [
+          "俺は8時からならいける",
           1
         ]
       ],
@@ -3067,26 +3457,157 @@
         0,
         0,
         0,
-        0,
         1,
-        0,
-        0,
-        0,
-        0,
+        2,
         1,
+        3,
+        0,
+        0,
+        2,
         0,
         2
       ],
       "weekdayActivity": [
         0,
+        5,
+        2,
+        0,
+        2,
+        1,
+        1
+      ],
+      "voiceMinutes": 351.45848333333333,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1060930217272688760",
+    {
+      "userId": "1060930217272688760",
+      "username": "sraimunoah",
+      "totalMessages": 2,
+      "totalCharacters": 29,
+      "totalWords": 4,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-29T09:27:57.825Z",
+      "lastMessageDate": "2025-06-29T09:31:52.108Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "名前：ミント",
+          1
+        ],
+        [
+          "年齢：17",
+          1
+        ],
+        [
+          "趣味：雑談",
+          1
+        ],
+        [
+          "一言：彼女欲しいです",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
         2,
         0,
         0,
         0,
-        1,
-        1
+        0,
+        0
       ],
-      "voiceMinutes": 331.0253833333333,
+      "weekdayActivity": [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "994882208651296840",
+    {
+      "userId": "994882208651296840",
+      "username": "xiaoshi6739",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-30T12:44:58.818Z",
+      "lastMessageDate": "2025-06-30T12:44:58.678Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 57.51801666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

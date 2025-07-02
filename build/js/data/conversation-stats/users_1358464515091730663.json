@@ -496,12 +496,12 @@
     {
       "userId": "1093917510132322427",
       "username": "hanezu00",
-      "totalMessages": 51,
-      "totalCharacters": 485,
-      "totalWords": 59,
+      "totalMessages": 52,
+      "totalCharacters": 493,
+      "totalWords": 60,
       "totalEmojis": 1,
       "firstMessageDate": "2025-05-08T13:56:18.473Z",
-      "lastMessageDate": "2025-06-01T12:34:13.912Z",
+      "lastMessageDate": "2025-06-25T11:39:42.713Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -704,6 +704,10 @@
         [
           "プロペラ",
           1
+        ],
+        [
+          "マルマルモリモリ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -733,7 +737,7 @@
         0,
         0,
         0,
-        0,
+        1,
         1,
         2,
         45
@@ -742,7 +746,7 @@
         2,
         2,
         0,
-        0,
+        1,
         46,
         0,
         1
@@ -821,12 +825,12 @@
     {
       "userId": "1316335506380034079",
       "username": "it0769work_02537",
-      "totalMessages": 5,
-      "totalCharacters": 159,
-      "totalWords": 4,
+      "totalMessages": 11,
+      "totalCharacters": 178,
+      "totalWords": 10,
       "totalEmojis": 2,
       "firstMessageDate": "2025-05-11T01:45:58.741Z",
-      "lastMessageDate": "2025-05-26T14:01:22.475Z",
+      "lastMessageDate": "2025-07-01T06:51:29.514Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -844,6 +848,26 @@
         ],
         [
           "スコップ",
+          1
+        ],
+        [
+          "湯たんぽ",
+          1
+        ],
+        [
+          "ドミノ",
+          1
+        ],
+        [
+          "トラウマ",
+          1
+        ],
+        [
+          "かき氷",
+          1
+        ],
+        [
+          "石ころ",
           1
         ]
       ],
@@ -863,7 +887,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0,
@@ -873,24 +897,24 @@
         1,
         0,
         0,
+        1,
         0,
         0,
+        1,
+        3,
+        1,
         0,
         0,
-        2,
-        0,
-        0,
-        0,
-        1
+        2
       ],
       "weekdayActivity": [
         1,
-        3,
+        5,
+        1,
+        1,
         0,
-        0,
-        0,
-        0,
-        1
+        1,
+        2
       ],
       "voiceMinutes": 0,
       "responseTime": 0,
@@ -904,17 +928,25 @@
     {
       "userId": "477305327302213632",
       "username": "eto1576",
-      "totalMessages": 1,
-      "totalCharacters": 3,
-      "totalWords": 1,
+      "totalMessages": 4,
+      "totalCharacters": 11,
+      "totalWords": 4,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-11T05:30:50.189Z",
-      "lastMessageDate": "2025-05-11T05:30:49.731Z",
+      "lastMessageDate": "2025-06-30T11:58:25.572Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
         [
           "とうふ",
+          1
+        ],
+        [
+          "スイカ",
+          1
+        ],
+        [
+          "リール",
           1
         ]
       ],
@@ -927,7 +959,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         0,
@@ -940,17 +972,17 @@
         0,
         0,
         0,
+        1,
         0,
-        0,
-        0,
+        1,
         0
       ],
       "weekdayActivity": [
         1,
+        2,
         0,
         0,
-        0,
-        0,
+        1,
         0,
         0
       ],
@@ -1843,6 +1875,194 @@
         0,
         0,
         1,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "691648363468423198",
+    {
+      "userId": "691648363468423198",
+      "username": "tochi2go",
+      "totalMessages": 4,
+      "totalCharacters": 21,
+      "totalWords": 4,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-21T08:23:16.649Z",
+      "lastMessageDate": "2025-07-01T04:09:00.941Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "ラー油",
+          1
+        ],
+        [
+          "ポラロイド",
+          1
+        ],
+        [
+          "リンガーハット！",
+          1
+        ],
+        [
+          "ルパン三世",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1388016612652879953",
+    {
+      "userId": "1388016612652879953",
+      "username": "tedu0463",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-27T14:07:17.142Z",
+      "lastMessageDate": "2025-06-27T14:07:17.013Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "199017374031020033",
+    {
+      "userId": "199017374031020033",
+      "username": "miruaiii",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-29T12:17:10.777Z",
+      "lastMessageDate": "2025-06-29T12:17:10.675Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
         0,
         0,
         0

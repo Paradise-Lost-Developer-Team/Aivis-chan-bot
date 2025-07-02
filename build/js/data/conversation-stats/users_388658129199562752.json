@@ -4,12 +4,12 @@
     {
       "userId": "327780615032274946",
       "username": "qualia.e",
-      "totalMessages": 48,
-      "totalCharacters": 619,
-      "totalWords": 17,
+      "totalMessages": 55,
+      "totalCharacters": 769,
+      "totalWords": 21,
       "totalEmojis": 2,
       "firstMessageDate": "2025-04-15T09:55:05.725Z",
-      "lastMessageDate": "2025-06-15T03:31:31.465Z",
+      "lastMessageDate": "2025-06-30T00:27:48.355Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -76,6 +76,22 @@
         [
           "https://www.xasiat.com/videos/83546/60b8cf24-fantia-1/",
           1
+        ],
+        [
+          "https://paiza.jp/works/courses",
+          1
+        ],
+        [
+          "https://paiza.jp/works/mypage",
+          1
+        ],
+        [
+          "https://paiza.jp/for_teams/settings/change_password",
+          1
+        ],
+        [
+          "https://paiza.jp/for_teams/users/sign_in",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -98,7 +114,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         5,
@@ -109,19 +125,19 @@
         4,
         5,
         1,
-        0,
-        1,
+        2,
         4,
+        5,
         2
       ],
       "weekdayActivity": [
-        18,
-        3,
+        23,
+        4,
         6,
         7,
         3,
         7,
-        4
+        5
       ],
       "voiceMinutes": 11.519116666666665,
       "responseTime": 0,

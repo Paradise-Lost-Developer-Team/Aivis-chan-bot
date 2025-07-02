@@ -1,8 +1,8 @@
 {
   "serverId": "1345199663673774142",
   "serverName": "家族",
-  "totalMessages": 12,
-  "totalCharacters": 0,
+  "totalMessages": 13,
+  "totalCharacters": 35,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1345199664512892930",
         "channelName": "会話",
-        "totalMessages": 3,
+        "totalMessages": 4,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -72,7 +72,7 @@
           0,
           0,
           1,
-          0,
+          1,
           2,
           0,
           0,
@@ -90,7 +90,7 @@
           0,
           0,
           0,
-          1
+          2
         ]
       }
     ],
@@ -154,7 +154,7 @@
     0,
     0,
     6,
-    0,
+    1,
     4,
     0,
     0,
@@ -172,9 +172,9 @@
     0,
     0,
     0,
-    1
+    2
   ],
-  "averageMessageLength": 0,
+  "averageMessageLength": 2.6923076923076925,
   "messageDistribution": [
     [
       "2025-05-05",
@@ -187,6 +187,10 @@
     [
       "2025-06-10",
       7
+    ],
+    [
+      "2025-06-28",
+      1
     ]
   ],
   "mostActiveUser": "809627147333140531",

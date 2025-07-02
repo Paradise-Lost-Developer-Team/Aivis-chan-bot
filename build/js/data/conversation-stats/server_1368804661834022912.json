@@ -1,8 +1,8 @@
 {
   "serverId": "1368804661834022912",
   "serverName": "音骸厳選教",
-  "totalMessages": 845,
-  "totalCharacters": 18523,
+  "totalMessages": 849,
+  "totalCharacters": 18691,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -231,7 +231,7 @@
       {
         "channelId": "1370222960698327210",
         "channelName": "自己紹介",
-        "totalMessages": 9,
+        "totalMessages": 10,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -257,10 +257,10 @@
           3,
           1,
           0,
-          0
+          1
         ],
         "weekdayActivity": [
-          1,
+          2,
           0,
           0,
           0,
@@ -407,7 +407,7 @@
       {
         "channelId": "1370042226524295198",
         "channelName": "入信者",
-        "totalMessages": 14,
+        "totalMessages": 17,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -433,10 +433,10 @@
           0,
           3,
           5,
-          2
+          5
         ],
         "weekdayActivity": [
-          0,
+          3,
           0,
           0,
           0,
@@ -867,10 +867,10 @@
     80,
     96,
     51,
-    29
+    33
   ],
   "weekdayActivity": [
-    234,
+    238,
     58,
     66,
     28,
@@ -878,7 +878,7 @@
     146,
     158
   ],
-  "averageMessageLength": 21.920710059171597,
+  "averageMessageLength": 22.015312131919906,
   "messageDistribution": [
     [
       "2025-05-09",
@@ -995,6 +995,10 @@
     [
       "2025-06-15",
       2
+    ],
+    [
+      "2025-06-22",
+      4
     ]
   ],
   "mostActiveUser": "875541698237837373",

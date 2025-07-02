@@ -1,8 +1,8 @@
 {
   "serverId": "1353298352242163752",
   "serverName": "MINE＆X MOD",
-  "totalMessages": 419,
-  "totalCharacters": 11225,
+  "totalMessages": 436,
+  "totalCharacters": 11448,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,11 +11,11 @@
       {
         "channelId": "1353298352976035890",
         "channelName": "雑談",
-        "totalMessages": 216,
+        "totalMessages": 233,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
-          13,
+          17,
           3,
           0,
           0,
@@ -30,23 +30,23 @@
           7,
           2,
           2,
-          4,
-          0,
-          17,
           11,
-          30,
+          0,
+          21,
+          11,
+          31,
           19,
           97,
-          1
+          2
         ],
         "weekdayActivity": [
           8,
-          16,
+          20,
           90,
           23,
-          65,
-          11,
-          3
+          69,
+          15,
+          8
         ]
       }
     ],
@@ -537,7 +537,7 @@
   ],
   "hourlyActivity": [
     20,
-    20,
+    24,
     3,
     0,
     0,
@@ -552,25 +552,25 @@
     22,
     26,
     6,
-    16,
+    23,
     20,
-    25,
+    29,
     27,
-    48,
+    49,
     32,
     110,
-    2
+    3
   ],
   "weekdayActivity": [
     30,
-    53,
+    57,
     114,
     45,
-    115,
-    31,
-    31
+    119,
+    35,
+    36
   ],
-  "averageMessageLength": 26.78997613365155,
+  "averageMessageLength": 26.256880733944953,
   "messageDistribution": [
     [
       "2025-04-21",
@@ -683,6 +683,18 @@
     [
       "2025-06-13",
       12
+    ],
+    [
+      "2025-06-19",
+      8
+    ],
+    [
+      "2025-06-28",
+      5
+    ],
+    [
+      "2025-06-30",
+      4
     ]
   ],
   "mostActiveUser": "1012637967979921428",

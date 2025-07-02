@@ -61,15 +61,28 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 7,
-      "totalCharacters": 0,
-      "totalWords": 0,
+      "totalMessages": 8,
+      "totalCharacters": 35,
+      "totalWords": 3,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-10T01:36:25.967Z",
-      "lastMessageDate": "2025-06-10T04:51:09.135Z",
+      "lastMessageDate": "2025-06-28T05:57:28.682Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
-      "wordFrequency": [],
+      "wordFrequency": [
+        [
+          "&f[&dふにゃ村&f]",
+          1
+        ],
+        [
+          "&7-",
+          1
+        ],
+        [
+          "霧深き山里に、今、運命が舞い降りる。",
+          1
+        ]
+      ],
       "emojiFrequency": [],
       "hourlyActivity": [
         0,
@@ -86,7 +99,7 @@
         0,
         0,
         5,
-        0,
+        1,
         0,
         0,
         0,
@@ -104,7 +117,7 @@
         0,
         0,
         0,
-        0
+        1
       ],
       "voiceMinutes": 0,
       "responseTime": 0,

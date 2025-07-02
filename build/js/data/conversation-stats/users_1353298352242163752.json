@@ -4,14 +4,14 @@
     {
       "userId": "1321341875650695220",
       "username": "svwrbhpv",
-      "totalMessages": 1,
-      "totalCharacters": 11,
-      "totalWords": 2,
+      "totalMessages": 8,
+      "totalCharacters": 78,
+      "totalWords": 10,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-21T09:47:37.561Z",
-      "lastMessageDate": "2025-04-21T09:47:37.282Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 0,
+      "lastMessageDate": "2025-06-30T09:30:14.264Z",
+      "mentionsGiven": 2,
+      "mentionsReceived": 4,
       "wordFrequency": [
         [
           "hello",
@@ -19,6 +19,30 @@
         ],
         [
           "world",
+          1
+        ],
+        [
+          "この鯖名前変わった？",
+          1
+        ],
+        [
+          "light",
+          1
+        ],
+        [
+          "server消えたのね",
+          1
+        ],
+        [
+          "おれも",
+          1
+        ],
+        [
+          "だって急に鯖なくなったもん",
+          1
+        ],
+        [
+          "banかkickか鯖消えたってことでしょ",
           1
         ]
       ],
@@ -40,9 +64,9 @@
         0,
         0,
         0,
+        5,
         0,
-        0,
-        1,
+        3,
         0,
         0,
         0,
@@ -51,12 +75,12 @@
       ],
       "weekdayActivity": [
         0,
-        1,
+        3,
         0,
         0,
+        4,
         0,
-        0,
-        0
+        1
       ],
       "voiceMinutes": 0,
       "responseTime": 0,
@@ -148,14 +172,14 @@
     {
       "userId": "889077987729899560",
       "username": "hokuto_021105",
-      "totalMessages": 57,
-      "totalCharacters": 698,
-      "totalWords": 62,
+      "totalMessages": 62,
+      "totalCharacters": 782,
+      "totalWords": 67,
       "totalEmojis": 8,
       "firstMessageDate": "2025-05-17T08:29:47.324Z",
-      "lastMessageDate": "2025-06-13T04:45:53.813Z",
-      "mentionsGiven": 1,
-      "mentionsReceived": 20,
+      "lastMessageDate": "2025-06-28T09:12:27.490Z",
+      "mentionsGiven": 2,
+      "mentionsReceived": 22,
       "wordFrequency": [
         [
           "先日、前のサーバーとこでbanされたと思ってここのサーバーまで抜けてしまって申し訳無いです。",
@@ -376,6 +400,18 @@
         [
           "なんだって？",
           1
+        ],
+        [
+          "最初ワイはサーバーbanされたのかと思った人でした。",
+          1
+        ],
+        [
+          "今のサーバーアイコン似てる奴消えてるくねって思ってbanだと思ったから……",
+          1
+        ],
+        [
+          "なんかリプの通知来たからなんのこと？",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -406,7 +442,7 @@
       ],
       "hourlyActivity": [
         0,
-        0,
+        3,
         0,
         0,
         0,
@@ -423,7 +459,7 @@
         0,
         1,
         1,
-        6,
+        8,
         4,
         15,
         7,
@@ -436,8 +472,8 @@
         19,
         0,
         27,
-        3,
-        2
+        6,
+        4
       ],
       "voiceMinutes": 6.7130833333333335,
       "responseTime": 0,
@@ -756,14 +792,14 @@
     {
       "userId": "1012637967979921428",
       "username": "tanayuna02",
-      "totalMessages": 273,
-      "totalCharacters": 8454,
-      "totalWords": 481,
+      "totalMessages": 278,
+      "totalCharacters": 8526,
+      "totalWords": 488,
       "totalEmojis": 2,
       "firstMessageDate": "2025-05-20T07:43:52.577Z",
-      "lastMessageDate": "2025-06-13T07:46:57.180Z",
-      "mentionsGiven": 42,
-      "mentionsReceived": 13,
+      "lastMessageDate": "2025-06-30T14:33:08.034Z",
+      "mentionsGiven": 46,
+      "mentionsReceived": 14,
       "wordFrequency": [
         [
           "皆さんどうもお久しぶりの鯖主です",
@@ -1572,6 +1608,30 @@
         [
           "https://discord.gg/yddhwhdw",
           1
+        ],
+        [
+          "nn?",
+          1
+        ],
+        [
+          "そこ詳しく",
+          1
+        ],
+        [
+          "う～ん俺はなにもしてないのだが",
+          1
+        ],
+        [
+          "https://discord.gg/jvk5rb79",
+          1
+        ],
+        [
+          "生きてるから",
+          1
+        ],
+        [
+          "入れそうだったらやってみて",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1582,7 +1642,7 @@
       ],
       "hourlyActivity": [
         20,
-        9,
+        10,
         0,
         0,
         0,
@@ -1597,23 +1657,23 @@
         19,
         25,
         6,
-        13,
+        15,
         7,
         11,
         17,
-        28,
+        29,
         20,
         62,
-        1
+        2
       ],
       "weekdayActivity": [
         19,
-        41,
+        43,
         63,
         32,
         76,
-        28,
-        14
+        29,
+        16
       ],
       "voiceMinutes": 6209.680283333332,
       "responseTime": 0,

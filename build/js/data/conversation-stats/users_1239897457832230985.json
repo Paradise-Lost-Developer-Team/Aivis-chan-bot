@@ -4,12 +4,12 @@
     {
       "userId": "1366024161931296899",
       "username": "akanetoki325",
-      "totalMessages": 6,
-      "totalCharacters": 251,
-      "totalWords": 14,
-      "totalEmojis": 0,
+      "totalMessages": 8,
+      "totalCharacters": 594,
+      "totalWords": 26,
+      "totalEmojis": 1,
       "firstMessageDate": "2025-05-10T13:17:29.440Z",
-      "lastMessageDate": "2025-05-24T12:29:11.832Z",
+      "lastMessageDate": "2025-06-28T10:03:00.210Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -68,9 +68,62 @@
         [
           "マイクラのlwcで書見台を見れるけど本は取れないようにするコマンドを教えて",
           1
+        ],
+        [
+          "てst",
+          1
+        ],
+        [
+          "自分のネットでの名前が変わったので「はまにゃんズ」から「紅茜組」に変えます。",
+          1
+        ],
+        [
+          "また、イベントのテストプレイを7月〜8月のどこかで行いたいと思っているのですが、準備が多く残っているのでイベントの準備を手伝ってくださる方を募集します。",
+          1
+        ],
+        [
+          "募集期間はまだ決めておりません。",
+          1
+        ],
+        [
+          "参加したい方は自分にdmをするか、https://discord.com/channels/1273166374700716123/1383359773336010773",
+          1
+        ],
+        [
+          "に参加希望ということをチャットに書いてください。確認後、dmを送らせていただきます。",
+          1
+        ],
+        [
+          "参加の条件",
+          1
+        ],
+        [
+          "1,kasu",
+          1
+        ],
+        [
+          "worldのルールを守ること",
+          1
+        ],
+        [
+          "2,minecraftをプレイできる環境であること",
+          1
+        ],
+        [
+          "また、このお知らせを確認後✅",
+          1
+        ],
+        [
+          "をお願いします。",
+          1
         ]
       ],
-      "emojiFrequency": [],
+      "emojiFrequency": [
+        [
+          "✅",
+          1
+        ]
+      ],
       "hourlyActivity": [
         0,
         0,
@@ -91,20 +144,20 @@
         0,
         0,
         0,
-        1,
+        2,
         0,
         1,
-        3,
+        4,
         0
       ],
       "weekdayActivity": [
+        1,
         0,
         0,
         0,
         0,
         0,
-        0,
-        6
+        7
       ],
       "voiceMinutes": 12.686666666666667,
       "responseTime": 0,

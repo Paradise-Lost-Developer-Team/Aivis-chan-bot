@@ -1,8 +1,8 @@
 {
   "serverId": "1310469854402314250",
   "serverName": "Japan Mineraft Mods",
-  "totalMessages": 295,
-  "totalCharacters": 22176,
+  "totalMessages": 339,
+  "totalCharacters": 25521,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1310469854423158900",
         "channelName": "🚪ようこそ",
-        "totalMessages": 41,
+        "totalMessages": 58,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
@@ -20,33 +20,33 @@
           1,
           0,
           0,
+          2,
+          2,
           0,
-          0,
-          0,
-          1,
+          3,
           2,
           3,
-          1,
-          1,
-          1,
+          2,
+          2,
+          2,
           2,
           3,
-          4,
-          5,
-          1,
-          2,
           6,
+          6,
+          3,
           2,
-          2
+          8,
+          2,
+          3
         ],
         "weekdayActivity": [
-          3,
-          6,
-          4,
+          5,
+          7,
+          7,
+          10,
+          12,
           8,
-          9,
-          8,
-          3
+          9
         ]
       }
     ],
@@ -55,7 +55,7 @@
       {
         "channelId": "1310469854779801604",
         "channelName": "📃自己紹介",
-        "totalMessages": 15,
+        "totalMessages": 16,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -77,7 +77,7 @@
           1,
           2,
           2,
-          1,
+          2,
           1,
           2,
           0,
@@ -88,7 +88,7 @@
           1,
           1,
           1,
-          3,
+          4,
           3,
           3
         ]
@@ -231,7 +231,7 @@
       {
         "channelId": "1369236979866406952",
         "channelName": "自作車MOD(コンテンツパック)の進捗。",
-        "totalMessages": 2,
+        "totalMessages": 3,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -254,7 +254,7 @@
           2,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0
@@ -264,7 +264,7 @@
           0,
           2,
           0,
-          0,
+          1,
           0,
           0
         ]
@@ -363,7 +363,7 @@
       {
         "channelId": "1310469855304089653",
         "channelName": "メモ",
-        "totalMessages": 11,
+        "totalMessages": 16,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -377,27 +377,27 @@
           0,
           0,
           0,
-          0,
+          1,
           2,
           0,
           1,
           5,
-          0,
+          1,
           1,
           0,
           0,
           0,
           1,
-          0,
+          3,
           0
         ],
         "weekdayActivity": [
           0,
           5,
           3,
-          2,
-          0,
+          3,
           1,
+          4,
           0
         ]
       }
@@ -627,7 +627,7 @@
       {
         "channelId": "1352251304466190408",
         "channelName": "jmm-official",
-        "totalMessages": 9,
+        "totalMessages": 11,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -652,7 +652,7 @@
           0,
           3,
           0,
-          0,
+          2,
           0
         ],
         "weekdayActivity": [
@@ -660,9 +660,9 @@
           0,
           1,
           0,
-          0,
+          1,
           4,
-          4
+          5
         ]
       }
     ],
@@ -759,7 +759,7 @@
       {
         "channelId": "1310469854423158904",
         "channelName": "📢下書き",
-        "totalMessages": 10,
+        "totalMessages": 12,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -784,7 +784,7 @@
           0,
           2,
           0,
-          0,
+          2,
           0
         ],
         "weekdayActivity": [
@@ -792,9 +792,9 @@
           0,
           3,
           2,
-          0,
           1,
-          4
+          1,
+          5
         ]
       }
     ],
@@ -803,7 +803,7 @@
       {
         "channelId": "1310469854423158902",
         "channelName": "📢サーバーお知らせ",
-        "totalMessages": 15,
+        "totalMessages": 18,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -828,7 +828,7 @@
           0,
           1,
           1,
-          1,
+          4,
           1
         ],
         "weekdayActivity": [
@@ -836,9 +836,9 @@
           0,
           2,
           5,
-          0,
+          2,
           1,
-          6
+          7
         ]
       }
     ],
@@ -1331,7 +1331,7 @@
       {
         "channelId": "1310469855123607560",
         "channelName": "message-logs",
-        "totalMessages": 1,
+        "totalMessages": 2,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1345,7 +1345,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -1363,7 +1363,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           1,
           0
@@ -1413,6 +1413,270 @@
           2
         ]
       }
+    ],
+    [
+      "1385894742667034724",
+      {
+        "channelId": "1385894742667034724",
+        "channelName": "Minecraft雑談",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "1385894771352142006",
+      {
+        "channelId": "1385894771352142006",
+        "channelName": "麻雀雑談",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "1385894801852862505",
+      {
+        "channelId": "1385894801852862505",
+        "channelName": "VALORANT雑談",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "1340919764159299605",
+      {
+        "channelId": "1340919764159299605",
+        "channelName": "💭mod紹介",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1310469855123607556",
+      {
+        "channelId": "1310469855123607556",
+        "channelName": "command",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1389257787233669263",
+      {
+        "channelId": "1389257787233669263",
+        "channelName": "jdkファイルが開けない",
+        "totalMessages": 6,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "weekdayActivity": [
+          0,
+          1,
+          5,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
@@ -1422,35 +1686,35 @@
     1,
     0,
     0,
+    3,
+    3,
     1,
-    1,
-    1,
-    1,
+    4,
     11,
+    21,
+    9,
+    7,
+    15,
+    15,
     18,
-    8,
-    6,
-    11,
-    14,
-    17,
-    39,
-    25,
-    22,
     44,
     27,
-    21,
-    12
+    25,
+    45,
+    29,
+    32,
+    14
   ],
   "weekdayActivity": [
-    12,
-    28,
-    40,
-    44,
-    51,
-    80,
-    40
+    15,
+    30,
+    50,
+    48,
+    61,
+    83,
+    52
   ],
-  "averageMessageLength": 75.1728813559322,
+  "averageMessageLength": 75.28318584070796,
   "messageDistribution": [
     [
       "2025-04-27",
@@ -1595,8 +1859,52 @@
     [
       "2025-06-18",
       1
+    ],
+    [
+      "2025-06-19",
+      10
+    ],
+    [
+      "2025-06-20",
+      3
+    ],
+    [
+      "2025-06-21",
+      10
+    ],
+    [
+      "2025-06-22",
+      3
+    ],
+    [
+      "2025-06-23",
+      2
+    ],
+    [
+      "2025-06-24",
+      4
+    ],
+    [
+      "2025-06-25",
+      2
+    ],
+    [
+      "2025-06-27",
+      2
+    ],
+    [
+      "2025-06-30",
+      1
+    ],
+    [
+      "2025-07-01",
+      6
+    ],
+    [
+      "2025-07-02",
+      1
     ]
   ],
-  "mostActiveUser": "809627147333140531",
-  "mostActiveChannel": "1380542475197874197"
+  "mostActiveUser": "1005716357154885713",
+  "mostActiveChannel": "1310469854423158900"
 }
