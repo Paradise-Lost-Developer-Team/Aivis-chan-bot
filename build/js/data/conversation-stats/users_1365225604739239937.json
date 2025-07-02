@@ -1,0 +1,59 @@
+[
+  [
+    "1175078732743061545",
+    {
+      "userId": "1175078732743061545",
+      "username": "troll.nana_san",
+      "totalMessages": 4,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-25T07:35:53.599Z",
+      "lastMessageDate": "2025-04-27T14:51:20.425Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "weekdayActivity": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "voiceMinutes": 42.54505,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

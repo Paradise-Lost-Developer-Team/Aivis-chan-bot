@@ -1,0 +1,150 @@
+{
+  "serverId": "1353879861512507455",
+  "serverName": "名大理学部生命理学科",
+  "totalMessages": 6,
+  "totalCharacters": 38,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1353879862909337662",
+      {
+        "channelId": "1353879862909337662",
+        "channelName": "入室管理",
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1361181381425758290",
+      {
+        "channelId": "1361181381425758290",
+        "channelName": "授業の名前",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "averageMessageLength": 6.333333333333333,
+  "messageDistribution": [
+    [
+      "2025-04-13",
+      2
+    ],
+    [
+      "2025-04-14",
+      3
+    ],
+    [
+      "2025-04-27",
+      1
+    ]
+  ],
+  "mostActiveUser": "1224917636098428999",
+  "mostActiveChannel": "1353879862909337662"
+}

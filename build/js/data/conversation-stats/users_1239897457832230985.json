@@ -1,0 +1,206 @@
+[
+  [
+    "1366024161931296899",
+    {
+      "userId": "1366024161931296899",
+      "username": "akanetoki325",
+      "totalMessages": 6,
+      "totalCharacters": 251,
+      "totalWords": 14,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-10T13:17:29.440Z",
+      "lastMessageDate": "2025-05-24T12:29:11.832Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "どう？",
+          1
+        ],
+        [
+          "聞こえてる？",
+          1
+        ],
+        [
+          "茜音色タウンって知ってる？",
+          1
+        ],
+        [
+          "internal",
+          1
+        ],
+        [
+          "exception:",
+          1
+        ],
+        [
+          "com.google.common.util.concurrent.uncheckedexecutionexception:",
+          1
+        ],
+        [
+          "net.mineraftforge.fml.common.loaderexceptiomodcrash:",
+          1
+        ],
+        [
+          "caught",
+          1
+        ],
+        [
+          "exception",
+          1
+        ],
+        [
+          "from",
+          1
+        ],
+        [
+          "minecraft",
+          1
+        ],
+        [
+          "forge(forge)",
+          1
+        ],
+        [
+          "サークルとはなんですか？",
+          1
+        ],
+        [
+          "マイクラのlwcで書見台を見れるけど本は取れないようにするコマンドを教えて",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        3,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6
+      ],
+      "voiceMinutes": 12.686666666666667,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1195473465478742030",
+    {
+      "userId": "1195473465478742030",
+      "username": "hamanyan_419",
+      "totalMessages": 4,
+      "totalCharacters": 230,
+      "totalWords": 10,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-16T09:16:28.100Z",
+      "lastMessageDate": "2025-05-17T05:20:57.996Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "自分が入っていたコミュニティサーバーが消えています。鯖主さんとも連絡がつきません",
+          1
+        ],
+        [
+          "テキストチャットでかまをかけるには？",
+          1
+        ],
+        [
+          "aさん:申し訳ないのですけど、自分は皆さんのことを知らないのですが,",
+          2
+        ],
+        [
+          "逆に聞きたいのですが皆さんは知っているのですか？",
+          2
+        ],
+        [
+          "bさん:知っていますよ",
+          1
+        ],
+        [
+          "cさん:上に同じく",
+          1
+        ],
+        [
+          "どうやってかまかけたらいい？",
+          1
+        ],
+        [
+          "サーバーを消した理由をしりたい",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]
