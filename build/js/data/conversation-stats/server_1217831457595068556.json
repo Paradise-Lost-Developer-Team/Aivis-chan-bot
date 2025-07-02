@@ -1,8 +1,8 @@
 {
   "serverId": "1217831457595068556",
   "serverName": "étranger",
-  "totalMessages": 138,
-  "totalCharacters": 4799,
+  "totalMessages": 157,
+  "totalCharacters": 5139,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,10 +55,10 @@
       {
         "channelId": "1217833551517585430",
         "channelName": "mute-chat",
-        "totalMessages": 43,
+        "totalMessages": 58,
         "messageByUsers": {},
         "hourlyActivity": [
-          2,
+          7,
           15,
           10,
           0,
@@ -76,21 +76,21 @@
           0,
           0,
           0,
-          0,
+          1,
           5,
           1,
-          0,
+          2,
           3,
-          3
+          10
         ],
         "weekdayActivity": [
           5,
           3,
           5,
           10,
-          0,
-          0,
-          20
+          9,
+          5,
+          21
         ]
       }
     ],
@@ -143,10 +143,10 @@
       {
         "channelId": "1217846057069711371",
         "channelName": "link",
-        "totalMessages": 4,
+        "totalMessages": 5,
         "messageByUsers": {},
         "hourlyActivity": [
-          1,
+          2,
           0,
           0,
           0,
@@ -177,7 +177,7 @@
           0,
           1,
           0,
-          0,
+          1,
           0
         ]
       }
@@ -187,7 +187,7 @@
       {
         "channelId": "1217833283363274772",
         "channelName": "ss",
-        "totalMessages": 3,
+        "totalMessages": 4,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -212,7 +212,7 @@
           1,
           0,
           0,
-          0,
+          1,
           0
         ],
         "weekdayActivity": [
@@ -222,7 +222,7 @@
           0,
           0,
           2,
-          1
+          2
         ]
       }
     ],
@@ -231,7 +231,7 @@
       {
         "channelId": "1217841245410562148",
         "channelName": "nsfw",
-        "totalMessages": 20,
+        "totalMessages": 22,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -244,8 +244,8 @@
           0,
           0,
           0,
-          0,
-          0,
+          1,
+          1,
           1,
           2,
           0,
@@ -263,7 +263,7 @@
           0,
           0,
           0,
-          0,
+          2,
           3,
           14,
           3
@@ -316,7 +316,7 @@
     ]
   ],
   "hourlyActivity": [
-    8,
+    14,
     20,
     19,
     15,
@@ -326,31 +326,31 @@
     0,
     0,
     0,
+    4,
     3,
-    2,
     3,
     2,
     5,
     2,
     1,
     8,
-    5,
+    6,
     14,
     6,
-    1,
-    7,
-    12
+    3,
+    8,
+    19
   ],
   "weekdayActivity": [
     18,
     10,
     13,
-    17,
-    23,
-    23,
-    34
+    19,
+    32,
+    29,
+    36
   ],
-  "averageMessageLength": 34.77536231884058,
+  "averageMessageLength": 32.732484076433124,
   "messageDistribution": [
     [
       "2025-04-15",
@@ -451,8 +451,24 @@
     [
       "2025-06-14",
       1
+    ],
+    [
+      "2025-06-19",
+      15
+    ],
+    [
+      "2025-06-21",
+      1
+    ],
+    [
+      "2025-06-28",
+      1
+    ],
+    [
+      "2025-07-02",
+      2
     ]
   ],
   "mostActiveUser": "327780615032274946",
-  "mostActiveChannel": "1217831458073481380"
+  "mostActiveChannel": "1217833551517585430"
 }

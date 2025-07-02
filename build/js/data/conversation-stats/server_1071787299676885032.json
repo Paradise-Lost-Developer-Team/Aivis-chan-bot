@@ -1,8 +1,8 @@
 {
   "serverId": "1071787299676885032",
   "serverName": "F-CAPs(えふかぷ。)",
-  "totalMessages": 1539,
-  "totalCharacters": 20962,
+  "totalMessages": 1552,
+  "totalCharacters": 21765,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,15 +11,15 @@
       {
         "channelId": "1071788377097130014",
         "channelName": "雑談",
-        "totalMessages": 42,
+        "totalMessages": 53,
         "messageByUsers": {},
         "hourlyActivity": [
-          5,
+          6,
           1,
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -27,25 +27,25 @@
           1,
           0,
           0,
-          0,
-          1,
+          2,
+          3,
           1,
           5,
+          7,
           6,
           4,
-          3,
           5,
-          3,
+          4,
           0,
           1
         ],
         "weekdayActivity": [
           6,
-          5,
-          2,
-          4,
           7,
           2,
+          9,
+          9,
+          4,
           12
         ]
       }
@@ -99,7 +99,7 @@
       {
         "channelId": "1072098622411378748",
         "channelName": "総合会議お知らせ",
-        "totalMessages": 5,
+        "totalMessages": 7,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -115,12 +115,12 @@
           0,
           0,
           1,
+          2,
+          0,
+          0,
+          0,
+          0,
           1,
-          0,
-          0,
-          0,
-          0,
-          0,
           3,
           0,
           0,
@@ -129,9 +129,9 @@
         ],
         "weekdayActivity": [
           0,
+          1,
           0,
-          0,
-          2,
+          3,
           0,
           2,
           1
@@ -404,12 +404,12 @@
     ]
   ],
   "hourlyActivity": [
-    285,
+    286,
     129,
     214,
     25,
     0,
-    0,
+    1,
     0,
     0,
     0,
@@ -417,28 +417,28 @@
     3,
     0,
     3,
-    1,
-    1,
+    4,
+    3,
     2,
     5,
-    23,
-    4,
-    38,
+    24,
+    7,
+    39,
     75,
-    123,
+    124,
     212,
     394
   ],
   "weekdayActivity": [
     453,
-    57,
+    60,
     42,
+    328,
+    127,
     322,
-    125,
-    320,
     220
   ],
-  "averageMessageLength": 13.62053281351527,
+  "averageMessageLength": 14.023840206185566,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -567,6 +567,18 @@
     [
       "2025-06-12",
       1
+    ],
+    [
+      "2025-06-19",
+      4
+    ],
+    [
+      "2025-06-25",
+      6
+    ],
+    [
+      "2025-06-30",
+      3
     ]
   ],
   "mostActiveUser": "824904477811277844",

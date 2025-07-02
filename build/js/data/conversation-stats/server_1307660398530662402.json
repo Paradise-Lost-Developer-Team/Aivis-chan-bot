@@ -1,8 +1,8 @@
 {
   "serverId": "1307660398530662402",
   "serverName": "みんなの公園",
-  "totalMessages": 432,
-  "totalCharacters": 3147,
+  "totalMessages": 579,
+  "totalCharacters": 4554,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1310897193049260122",
         "channelName": "🧨ㆍtts",
-        "totalMessages": 302,
+        "totalMessages": 439,
         "messageByUsers": {},
         "hourlyActivity": [
           14,
@@ -28,24 +28,24 @@
           0,
           0,
           0,
-          0,
+          4,
           0,
           1,
           0,
           0,
-          49,
-          92,
-          77,
+          135,
+          132,
+          84,
           44,
           24
         ],
         "weekdayActivity": [
-          65,
+          69,
           34,
           0,
           19,
-          0,
-          63,
+          4,
+          192,
           121
         ]
       }
@@ -55,7 +55,7 @@
       {
         "channelId": "1307661234530811944",
         "channelName": "🧚ㆍ𝘊𝘩𝘢𝘵𝘵𝘪𝘯𝘨",
-        "totalMessages": 119,
+        "totalMessages": 126,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -76,21 +76,21 @@
           2,
           27,
           1,
-          4,
           5,
           5,
-          11,
+          8,
+          12,
           3,
-          3
+          5
         ],
         "weekdayActivity": [
-          9,
+          10,
           24,
           54,
           10,
           3,
-          18,
-          1
+          19,
+          6
         ]
       }
     ],
@@ -143,10 +143,10 @@
       {
         "channelId": "1307661453116968981",
         "channelName": "📸ㆍ𝘗𝘩𝘰𝘵𝘰",
-        "totalMessages": 3,
+        "totalMessages": 6,
         "messageByUsers": {},
         "hourlyActivity": [
-          0,
+          3,
           0,
           0,
           0,
@@ -174,10 +174,10 @@
         "weekdayActivity": [
           0,
           2,
-          0,
-          0,
           1,
           0,
+          1,
+          2,
           0
         ]
       }
@@ -272,7 +272,7 @@
     ]
   ],
   "hourlyActivity": [
-    18,
+    21,
     5,
     0,
     0,
@@ -286,27 +286,27 @@
     11,
     6,
     12,
-    3,
+    7,
     2,
     28,
     1,
-    6,
-    55,
-    98,
-    89,
+    7,
+    141,
+    141,
+    97,
     47,
-    29
+    31
   ],
   "weekdayActivity": [
-    77,
+    82,
     60,
-    54,
+    55,
     29,
-    4,
-    83,
-    125
+    8,
+    215,
+    130
   ],
-  "averageMessageLength": 7.284722222222222,
+  "averageMessageLength": 7.865284974093265,
   "messageDistribution": [
     [
       "2025-04-30",
@@ -439,6 +439,38 @@
     [
       "2025-06-18",
       2
+    ],
+    [
+      "2025-06-19",
+      6
+    ],
+    [
+      "2025-06-20",
+      129
+    ],
+    [
+      "2025-06-21",
+      4
+    ],
+    [
+      "2025-06-22",
+      4
+    ],
+    [
+      "2025-06-23",
+      1
+    ],
+    [
+      "2025-06-27",
+      1
+    ],
+    [
+      "2025-06-28",
+      1
+    ],
+    [
+      "2025-06-29",
+      1
     ]
   ],
   "mostActiveUser": "1363485783020929024",

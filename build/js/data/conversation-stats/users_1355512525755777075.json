@@ -296,12 +296,12 @@
     {
       "userId": "655263599601647626",
       "username": "foclia",
-      "totalMessages": 70,
-      "totalCharacters": 865,
-      "totalWords": 75,
+      "totalMessages": 72,
+      "totalCharacters": 869,
+      "totalWords": 77,
       "totalEmojis": 10,
       "firstMessageDate": "2025-05-14T23:02:52.442Z",
-      "lastMessageDate": "2025-05-28T10:47:18.115Z",
+      "lastMessageDate": "2025-07-01T10:33:24.556Z",
       "mentionsGiven": 4,
       "mentionsReceived": 6,
       "wordFrequency": [
@@ -580,7 +580,7 @@
         3,
         0,
         0,
-        3,
+        5,
         0,
         0,
         1,
@@ -589,7 +589,7 @@
       "weekdayActivity": [
         11,
         0,
-        1,
+        3,
         17,
         22,
         1,
@@ -1059,12 +1059,12 @@
     {
       "userId": "537232264598388746",
       "username": "mikan02201",
-      "totalMessages": 5,
-      "totalCharacters": 23,
-      "totalWords": 5,
+      "totalMessages": 8,
+      "totalCharacters": 135,
+      "totalWords": 8,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-20T11:22:33.497Z",
-      "lastMessageDate": "2025-05-20T11:24:04.892Z",
+      "lastMessageDate": "2025-07-01T10:33:15.387Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -1086,6 +1086,18 @@
         ],
         [
           "nai",
+          1
+        ],
+        [
+          "gigafile-0706-723038e26e2be1ea5e421dfc499daf73",
+          1
+        ],
+        [
+          "https://64.gigafile.nu/0706-96f9e4ca17c28a5d5dab8edd50200a86\\",
+          1
+        ],
+        [
+          "まちがえた",
           1
         ]
       ],
@@ -1110,7 +1122,7 @@
         0,
         0,
         0,
-        0,
+        3,
         5,
         0,
         0,
@@ -1119,7 +1131,7 @@
       "weekdayActivity": [
         0,
         0,
-        5,
+        8,
         0,
         0,
         0,

@@ -4,12 +4,12 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 27,
-      "totalCharacters": 2499,
-      "totalWords": 156,
-      "totalEmojis": 9,
+      "totalMessages": 35,
+      "totalCharacters": 4404,
+      "totalWords": 293,
+      "totalEmojis": 17,
       "firstMessageDate": "2025-04-12T16:48:49.095Z",
-      "lastMessageDate": "2025-06-16T07:34:33.468Z",
+      "lastMessageDate": "2025-07-02T06:47:51.164Z",
       "mentionsGiven": 6,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -23,7 +23,7 @@
         ],
         [
           "chan",
-          9
+          13
         ],
         [
           "bot**ユーザーの皆様！",
@@ -39,7 +39,7 @@
         ],
         [
           "###",
-          5
+          9
         ],
         [
           "新機能",
@@ -87,11 +87,11 @@
         ],
         [
           "※アップデート適用時には数十秒ほどのダウンタイムが発生します。ご利用中の方は、再起動後にbotが再接続されます。",
-          3
+          7
         ],
         [
           "いつもご対応いただき、ありがとうございます！",
-          3
+          7
         ],
         [
           "解決済み",
@@ -107,7 +107,7 @@
         ],
         [
           "今後ともよろしくお願いいたします。",
-          5
+          9
         ],
         [
           "<@1005716357154885713>",
@@ -135,15 +135,15 @@
         ],
         [
           "こんにちは、aivis",
-          3
+          7
         ],
         [
           "botをご利用いただきありがとうございます",
-          3
+          7
         ],
         [
           "今回のミニアップデートでは、以下の改善を行いました！",
-          3
+          7
         ],
         [
           "処理の高速化と改善点",
@@ -327,15 +327,15 @@
         ],
         [
           "©paradise-lost-group",
-          1
+          4
         ],
         [
           "2025",
-          1
+          4
         ],
         [
           "aivis-chan-bot",
-          1
+          4
         ],
         [
           "申し訳ございません。",
@@ -392,6 +392,106 @@
         [
           "botのlinux移行終了",
           1
+        ],
+        [
+          "音声合成が行われない不具合が発生",
+          1
+        ],
+        [
+          "音声合成が行われない不具合を修正しました。",
+          1
+        ],
+        [
+          "不具合修正！aivisspeech-engineのメモリ削減に成功！",
+          4
+        ],
+        [
+          "処理のエコシステム化と改善点",
+          4
+        ],
+        [
+          "**メモリ使用量のチェック**:",
+          4
+        ],
+        [
+          "メモリ使用量が増えすぎた場合に再起動",
+          4
+        ],
+        [
+          "**メモリ使用量の大幅削減**:",
+          4
+        ],
+        [
+          "音声バッファの即座破棄",
+          4
+        ],
+        [
+          "**メモリリークの防止**:",
+          4
+        ],
+        [
+          "ffmpegプロセスの適切な管理",
+          4
+        ],
+        [
+          "**システム安定性向上**:",
+          4
+        ],
+        [
+          "高負荷時の自動回復機能",
+          4
+        ],
+        [
+          "**リソース効率化**:",
+          4
+        ],
+        [
+          "不要なプロセスの迅速な解放",
+          4
+        ],
+        [
+          "<t:1751436000:d>",
+          1
+        ],
+        [
+          "から、",
+          1
+        ],
+        [
+          "光回線の工事を行うため",
+          1
+        ],
+        [
+          "aivis-chan-botは全機ダウンし、",
+          1
+        ],
+        [
+          "ご利用になることができません。",
+          1
+        ],
+        [
+          "ご了承いただければ幸いです。",
+          1
+        ],
+        [
+          "<t:1751446800:d>",
+          1
+        ],
+        [
+          "頃に復旧の目途となっております。",
+          1
+        ],
+        [
+          "<t:1751438828:f>を持ちまして、",
+          1
+        ],
+        [
+          "光回線の工事が終了し、",
+          1
+        ],
+        [
+          "aivis-chan-botが復旧いたしました。",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -409,11 +509,11 @@
         ],
         [
           "🎉",
-          3
+          7
         ],
         [
           "🔧",
-          3
+          7
         ]
       ],
       "hourlyActivity": [
@@ -428,11 +528,11 @@
         0,
         0,
         1,
-        1,
+        2,
         0,
         1,
-        6,
-        3,
+        12,
+        4,
         5,
         5,
         0,
@@ -444,9 +544,9 @@
       ],
       "weekdayActivity": [
         7,
-        8,
+        14,
         2,
-        5,
+        7,
         1,
         4,
         0
@@ -2625,6 +2725,462 @@
         0,
         0,
         1,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1362707605843083294",
+    {
+      "userId": "1362707605843083294",
+      "username": "ramune.3333",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-21T14:50:52.056Z",
+      "lastMessageDate": "2025-06-21T14:50:51.941Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1344003155989364816",
+    {
+      "userId": "1344003155989364816",
+      "username": "huyu.same",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-26T02:11:49.710Z",
+      "lastMessageDate": "2025-06-26T02:11:49.611Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1355152946979143805",
+    {
+      "userId": "1355152946979143805",
+      "username": "fnikiver1",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-28T20:04:03.046Z",
+      "lastMessageDate": "2025-06-28T20:04:02.944Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "273816587918639105",
+    {
+      "userId": "273816587918639105",
+      "username": "kagechaaan",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-29T03:26:30.214Z",
+      "lastMessageDate": "2025-06-29T03:26:30.110Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1239056778663301251",
+    {
+      "userId": "1239056778663301251",
+      "username": "zidouporuno",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-29T05:16:53.133Z",
+      "lastMessageDate": "2025-06-29T05:16:52.826Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "264421716367769600",
+    {
+      "userId": "264421716367769600",
+      "username": "takkuntk",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-29T10:24:16.028Z",
+      "lastMessageDate": "2025-06-29T10:24:15.900Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1044780138157572096",
+    {
+      "userId": "1044780138157572096",
+      "username": "siyukatu",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-01T03:53:50.679Z",
+      "lastMessageDate": "2025-07-01T03:53:50.579Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "591877368365187072",
+    {
+      "userId": "591877368365187072",
+      "username": "kyuurigames",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-02T04:26:54.254Z",
+      "lastMessageDate": "2025-07-02T04:26:54.155Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
         0,
         0,
         0

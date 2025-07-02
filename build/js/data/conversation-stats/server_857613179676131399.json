@@ -1,8 +1,8 @@
 {
   "serverId": "857613179676131399",
   "serverName": "関東の撮り鉄のサーバー",
-  "totalMessages": 118,
-  "totalCharacters": 12645,
+  "totalMessages": 177,
+  "totalCharacters": 18376,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "863566140173582347",
         "channelName": "データ転送",
-        "totalMessages": 16,
+        "totalMessages": 21,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -20,22 +20,22 @@
           0,
           0,
           0,
-          0,
-          1,
-          0,
-          0,
           1,
           1,
           0,
           0,
-          4,
+          1,
+          1,
           0,
           0,
+          6,
+          0,
+          1,
           1,
           0,
           0,
           2,
-          1,
+          2,
           0,
           0
         ],
@@ -45,8 +45,8 @@
           1,
           4,
           0,
-          4,
-          0
+          8,
+          1
         ]
       }
     ],
@@ -143,27 +143,27 @@
       {
         "channelId": "857613179676131402",
         "channelName": "一般",
-        "totalMessages": 25,
+        "totalMessages": 37,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
+          1,
+          2,
           0,
           0,
           0,
-          0,
-          0,
-          0,
+          1,
           0,
           0,
           1,
           1,
           0,
           3,
+          2,
+          11,
+          1,
           2,
           4,
-          1,
-          2,
-          3,
           0,
           1,
           2,
@@ -177,8 +177,8 @@
           7,
           1,
           5,
-          4,
-          4
+          14,
+          6
         ]
       }
     ],
@@ -275,7 +275,7 @@
       {
         "channelId": "1368002127615623249",
         "channelName": "基礎化学",
-        "totalMessages": 1,
+        "totalMessages": 2,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -295,7 +295,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -308,7 +308,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           1
         ]
@@ -407,7 +407,7 @@
       {
         "channelId": "1373658712102670508",
         "channelName": "vocaloconnect",
-        "totalMessages": 5,
+        "totalMessages": 7,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -428,7 +428,7 @@
           0,
           0,
           0,
-          3,
+          5,
           0,
           0,
           0,
@@ -441,7 +441,7 @@
           1,
           2,
           1,
-          0,
+          2,
           0
         ]
       }
@@ -451,7 +451,7 @@
       {
         "channelId": "1373658936988667984",
         "channelName": "ソフィア祭",
-        "totalMessages": 5,
+        "totalMessages": 6,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -476,13 +476,13 @@
           0,
           0,
           1,
-          2,
+          3,
           1
         ],
         "weekdayActivity": [
           2,
           2,
-          1,
+          2,
           0,
           0,
           0,
@@ -539,7 +539,7 @@
       {
         "channelId": "1380462449752412191",
         "channelName": "sqr",
-        "totalMessages": 36,
+        "totalMessages": 56,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -559,9 +559,9 @@
           0,
           0,
           0,
-          11,
-          23,
-          0,
+          21,
+          32,
+          1,
           0,
           0,
           2,
@@ -573,7 +573,7 @@
           2,
           18,
           0,
-          16,
+          36,
           0
         ]
       }
@@ -671,7 +671,7 @@
       {
         "channelId": "1382607651736912036",
         "channelName": "キリスト教人間学「他者のために、他者とともに」",
-        "totalMessages": 2,
+        "totalMessages": 4,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -684,7 +684,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -697,15 +697,15 @@
           0,
           0,
           0,
-          0
+          1
         ],
         "weekdayActivity": [
-          0,
+          1,
           0,
           0,
           0,
           2,
-          0,
+          1,
           0
         ]
       }
@@ -803,7 +803,7 @@
       {
         "channelId": "1382925814063960155",
         "channelName": "ac",
-        "totalMessages": 1,
+        "totalMessages": 2,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -818,7 +818,139 @@
           0,
           0,
           0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "1382926009086640128",
+      {
+        "channelId": "1382926009086640128",
+        "channelName": "Essay Writing Assignment",
+        "totalMessages": 6,
+        "messageByUsers": {},
+        "hourlyActivity": [
           1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          5,
+          0
+        ]
+      }
+    ],
+    [
+      "1385169006180175913",
+      {
+        "channelId": "1385169006180175913",
+        "channelName": "250613(オンデマンド)",
+        "totalMessages": 4,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          3,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "1385435040401588324",
+      {
+        "channelId": "1385435040401588324",
+        "channelName": "6/19",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
           0,
           0,
           0,
@@ -843,13 +975,19 @@
       }
     ],
     [
-      "1382926009086640128",
+      "1246338939736948838",
       {
-        "channelId": "1382926009086640128",
-        "channelName": "Essay Writing Assignment",
-        "totalMessages": 4,
+        "channelId": "1246338939736948838",
+        "channelName": "プロセカ",
+        "totalMessages": 1,
         "messageByUsers": {},
         "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
           1,
           0,
           0,
@@ -857,12 +995,6 @@
           0,
           0,
           0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          3,
           0,
           0,
           0,
@@ -878,51 +1010,139 @@
         "weekdayActivity": [
           0,
           0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "1387999787655233696",
+      {
+        "channelId": "1387999787655233696",
+        "channelName": "7/11,15　Presentation",
+        "totalMessages": 6,
+        "messageByUsers": {},
+        "hourlyActivity": [
           1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          1,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          3,
           0,
           0,
           3,
           0
         ]
       }
+    ],
+    [
+      "1388884388703633530",
+      {
+        "channelId": "1388884388703633530",
+        "channelName": "6/26",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "weekdayActivity": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
+    4,
+    2,
     3,
     1,
-    1,
-    1,
     0,
     0,
-    0,
+    3,
     2,
     5,
-    1,
-    2,
     3,
-    10,
+    4,
+    3,
+    13,
     6,
-    8,
-    9,
-    4,
-    15,
-    28,
-    2,
-    4,
-    2,
+    17,
+    10,
     5,
-    6
-  ],
-  "weekdayActivity": [
-    11,
+    30,
+    39,
     5,
-    19,
-    27,
-    19,
-    29,
+    5,
+    3,
+    6,
     8
   ],
-  "averageMessageLength": 107.16101694915254,
+  "weekdayActivity": [
+    13,
+    5,
+    23,
+    27,
+    23,
+    74,
+    12
+  ],
+  "averageMessageLength": 103.81920903954803,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -1051,6 +1271,38 @@
     [
       "2025-06-18",
       4
+    ],
+    [
+      "2025-06-19",
+      4
+    ],
+    [
+      "2025-06-20",
+      29
+    ],
+    [
+      "2025-06-26",
+      3
+    ],
+    [
+      "2025-06-27",
+      16
+    ],
+    [
+      "2025-06-28",
+      1
+    ],
+    [
+      "2025-06-29",
+      2
+    ],
+    [
+      "2025-06-30",
+      1
+    ],
+    [
+      "2025-07-01",
+      3
     ]
   ],
   "mostActiveUser": "804323724975144971",

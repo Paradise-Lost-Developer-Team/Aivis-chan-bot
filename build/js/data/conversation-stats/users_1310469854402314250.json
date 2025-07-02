@@ -118,13 +118,13 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 77,
-      "totalCharacters": 7598,
-      "totalWords": 431,
+      "totalMessages": 79,
+      "totalCharacters": 7731,
+      "totalWords": 439,
       "totalEmojis": 8,
       "firstMessageDate": "2025-04-18T10:51:15.967Z",
-      "lastMessageDate": "2025-06-17T01:02:24.797Z",
-      "mentionsGiven": 40,
+      "lastMessageDate": "2025-07-01T05:26:53.067Z",
+      "mentionsGiven": 42,
       "mentionsReceived": 11,
       "wordFrequency": [
         [
@@ -1230,6 +1230,38 @@
         [
           "ありがとうございました",
           1
+        ],
+        [
+          "jdk,",
+          1
+        ],
+        [
+          "jreの実行ファイルを",
+          1
+        ],
+        [
+          "クリックしても開けないと言われましても",
+          1
+        ],
+        [
+          "何を開こうとしたのか",
+          1
+        ],
+        [
+          "分からないので",
+          1
+        ],
+        [
+          "もっと詳しい情報をください。",
+          1
+        ],
+        [
+          "https://adoptium.net/temurin/releases/",
+          1
+        ],
+        [
+          "こちらのjavaのインストールをお試しください。",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1272,12 +1304,12 @@
         0,
         0,
         0,
-        0,
+        1,
         6,
         7,
         0,
         3,
-        3,
+        4,
         4,
         3,
         10,
@@ -1291,7 +1323,7 @@
       "weekdayActivity": [
         12,
         3,
-        6,
+        8,
         11,
         15,
         20,
@@ -1309,12 +1341,12 @@
     {
       "userId": "1006451416740667392",
       "username": "velleagle",
-      "totalMessages": 12,
-      "totalCharacters": 671,
-      "totalWords": 38,
+      "totalMessages": 13,
+      "totalCharacters": 703,
+      "totalWords": 39,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-19T07:07:00.428Z",
-      "lastMessageDate": "2025-05-06T08:59:36.969Z",
+      "lastMessageDate": "2025-06-19T11:33:04.075Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -1405,6 +1437,10 @@
         [
           "行けました。対応ありがとうございます。",
           1
+        ],
+        [
+          "今のところ計6台分の落とし込みが完了しました。まだまだ先は長い。",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -1429,7 +1465,7 @@
         7,
         0,
         2,
-        0,
+        1,
         0,
         0,
         0
@@ -1439,7 +1475,7 @@
         2,
         8,
         0,
-        0,
+        1,
         0,
         2
       ],
@@ -1822,12 +1858,12 @@
     {
       "userId": "1005716357154885713",
       "username": "disc_nanashi",
-      "totalMessages": 68,
-      "totalCharacters": 10518,
-      "totalWords": 587,
+      "totalMessages": 86,
+      "totalCharacters": 13179,
+      "totalWords": 717,
       "totalEmojis": 4,
       "firstMessageDate": "2025-04-21T01:58:11.127Z",
-      "lastMessageDate": "2025-06-18T05:55:28.606Z",
+      "lastMessageDate": "2025-07-01T13:32:06.491Z",
       "mentionsGiven": 0,
       "mentionsReceived": 4,
       "wordFrequency": [
@@ -2089,31 +2125,31 @@
         ],
         [
           "<#1318516995590721536>",
-          16
+          20
         ],
         [
           "もしくは",
-          18
+          22
         ],
         [
           "<#1310469854779801601>",
-          18
+          22
         ],
         [
           "までご連絡ください。",
-          17
+          21
         ],
         [
           "今後ともjapan",
-          17
+          21
         ],
         [
           "minecraft",
-          17
+          21
         ],
         [
           "modsをよろしくお願いいたします。",
-          17
+          21
         ],
         [
           "@everyone",
@@ -2229,7 +2265,7 @@
         ],
         [
           "ご不明な点や不具合などございましたら、",
-          15
+          19
         ],
         [
           "参加者からの要望に伴い、新たにmodを追加しました。",
@@ -2237,7 +2273,7 @@
         ],
         [
           "**これらのmodを導入していない場合はサーバーに参加することができないため、必ず追加してください。**",
-          4
+          5
         ],
         [
           "新たに追加したmodの一覧は以下の通りです。",
@@ -2605,7 +2641,7 @@
         ],
         [
           "mod",
-          1
+          3
         ],
         [
           "pack",
@@ -2621,7 +2657,7 @@
         ],
         [
           "jmm公式サーバーに関するお知らせ",
-          4
+          9
         ],
         [
           "現在開催しているcobblemonサーバーに関して、諸事情によりサーバーを終了することになりました。",
@@ -2710,6 +2746,126 @@
         [
           "→create関係のバグ",
           1
+        ],
+        [
+          "modwiki作るならmirahaze",
+          1
+        ],
+        [
+          "新たに以下のmodを追加しました。",
+          5
+        ],
+        [
+          "sophiaricated",
+          3
+        ],
+        [
+          "backpacks",
+          3
+        ],
+        [
+          "前提:sophiaricated",
+          3
+        ],
+        [
+          "core",
+          3
+        ],
+        [
+          "前提:",
+          1
+        ],
+        [
+          "[modrinth](<https://modrinth.com/mod/sophisticated-backpacks>)/[curseforge](<https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks>)",
+          1
+        ],
+        [
+          "[modrinth](<https://modrinth.com/mod/sophisticated-core>)/[curseforge](<https://www.curseforge.com/minecraft/mc-mods/sophisticated-core>)",
+          1
+        ],
+        [
+          "前提:forge",
+          2
+        ],
+        [
+          "config",
+          2
+        ],
+        [
+          "api",
+          2
+        ],
+        [
+          "port",
+          4
+        ],
+        [
+          "[modrinth](<https://modrinth.com/mod/forge-config-api-port>)/[curseforge](<https://www.curseforge.com/minecraft/mc-mods/forge-config-api-port-fabric>)",
+          2
+        ],
+        [
+          "jmm公式サーバーのmodpackを更新しました！",
+          3
+        ],
+        [
+          "prismランチャーの場合、構成を選択した状態で編集をクリックし、modrinth→ファイルから更新でアップデートすることができます。",
+          3
+        ],
+        [
+          "アップデート内容は以下の通りです。",
+          3
+        ],
+        [
+          "unofficial",
+          2
+        ],
+        [
+          "fabric",
+          2
+        ],
+        [
+          "[modrinth](<https://modrinth.com/mod/ounrbqtq>)/[curseforge](<https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks-unofficial-fabric-port>)",
+          1
+        ],
+        [
+          "[modrinth](<https://modrinth.com/mod/sophisticated-core-(unofficial-fabric-port)>)/[curseforge](<https://www.curseforge.com/minecraft/mc-mods/sophisticated-core-unofficial-fabric-port>)",
+          1
+        ],
+        [
+          "仮ロゴ",
+          1
+        ],
+        [
+          "tom's",
+          2
+        ],
+        [
+          "simple",
+          2
+        ],
+        [
+          "storage",
+          2
+        ],
+        [
+          "[modrinth](https://modrinth.com/mod/xzni4cpy)/[curseforge](https://www.curseforge.com/minecraft/mc-mods/toms-storage)",
+          2
+        ],
+        [
+          "bump",
+          1
+        ],
+        [
+          "？？？",
+          1
+        ],
+        [
+          "__~~markdownって何ですか？~~__",
+          1
+        ],
+        [
+          "bump忘れ",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -2742,28 +2898,28 @@
         0,
         0,
         2,
-        12,
+        14,
         4,
         0,
         1,
         6,
-        3,
-        6,
+        4,
         9,
+        10,
         2,
         12,
         3,
-        2,
+        13,
         2
       ],
       "weekdayActivity": [
         1,
         18,
-        11,
-        8,
-        0,
-        17,
-        13
+        13,
+        10,
+        5,
+        20,
+        19
       ],
       "voiceMinutes": 857.5371833333334,
       "responseTime": 0,
@@ -6686,6 +6842,1065 @@
         0,
         0,
         1,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1314767906860437504",
+    {
+      "userId": "1314767906860437504",
+      "username": "rokubusin",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-19T08:24:21.428Z",
+      "lastMessageDate": "2025-06-19T08:24:21.259Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1363123465728557268",
+    {
+      "userId": "1363123465728557268",
+      "username": "kakera0034",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-19T10:36:35.228Z",
+      "lastMessageDate": "2025-06-19T10:36:35.042Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "952088953832493067",
+    {
+      "userId": "952088953832493067",
+      "username": "aim_runaway1231",
+      "totalMessages": 6,
+      "totalCharacters": 321,
+      "totalWords": 23,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-19T10:38:14.355Z",
+      "lastMessageDate": "2025-07-01T06:02:51.842Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 2,
+      "wordFrequency": [
+        [
+          "kota",
+          1
+        ],
+        [
+          "高校生",
+          1
+        ],
+        [
+          "マイクラ歴",
+          1
+        ],
+        [
+          "一桁年",
+          1
+        ],
+        [
+          "好きなmod:kappa",
+          1
+        ],
+        [
+          "shader",
+          1
+        ],
+        [
+          "別ゲー",
+          1
+        ],
+        [
+          "valorant等",
+          1
+        ],
+        [
+          ":⠀よろしくお願いします",
+          1
+        ],
+        [
+          "modを入れたいのですがjdk,jreのexeファイルをクリックしても開けないです。調べても出てこないので、方法を教えてください。",
+          1
+        ],
+        [
+          "javaをダウンロードしようと、公式サイトからjdkのファイルをダウンロードし、クリックするとユーザーアカウント制御の許可を聞かれ、許可を押すとそのまま消えてしまい開くことができません。",
+          1
+        ],
+        [
+          "インストールすることができたのですが、このサイトをインストールするとjavaがインストールされるのですか？",
+          1
+        ],
+        [
+          "解決しました、本当にありがとうございます。",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1
+      ],
+      "weekdayActivity": [
+        0,
+        1,
+        3,
+        0,
+        2,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "637656998229442591",
+    {
+      "userId": "637656998229442591",
+      "username": "talutinesm.",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-21T00:41:30.064Z",
+      "lastMessageDate": "2025-06-21T00:41:29.958Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "779340737971879937",
+    {
+      "userId": "779340737971879937",
+      "username": "onmyoudama",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-21T08:18:07.340Z",
+      "lastMessageDate": "2025-06-21T08:18:07.221Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1385910963580043435",
+    {
+      "userId": "1385910963580043435",
+      "username": "nyankomal_44956",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-21T09:18:18.831Z",
+      "lastMessageDate": "2025-06-21T09:18:18.693Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1173191384166047754",
+    {
+      "userId": "1173191384166047754",
+      "username": "macaron_lol13",
+      "totalMessages": 2,
+      "totalCharacters": 198,
+      "totalWords": 9,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-21T14:34:32.562Z",
+      "lastMessageDate": "2025-06-22T02:01:33.585Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "https://www.curseforge.com/minecraft/mc-mods/lets-do-vinery",
+          1
+        ],
+        [
+          "[let's",
+          1
+        ],
+        [
+          "do]",
+          1
+        ],
+        [
+          "vinery",
+          1
+        ],
+        [
+          "ワインを中心としたお酒を追加するmod",
+          1
+        ],
+        [
+          "完成度が非常に高く、バニラにも溶け込みやすいシックなデザイン",
+          1
+        ],
+        [
+          "蒸留やブドウ栽培など、コンテンツの没入感が高い",
+          1
+        ],
+        [
+          "ワインは製造されてから時間経過で効能や熟成年数が上昇する",
+          1
+        ],
+        [
+          "特別な祝杯や、家の装飾などに是非",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "663724221339271169",
+    {
+      "userId": "663724221339271169",
+      "username": "kirika_swordman",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-22T00:48:25.532Z",
+      "lastMessageDate": "2025-06-22T00:48:25.423Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1039456876154327051",
+    {
+      "userId": "1039456876154327051",
+      "username": "tatsutsun0269",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-22T12:04:07.705Z",
+      "lastMessageDate": "2025-06-22T12:04:07.601Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "860813800079884298",
+    {
+      "userId": "860813800079884298",
+      "username": "okayu1013",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-23T12:47:03.596Z",
+      "lastMessageDate": "2025-06-23T12:47:03.324Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1350366456897994763",
+    {
+      "userId": "1350366456897994763",
+      "username": "sorata.217",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-23T21:05:38.358Z",
+      "lastMessageDate": "2025-06-23T21:05:38.252Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "406297431651778580",
+    {
+      "userId": "406297431651778580",
+      "username": "tomo3_hana",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-24T03:17:51.278Z",
+      "lastMessageDate": "2025-06-24T03:17:51.177Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "941534784260280330",
+    {
+      "userId": "941534784260280330",
+      "username": "1692mame",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-24T05:20:39.765Z",
+      "lastMessageDate": "2025-06-24T05:20:39.668Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1041592788946538516",
+    {
+      "userId": "1041592788946538516",
+      "username": "y6gi",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-24T22:24:29.850Z",
+      "lastMessageDate": "2025-06-24T22:24:29.749Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1341294616196026430",
+    {
+      "userId": "1341294616196026430",
+      "username": "zeroxx0407",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-27T21:35:10.927Z",
+      "lastMessageDate": "2025-06-27T21:35:10.804Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1319874768002093148",
+    {
+      "userId": "1319874768002093148",
+      "username": "kinokino_1234",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-06-27T22:07:46.078Z",
+      "lastMessageDate": "2025-06-27T22:07:45.938Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1154981722568540210",
+    {
+      "userId": "1154981722568540210",
+      "username": "yattan.",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-02T04:50:57.634Z",
+      "lastMessageDate": "2025-07-02T04:50:57.510Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
         0
       ],
       "voiceMinutes": 0,

@@ -4,12 +4,12 @@
     {
       "userId": "254905350338117632",
       "username": "takuk",
-      "totalMessages": 11,
-      "totalCharacters": 186,
-      "totalWords": 10,
+      "totalMessages": 14,
+      "totalCharacters": 285,
+      "totalWords": 13,
       "totalEmojis": 3,
       "firstMessageDate": "2025-04-15T10:00:09.729Z",
-      "lastMessageDate": "2025-06-02T08:28:46.585Z",
+      "lastMessageDate": "2025-07-02T01:07:38.146Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -44,6 +44,18 @@
         [
           "<:pu_kusukusu:1357963714170454037>",
           1
+        ],
+        [
+          "えろ動画見てる",
+          1
+        ],
+        [
+          "だしちゃったのか",
+          1
+        ],
+        [
+          "https://x.com/refreshedguri/status/1940153443349360666?t=sgv5tanlpwdxzkrwtnlung&s=19",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -57,7 +69,7 @@
         ]
       ],
       "hourlyActivity": [
-        1,
+        3,
         0,
         2,
         0,
@@ -67,7 +79,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         2,
         0,
@@ -86,12 +98,12 @@
         1,
         3,
         2,
-        0,
         1,
-        0,
+        1,
+        2,
         4
       ],
-      "voiceMinutes": 265.9148666666667,
+      "voiceMinutes": 411.7458666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -103,18 +115,18 @@
     {
       "userId": "327780615032274946",
       "username": "qualia.e",
-      "totalMessages": 76,
-      "totalCharacters": 2020,
-      "totalWords": 70,
-      "totalEmojis": 5,
+      "totalMessages": 89,
+      "totalCharacters": 2232,
+      "totalWords": 85,
+      "totalEmojis": 6,
       "firstMessageDate": "2025-04-15T10:00:53.646Z",
-      "lastMessageDate": "2025-06-14T06:10:29.530Z",
+      "lastMessageDate": "2025-07-02T02:49:24.183Z",
       "mentionsGiven": 3,
       "mentionsReceived": 1,
       "wordFrequency": [
         [
           "おはよう",
-          2
+          3
         ],
         [
           "さよなら",
@@ -178,7 +190,7 @@
         ],
         [
           "<:15_:1357961162792374272>",
-          1
+          2
         ],
         [
           "https://x.com/aetoriz_in_vr/status/1913440335667044701?s=46&t=xyatgivy62oe4kchzkon3w",
@@ -194,7 +206,7 @@
         ],
         [
           "guri",
-          1
+          2
         ],
         [
           "https://x.com/gamespark/status/1915020627217625300?s=46&t=xyatgivy62oe4kchzkon3w",
@@ -371,6 +383,50 @@
         [
           "https://x.com/momizi_vrchater/status/1933523629582790826?s=46&t=xyatgivy62oe4kchzkon3w",
           1
+        ],
+        [
+          "taseki",
+          1
+        ],
+        [
+          "/voice-style",
+          1
+        ],
+        [
+          "reset",
+          1
+        ],
+        [
+          "なぐるよ",
+          1
+        ],
+        [
+          "えーこわいー",
+          1
+        ],
+        [
+          "えーわたしならそんな思いさせないのにー",
+          1
+        ],
+        [
+          "https://youtu.be/v2dhh6g9nwu?si=x6pnbwagq4mlyb_e",
+          1
+        ],
+        [
+          "あるさんがだしてる",
+          1
+        ],
+        [
+          "https://x.com/arumee_vrc/status/1787201850082812330",
+          1
+        ],
+        [
+          "arigatou",
+          1
+        ],
+        [
+          "no.1",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -384,7 +440,7 @@
         ],
         [
           "<:15_:1357961162792374272>",
-          1
+          2
         ],
         [
           "<:1qinvite_icon:1081786167877455932>",
@@ -396,7 +452,7 @@
         ]
       ],
       "hourlyActivity": [
-        6,
+        9,
         6,
         5,
         9,
@@ -407,34 +463,39 @@
         0,
         0,
         3,
-        1,
+        2,
         1,
         2,
         5,
         2,
         1,
         3,
-        3,
+        4,
         11,
         4,
         1,
-        5,
-        7
+        6,
+        14
       ],
       "weekdayActivity": [
         10,
         6,
         10,
-        10,
-        13,
-        16,
-        11
+        11,
+        20,
+        19,
+        13
       ],
-      "voiceMinutes": 956.9419333333333,
+      "voiceMinutes": 1304.0720166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
-      "commandUsage": []
+      "commandUsage": [
+        [
+          "voice",
+          1
+        ]
+      ]
     }
   ],
   [
@@ -509,7 +570,7 @@
         1,
         2
       ],
-      "voiceMinutes": 191.26505,
+      "voiceMinutes": 413.87835,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -769,12 +830,12 @@
     {
       "userId": "630375036926296075",
       "username": "ub9b0",
-      "totalMessages": 11,
-      "totalCharacters": 18,
-      "totalWords": 4,
+      "totalMessages": 12,
+      "totalCharacters": 22,
+      "totalWords": 5,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-01T08:37:10.139Z",
-      "lastMessageDate": "2025-06-05T18:42:41.830Z",
+      "lastMessageDate": "2025-06-19T12:49:47.635Z",
       "mentionsGiven": 1,
       "mentionsReceived": 2,
       "wordFrequency": [
@@ -792,6 +853,10 @@
         ],
         [
           "これおもろ",
+          1
+        ],
+        [
+          "かわいい",
           1
         ]
       ],
@@ -818,7 +883,7 @@
         0,
         0,
         1,
-        0,
+        1,
         0,
         0
       ],
@@ -827,7 +892,7 @@
         0,
         0,
         0,
-        6,
+        7,
         2,
         0
       ],
@@ -894,6 +959,73 @@
         0
       ],
       "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "909642528733663263",
+    {
+      "userId": "909642528733663263",
+      "username": "arupipi",
+      "totalMessages": 2,
+      "totalCharacters": 25,
+      "totalWords": 1,
+      "totalEmojis": 1,
+      "firstMessageDate": "2025-06-19T12:34:24.188Z",
+      "lastMessageDate": "2025-06-19T15:10:16.137Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "<:ng:1357963663306395668>",
+          1
+        ]
+      ],
+      "emojiFrequency": [
+        [
+          "<:NG:1357963663306395668>",
+          1
+        ]
+      ],
+      "hourlyActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "voiceMinutes": 212.63821666666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

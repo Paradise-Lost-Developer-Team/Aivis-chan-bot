@@ -1,8 +1,8 @@
 {
   "serverId": "1351827918569078855",
   "serverName": "学生雑談・ゲーム鯖",
-  "totalMessages": 4592,
-  "totalCharacters": 67626,
+  "totalMessages": 4594,
+  "totalCharacters": 67654,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -99,11 +99,11 @@
       {
         "channelId": "1351831007095029781",
         "channelName": "📷┣画像・動画",
-        "totalMessages": 93,
+        "totalMessages": 94,
         "messageByUsers": {},
         "hourlyActivity": [
           12,
-          0,
+          1,
           1,
           1,
           0,
@@ -134,7 +134,7 @@
           6,
           7,
           5,
-          6
+          7
         ]
       }
     ],
@@ -187,11 +187,11 @@
       {
         "channelId": "1351827919479246850",
         "channelName": "🚪┣入室通知",
-        "totalMessages": 107,
+        "totalMessages": 108,
         "messageByUsers": {},
         "hourlyActivity": [
           5,
-          7,
+          8,
           2,
           3,
           2,
@@ -216,7 +216,7 @@
           7
         ],
         "weekdayActivity": [
-          22,
+          23,
           26,
           18,
           7,
@@ -1197,7 +1197,7 @@
   ],
   "hourlyActivity": [
     203,
-    175,
+    177,
     126,
     109,
     62,
@@ -1222,15 +1222,15 @@
     170
   ],
   "weekdayActivity": [
-    1140,
+    1141,
     881,
     349,
     1493,
     156,
     320,
-    253
+    254
   ],
-  "averageMessageLength": 14.72691637630662,
+  "averageMessageLength": 14.726599912929908,
   "messageDistribution": [
     [
       "2025-05-05",
@@ -1371,6 +1371,14 @@
     [
       "2025-06-18",
       4
+    ],
+    [
+      "2025-06-20",
+      1
+    ],
+    [
+      "2025-06-28",
+      1
     ]
   ],
   "mostActiveUser": "1097204925915734016",

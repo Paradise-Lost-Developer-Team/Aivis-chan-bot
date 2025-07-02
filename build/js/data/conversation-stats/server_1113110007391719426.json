@@ -1,7 +1,7 @@
 {
   "serverId": "1113110007391719426",
   "serverName": "練習用",
-  "totalMessages": 24,
+  "totalMessages": 27,
   "totalCharacters": 204,
   "activeUsers": 0,
   "userStats": {},
@@ -11,7 +11,7 @@
       {
         "channelId": "1288603065439617148",
         "channelName": "タブレットにあった動画",
-        "totalMessages": 19,
+        "totalMessages": 22,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -28,8 +28,8 @@
           4,
           0,
           1,
-          3,
-          0,
+          4,
+          2,
           7,
           1,
           0,
@@ -41,7 +41,7 @@
         ],
         "weekdayActivity": [
           0,
-          3,
+          6,
           1,
           6,
           5,
@@ -198,8 +198,8 @@
     4,
     3,
     1,
-    4,
-    0,
+    5,
+    2,
     7,
     2,
     0,
@@ -211,14 +211,14 @@
   ],
   "weekdayActivity": [
     0,
-    3,
+    6,
     2,
     6,
     7,
     3,
     3
   ],
-  "averageMessageLength": 8.5,
+  "averageMessageLength": 7.555555555555555,
   "messageDistribution": [
     [
       "2025-04-18",
@@ -259,6 +259,10 @@
     [
       "2025-06-03",
       1
+    ],
+    [
+      "2025-06-30",
+      3
     ]
   ],
   "mostActiveUser": "703215124185350175",

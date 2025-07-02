@@ -1,8 +1,8 @@
 {
   "serverId": "1355512525755777075",
   "serverName": "aoe",
-  "totalMessages": 176,
-  "totalCharacters": 2580,
+  "totalMessages": 181,
+  "totalCharacters": 2696,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1355512526191722608",
         "channelName": "一般",
-        "totalMessages": 103,
+        "totalMessages": 108,
         "messageByUsers": {},
         "hourlyActivity": [
           7,
@@ -33,7 +33,7 @@
           0,
           0,
           1,
-          3,
+          8,
           0,
           2,
           0,
@@ -42,7 +42,7 @@
         "weekdayActivity": [
           14,
           1,
-          6,
+          11,
           27,
           47,
           6,
@@ -115,7 +115,7 @@
     5,
     0,
     3,
-    5,
+    10,
     10,
     7,
     1,
@@ -124,13 +124,13 @@
   "weekdayActivity": [
     38,
     1,
-    27,
+    32,
     27,
     49,
     6,
     28
   ],
-  "averageMessageLength": 14.659090909090908,
+  "averageMessageLength": 14.895027624309392,
   "messageDistribution": [
     [
       "2025-05-14",
@@ -175,6 +175,10 @@
     [
       "2025-06-02",
       1
+    ],
+    [
+      "2025-07-01",
+      5
     ]
   ],
   "mostActiveUser": "655263599601647626",

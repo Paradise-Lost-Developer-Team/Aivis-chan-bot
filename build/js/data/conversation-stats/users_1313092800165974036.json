@@ -78,12 +78,12 @@
     {
       "userId": "867757972728578097",
       "username": "syana882",
-      "totalMessages": 46,
+      "totalMessages": 51,
       "totalCharacters": 339,
       "totalWords": 48,
       "totalEmojis": 5,
       "firstMessageDate": "2025-04-26T13:00:02.501Z",
-      "lastMessageDate": "2025-05-22T05:39:46.963Z",
+      "lastMessageDate": "2025-06-23T09:46:56.870Z",
       "mentionsGiven": 5,
       "mentionsReceived": 11,
       "wordFrequency": [
@@ -277,7 +277,7 @@
         0,
         0,
         0,
-        4,
+        9,
         1,
         19,
         6,
@@ -286,7 +286,7 @@
       ],
       "weekdayActivity": [
         5,
-        3,
+        8,
         7,
         25,
         2,
