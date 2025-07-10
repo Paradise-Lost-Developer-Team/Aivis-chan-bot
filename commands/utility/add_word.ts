@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import { DICTIONARY_FILE } from 'utils/TTS-Engine';
+import { DICTIONARY_FILE } from '../../utils/TTS-Engine';
 
 // 辞書ファイルの読み込み
 function loadDictionaryFile() {
