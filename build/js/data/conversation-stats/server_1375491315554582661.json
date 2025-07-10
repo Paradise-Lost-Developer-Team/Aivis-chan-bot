@@ -1,8 +1,8 @@
 {
   "serverId": "1375491315554582661",
   "serverName": "test",
-  "totalMessages": 56,
-  "totalCharacters": 1564,
+  "totalMessages": 60,
+  "totalCharacters": 1650,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -363,7 +363,7 @@
       {
         "channelId": "1385490125945045032",
         "channelName": "オフ",
-        "totalMessages": 12,
+        "totalMessages": 16,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -380,8 +380,8 @@
           0,
           0,
           0,
-          3,
-          2,
+          4,
+          5,
           2,
           2,
           3,
@@ -397,7 +397,7 @@
           3,
           0,
           0,
-          9,
+          13,
           0
         ]
       }
@@ -418,8 +418,8 @@
     0,
     0,
     0,
-    3,
-    2,
+    4,
+    5,
     2,
     2,
     3,
@@ -435,10 +435,10 @@
     3,
     0,
     0,
-    12,
+    16,
     20
   ],
-  "averageMessageLength": 27.928571428571427,
+  "averageMessageLength": 27.5,
   "messageDistribution": [
     [
       "2025-05-23",
@@ -475,8 +475,12 @@
     [
       "2025-07-01",
       3
+    ],
+    [
+      "2025-07-04",
+      4
     ]
   ],
   "mostActiveUser": "1355033738756620464",
-  "mostActiveChannel": "1381280245004374078"
+  "mostActiveChannel": "1385490125945045032"
 }

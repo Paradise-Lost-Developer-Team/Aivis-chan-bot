@@ -1,8 +1,8 @@
 {
   "serverId": "1071787299676885032",
   "serverName": "F-CAPs(えふかぷ。)",
-  "totalMessages": 1552,
-  "totalCharacters": 21765,
+  "totalMessages": 1554,
+  "totalCharacters": 21784,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1071788377097130014",
         "channelName": "雑談",
-        "totalMessages": 53,
+        "totalMessages": 55,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
@@ -26,7 +26,7 @@
           2,
           1,
           0,
-          0,
+          1,
           2,
           3,
           1,
@@ -36,13 +36,13 @@
           4,
           5,
           4,
-          0,
+          1,
           1
         ],
         "weekdayActivity": [
           6,
           7,
-          2,
+          4,
           9,
           9,
           4,
@@ -416,7 +416,7 @@
     2,
     3,
     0,
-    3,
+    4,
     4,
     3,
     2,
@@ -426,19 +426,19 @@
     39,
     75,
     124,
-    212,
+    213,
     394
   ],
   "weekdayActivity": [
     453,
     60,
-    42,
+    44,
     328,
     127,
     322,
     220
   ],
-  "averageMessageLength": 14.023840206185566,
+  "averageMessageLength": 14.018018018018019,
   "messageDistribution": [
     [
       "2025-04-13",
@@ -579,6 +579,10 @@
     [
       "2025-06-30",
       3
+    ],
+    [
+      "2025-07-08",
+      2
     ]
   ],
   "mostActiveUser": "824904477811277844",

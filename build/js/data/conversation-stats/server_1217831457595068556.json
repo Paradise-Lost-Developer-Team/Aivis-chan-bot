@@ -1,8 +1,8 @@
 {
   "serverId": "1217831457595068556",
   "serverName": "étranger",
-  "totalMessages": 157,
-  "totalCharacters": 5139,
+  "totalMessages": 210,
+  "totalCharacters": 5690,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "1217831458073481380",
         "channelName": "free-chat",
-        "totalMessages": 56,
+        "totalMessages": 73,
         "messageByUsers": {},
         "hourlyActivity": [
           4,
@@ -28,22 +28,22 @@
           0,
           1,
           0,
-          1,
+          10,
           1,
           0,
           6,
-          2,
-          6,
           3,
+          6,
+          10,
           0,
           0,
           7
         ],
         "weekdayActivity": [
-          6,
+          18,
           7,
           8,
-          2,
+          7,
           12,
           5,
           7
@@ -55,11 +55,11 @@
       {
         "channelId": "1217833551517585430",
         "channelName": "mute-chat",
-        "totalMessages": 58,
+        "totalMessages": 70,
         "messageByUsers": {},
         "hourlyActivity": [
           7,
-          15,
+          18,
           10,
           0,
           3,
@@ -74,21 +74,21 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           1,
           5,
           1,
           2,
-          3,
-          10
+          7,
+          14
         ],
         "weekdayActivity": [
-          5,
+          6,
           3,
           5,
-          10,
-          9,
+          18,
+          12,
           5,
           21
         ]
@@ -143,7 +143,7 @@
       {
         "channelId": "1217846057069711371",
         "channelName": "link",
-        "totalMessages": 5,
+        "totalMessages": 17,
         "messageByUsers": {},
         "hourlyActivity": [
           2,
@@ -158,11 +158,11 @@
           0,
           0,
           0,
+          1,
           0,
-          0,
-          0,
-          0,
-          0,
+          2,
+          8,
+          1,
           0,
           1,
           0,
@@ -175,7 +175,7 @@
           2,
           0,
           0,
-          1,
+          13,
           0,
           1,
           0
@@ -275,7 +275,7 @@
       {
         "channelId": "1217833689573097493",
         "channelName": "welcome",
-        "totalMessages": 3,
+        "totalMessages": 15,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -294,20 +294,20 @@
           0,
           0,
           0,
-          0,
-          2,
+          8,
+          3,
           0,
           1,
           0,
           0,
-          0,
+          3,
           0
         ],
         "weekdayActivity": [
+          12,
+          0,
+          0,
           3,
-          0,
-          0,
-          0,
           0,
           0,
           0
@@ -317,7 +317,7 @@
   ],
   "hourlyActivity": [
     14,
-    20,
+    23,
     19,
     15,
     4,
@@ -328,29 +328,29 @@
     0,
     4,
     3,
-    3,
+    4,
     2,
-    5,
-    2,
-    1,
-    8,
-    6,
+    16,
+    10,
+    11,
+    9,
+    7,
     14,
-    6,
+    13,
     3,
-    8,
-    19
+    15,
+    23
   ],
   "weekdayActivity": [
-    18,
+    40,
     10,
     13,
-    19,
-    32,
+    47,
+    35,
     29,
     36
   ],
-  "averageMessageLength": 32.732484076433124,
+  "averageMessageLength": 27.095238095238095,
   "messageDistribution": [
     [
       "2025-04-15",
@@ -466,9 +466,17 @@
     ],
     [
       "2025-07-02",
-      2
+      16
+    ],
+    [
+      "2025-07-06",
+      22
+    ],
+    [
+      "2025-07-09",
+      17
     ]
   ],
   "mostActiveUser": "327780615032274946",
-  "mostActiveChannel": "1217833551517585430"
+  "mostActiveChannel": "1217831458073481380"
 }

@@ -4,12 +4,12 @@
     {
       "userId": "1355033738756620464",
       "username": "ice.ice.ice029",
-      "totalMessages": 21,
-      "totalCharacters": 872,
-      "totalWords": 37,
+      "totalMessages": 22,
+      "totalCharacters": 917,
+      "totalWords": 39,
       "totalEmojis": 4,
       "firstMessageDate": "2025-05-23T15:31:34.916Z",
-      "lastMessageDate": "2025-07-01T08:32:36.021Z",
+      "lastMessageDate": "2025-07-04T05:16:29.102Z",
       "mentionsGiven": 0,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -156,6 +156,14 @@
         [
           "俺は基本的になんでも美味しく食べれるので大丈夫",
           1
+        ],
+        [
+          "<@&1375496473239748688>",
+          1
+        ],
+        [
+          "みんな食べたいもの食べれないもの書いてね！",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -183,7 +191,7 @@
         0,
         0,
         0,
-        3,
+        4,
         2,
         2,
         2,
@@ -200,7 +208,7 @@
         2,
         0,
         0,
-        8,
+        9,
         6
       ],
       "voiceMinutes": 299.62486666666666,
@@ -215,12 +223,12 @@
     {
       "userId": "1338706014924439592",
       "username": "shashasha0428",
-      "totalMessages": 7,
-      "totalCharacters": 145,
-      "totalWords": 8,
+      "totalMessages": 9,
+      "totalCharacters": 174,
+      "totalWords": 10,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-23T15:34:49.267Z",
-      "lastMessageDate": "2025-06-21T01:31:49.853Z",
+      "lastMessageDate": "2025-07-04T06:59:52.064Z",
       "mentionsGiven": 1,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -251,6 +259,14 @@
         [
           "入ってるね〜",
           1
+        ],
+        [
+          "トマトとエビとイカ以外いけます！",
+          1
+        ],
+        [
+          "みんなで鍋とかいい気がする",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -270,7 +286,7 @@
         0,
         0,
         0,
-        0,
+        2,
         0,
         0,
         0,
@@ -286,7 +302,7 @@
         0,
         0,
         0,
-        0,
+        2,
         6
       ],
       "voiceMinutes": 247.90388333333334,
@@ -301,12 +317,12 @@
     {
       "userId": "783717761360068609",
       "username": "huziko",
-      "totalMessages": 16,
-      "totalCharacters": 402,
-      "totalWords": 19,
+      "totalMessages": 17,
+      "totalCharacters": 414,
+      "totalWords": 20,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-23T15:37:57.951Z",
-      "lastMessageDate": "2025-06-20T09:21:58.734Z",
+      "lastMessageDate": "2025-07-04T06:58:48.437Z",
       "mentionsGiven": 2,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -369,6 +385,10 @@
         [
           "ここではラフにいきましょ",
           1
+        ],
+        [
+          "基本なんでも食べれます！",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -388,7 +408,7 @@
         0,
         0,
         0,
-        0,
+        1,
         0,
         0,
         2,
@@ -404,7 +424,7 @@
         0,
         0,
         0,
-        3,
+        4,
         4
       ],
       "voiceMinutes": 590.5604833333333,

@@ -1,8 +1,8 @@
 {
   "serverId": "1113110007391719426",
   "serverName": "練習用",
-  "totalMessages": 27,
-  "totalCharacters": 204,
+  "totalMessages": 28,
+  "totalCharacters": 216,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,7 +143,7 @@
       {
         "channelId": "1122186883187880038",
         "channelName": "rules",
-        "totalMessages": 1,
+        "totalMessages": 2,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -160,7 +160,7 @@
           0,
           1,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -177,7 +177,7 @@
           1,
           0,
           0,
-          0,
+          1,
           0
         ]
       }
@@ -198,7 +198,7 @@
     4,
     3,
     1,
-    5,
+    6,
     2,
     7,
     2,
@@ -215,10 +215,10 @@
     2,
     6,
     7,
-    3,
+    4,
     3
   ],
-  "averageMessageLength": 7.555555555555555,
+  "averageMessageLength": 7.714285714285714,
   "messageDistribution": [
     [
       "2025-04-18",
@@ -263,6 +263,10 @@
     [
       "2025-06-30",
       3
+    ],
+    [
+      "2025-07-04",
+      1
     ]
   ],
   "mostActiveUser": "703215124185350175",

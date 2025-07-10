@@ -4,12 +4,12 @@
     {
       "userId": "386884999670005773",
       "username": "kyarakon.",
-      "totalMessages": 9,
-      "totalCharacters": 1142,
-      "totalWords": 59,
+      "totalMessages": 10,
+      "totalCharacters": 1200,
+      "totalWords": 60,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-16T17:08:51.536Z",
-      "lastMessageDate": "2025-06-21T17:31:11.777Z",
+      "lastMessageDate": "2025-07-08T13:44:30.635Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -196,6 +196,10 @@
         [
           "https://x.com/moju_poke/status/1936416429324255573?t=gb03uxl2x6tmtpsfqjbh2q&s=19",
           1
+        ],
+        [
+          "https://youtube.com/shorts/keboe3gxn_4?si=t51htw6cn6_yfk54",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -222,13 +226,13 @@
         0,
         2,
         2,
-        0,
+        1,
         0
       ],
       "weekdayActivity": [
         4,
         0,
-        1,
+        2,
         0,
         1,
         3,

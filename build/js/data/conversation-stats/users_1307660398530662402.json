@@ -4,12 +4,12 @@
     {
       "userId": "401597548965658625",
       "username": "white_dambi",
-      "totalMessages": 27,
+      "totalMessages": 28,
       "totalCharacters": 348,
       "totalWords": 26,
       "totalEmojis": 1,
       "firstMessageDate": "2025-04-30T12:27:49.568Z",
-      "lastMessageDate": "2025-06-28T09:25:22.586Z",
+      "lastMessageDate": "2025-07-09T10:50:00.043Z",
       "mentionsGiven": 10,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -84,7 +84,7 @@
         1,
         1,
         5,
-        9,
+        10,
         3,
         3,
         0,
@@ -94,12 +94,12 @@
         2,
         5,
         1,
-        4,
+        5,
         3,
         9,
         3
       ],
-      "voiceMinutes": 17209.213733333327,
+      "voiceMinutes": 19681.502999999997,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -802,7 +802,7 @@
         44,
         105
       ],
-      "voiceMinutes": 4703.256016666668,
+      "voiceMinutes": 4840.987383333335,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -814,12 +814,12 @@
     {
       "userId": "1006149561816993914",
       "username": "nozokima00",
-      "totalMessages": 33,
-      "totalCharacters": 222,
-      "totalWords": 31,
+      "totalMessages": 34,
+      "totalCharacters": 280,
+      "totalWords": 32,
       "totalEmojis": 2,
       "firstMessageDate": "2025-04-30T13:26:58.679Z",
-      "lastMessageDate": "2025-06-14T16:57:02.374Z",
+      "lastMessageDate": "2025-07-03T11:24:11.804Z",
       "mentionsGiven": 1,
       "mentionsReceived": 1,
       "wordFrequency": [
@@ -942,6 +942,10 @@
         [
           "どらいやー",
           1
+        ],
+        [
+          "https://youtube.com/shorts/vqdylycgla8?si=cltdp1tinm9h8kx0",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -975,7 +979,7 @@
         0,
         1,
         0,
-        2,
+        3,
         2,
         5,
         12
@@ -985,11 +989,11 @@
         5,
         5,
         7,
-        1,
+        2,
         1,
         1
       ],
-      "voiceMinutes": 4543.420133333333,
+      "voiceMinutes": 5821.179466666665,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1156,7 +1160,7 @@
         17,
         15
       ],
-      "voiceMinutes": 11282.773000000001,
+      "voiceMinutes": 13668.012349999997,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1168,12 +1172,12 @@
     {
       "userId": "1358027758332154016",
       "username": "opnc_pi",
-      "totalMessages": 54,
+      "totalMessages": 55,
       "totalCharacters": 729,
       "totalWords": 56,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-03T13:22:58.916Z",
-      "lastMessageDate": "2025-06-23T15:10:12.284Z",
+      "lastMessageDate": "2025-07-03T12:38:16.815Z",
       "mentionsGiven": 10,
       "mentionsReceived": 3,
       "wordFrequency": [
@@ -1389,7 +1393,7 @@
         0,
         1,
         2,
-        4,
+        5,
         5,
         0
       ],
@@ -1398,11 +1402,11 @@
         10,
         26,
         2,
-        0,
+        1,
         11,
         3
       ],
-      "voiceMinutes": 854.1895833333333,
+      "voiceMinutes": 1073.87375,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1649,7 +1653,7 @@
         8,
         2
       ],
-      "voiceMinutes": 2609.2990000000004,
+      "voiceMinutes": 2835.230583333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2168,7 +2172,7 @@
         124,
         1
       ],
-      "voiceMinutes": 226.50095,
+      "voiceMinutes": 328.32804999999996,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -2296,7 +2300,7 @@
         1,
         0
       ],
-      "voiceMinutes": 3795.6434833333333,
+      "voiceMinutes": 6085.238049999999,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

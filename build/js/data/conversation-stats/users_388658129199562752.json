@@ -4,12 +4,12 @@
     {
       "userId": "327780615032274946",
       "username": "qualia.e",
-      "totalMessages": 55,
-      "totalCharacters": 769,
-      "totalWords": 21,
-      "totalEmojis": 2,
+      "totalMessages": 59,
+      "totalCharacters": 863,
+      "totalWords": 38,
+      "totalEmojis": 3,
       "firstMessageDate": "2025-04-15T09:55:05.726Z",
-      "lastMessageDate": "2025-06-30T00:27:48.355Z",
+      "lastMessageDate": "2025-07-08T14:31:58.585Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -92,6 +92,26 @@
         [
           "https://paiza.jp/for_teams/users/sign_in",
           1
+        ],
+        [
+          "https://raw18.blog/hot",
+          1
+        ],
+        [
+          "⭐️｜",
+          1
+        ],
+        [
+          "つ📸",
+          1
+        ],
+        [
+          "（_ﾉノノ",
+          1
+        ],
+        [
+          "／／／",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -102,12 +122,16 @@
         [
           "🦔",
           1
+        ],
+        [
+          "📸",
+          1
         ]
       ],
       "hourlyActivity": [
         3,
         1,
-        1,
+        2,
         0,
         1,
         0,
@@ -116,28 +140,28 @@
         0,
         1,
         0,
-        0,
+        1,
         5,
         3,
         0,
         14,
         3,
-        4,
+        5,
         5,
         1,
         2,
         4,
         5,
-        2
+        3
       ],
       "weekdayActivity": [
         23,
         4,
-        6,
+        8,
         7,
         3,
-        7,
-        5
+        8,
+        6
       ],
       "voiceMinutes": 8.935966666666666,
       "responseTime": 0,

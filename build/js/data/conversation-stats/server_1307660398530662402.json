@@ -1,8 +1,8 @@
 {
   "serverId": "1307660398530662402",
   "serverName": "みんなの公園",
-  "totalMessages": 579,
-  "totalCharacters": 4554,
+  "totalMessages": 582,
+  "totalCharacters": 4612,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -55,7 +55,7 @@
       {
         "channelId": "1307661234530811944",
         "channelName": "🧚ㆍ𝘊𝘩𝘢𝘵𝘵𝘪𝘯𝘨",
-        "totalMessages": 126,
+        "totalMessages": 127,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -78,7 +78,7 @@
           1,
           5,
           5,
-          8,
+          9,
           12,
           3,
           5
@@ -88,7 +88,7 @@
           24,
           54,
           10,
-          3,
+          4,
           19,
           6
         ]
@@ -143,7 +143,7 @@
       {
         "channelId": "1307661453116968981",
         "channelName": "📸ㆍ𝘗𝘩𝘰𝘵𝘰",
-        "totalMessages": 6,
+        "totalMessages": 8,
         "messageByUsers": {},
         "hourlyActivity": [
           3,
@@ -165,9 +165,9 @@
           0,
           0,
           0,
+          2,
           1,
           1,
-          0,
           0,
           1
         ],
@@ -175,8 +175,8 @@
           0,
           2,
           1,
-          0,
           1,
+          2,
           2,
           0
         ]
@@ -291,9 +291,9 @@
     28,
     1,
     7,
-    141,
-    141,
-    97,
+    142,
+    142,
+    98,
     47,
     31
   ],
@@ -301,12 +301,12 @@
     82,
     60,
     55,
-    29,
-    8,
+    30,
+    10,
     215,
     130
   ],
-  "averageMessageLength": 7.865284974093265,
+  "averageMessageLength": 7.9243986254295535,
   "messageDistribution": [
     [
       "2025-04-30",
@@ -470,6 +470,14 @@
     ],
     [
       "2025-06-29",
+      1
+    ],
+    [
+      "2025-07-03",
+      2
+    ],
+    [
+      "2025-07-09",
       1
     ]
   ],

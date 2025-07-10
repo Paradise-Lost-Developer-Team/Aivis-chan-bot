@@ -4,14 +4,14 @@
     {
       "userId": "254905350338117632",
       "username": "takuk",
-      "totalMessages": 14,
-      "totalCharacters": 285,
-      "totalWords": 13,
-      "totalEmojis": 3,
+      "totalMessages": 22,
+      "totalCharacters": 368,
+      "totalWords": 17,
+      "totalEmojis": 5,
       "firstMessageDate": "2025-04-15T10:00:09.729Z",
-      "lastMessageDate": "2025-07-02T01:07:38.146Z",
+      "lastMessageDate": "2025-07-09T07:25:28.280Z",
       "mentionsGiven": 0,
-      "mentionsReceived": 0,
+      "mentionsReceived": 1,
       "wordFrequency": [
         [
           "https://x.com/refreshedguri/status/1915148677506572446",
@@ -56,6 +56,22 @@
         [
           "https://x.com/refreshedguri/status/1940153443349360666?t=sgv5tanlpwdxzkrwtnlung&s=19",
           1
+        ],
+        [
+          "<a:bcahappy3love:439086041371115521>",
+          1
+        ],
+        [
+          "<:bcesleeppeaceful:1048285060446568528>",
+          1
+        ],
+        [
+          "마우스는",
+          1
+        ],
+        [
+          "거들뿐",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -66,11 +82,19 @@
         [
           "<:pu_kusukusu:1357963714170454037>",
           1
+        ],
+        [
+          "<a:bcaHappy3Love:439086041371115521>",
+          1
+        ],
+        [
+          "<:bceSleepPeaceful:1048285060446568528>",
+          1
         ]
       ],
       "hourlyActivity": [
         3,
-        0,
+        2,
         2,
         0,
         0,
@@ -83,27 +107,27 @@
         0,
         2,
         0,
+        3,
         0,
-        0,
-        0,
+        1,
+        3,
+        1,
+        1,
         2,
-        1,
-        1,
-        1,
         0,
         1,
         0
       ],
       "weekdayActivity": [
-        1,
+        5,
         3,
         2,
-        1,
-        1,
+        3,
+        3,
         2,
         4
       ],
-      "voiceMinutes": 411.7458666666667,
+      "voiceMinutes": 660.3052166666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -115,14 +139,14 @@
     {
       "userId": "327780615032274946",
       "username": "qualia.e",
-      "totalMessages": 89,
-      "totalCharacters": 2232,
-      "totalWords": 85,
-      "totalEmojis": 6,
+      "totalMessages": 111,
+      "totalCharacters": 2512,
+      "totalWords": 101,
+      "totalEmojis": 8,
       "firstMessageDate": "2025-04-15T10:00:53.646Z",
-      "lastMessageDate": "2025-07-02T02:49:24.183Z",
-      "mentionsGiven": 3,
-      "mentionsReceived": 1,
+      "lastMessageDate": "2025-07-09T11:20:10.891Z",
+      "mentionsGiven": 6,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "おはよう",
@@ -427,6 +451,66 @@
         [
           "no.1",
           1
+        ],
+        [
+          "ﾆﾌﾌ",
+          2
+        ],
+        [
+          "<:ariochu3ty:1041978719042031686>",
+          1
+        ],
+        [
+          "@here",
+          1
+        ],
+        [
+          "新しいスタンプ追加",
+          1
+        ],
+        [
+          "あと2つくらい増やしたい",
+          1
+        ],
+        [
+          "ちょっとまって",
+          1
+        ],
+        [
+          "あとで作っとく",
+          1
+        ],
+        [
+          "https://youtu.be/8msynlzkucy?si=fpbgh0munhqxbm2f",
+          1
+        ],
+        [
+          "niginigi",
+          1
+        ],
+        [
+          "www",
+          1
+        ],
+        [
+          "追加しといた✌️",
+          1
+        ],
+        [
+          "<@434987940813209600>",
+          1
+        ],
+        [
+          "https://x.com/automatonjapan/status/1942810196499390718?s=46&t=xyatgivy62oe4kchzkon3w",
+          1
+        ],
+        [
+          "さようなら",
+          1
+        ],
+        [
+          "おじさん狩られすぎて人口消えちゃった",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -449,11 +533,19 @@
         [
           "<a:clapcat:962345036849242252>",
           1
+        ],
+        [
+          "<:aRiochu3TY:1041978719042031686>",
+          1
+        ],
+        [
+          "✌",
+          1
         ]
       ],
       "hourlyActivity": [
         9,
-        6,
+        7,
         5,
         9,
         1,
@@ -464,29 +556,29 @@
         0,
         3,
         2,
-        1,
         2,
-        5,
         2,
-        1,
+        11,
+        6,
+        4,
         3,
         4,
         11,
-        4,
+        8,
         1,
-        6,
-        14
+        7,
+        16
       ],
       "weekdayActivity": [
-        10,
+        20,
         6,
         10,
-        11,
-        20,
+        22,
+        21,
         19,
         13
       ],
-      "voiceMinutes": 1304.0720166666667,
+      "voiceMinutes": 1879.2488833333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -503,12 +595,12 @@
     {
       "userId": "451340854678913025",
       "username": "miraijin",
-      "totalMessages": 5,
+      "totalMessages": 6,
       "totalCharacters": 51,
       "totalWords": 4,
       "totalEmojis": 1,
       "firstMessageDate": "2025-04-15T10:02:37.593Z",
-      "lastMessageDate": "2025-05-17T14:12:29.987Z",
+      "lastMessageDate": "2025-07-06T09:38:18.931Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -554,7 +646,7 @@
         0,
         0,
         0,
-        1,
+        2,
         1,
         0,
         0,
@@ -562,7 +654,7 @@
         2
       ],
       "weekdayActivity": [
-        0,
+        1,
         0,
         1,
         0,
@@ -680,14 +772,14 @@
     {
       "userId": "434987940813209600",
       "username": "natsumikan2600",
-      "totalMessages": 26,
-      "totalCharacters": 2289,
-      "totalWords": 31,
-      "totalEmojis": 0,
+      "totalMessages": 31,
+      "totalCharacters": 2351,
+      "totalWords": 33,
+      "totalEmojis": 1,
       "firstMessageDate": "2025-04-19T02:16:43.332Z",
-      "lastMessageDate": "2025-06-03T16:20:22.465Z",
-      "mentionsGiven": 1,
-      "mentionsReceived": 0,
+      "lastMessageDate": "2025-07-09T11:20:37.684Z",
+      "mentionsGiven": 2,
+      "mentionsReceived": 1,
       "wordFrequency": [
         [
           "https://www.youtube.com/shorts/t1n4b8wwhrq",
@@ -780,9 +872,22 @@
         [
           "いっちょやってみっかー！",
           1
+        ],
+        [
+          "低機動もっさりバトルは流行らない",
+          1
+        ],
+        [
+          "<:face_holding_back_tears:1222931366111481898>",
+          1
         ]
       ],
-      "emojiFrequency": [],
+      "emojiFrequency": [
+        [
+          "<:face_holding_back_tears:1222931366111481898>",
+          1
+        ]
+      ],
       "hourlyActivity": [
         0,
         11,
@@ -804,21 +909,21 @@
         0,
         0,
         1,
+        2,
         0,
-        0,
-        0,
+        3,
         2
       ],
       "weekdayActivity": [
         4,
         0,
         0,
-        7,
+        12,
         0,
         0,
         15
       ],
-      "voiceMinutes": 770.6333,
+      "voiceMinutes": 970.1866166666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -830,14 +935,14 @@
     {
       "userId": "630375036926296075",
       "username": "ub9b0",
-      "totalMessages": 12,
-      "totalCharacters": 22,
-      "totalWords": 5,
+      "totalMessages": 22,
+      "totalCharacters": 84,
+      "totalWords": 10,
       "totalEmojis": 0,
       "firstMessageDate": "2025-06-01T08:37:10.139Z",
-      "lastMessageDate": "2025-06-19T12:49:47.635Z",
-      "mentionsGiven": 1,
-      "mentionsReceived": 2,
+      "lastMessageDate": "2025-07-09T06:23:16.592Z",
+      "mentionsGiven": 3,
+      "mentionsReceived": 3,
       "wordFrequency": [
         [
           "もっと欲しい",
@@ -858,6 +963,26 @@
         [
           "かわいい",
           1
+        ],
+        [
+          "はじめまして",
+          1
+        ],
+        [
+          "これほしい",
+          1
+        ],
+        [
+          "ありがとう",
+          1
+        ],
+        [
+          "あ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！",
+          1
+        ],
+        [
+          "かわいいｗ",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -876,9 +1001,9 @@
         0,
         0,
         0,
-        0,
-        0,
-        0,
+        2,
+        4,
+        4,
         2,
         0,
         0,
@@ -888,10 +1013,10 @@
         0
       ],
       "weekdayActivity": [
-        3,
+        8,
         0,
         0,
-        0,
+        5,
         7,
         2,
         0
@@ -1026,6 +1151,198 @@
         0
       ],
       "voiceMinutes": 212.63821666666666,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1361508304987361290",
+    {
+      "userId": "1361508304987361290",
+      "username": "srxlnq",
+      "totalMessages": 5,
+      "totalCharacters": 64,
+      "totalWords": 5,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-02T13:55:16.225Z",
+      "lastMessageDate": "2025-07-02T14:21:07.224Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 1,
+      "wordFrequency": [
+        [
+          "ここ聞き専でしょうか…！",
+          1
+        ],
+        [
+          "こんばんは！",
+          1
+        ],
+        [
+          "あこがれます！",
+          1
+        ],
+        [
+          "すみません！",
+          1
+        ],
+        [
+          "寝落ちしそうﾚｯなので抜けますﾆﾌﾌ！ありがとうございました＞＜",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        2
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 23.0338,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "217674049474527232",
+    {
+      "userId": "217674049474527232",
+      "username": "tetuchan",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-06T07:12:26.199Z",
+      "lastMessageDate": "2025-07-06T07:12:26.088Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 370.9221,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "302410164227538945",
+    {
+      "userId": "302410164227538945",
+      "username": "dorusan",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-06T07:16:05.812Z",
+      "lastMessageDate": "2025-07-06T07:16:05.711Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 353.1034333333333,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,

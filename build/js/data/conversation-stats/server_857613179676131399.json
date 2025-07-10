@@ -1,8 +1,8 @@
 {
   "serverId": "857613179676131399",
   "serverName": "関東の撮り鉄のサーバー",
-  "totalMessages": 177,
-  "totalCharacters": 18376,
+  "totalMessages": 213,
+  "totalCharacters": 19550,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,7 +11,7 @@
       {
         "channelId": "863566140173582347",
         "channelName": "データ転送",
-        "totalMessages": 21,
+        "totalMessages": 24,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -23,29 +23,29 @@
           1,
           1,
           0,
-          0,
+          1,
           1,
           1,
           0,
           0,
           6,
-          0,
+          1,
           1,
           1,
           0,
           0,
           2,
-          2,
+          3,
           0,
           0
         ],
         "weekdayActivity": [
-          2,
+          4,
           1,
           1,
           4,
           0,
-          8,
+          9,
           1
         ]
       }
@@ -143,7 +143,7 @@
       {
         "channelId": "857613179676131402",
         "channelName": "一般",
-        "totalMessages": 37,
+        "totalMessages": 38,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -166,7 +166,7 @@
           4,
           0,
           1,
-          2,
+          3,
           0,
           0,
           5
@@ -175,7 +175,7 @@
           3,
           1,
           7,
-          1,
+          2,
           5,
           14,
           6
@@ -407,7 +407,7 @@
       {
         "channelId": "1373658712102670508",
         "channelName": "vocaloconnect",
-        "totalMessages": 7,
+        "totalMessages": 8,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -431,7 +431,7 @@
           5,
           0,
           0,
-          0,
+          1,
           1,
           0
         ],
@@ -442,7 +442,7 @@
           2,
           1,
           2,
-          0
+          1
         ]
       }
     ],
@@ -539,7 +539,7 @@
       {
         "channelId": "1380462449752412191",
         "channelName": "sqr",
-        "totalMessages": 56,
+        "totalMessages": 72,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -559,8 +559,8 @@
           0,
           0,
           0,
-          21,
-          32,
+          29,
+          40,
           1,
           0,
           0,
@@ -572,7 +572,7 @@
           0,
           2,
           18,
-          0,
+          16,
           36,
           0
         ]
@@ -671,7 +671,7 @@
       {
         "channelId": "1382607651736912036",
         "channelName": "キリスト教人間学「他者のために、他者とともに」",
-        "totalMessages": 4,
+        "totalMessages": 5,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -697,10 +697,10 @@
           0,
           0,
           0,
-          1
+          2
         ],
         "weekdayActivity": [
-          1,
+          2,
           0,
           0,
           0,
@@ -1023,22 +1023,22 @@
       {
         "channelId": "1387999787655233696",
         "channelName": "7/11,15　Presentation",
-        "totalMessages": 6,
+        "totalMessages": 16,
         "messageByUsers": {},
         "hourlyActivity": [
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
+          2,
           0,
           1,
           0,
           0,
+          0,
+          0,
+          0,
+          0,
           1,
+          0,
+          2,
+          5,
           0,
           0,
           0,
@@ -1048,17 +1048,17 @@
           2,
           1,
           0,
-          0,
-          0
+          1,
+          1
         ],
         "weekdayActivity": [
           0,
+          1,
+          8,
           0,
-          3,
           0,
-          0,
-          3,
-          0
+          5,
+          2
         ]
       }
     ],
@@ -1105,44 +1105,132 @@
           0
         ]
       }
+    ],
+    [
+      "1391034210583838841",
+      {
+        "channelId": "1391034210583838841",
+        "channelName": "曲　丸ノ内線",
+        "totalMessages": 3,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ]
+      }
+    ],
+    [
+      "1391432558792802415",
+      {
+        "channelId": "1391432558792802415",
+        "channelName": "7/3",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "weekdayActivity": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
     ]
   ],
   "hourlyActivity": [
-    4,
+    5,
     2,
-    3,
+    4,
     1,
     0,
     0,
     3,
     2,
     5,
-    3,
     4,
-    3,
-    13,
+    4,
+    5,
+    17,
     6,
     17,
-    10,
+    11,
     5,
-    30,
-    39,
+    38,
+    47,
     5,
-    5,
-    3,
     6,
-    8
+    8,
+    7,
+    11
   ],
   "weekdayActivity": [
-    13,
-    5,
-    23,
-    27,
-    23,
-    74,
-    12
+    17,
+    6,
+    28,
+    28,
+    39,
+    77,
+    18
   ],
-  "averageMessageLength": 103.81920903954803,
+  "averageMessageLength": 91.78403755868544,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -1303,6 +1391,30 @@
     [
       "2025-07-01",
       3
+    ],
+    [
+      "2025-07-03",
+      16
+    ],
+    [
+      "2025-07-04",
+      4
+    ],
+    [
+      "2025-07-05",
+      5
+    ],
+    [
+      "2025-07-06",
+      5
+    ],
+    [
+      "2025-07-08",
+      5
+    ],
+    [
+      "2025-07-09",
+      1
     ]
   ],
   "mostActiveUser": "804323724975144971",

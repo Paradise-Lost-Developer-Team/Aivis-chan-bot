@@ -118,14 +118,14 @@
     {
       "userId": "809627147333140531",
       "username": "alexandergg",
-      "totalMessages": 79,
-      "totalCharacters": 7731,
-      "totalWords": 439,
+      "totalMessages": 84,
+      "totalCharacters": 7929,
+      "totalWords": 449,
       "totalEmojis": 8,
       "firstMessageDate": "2025-04-18T10:51:15.967Z",
-      "lastMessageDate": "2025-07-01T05:26:53.067Z",
-      "mentionsGiven": 42,
-      "mentionsReceived": 11,
+      "lastMessageDate": "2025-07-05T04:34:38.628Z",
+      "mentionsGiven": 45,
+      "mentionsReceived": 12,
       "wordFrequency": [
         [
           "ばんぷしろ",
@@ -1262,6 +1262,46 @@
         [
           "こちらのjavaのインストールをお試しください。",
           1
+        ],
+        [
+          "modのjsonファイルを編集したいのですか？",
+          1
+        ],
+        [
+          "7zipというソフトを使ってみてください。",
+          1
+        ],
+        [
+          "jarファイルを7zipで開くと中身を見ることができます。",
+          1
+        ],
+        [
+          "展開もできますよ。",
+          1
+        ],
+        [
+          "https://7-zip.opensource.jp",
+          1
+        ],
+        [
+          "ただし再びコンパイルするのは",
+          1
+        ],
+        [
+          "gradleやmavenを使わなきゃいけないので、",
+          1
+        ],
+        [
+          "わからなかったらまた聞いてくださいね",
+          1
+        ],
+        [
+          "良かったです！",
+          1
+        ],
+        [
+          "また何かあったらスレッド立ててくださいね",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1307,8 +1347,8 @@
         1,
         6,
         7,
-        0,
-        3,
+        1,
+        7,
         4,
         4,
         3,
@@ -1327,7 +1367,7 @@
         11,
         15,
         20,
-        10
+        15
       ],
       "voiceMinutes": 926.7672499999999,
       "responseTime": 0,
@@ -3704,14 +3744,14 @@
     {
       "userId": "1235450079632953409",
       "username": "hituki005",
-      "totalMessages": 9,
-      "totalCharacters": 248,
-      "totalWords": 30,
+      "totalMessages": 13,
+      "totalCharacters": 382,
+      "totalWords": 36,
       "totalEmojis": 0,
       "firstMessageDate": "2025-05-09T15:06:24.659Z",
-      "lastMessageDate": "2025-06-11T05:00:00.395Z",
-      "mentionsGiven": 0,
-      "mentionsReceived": 1,
+      "lastMessageDate": "2025-07-05T04:34:09.060Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 4,
       "wordFrequency": [
         [
           "マイクラ歴",
@@ -3772,6 +3812,30 @@
         [
           "ゾントラの水流エレベーターでけた",
           1
+        ],
+        [
+          "curios",
+          1
+        ],
+        [
+          "apiのアクセサリースロットを変えたいのですがどこを編集すればいいか教えてください。",
+          1
+        ],
+        [
+          "そうですね、ただ調べてみてもjarファイルの解凍方法が分からず苦戦しています。",
+          1
+        ],
+        [
+          "なるほど、ありがとうございます！",
+          1
+        ],
+        [
+          "ためしてみます！",
+          1
+        ],
+        [
+          "なんとかいけました！ありがとうございます！",
+          1
         ]
       ],
       "emojiFrequency": [],
@@ -3788,8 +3852,8 @@
         0,
         0,
         0,
-        0,
-        0,
+        1,
+        3,
         2,
         1,
         0,
@@ -3808,7 +3872,7 @@
         1,
         0,
         1,
-        2
+        6
       ],
       "voiceMinutes": 1415.7879833333336,
       "responseTime": 0,
@@ -7885,6 +7949,120 @@
         1,
         0,
         0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1188822821586079834",
+    {
+      "userId": "1188822821586079834",
+      "username": "daisukideitekure",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-04T18:13:13.448Z",
+      "lastMessageDate": "2025-07-04T18:13:13.339Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "537931108315168793",
+    {
+      "userId": "537931108315168793",
+      "username": "gohan0140",
+      "totalMessages": 1,
+      "totalCharacters": 0,
+      "totalWords": 0,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-09T06:38:26.319Z",
+      "lastMessageDate": "2025-07-09T06:38:26.224Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
         0,
         0,
         0,

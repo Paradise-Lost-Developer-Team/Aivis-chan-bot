@@ -4,12 +4,12 @@
     {
       "userId": "1081193245134049410",
       "username": "robye_yura",
-      "totalMessages": 29,
-      "totalCharacters": 399,
-      "totalWords": 32,
+      "totalMessages": 30,
+      "totalCharacters": 401,
+      "totalWords": 33,
       "totalEmojis": 0,
       "firstMessageDate": "2025-04-13T08:35:24.942Z",
-      "lastMessageDate": "2025-06-30T10:56:25.880Z",
+      "lastMessageDate": "2025-07-08T13:51:08.615Z",
       "mentionsGiven": 0,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -142,13 +142,13 @@
         1,
         0,
         1,
-        11,
+        12,
         0
       ],
       "weekdayActivity": [
         4,
         1,
-        0,
+        1,
         3,
         2,
         0,
@@ -1037,12 +1037,12 @@
     {
       "userId": "969528940421070858",
       "username": "hiri_houkenten",
-      "totalMessages": 30,
-      "totalCharacters": 6753,
-      "totalWords": 105,
-      "totalEmojis": 137,
+      "totalMessages": 31,
+      "totalCharacters": 6770,
+      "totalWords": 106,
+      "totalEmojis": 138,
       "firstMessageDate": "2025-04-16T10:49:08.608Z",
-      "lastMessageDate": "2025-06-30T09:41:40.730Z",
+      "lastMessageDate": "2025-07-08T03:46:40.136Z",
       "mentionsGiven": 4,
       "mentionsReceived": 0,
       "wordFrequency": [
@@ -1265,6 +1265,10 @@
         [
           "作詞班の方はぼんやりと3曲目について考えるとスムーズに行くかも…？",
           1
+        ],
+        [
+          "また東京に行く予定が出来ました✌️",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -1283,6 +1287,10 @@
         [
           "<a:Mesmerizer:1235182028522258542>",
           117
+        ],
+        [
+          "✌",
+          1
         ]
       ],
       "hourlyActivity": [
@@ -1298,7 +1306,7 @@
         0,
         1,
         0,
-        1,
+        2,
         2,
         0,
         0,
@@ -1314,7 +1322,7 @@
       "weekdayActivity": [
         6,
         4,
-        1,
+        2,
         8,
         4,
         3,
