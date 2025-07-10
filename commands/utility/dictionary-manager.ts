@@ -80,12 +80,13 @@ async function handleExportCommand(interaction: ChatInputCommandInteraction, gui
     }
     
     // CSV形式に変換
-    let csvContent = "単語,読み方,単語タイプ\n";
+    let csvContent = "単語,pronunciation,単語タイプ,accent_type\n";
     
     for (const [word, details] of entries) {
-        const reading = details.reading || '';
+        const pronunciation = (details as any).pronunciation || '';
         const wordType = details.wordType || 'COMMON_NOUN';
-        csvContent += `"${word}","${reading}","${wordType}"\n`;
+        const accentType = (details.accentType as string) || '';
+        csvContent += `"${word}","${pronunciation}","${wordType}","${accentType}"\n`;
     }
     
     // 一時ファイルに保存
@@ -176,12 +177,12 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
                 if (parts.length < 2) continue;
                 
                 const word = parts[0];
-                const reading = parts[1];
+                const pronunciation = parts[1];
                 const wordType = parts.length > 2 && wordTypes.includes(parts[2]) ? parts[2] : 'COMMON_NOUN';
                 
-                if (!word || !reading) continue;
+                if (!word || !pronunciation) continue;
                 
-                updateGuildDictionary(guildId, word, { reading, wordType });
+                updateGuildDictionary(guildId, word, { pronunciation, wordType });
                 successCount++;
             } catch (lineError) {
                 errorCount++;
