@@ -1,21 +1,16 @@
 {
   "serverId": "1123269277617754173",
   "serverName": "世界の超常現象探求サークル",
-<<<<<<< HEAD
-  "totalMessages": 36,
-  "totalCharacters": 4228,
-=======
-  "totalMessages": 17,
-  "totalCharacters": 1584,
->>>>>>> origin
+  "totalMessages": 2,
+  "totalCharacters": 223,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
     [
-      "1123269278288838679",
+      "1123278819554496612",
       {
-        "channelId": "1123269278288838679",
-        "channelName": "一般",
+        "channelId": "1123278819554496612",
+        "channelName": "ufo-and-uap",
         "totalMessages": 1,
         "messageByUsers": {},
         "hourlyActivity": [
@@ -28,15 +23,15 @@
           0,
           0,
           0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
           1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
           0,
           0,
           0,
@@ -51,221 +46,6 @@
           1,
           0,
           0,
-          0
-        ]
-      }
-    ],
-    [
-      "1123269279001882754",
-      {
-        "channelId": "1123269279001882754",
-        "channelName": "一般",
-        "totalMessages": 2,
-        "messageByUsers": {},
-        "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "weekdayActivity": [
-          0,
-          0,
-          0,
-          2,
-          0,
-          0,
-          0
-        ]
-      }
-    ],
-    [
-      "1123278234021269555",
-      {
-        "channelId": "1123278234021269555",
-        "channelName": "strange-phenomenon",
-<<<<<<< HEAD
-        "totalMessages": 8,
-=======
-        "totalMessages": 4,
->>>>>>> origin
-        "messageByUsers": {},
-        "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-<<<<<<< HEAD
-          1,
-          1,
-=======
-          0,
-          0,
->>>>>>> origin
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          1,
-          0,
-<<<<<<< HEAD
-          2,
-=======
-          0,
-          0,
-          1,
->>>>>>> origin
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-<<<<<<< HEAD
-          0,
-          0,
-          1
-        ],
-        "weekdayActivity": [
-          2,
-          2,
-          0,
-          0,
-          4,
-          0,
-=======
-          0
-        ],
-        "weekdayActivity": [
-          2,
-          0,
-          0,
-          0,
-          2,
-          0,
->>>>>>> origin
-          0
-        ]
-      }
-    ],
-    [
-      "1125355629364658206",
-      {
-        "channelId": "1125355629364658206",
-        "channelName": "astronomical-phenomenon",
-        "totalMessages": 1,
-        "messageByUsers": {},
-        "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0
-        ],
-        "weekdayActivity": [
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0
-        ]
-      }
-    ],
-    [
-      "1123361736813187073",
-      {
-        "channelId": "1123361736813187073",
-        "channelName": "conspiracy-theory",
-<<<<<<< HEAD
-        "totalMessages": 5,
-=======
-        "totalMessages": 4,
->>>>>>> origin
-        "messageByUsers": {},
-        "hourlyActivity": [
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-<<<<<<< HEAD
-          1,
-=======
-          0,
->>>>>>> origin
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0
-        ],
-        "weekdayActivity": [
-          1,
-          0,
-          0,
-<<<<<<< HEAD
-          2,
-=======
-          1,
->>>>>>> origin
-          1,
-          1,
           0
         ]
       }
@@ -275,122 +55,7 @@
       {
         "channelId": "1124845994903867516",
         "channelName": "alternative-twitter",
-<<<<<<< HEAD
-        "totalMessages": 7,
-=======
-        "totalMessages": 2,
->>>>>>> origin
-        "messageByUsers": {},
-        "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-<<<<<<< HEAD
-          1,
-=======
->>>>>>> origin
-          0,
-          0,
-          0,
-          0,
-<<<<<<< HEAD
-          1,
-          1,
-          1,
-=======
->>>>>>> origin
-          0,
-          0,
-          0,
-          1,
-<<<<<<< HEAD
-          1,
-=======
-          0,
-          0,
-          0,
-          0,
-          0,
->>>>>>> origin
-          0,
-          1,
-          0,
-          0
-        ],
-        "weekdayActivity": [
-          1,
-          0,
-          1,
-          0,
-          0,
-<<<<<<< HEAD
-          2,
-          3
-=======
-          0,
-          0
->>>>>>> origin
-        ]
-      }
-    ],
-    [
-      "1123274615502946304",
-      {
-        "channelId": "1123274615502946304",
-        "channelName": "world-prediction",
-<<<<<<< HEAD
-        "totalMessages": 8,
-        "messageByUsers": {},
-        "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          1,
-          0,
-          0,
-          1,
-          2,
-          1,
-          0
-        ],
-        "weekdayActivity": [
-          0,
-          2,
-          2,
-          2,
-          0,
-          0,
-          2
-        ]
-      }
-    ],
-    [
-      "1123278819554496612",
-      {
-        "channelId": "1123278819554496612",
-        "channelName": "ufo-and-uap",
-        "totalMessages": 4,
-=======
-        "totalMessages": 3,
->>>>>>> origin
+        "totalMessages": 1,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -408,194 +73,70 @@
           0,
           0,
           0,
-          0,
-<<<<<<< HEAD
-          4,
-          0,
-          0,
-          0,
-          0,
-=======
-          1,
           1,
           0,
           0,
-          1,
->>>>>>> origin
+          0,
+          0,
+          0,
           0,
           0,
           0
         ],
         "weekdayActivity": [
-<<<<<<< HEAD
-          2,
           0,
           0,
-          0,
-          2,
-          0,
-=======
-          0,
-          2,
           0,
           1,
           0,
           0,
->>>>>>> origin
           0
         ]
       }
     ]
   ],
   "hourlyActivity": [
-    2,
-    0,
-    0,
-    0,
-<<<<<<< HEAD
-    1,
-    1,
-    0,
-    2,
-=======
     0,
     0,
     0,
     0,
->>>>>>> origin
     0,
     0,
     0,
-    2,
-<<<<<<< HEAD
-    3,
-    1,
-    3,
     0,
-    8,
-    4,
-    1,
-    1,
-    2,
-    3,
-    1,
-    1
-  ],
-  "weekdayActivity": [
-    6,
-    4,
-    3,
-    7,
-    8,
-    3,
-    5
-  ],
-  "averageMessageLength": 117.44444444444444,
-=======
-    1,
     0,
     1,
     0,
-    3,
-    4,
+    0,
+    0,
+    0,
+    0,
     1,
     0,
-    2,
-    1,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
     0
   ],
   "weekdayActivity": [
-    4,
+    0,
+    0,
+    0,
     2,
-    1,
-    5,
-    4,
-    1,
+    0,
+    0,
     0
   ],
-  "averageMessageLength": 93.17647058823529,
->>>>>>> origin
+  "averageMessageLength": 111.5,
   "messageDistribution": [
     [
-      "2025-06-04",
-      3
-    ],
-    [
-      "2025-06-05",
+      "2025-07-09",
       2
-    ],
-    [
-      "2025-06-08",
-      3
-    ],
-    [
-      "2025-06-10",
-      1
-    ],
-    [
-      "2025-06-11",
-      1
-    ],
-    [
-      "2025-06-12",
-      2
-    ],
-    [
-<<<<<<< HEAD
-=======
-      "2025-06-15",
-      1
-    ],
-    [
->>>>>>> origin
-      "2025-06-16",
-      2
-    ],
-    [
-      "2025-06-18",
-      2
-<<<<<<< HEAD
-    ],
-    [
-      "2025-06-19",
-      4
-    ],
-    [
-      "2025-06-20",
-      3
-    ],
-    [
-      "2025-06-21",
-      3
-    ],
-    [
-      "2025-06-24",
-      1
-    ],
-    [
-      "2025-06-25",
-      2
-    ],
-    [
-      "2025-06-27",
-      1
-    ],
-    [
-      "2025-06-29",
-      5
-    ],
-    [
-      "2025-07-01",
-      1
     ]
   ],
   "mostActiveUser": "1107210702105620510",
-  "mostActiveChannel": "1124845994903867516"
-=======
-    ]
-  ],
-  "mostActiveUser": "1107210702105620510",
-  "mostActiveChannel": "1123278234021269555"
->>>>>>> origin
+  "mostActiveChannel": "1123278819554496612"
 }

@@ -1,8 +1,8 @@
 {
   "serverId": "1330522201916706947",
   "serverName": "たけのこの里派の集まり",
-  "totalMessages": 840,
-  "totalCharacters": 11577,
+  "totalMessages": 851,
+  "totalCharacters": 11728,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,11 +11,11 @@
       {
         "channelId": "1330522202772209728",
         "channelName": "何貼ってもいい掲示板",
-        "totalMessages": 664,
+        "totalMessages": 675,
         "messageByUsers": {},
         "hourlyActivity": [
-          29,
-          27,
+          32,
+          28,
           7,
           4,
           5,
@@ -36,17 +36,17 @@
           33,
           79,
           64,
-          78,
+          85,
           55
         ],
         "weekdayActivity": [
           139,
           39,
           89,
-          15,
+          22,
           36,
           208,
-          30
+          34
         ]
       }
     ],
@@ -360,8 +360,8 @@
     ]
   ],
   "hourlyActivity": [
-    90,
-    35,
+    93,
+    36,
     14,
     6,
     13,
@@ -382,19 +382,19 @@
     48,
     89,
     66,
-    118,
+    125,
     146
   ],
   "weekdayActivity": [
     176,
     62,
     89,
-    47,
+    54,
     36,
     305,
-    125
+    129
   ],
-  "averageMessageLength": 13.782142857142857,
+  "averageMessageLength": 13.781433607520563,
   "messageDistribution": [
     [
       "2025-04-12",
@@ -595,6 +595,14 @@
     [
       "2025-07-01",
       5
+    ],
+    [
+      "2025-07-02",
+      7
+    ],
+    [
+      "2025-07-04",
+      4
     ]
   ],
   "mostActiveUser": "478159493956632586",

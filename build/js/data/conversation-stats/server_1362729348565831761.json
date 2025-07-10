@@ -1,8 +1,8 @@
 {
   "serverId": "1362729348565831761",
   "serverName": "アイス/こーりのサーバー",
-  "totalMessages": 48,
-  "totalCharacters": 2871,
+  "totalMessages": 63,
+  "totalCharacters": 4357,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -143,7 +143,7 @@
       {
         "channelId": "1370936704130875393",
         "channelName": "game",
-        "totalMessages": 13,
+        "totalMessages": 21,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -161,21 +161,21 @@
           0,
           0,
           0,
-          0,
+          2,
           2,
           0,
+          5,
           0,
           0,
           0,
-          0,
-          1,
+          2,
           0
         ],
         "weekdayActivity": [
-          0,
           2,
-          7,
           2,
+          12,
+          3,
           0,
           0,
           2
@@ -187,11 +187,11 @@
       {
         "channelId": "1379884869416390877",
         "channelName": "rs",
-        "totalMessages": 25,
+        "totalMessages": 30,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
-          19,
+          21,
           0,
           0,
           0,
@@ -205,23 +205,67 @@
           0,
           0,
           0,
-          0,
+          1,
           1,
           0,
           0,
+          1,
+          1,
           0,
+          0,
+          1
+        ],
+        "weekdayActivity": [
+          9,
+          14,
+          5,
+          0,
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "1362729349710610484",
+      {
+        "channelId": "1362729349710610484",
+        "channelName": "ゲーム",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
           1,
           0,
           0,
           0
         ],
         "weekdayActivity": [
-          7,
-          12,
-          5,
+          0,
+          2,
           0,
           0,
-          1,
+          0,
+          0,
           0
         ]
       }
@@ -229,7 +273,7 @@
   ],
   "hourlyActivity": [
     2,
-    27,
+    29,
     0,
     0,
     0,
@@ -243,26 +287,26 @@
     0,
     4,
     0,
-    0,
+    3,
     3,
     1,
-    0,
-    0,
     5,
+    2,
+    6,
     0,
-    1,
-    0
+    2,
+    1
   ],
   "weekdayActivity": [
-    15,
-    14,
-    12,
-    3,
-    0,
+    19,
+    18,
+    17,
+    4,
+    1,
     2,
     2
   ],
-  "averageMessageLength": 59.8125,
+  "averageMessageLength": 69.15873015873017,
   "messageDistribution": [
     [
       "2025-06-08",
@@ -302,6 +346,26 @@
     ],
     [
       "2025-07-01",
+      1
+    ],
+    [
+      "2025-07-03",
+      1
+    ],
+    [
+      "2025-07-06",
+      6
+    ],
+    [
+      "2025-07-07",
+      2
+    ],
+    [
+      "2025-07-08",
+      5
+    ],
+    [
+      "2025-07-09",
       1
     ]
   ],

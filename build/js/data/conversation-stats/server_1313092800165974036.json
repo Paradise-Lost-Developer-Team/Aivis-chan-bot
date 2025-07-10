@@ -1,12 +1,8 @@
 {
   "serverId": "1313092800165974036",
   "serverName": "syanasiro72　鯖",
-<<<<<<< HEAD
-  "totalMessages": 104,
-=======
-  "totalMessages": 99,
->>>>>>> origin
-  "totalCharacters": 1092,
+  "totalMessages": 1,
+  "totalCharacters": 8,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -15,7 +11,7 @@
       {
         "channelId": "1363129170678513684",
         "channelName": "認証",
-        "totalMessages": 10,
+        "totalMessages": 1,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -32,36 +28,6 @@
           0,
           0,
           0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          7,
-          0
-        ],
-        "weekdayActivity": [
-          1,
-          0,
-          0,
-          0,
-          0,
-          1,
-          8
-        ]
-      }
-    ],
-    [
-      "1367105400771444856",
-      {
-        "channelId": "1367105400771444856",
-        "channelName": "みんなのゲーム環境教えてんごろう",
-        "totalMessages": 68,
-        "messageByUsers": {},
-        "hourlyActivity": [
           0,
           0,
           0,
@@ -71,82 +37,12 @@
           0,
           0,
           1,
-          0,
-          1,
-          5,
-          0,
-          2,
-          7,
-          0,
-          1,
-          0,
-          4,
-          4,
-          35,
-          8,
-          0,
-          0
-        ],
-        "weekdayActivity": [
-          6,
-          10,
-          0,
-          43,
-          5,
-          0,
-          4
-        ]
-      }
-    ],
-    [
-      "1355761083998146589",
-      {
-        "channelId": "1355761083998146589",
-        "channelName": "client配布-無駄話はダメ",
-<<<<<<< HEAD
-        "totalMessages": 26,
-=======
-        "totalMessages": 21,
->>>>>>> origin
-        "messageByUsers": {},
-        "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          13,
-          0,
-          0,
-          0,
-          0,
-<<<<<<< HEAD
-          5,
-=======
-          0,
->>>>>>> origin
-          0,
-          0,
-          8,
-          0,
           0
         ],
         "weekdayActivity": [
           0,
-<<<<<<< HEAD
-          17,
-=======
-          12,
->>>>>>> origin
-          9,
+          1,
+          0,
           0,
           0,
           0,
@@ -164,94 +60,39 @@
     0,
     0,
     0,
-    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
     1,
-    5,
-    0,
-    15,
-    8,
-    0,
-    1,
-    0,
-<<<<<<< HEAD
-    9,
-=======
-    4,
->>>>>>> origin
-    4,
-    35,
-    18,
-    7,
     0
   ],
   "weekdayActivity": [
-    7,
-<<<<<<< HEAD
-    27,
-=======
-    22,
->>>>>>> origin
-    9,
-    43,
-    5,
+    0,
     1,
-    12
+    0,
+    0,
+    0,
+    0,
+    0
   ],
-<<<<<<< HEAD
-  "averageMessageLength": 10.5,
-=======
-  "averageMessageLength": 11.030303030303031,
->>>>>>> origin
+  "averageMessageLength": 8,
   "messageDistribution": [
     [
-      "2025-04-26",
-      8
-    ],
-    [
-      "2025-04-27",
+      "2025-07-07",
       1
-    ],
-    [
-      "2025-04-30",
-      43
-    ],
-    [
-      "2025-05-02",
-      1
-    ],
-    [
-      "2025-05-04",
-      6
-    ],
-    [
-      "2025-05-05",
-      22
-    ],
-    [
-      "2025-05-06",
-      9
-    ],
-    [
-      "2025-05-10",
-      4
-    ],
-    [
-      "2025-05-21",
-      1
-    ],
-    [
-      "2025-05-22",
-      4
-<<<<<<< HEAD
-    ],
-    [
-      "2025-06-23",
-      5
-=======
->>>>>>> origin
     ]
   ],
-  "mostActiveUser": "867757972728578097",
-  "mostActiveChannel": "1367105400771444856"
+  "mostActiveUser": "1231534341289410634",
+  "mostActiveChannel": "1363129170678513684"
 }

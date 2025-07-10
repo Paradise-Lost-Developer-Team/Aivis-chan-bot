@@ -4,14 +4,14 @@
     {
       "userId": "1198496224395919443",
       "username": "wasawasa0819",
-      "totalMessages": 244,
-      "totalCharacters": 4455,
-      "totalWords": 232,
+      "totalMessages": 251,
+      "totalCharacters": 4541,
+      "totalWords": 237,
       "totalEmojis": 7,
       "firstMessageDate": "2025-04-12T17:26:01.114Z",
-      "lastMessageDate": "2025-07-01T08:53:22.763Z",
+      "lastMessageDate": "2025-07-04T15:33:11.411Z",
       "mentionsGiven": 9,
-      "mentionsReceived": 8,
+      "mentionsReceived": 9,
       "wordFrequency": [
         [
           "https://youtube.com/watch?v=ajzmgmu5ydy&si=frig2nv2nvq1keko",
@@ -776,6 +776,26 @@
         [
           "bpに目が眩んだうーさんに正々堂々と勝負仕掛ける方が悪いww",
           1
+        ],
+        [
+          "必死で見えなかった！今vcきてくれたの誰ー？？",
+          1
+        ],
+        [
+          "ひなちゃんかいｗｗ",
+          1
+        ],
+        [
+          "ミミズ顔に殺されて全滅したので終わりましたｗｗ",
+          1
+        ],
+        [
+          "ちいかわになれるフェイスパックこれやで",
+          1
+        ],
+        [
+          "狩り中にさぼるアイルー。",
+          1
         ]
       ],
       "emojiFrequency": [
@@ -805,7 +825,7 @@
         ]
       ],
       "hourlyActivity": [
-        29,
+        31,
         23,
         7,
         3,
@@ -827,19 +847,19 @@
         23,
         9,
         25,
-        36,
+        41,
         23
       ],
       "weekdayActivity": [
         97,
         20,
         15,
-        29,
+        34,
         21,
         19,
-        43
+        45
       ],
-      "voiceMinutes": 10654.02865,
+      "voiceMinutes": 12703.218783333334,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -1042,7 +1062,7 @@
         1,
         9
       ],
-      "voiceMinutes": 3775.654716666666,
+      "voiceMinutes": 4478.420599999999,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3043,13 +3063,13 @@
     {
       "userId": "582977120788283392",
       "username": "hina318",
-      "totalMessages": 22,
-      "totalCharacters": 225,
-      "totalWords": 18,
-      "totalEmojis": 3,
+      "totalMessages": 26,
+      "totalCharacters": 290,
+      "totalWords": 22,
+      "totalEmojis": 4,
       "firstMessageDate": "2025-04-21T12:56:38.735Z",
-      "lastMessageDate": "2025-06-30T16:45:29.293Z",
-      "mentionsGiven": 4,
+      "lastMessageDate": "2025-07-04T16:52:41.461Z",
+      "mentionsGiven": 5,
       "mentionsReceived": 1,
       "wordFrequency": [
         [
@@ -3119,17 +3139,33 @@
         [
           "可愛いよねw",
           1
+        ],
+        [
+          "私やw",
+          1
+        ],
+        [
+          "マイクとイヤホン設定おかしくなってたから治してるw",
+          1
+        ],
+        [
+          "vc入ってあれ聞こえないってなってすぐ抜けたすまぬ😂",
+          1
+        ],
+        [
+          "それはおもろいw",
+          1
         ]
       ],
       "emojiFrequency": [
         [
           "😂",
-          3
+          4
         ]
       ],
       "hourlyActivity": [
-        3,
-        1,
+        4,
+        2,
         0,
         0,
         0,
@@ -3150,19 +3186,19 @@
         1,
         0,
         3,
-        1,
+        3,
         3
       ],
       "weekdayActivity": [
         13,
         3,
         1,
-        0,
+        2,
         1,
         1,
-        3
+        5
       ],
-      "voiceMinutes": 5696.947049999999,
+      "voiceMinutes": 6939.295299999998,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3539,7 +3575,7 @@
         1,
         1
       ],
-      "voiceMinutes": 372.9904,
+      "voiceMinutes": 483.4773666666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3605,7 +3641,7 @@
         0,
         3
       ],
-      "voiceMinutes": 466.8972,
+      "voiceMinutes": 577.6467166666666,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
@@ -3662,7 +3698,7 @@
         0,
         0
       ],
-      "voiceMinutes": 160.48753333333335,
+      "voiceMinutes": 464.5079166666667,
       "responseTime": 0,
       "reactionCount": 0,
       "reactionGiven": 0,
