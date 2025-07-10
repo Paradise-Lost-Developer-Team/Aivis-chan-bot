@@ -1,9 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-
-// 辞書ファイルパスを定数化
-const DICTIONARY_FILE = path.join(process.cwd(), "guild_dictionaries.json");
+import { DICTIONARY_FILE } from 'utils/TTS-Engine';
 
 // 辞書ファイルの読み込み
 function loadDictionaryFile() {
