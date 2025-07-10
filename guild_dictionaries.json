@@ -11,6 +11,11 @@
       "pronunciation": "トイツ",
       "accentType": 1,
       "wordType": "PROPER_NOUN"
+    },
+    "役満": {
+      "pronunciation": "ヤクマン",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
     }
   },
   "966557943271133235": {
@@ -23,6 +28,21 @@
       "pronunciation": "キグルイ",
       "accentType": 0,
       "wordType": "COMMON_NOUN"
+    },
+    "白朮": {
+      "pronunciation": "ビャクジュツ",
+      "accentType": 0,
+      "wordType": "PERSON_NAME"
+    },
+    "宵宮": {
+      "pronunciation": "ヨイミヤ",
+      "accentType": 2,
+      "wordType": "PERSON_NAME"
+    },
+    "胡桃": {
+      "pronunciation": "フータオ",
+      "accentType": 0,
+      "wordType": "PERSON_NAME"
     }
   },
   "1333082050651230262": {
