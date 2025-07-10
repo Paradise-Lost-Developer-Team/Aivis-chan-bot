@@ -1,0 +1,238 @@
+{
+  "serverId": "1370032398443745330",
+  "serverName": "i!i!i!i!i!のサーバー",
+  "totalMessages": 32,
+  "totalCharacters": 221,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1370033188809871494",
+      {
+        "channelId": "1370033188809871494",
+        "channelName": "かすども養成所",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "1370032398443745334",
+      {
+        "channelId": "1370032398443745334",
+        "channelName": "金を出せ",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1370286418617696287",
+      {
+        "channelId": "1370286418617696287",
+        "channelName": "ひろゆきとイチャイチャ♡",
+        "totalMessages": 7,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1389054805883752529",
+      {
+        "channelId": "1389054805883752529",
+        "channelName": "w",
+        "totalMessages": 21,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          21,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          21,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    28,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    28,
+    0,
+    0,
+    2,
+    2,
+    0
+  ],
+  "averageMessageLength": 6.90625,
+  "messageDistribution": [
+    [
+      "2025-06-06",
+      2
+    ],
+    [
+      "2025-06-19",
+      2
+    ],
+    [
+      "2025-06-30",
+      28
+    ]
+  ],
+  "mostActiveUser": "1077441220181245962",
+  "mostActiveChannel": "1389054805883752529"
+}

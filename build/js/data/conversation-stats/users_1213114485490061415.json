@@ -1,0 +1,232 @@
+[
+  [
+    "1127165506286276688",
+    {
+      "userId": "1127165506286276688",
+      "username": "kanata1123.",
+      "totalMessages": 14,
+      "totalCharacters": 483,
+      "totalWords": 11,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-04-26T02:22:42.978Z",
+      "lastMessageDate": "2025-06-10T14:44:33.902Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "https://www.shazam.com/track/672583508/thank-god?co=jp&referrer=shazam-module&offsetinmilliseconds=42100&timeskew=9.795427e-4&tracklength=153600&startdate=2025-04-26t02:21:41.120z#%7b%22title%22:%22thank%20god%22,%22artist%22:%22rare%20of%20breed%22%7d",
+          1
+        ],
+        [
+          "一瞬10万ダメージいった！",
+          1
+        ],
+        [
+          "https://youtube.com/watch?v=40rlxgpaylq&si=y6m32jd-dxspkkvk",
+          1
+        ],
+        [
+          "???p2020…？",
+          1
+        ],
+        [
+          "ええやん",
+          1
+        ],
+        [
+          "https://youtube.com/watch?v=9ckhjxjl8fs&si=lblgnw4d6crmdsco",
+          1
+        ],
+        [
+          "キレーイ！",
+          1
+        ],
+        [
+          "泊まる家",
+          1
+        ],
+        [
+          "https://youtube.com/shorts/kybajcu3clg?si=n5_06txnqpm2cxs6",
+          1
+        ],
+        [
+          "これ出来てるの？",
+          1
+        ],
+        [
+          "ﾜｶｯﾀ(*´ω｀*)",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        3,
+        2,
+        0,
+        0,
+        2,
+        2,
+        0,
+        0,
+        2
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        2,
+        3,
+        4,
+        1,
+        4
+      ],
+      "voiceMinutes": 2107.240733333334,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1152951270072647730",
+    {
+      "userId": "1152951270072647730",
+      "username": "naru_volt",
+      "totalMessages": 1,
+      "totalCharacters": 30,
+      "totalWords": 1,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-01T11:01:17.215Z",
+      "lastMessageDate": "2025-05-01T11:01:16.466Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "バーチャルゲームカードとおすそわけ通信できるようになってるよ",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "voiceMinutes": 75.71813333333334,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1338107878313300022",
+    {
+      "userId": "1338107878313300022",
+      "username": "kanata05269",
+      "totalMessages": 2,
+      "totalCharacters": 20,
+      "totalWords": 2,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-15T10:37:35.765Z",
+      "lastMessageDate": "2025-05-15T10:37:48.755Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "多分できてる",
+          1
+        ],
+        [
+          "もう少し改善はできると思うよ",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "voiceMinutes": 1551.6310166666665,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

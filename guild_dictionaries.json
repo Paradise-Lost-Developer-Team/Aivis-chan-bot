@@ -109,5 +109,19 @@
       "accentType": 1,
       "wordType": "VERB"
     }
+  },
+  "1385844357445189846": {
+    "救助隊": {
+      "pronunciation": "キュージョタイイーズヤバイ",
+      "accentType": 0,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1385254052492869673": {
+    "深夜帯": {
+      "pronunciation": "シンヤタイ",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    }
   }
 }

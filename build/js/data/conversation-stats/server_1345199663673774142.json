@@ -1,0 +1,198 @@
+{
+  "serverId": "1345199663673774142",
+  "serverName": "家族",
+  "totalMessages": 13,
+  "totalCharacters": 35,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1345199664512892931",
+      {
+        "channelId": "1345199664512892931",
+        "channelName": "通話",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1345199664512892930",
+      {
+        "channelId": "1345199664512892930",
+        "channelName": "会話",
+        "totalMessages": 4,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          2
+        ]
+      }
+    ],
+    [
+      "1345206614516564108",
+      {
+        "channelId": "1345206614516564108",
+        "channelName": "画像共有",
+        "totalMessages": 7,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          7,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    6,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    4,
+    7,
+    0,
+    0,
+    0,
+    2
+  ],
+  "averageMessageLength": 2.6923076923076925,
+  "messageDistribution": [
+    [
+      "2025-05-05",
+      4
+    ],
+    [
+      "2025-05-31",
+      1
+    ],
+    [
+      "2025-06-10",
+      7
+    ],
+    [
+      "2025-06-28",
+      1
+    ]
+  ],
+  "mostActiveUser": "809627147333140531",
+  "mostActiveChannel": "1345206614516564108"
+}
