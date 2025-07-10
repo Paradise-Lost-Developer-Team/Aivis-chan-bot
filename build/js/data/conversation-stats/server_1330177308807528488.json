@@ -1,8 +1,8 @@
 {
   "serverId": "1330177308807528488",
   "serverName": "眠時昨晩",
-  "totalMessages": 293,
-  "totalCharacters": 3801,
+  "totalMessages": 355,
+  "totalCharacters": 4563,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,10 +11,10 @@
       {
         "channelId": "1330201261836079145",
         "channelName": "VC    1",
-        "totalMessages": 256,
+        "totalMessages": 262,
         "messageByUsers": {},
         "hourlyActivity": [
-          13,
+          15,
           60,
           24,
           0,
@@ -32,21 +32,21 @@
           0,
           0,
           0,
-          9,
+          10,
           9,
           6,
           1,
           75,
-          58
+          61
         ],
         "weekdayActivity": [
-          110,
+          112,
           0,
           24,
           78,
-          0,
-          0,
-          44
+          1,
+          1,
+          46
         ]
       }
     ],
@@ -55,11 +55,18 @@
       {
         "channelId": "1368818354978033715",
         "channelName": "メンション呼び出し",
-        "totalMessages": 26,
+        "totalMessages": 73,
         "messageByUsers": {},
         "hourlyActivity": [
           6,
-          3,
+          7,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
           0,
           0,
           0,
@@ -68,29 +75,22 @@
           0,
           0,
           0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
+          16,
           0,
           6,
           1,
           0,
-          0,
-          10
+          16,
+          19
         ],
         "weekdayActivity": [
-          14,
+          52,
           0,
           2,
           9,
           0,
-          0,
-          1
+          2,
+          8
         ]
       }
     ],
@@ -99,14 +99,11 @@
       {
         "channelId": "1330177308807528493",
         "channelName": "入口",
-        "totalMessages": 9,
+        "totalMessages": 14,
         "messageByUsers": {},
         "hourlyActivity": [
-          0,
-          0,
-          0,
-          0,
-          0,
+          1,
+          1,
           0,
           0,
           0,
@@ -121,20 +118,23 @@
           0,
           0,
           1,
+          0,
+          0,
+          2,
           1,
           3,
-          1,
+          2,
           1,
           2
         ],
         "weekdayActivity": [
-          1,
+          3,
           0,
-          4,
+          5,
           2,
           0,
           0,
-          2
+          4
         ]
       }
     ],
@@ -187,7 +187,7 @@
       {
         "channelId": "1330182696693141648",
         "channelName": "自己紹介",
-        "totalMessages": 1,
+        "totalMessages": 5,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -200,7 +200,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -212,13 +212,13 @@
           0,
           0,
           1,
-          0,
-          0
+          1,
+          2
         ],
         "weekdayActivity": [
+          3,
           0,
-          0,
-          0,
+          1,
           0,
           0,
           0,
@@ -228,41 +228,41 @@
     ]
   ],
   "hourlyActivity": [
-    19,
-    63,
+    22,
+    68,
     24,
+    1,
     0,
     0,
+    0,
+    0,
+    1,
+    1,
+    1,
     0,
     0,
     0,
     0,
     1,
     0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    10,
+    16,
+    12,
     16,
     11,
-    3,
-    76,
-    70
+    4,
+    93,
+    84
   ],
   "weekdayActivity": [
-    125,
+    170,
     0,
-    31,
+    33,
     89,
-    0,
-    0,
-    48
+    1,
+    3,
+    59
   ],
-  "averageMessageLength": 12.972696245733788,
+  "averageMessageLength": 12.853521126760564,
   "messageDistribution": [
     [
       "2025-06-07",
@@ -283,6 +283,26 @@
     [
       "2025-06-18",
       89
+    ],
+    [
+      "2025-07-03",
+      1
+    ],
+    [
+      "2025-07-04",
+      7
+    ],
+    [
+      "2025-07-05",
+      13
+    ],
+    [
+      "2025-07-06",
+      39
+    ],
+    [
+      "2025-07-08",
+      2
     ]
   ],
   "mostActiveUser": "1259181242302201968",

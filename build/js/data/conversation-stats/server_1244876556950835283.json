@@ -1,8 +1,8 @@
 {
   "serverId": "1244876556950835283",
   "serverName": "Paradise Lost Zenless Zone Zero鯖",
-  "totalMessages": 1161,
-  "totalCharacters": 34572,
+  "totalMessages": 1287,
+  "totalCharacters": 38830,
   "activeUsers": 0,
   "userStats": {},
   "channelStats": [
@@ -11,13 +11,13 @@
       {
         "channelId": "1244876557995216954",
         "channelName": "📷zzz写真｜動画",
-        "totalMessages": 24,
+        "totalMessages": 28,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
           2,
           1,
-          0,
+          1,
           0,
           0,
           0,
@@ -30,8 +30,8 @@
           4,
           1,
           1,
-          3,
-          2,
+          4,
+          4,
           0,
           0,
           0,
@@ -45,7 +45,7 @@
           0,
           5,
           0,
-          12,
+          16,
           2
         ]
       }
@@ -99,7 +99,7 @@
       {
         "channelId": "1244891874997571657",
         "channelName": "zzz募集",
-        "totalMessages": 48,
+        "totalMessages": 58,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -120,20 +120,20 @@
           0,
           1,
           2,
-          3,
           8,
-          9,
+          12,
+          10,
           10,
           2,
           0
         ],
         "weekdayActivity": [
           10,
-          12,
-          8,
-          3,
+          14,
+          9,
           5,
-          5,
+          9,
+          6,
           5
         ]
       }
@@ -143,7 +143,7 @@
       {
         "channelId": "1244927002130124841",
         "channelName": "ZZZトーク",
-        "totalMessages": 117,
+        "totalMessages": 134,
         "messageByUsers": {},
         "hourlyActivity": [
           4,
@@ -154,31 +154,31 @@
           0,
           1,
           4,
-          4,
+          5,
           4,
           7,
-          10,
+          11,
           8,
-          5,
+          8,
+          10,
           9,
           9,
-          5,
+          12,
+          4,
           10,
           3,
-          8,
-          3,
-          15,
+          17,
           5,
           1
         ],
         "weekdayActivity": [
-          19,
+          22,
           11,
           8,
-          22,
-          9,
-          28,
-          20
+          23,
+          11,
+          35,
+          24
         ]
       }
     ],
@@ -187,7 +187,7 @@
       {
         "channelId": "1244876557822984217",
         "channelName": "式輿防衛戦・危局強襲戦攻略パーティ",
-        "totalMessages": 22,
+        "totalMessages": 24,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -203,12 +203,12 @@
           2,
           1,
           5,
-          4,
+          5,
           1,
           0,
           1,
           2,
-          1,
+          2,
           0,
           1,
           0,
@@ -219,7 +219,7 @@
           1,
           1,
           2,
-          0,
+          2,
           3,
           13,
           2
@@ -231,12 +231,12 @@
       {
         "channelId": "1244876558330499104",
         "channelName": "VC1 雑談",
-        "totalMessages": 437,
+        "totalMessages": 457,
         "messageByUsers": {},
         "hourlyActivity": [
           88,
           19,
-          8,
+          11,
           2,
           0,
           0,
@@ -245,28 +245,28 @@
           0,
           1,
           0,
-          0,
+          1,
           1,
           3,
           14,
           3,
           0,
-          2,
+          3,
           38,
           94,
-          65,
-          39,
-          26,
-          34
+          76,
+          41,
+          27,
+          35
         ],
         "weekdayActivity": [
           73,
-          83,
           90,
-          49,
+          93,
+          50,
           90,
-          36,
-          16
+          43,
+          18
         ]
       }
     ],
@@ -319,42 +319,42 @@
       {
         "channelId": "1244876557655343168",
         "channelName": "🚪ようこそ",
-        "totalMessages": 182,
+        "totalMessages": 220,
         "messageByUsers": {},
         "hourlyActivity": [
-          13,
-          3,
+          14,
+          5,
           2,
           10,
           2,
           1,
           5,
           4,
-          13,
-          7,
-          10,
-          7,
-          9,
-          6,
-          7,
-          3,
-          7,
-          6,
-          9,
-          12,
-          11,
-          10,
           15,
-          10
+          7,
+          12,
+          9,
+          9,
+          7,
+          8,
+          4,
+          10,
+          9,
+          11,
+          14,
+          17,
+          13,
+          21,
+          11
         ],
         "weekdayActivity": [
-          21,
+          25,
           14,
-          43,
-          35,
-          21,
-          38,
-          10
+          48,
+          41,
+          25,
+          52,
+          15
         ]
       }
     ],
@@ -363,7 +363,7 @@
       {
         "channelId": "1244876557822984214",
         "channelName": "📄自己紹介",
-        "totalMessages": 21,
+        "totalMessages": 22,
         "messageByUsers": {},
         "hourlyActivity": [
           4,
@@ -386,13 +386,13 @@
           0,
           0,
           2,
-          1,
+          2,
           0,
           3,
           0
         ],
         "weekdayActivity": [
-          2,
+          3,
           2,
           6,
           4,
@@ -495,7 +495,7 @@
       {
         "channelId": "1349948800793444384",
         "channelName": "エレン完凸への道",
-        "totalMessages": 38,
+        "totalMessages": 41,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -512,7 +512,7 @@
           0,
           8,
           8,
-          0,
+          3,
           0,
           0,
           2,
@@ -530,7 +530,7 @@
           0,
           0,
           16,
-          8
+          11
         ]
       }
     ],
@@ -627,7 +627,7 @@
       {
         "channelId": "1364836060907180112",
         "channelName": "ZZZ：攻略・小ネタ板",
-        "totalMessages": 8,
+        "totalMessages": 9,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -646,7 +646,7 @@
           1,
           1,
           0,
-          0,
+          1,
           0,
           0,
           0,
@@ -656,7 +656,7 @@
           2
         ],
         "weekdayActivity": [
-          0,
+          1,
           3,
           2,
           2,
@@ -759,7 +759,7 @@
       {
         "channelId": "1244926671833010228",
         "channelName": "フリートーク",
-        "totalMessages": 19,
+        "totalMessages": 22,
         "messageByUsers": {},
         "hourlyActivity": [
           1,
@@ -784,7 +784,7 @@
           0,
           1,
           0,
-          2,
+          5,
           0
         ],
         "weekdayActivity": [
@@ -792,9 +792,9 @@
           1,
           2,
           2,
-          10,
+          12,
           2,
-          0
+          1
         ]
       }
     ],
@@ -847,11 +847,11 @@
       {
         "channelId": "1244876557995216949",
         "channelName": "💎変調",
-        "totalMessages": 15,
+        "totalMessages": 18,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
-          0,
+          1,
           1,
           0,
           0,
@@ -863,11 +863,11 @@
           0,
           0,
           4,
-          1,
+          2,
           0,
           2,
           0,
-          0,
+          1,
           1,
           0,
           1,
@@ -876,13 +876,13 @@
           0
         ],
         "weekdayActivity": [
-          4,
+          6,
           2,
           0,
           3,
           0,
           5,
-          1
+          2
         ]
       }
     ],
@@ -1067,7 +1067,7 @@
       {
         "channelId": "1260875667969413204",
         "channelName": "ZZZ：グッズ情報",
-        "totalMessages": 17,
+        "totalMessages": 28,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1084,25 +1084,25 @@
           0,
           0,
           2,
-          0,
-          10,
-          0,
-          0,
-          0,
-          0,
+          2,
+          11,
           0,
           3,
+          0,
+          0,
+          0,
+          8,
           0,
           0
         ],
         "weekdayActivity": [
-          0,
+          5,
           8,
           2,
           0,
           2,
-          5,
-          0
+          10,
+          1
         ]
       }
     ],
@@ -1111,7 +1111,7 @@
       {
         "channelId": "1244928536544804924",
         "channelName": "ZZZ：コード置き場",
-        "totalMessages": 2,
+        "totalMessages": 5,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1136,8 +1136,8 @@
           0,
           0,
           1,
-          0,
-          0
+          2,
+          1
         ],
         "weekdayActivity": [
           0,
@@ -1145,8 +1145,8 @@
           0,
           0,
           0,
-          1,
-          1
+          3,
+          2
         ]
       }
     ],
@@ -1463,7 +1463,7 @@
       {
         "channelId": "1244876557995216951",
         "channelName": "🪪ビルドカード",
-        "totalMessages": 2,
+        "totalMessages": 7,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1476,13 +1476,13 @@
           0,
           0,
           0,
-          0,
+          4,
           1,
           0,
           0,
           0,
           0,
-          1,
+          2,
           0,
           0,
           0,
@@ -1497,8 +1497,8 @@
           0,
           0,
           0,
-          1,
-          1
+          2,
+          5
         ]
       }
     ],
@@ -1771,7 +1771,7 @@
       {
         "channelId": "1244877519585546291",
         "channelName": "零号ホロウ攻略パーティ",
-        "totalMessages": 2,
+        "totalMessages": 7,
         "messageByUsers": {},
         "hourlyActivity": [
           0,
@@ -1794,13 +1794,13 @@
           0,
           0,
           0,
-          0,
-          0,
-          0,
+          1,
+          2,
+          2,
           0
         ],
         "weekdayActivity": [
-          0,
+          5,
           2,
           0,
           0,
@@ -2076,41 +2076,41 @@
     ]
   ],
   "hourlyActivity": [
-    115,
-    31,
-    15,
-    16,
+    116,
+    34,
+    18,
+    17,
     2,
     3,
     9,
     13,
-    37,
-    20,
-    38,
     40,
+    20,
+    44,
+    44,
     53,
-    55,
-    54,
-    41,
+    61,
+    61,
     43,
-    42,
-    72,
-    135,
-    101,
-    85,
-    82,
-    59
+    53,
+    54,
+    81,
+    143,
+    121,
+    99,
+    96,
+    62
   ],
   "weekdayActivity": [
-    169,
-    174,
-    198,
-    145,
+    190,
+    183,
+    207,
     157,
-    217,
-    101
+    169,
+    258,
+    123
   ],
-  "averageMessageLength": 29.77777777777778,
+  "averageMessageLength": 30.17094017094017,
   "messageDistribution": [
     [
       "2025-04-26",
@@ -2331,6 +2331,38 @@
     [
       "2025-06-19",
       2
+    ],
+    [
+      "2025-07-02",
+      6
+    ],
+    [
+      "2025-07-03",
+      13
+    ],
+    [
+      "2025-07-04",
+      44
+    ],
+    [
+      "2025-07-05",
+      19
+    ],
+    [
+      "2025-07-06",
+      20
+    ],
+    [
+      "2025-07-07",
+      12
+    ],
+    [
+      "2025-07-08",
+      8
+    ],
+    [
+      "2025-07-09",
+      4
     ]
   ],
   "mostActiveUser": "459694418383994880",
