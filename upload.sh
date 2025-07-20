@@ -5,7 +5,7 @@
 # サーバー設定
 SERVER_HOST="alecjp02.asuscomm.com"
 SERVER_USER="alec"
-SERVER_PATH="/srv/www/htdocs/aivis-chan-bot.com"
+SERVER_PATH="/srv/www/htdocs"
 
 # 色付きメッセージ用関数
 print_success() { echo -e "\e[32m✅ $1\e[0m"; }

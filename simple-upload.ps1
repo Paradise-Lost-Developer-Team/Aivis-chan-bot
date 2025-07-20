@@ -6,7 +6,7 @@ param(
 
 $SERVER_HOST = "alecjp02.asuscomm.com"
 $SERVER_USER = "alec"
-$SERVER_PATH = "/srv/www/htdocs/aivis-chan-bot.com"
+$SERVER_PATH = "/srv/www/htdocs"
 
 # 色付きメッセージ用関数
 function Write-Success { param($msg) Write-Host "✅ $msg" -ForegroundColor Green }

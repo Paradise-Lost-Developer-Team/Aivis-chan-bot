@@ -46,6 +46,15 @@
     }
     </script>
 
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <form action="/verify.php" method="POST">
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAABl0a2pLIK5z13K9"></div>
+    <br/>
+    <input type="submit" value="送信">
+    </form>
+
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
     <link rel="apple-touch-icon" href="images/icon-192.png">

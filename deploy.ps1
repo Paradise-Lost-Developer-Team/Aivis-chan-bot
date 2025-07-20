@@ -2,7 +2,7 @@
 # Apache サーバーへのアップロード用
 
 param(
-    [string]$ServerPath = "/srv/www/htdocs/aivis-chan-bot.com",
+    [string]$ServerPath = "/srv/www/htdocs",
     [string]$ServerUser = "alec",
     [string]$ServerHost = "alecjp02.asuscomm.com",
     [switch]$DryRun = $false

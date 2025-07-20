@@ -3,7 +3,7 @@
 
 $SERVER_HOST = "alecjp02.asuscomm.com"
 $SERVER_USER = "alec"
-$SERVER_PATH = "/srv/www/htdocs/aivis-chan-bot.com"
+$SERVER_PATH = "/srv/www/htdocs"
 
 function Write-Success { param($msg) Write-Host "✅ $msg" -ForegroundColor Green }
 function Write-Error { param($msg) Write-Host "❌ $msg" -ForegroundColor Red }

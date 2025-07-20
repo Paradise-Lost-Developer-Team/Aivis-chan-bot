@@ -29,30 +29,59 @@ python -m http.server 8000
 
 ## 🚀 Apacheサーバーへのデプロイ方法
 
-### 方法1: 自動アップロードスクリプト使用 (推奨)
+### ⚠️ 重要: SSH Root無効化環境での対応
 
-#### PowerShell版 (Windows)
+現在のサーバー環境では SSH root アクセスが禁止されているため、`alec` ユーザーでの接続が必要です。
+
+### 方法1: パスワード認証版アップロード (現在推奨)
+
+#### Windows PowerShell版
 ```powershell
-# ドライラン（実際のアップロードは行わない）
-.\deploy.ps1 -DryRun
+# パスワード認証でアップロード（最も確実）
+.\password-upload.ps1
 
-# 本番デプロイ
-.\deploy.ps1 -ServerHost "your-server.com" -ServerUser "root"
+# または SSH鍵認証版（現在問題あり）
+.\simple-upload.ps1
 ```
 
-#### Bash版 (Linux/macOS/WSL)
+#### Linux/WSL/Git Bash版
 ```bash
-# スクリプトに実行権限付与
-chmod +x upload.sh
+# upload.sh は現在権限問題で使用不可
+# 代わりに手動アップロードを使用
+```
 
-# サーバー情報を編集
-nano upload.sh
-# SERVER_HOST="あなたのサーバーのIP またはドメイン"
-# SERVER_USER="サーバーのユーザー名"
-# SERVER_PATH="/srv/www/htdocs/aivis-chan-bot.com"
+### 方法2: 手動アップロード (確実な方法)
 
-# アップロード実行
-./upload.sh
+#### 個別ファイルアップロード
+```bash
+# HTMLファイル
+scp index.html offline.html alec@alecjp02.asuscomm.com:/srv/www/htdocs/
+
+# PWAファイル
+scp manifest.json sw.js alec@alecjp02.asuscomm.com:/srv/www/htdocs/
+
+# CSS/JSファイル
+scp css/main.css alec@alecjp02.asuscomm.com:/srv/www/htdocs/css/
+scp js/main.js alec@alecjp02.asuscomm.com:/srv/www/htdocs/js/
+
+# 画像ファイル
+scp -r images/* alec@alecjp02.asuscomm.com:/srv/www/htdocs/images/
+```
+
+### 方法3: Git ベースデプロイ (推奨改善案)
+
+サーバー側でGitリポジトリをクローンして更新する方法：
+
+```bash
+# 初回のみ: サーバー側でリポジトリクローン
+ssh alec@alecjp02.asuscomm.com
+cd /srv/www/htdocs/
+sudo git clone https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot.git aivis-chan-bot.com
+sudo chown -R wwwrun:www aivis-chan-bot.com/
+
+# 更新時: ローカルでプッシュ後、サーバーでプル
+git push origin web
+ssh alec@alecjp02.asuscomm.com "cd /srv/www/htdocs/aivis-chan-bot.com && sudo git pull origin web"
 ```
 
 ### 方法2: 手動アップロード
@@ -82,28 +111,44 @@ rsync -avz --delete --exclude='.git' --exclude='*.md' --exclude='*.ps1' --exclud
 
 ## ⚙️ サーバー設定の確認
 
+### 現在のサーバー環境
+- サーバー: alecjp02.asuscomm.com  
+- ユーザー: alec (SSH root無効化のため)
+- パス: /srv/www/htdocs/ (直下)
+- 権限: wwwrun:www (Apache用)
+
 ### Apache設定確認
 ```bash
-# SSH接続してサーバーで実行
-ssh root@your-server
+# alecユーザーでSSH接続
+ssh alec@alecjp02.asuscomm.com
 
-# Apache設定テスト
-apache2ctl configtest
+# Apache設定テスト (sudo必要)
+sudo apache2ctl configtest
 
-# Apache再起動
-systemctl reload apache2
+# Apache再起動 (sudo必要)
+sudo systemctl reload apache2
 
 # ログ確認
-tail -f /var/log/apache2/error.log
-tail -f /var/log/apache2/access.log
+sudo tail -f /var/log/apache2/error.log
+sudo tail -f /var/log/apache2/access.log
 ```
 
 ### ファイル権限設定
 ```bash
-# サーバー上で実行
-chown -R wwwrun:www /srv/www/htdocs/aivis-chan-bot.com/
-chmod -R 644 /srv/www/htdocs/aivis-chan-bot.com/*
-find /srv/www/htdocs/aivis-chan-bot.com/ -type d -exec chmod 755 {} \;
+# サーバー上で実行 (sudo必要)
+sudo chown -R wwwrun:www /srv/www/htdocs/aivis-chan-bot.com/
+sudo chmod -R 644 /srv/www/htdocs/aivis-chan-bot.com/*
+sudo find /srv/www/htdocs/aivis-chan-bot.com/ -type d -exec chmod 755 {} \;
+```
+
+### 権限問題の解決 (システム管理者に依頼)
+```bash
+# alecユーザーをwwwグループに追加
+sudo usermod -aG www alec
+
+# グループ権限でファイル作成可能にする
+sudo chmod g+s /srv/www/htdocs/aivis-chan-bot.com/
+sudo chmod -R 775 /srv/www/htdocs/aivis-chan-bot.com/
 ```
 
 ## 🔍 更新後の確認
@@ -132,20 +177,30 @@ curl -I https://status.aivis-chan-bot.com/api/bot2/status
 
 ### よくある問題と解決方法
 
-#### 1. ファイルが反映されない
+#### 1. SSH権限エラー (Permission denied)
+```bash
+# 問題: alecユーザーでディレクトリ作成権限がない
+# 解決策1: 既存ディレクトリに直接ファイルアップロード
+scp index.html alec@alecjp02.asuscomm.com:/srv/www/htdocs/aivis-chan-bot.com/
+
+# 解決策2: sudo権限でディレクトリ作成後、権限変更
+ssh alec@alecjp02.asuscomm.com "sudo chown -R wwwrun:www /srv/www/htdocs/aivis-chan-bot.com/"
+```
+
+#### 2. ファイルが反映されない
 ```bash
 # ブラウザキャッシュクリア: Ctrl + F5
 # Service Worker更新確認
-# Apache再起動
-systemctl restart apache2
+# Apache再起動 (sudo必要)
+ssh alec@alecjp02.asuscomm.com "sudo systemctl restart apache2"
 ```
 
-#### 2. 403 Forbidden エラー
+#### 3. 403 Forbidden エラー
 ```bash
 # ファイル権限確認
-ls -la /srv/www/htdocs/aivis-chan-bot.com/
-# 権限修正
-chmod 644 index.html
+ssh alec@alecjp02.asuscomm.com "ls -la /srv/www/htdocs/aivis-chan-bot.com/"
+# 権限修正 (sudo必要)
+ssh alec@alecjp02.asuscomm.com "sudo chmod 644 /srv/www/htdocs/aivis-chan-bot.com/index.html"
 ```
 
 #### 3. Bot API接続エラー
