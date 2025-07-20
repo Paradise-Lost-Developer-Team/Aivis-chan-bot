@@ -587,33 +587,6 @@ class AivisWebsite {
         // Bot詳細ページがある場合の更新
         this.updateBotDetailPage(botStatuses);
     }
-        
-        // ステータスインジケーターの更新
-        if (statusIndicator) {
-            const onlineCount = allStats.onlineBots;
-            const totalCount = allStats.totalBots;
-            const statusText = statusIndicator.querySelector('.status-text');
-            
-            if (statusText) {
-                statusText.textContent = `${onlineCount}/${totalCount} Bot稼働中`;
-            }
-
-            // ツールチップで詳細表示
-            const tooltip = this.createBotStatusTooltip(botStatuses);
-            statusIndicator.appendChild(tooltip);
-
-            // ホバーイベント
-            statusIndicator.addEventListener('mouseenter', () => {
-                tooltip.style.display = 'block';
-            });
-            statusIndicator.addEventListener('mouseleave', () => {
-                tooltip.style.display = 'none';
-            });
-        }
-
-        // Bot詳細ページがある場合の更新
-        this.updateBotDetailPage(botStatuses);
-    }
 
     createBotStatusTooltip(botStatuses) {
         const existingTooltip = document.querySelector('.bot-status-tooltip');
@@ -862,5 +835,3 @@ if (process.env.NODE_ENV === 'development') {
         }
     };
 }
-
-export default AivisWebsite;
