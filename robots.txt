@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://aivis-chan-bot.com/sitemap.xml
+
+# AdSense
+User-agent: Mediapartners-Google
+Allow: /
+
+# 検索エンジンの最適化
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# 不要なページをブロック
+Disallow: /admin/
+Disallow: /private/
+Disallow: /*.log$
+Disallow: /temp/

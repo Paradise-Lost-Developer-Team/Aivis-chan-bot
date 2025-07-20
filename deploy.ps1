@@ -89,22 +89,43 @@ Write-Host "実行コマンド: $rsyncCommand" -ForegroundColor Gray
 try {
     # rsync実行
     if (Get-Command "wsl" -ErrorAction SilentlyContinue) {
-        Write-Host "WSL経由でrsyncを実行..." -ForegroundColor Cyan
-        wsl $rsyncCommand
+        $wslDistros = wsl --list --quiet 2>$null
+        if ($wslDistros -and $wslDistros.Count -gt 0) {
+            Write-Host "WSL経由でrsyncを実行..." -ForegroundColor Cyan
+            wsl $rsyncCommand
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "✅ rsyncアップロード完了" -ForegroundColor Green
+            } else {
+                throw "rsyncアップロードエラー"
+            }
+        } else {
+            throw "WSLディストリビューションが見つかりません"
+        }
     } elseif (Get-Command "bash" -ErrorAction SilentlyContinue) {
         Write-Host "Git Bash経由でrsyncを実行..." -ForegroundColor Cyan
         bash -c $rsyncCommand
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ rsyncアップロード完了" -ForegroundColor Green
+        } else {
+            throw "rsyncアップロードエラー"
+        }
     } else {
-        Write-Host "❌ rsyncまたはWSL/Git Bashが見つかりません" -ForegroundColor Red
-        Write-Host "手動でファイルをアップロードしてください" -ForegroundColor Yellow
+        throw "rsync環境が見つかりません"
+    }
+} catch {
+    Write-Host "❌ rsyncアップロードに失敗: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "🔄 代替手段として対話式アップロードを実行します..." -ForegroundColor Yellow
+    
+    # 対話式アップロードスクリプトを実行
+    if (Test-Path "interactive-upload.ps1") {
+        Write-Host "📤 interactive-upload.ps1 を実行中..." -ForegroundColor Cyan
+        & .\interactive-upload.ps1
+        return
+    } else {
+        Write-Host "❌ interactive-upload.ps1 が見つかりません" -ForegroundColor Red
+        Write-Host "💡 手動でファイルをアップロードしてください" -ForegroundColor Yellow
         return
     }
-    
-    Write-Host "✅ アップロード完了" -ForegroundColor Green
-    
-} catch {
-    Write-Host "❌ アップロードエラー: $($_.Exception.Message)" -ForegroundColor Red
-    return
 }
 
 # アップロード後の確認

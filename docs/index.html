@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ドキュメント | Aivis-chan Bot - 使い方ガイド</title>
+    <meta name="description" content="Aivis-chan Botの詳細な使い方、コマンド一覧、トラブルシューティングガイド。初心者から上級者まで対応した完全ドキュメント。">
+    <meta name="keywords" content="Aivis-chan Bot, ドキュメント, 使い方, コマンド, ガイド, Discord Bot, 音声合成">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="ドキュメント | Aivis-chan Bot">
+    <meta property="og:description" content="Aivis-chan Botの詳細な使い方ガイド">
+    <meta property="og:url" content="https://aivis-chan-bot.com/docs">
+    <meta property="og:type" content="website">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .docs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin-top: 80px;
+        }
+        
+        .docs-sidebar {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .docs-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .docs-nav li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .docs-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .docs-nav a:hover,
+        .docs-nav a.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .docs-content {
+            background: var(--surface-color);
+            border-radius: 12px;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        
+        .docs-content h1 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .docs-content h2 {
+            color: var(--text-primary);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .docs-content h3 {
+            color: var(--text-secondary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .command-example {
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .command-title {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .command-desc {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .command-usage {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 768px) {
+            .docs-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .docs-sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <img src="../images/aivis-logo.svg" alt="Aivis-chan Bot ロゴ" width="40" height="40">
+                    <a href="/" class="nav-title">Aivis-chan Bot</a>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="/#home" class="nav-link">ホーム</a></li>
+                    <li><a href="/#features" class="nav-link">機能</a></li>
+                    <li><a href="/#pricing" class="nav-link">プラン</a></li>
+                    <li><a href="/#setup" class="nav-link">導入方法</a></li>
+                    <li><a href="/docs" class="nav-link active">ドキュメント</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="https://discord.com/api/oauth2/authorize?client_id=1333819940645638154&permissions=3148800&scope=bot%20applications.commands" 
+                       target="_blank" class="btn btn-primary">Botを追加</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="docs-container">
+        <aside class="docs-sidebar">
+            <nav>
+                <ul class="docs-nav">
+                    <li><a href="#getting-started" class="active">はじめに</a></li>
+                    <li><a href="#installation">インストール</a></li>
+                    <li><a href="#basic-commands">基本コマンド</a></li>
+                    <li><a href="#voice-settings">音声設定</a></li>
+                    <li><a href="#advanced">高度な設定</a></li>
+                    <li><a href="#troubleshooting">トラブルシューティング</a></li>
+                    <li><a href="#faq">よくある質問</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="docs-content">
+            <section id="getting-started">
+                <h1>Aivis-chan Bot ドキュメント</h1>
+                <p>Aivis-chan Botへようこそ！このドキュメントでは、Botの使い方から高度な設定まで詳しく説明します。</p>
+                
+                <h2>概要</h2>
+                <p>Aivis-chan Botは、AivisSpeech Engineを使用した高品質な日本語音声合成Botです。自然で聞き取りやすい音声でテキストを読み上げ、Discordサーバーでのコミュニケーションを豊かにします。</p>
+                
+                <h3>主な特徴</h3>
+                <ul>
+                    <li>高品質な日本語音声合成（AivisSpeech Engine搭載）</li>
+                    <li>多彩な話者から選択可能</li>
+                    <li>シンプルで直感的なコマンド</li>
+                    <li>リアルタイムでの音声変換</li>
+                    <li>カスタマイズ可能な設定</li>
+                </ul>
+            </section>
+
+            <section id="installation">
+                <h2>インストール・セットアップ</h2>
+                
+                <h3>1. Botの招待</h3>
+                <p>以下のリンクからDiscordサーバーにBotを招待してください：</p>
+                <p><a href="https://discord.com/api/oauth2/authorize?client_id=1333819940645638154&permissions=3148800&scope=bot%20applications.commands" target="_blank" class="btn btn-primary">Botを招待</a></p>
+                
+                <h3>2. 権限の設定</h3>
+                <p>Botが正常に動作するために、以下の権限が必要です：</p>
+                <ul>
+                    <li>ボイスチャンネルに接続</li>
+                    <li>ボイスチャンネルで発言</li>
+                    <li>メッセージを読む</li>
+                    <li>メッセージを送信</li>
+                    <li>スラッシュコマンドを使用</li>
+                </ul>
+                
+                <h3>3. 初期設定</h3>
+                <div class="command-example">
+                    <div class="command-title">/setup</div>
+                    <div class="command-desc">Botの初期設定を行います</div>
+                    <div class="command-usage">/setup</div>
+                </div>
+            </section>
+
+            <section id="basic-commands">
+                <h2>基本コマンド</h2>
+                
+                <div class="command-example">
+                    <div class="command-title">/speak</div>
+                    <div class="command-desc">テキストを音声で読み上げます</div>
+                    <div class="command-usage">/speak text:こんにちは、世界！</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/join</div>
+                    <div class="command-desc">あなたがいるボイスチャンネルに参加します</div>
+                    <div class="command-usage">/join</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/leave</div>
+                    <div class="command-desc">ボイスチャンネルから退出します</div>
+                    <div class="command-usage">/leave</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/help</div>
+                    <div class="command-desc">ヘルプメッセージを表示します</div>
+                    <div class="command-usage">/help</div>
+                </div>
+            </section>
+
+            <section id="voice-settings">
+                <h2>音声設定</h2>
+                
+                <div class="command-example">
+                    <div class="command-title">/voice</div>
+                    <div class="command-desc">話者を変更します</div>
+                    <div class="command-usage">/voice speaker:ずんだもん</div>
+                </div>
+                
+                <h3>利用可能な話者</h3>
+                <ul>
+                    <li>ずんだもん</li>
+                    <li>四国めたん</li>
+                    <li>春日部つむぎ</li>
+                    <li>波音リツ</li>
+                    <li>玄野武宏</li>
+                    <li>白上虎太郎</li>
+                    <li>青山龍星</li>
+                    <li>冥鳴ひまり</li>
+                    <li>九州そら</li>
+                    <li>もち子さん</li>
+                    <li>剣崎雌雄</li>
+                </ul>
+                
+                <div class="command-example">
+                    <div class="command-title">/settings</div>
+                    <div class="command-desc">音声の詳細設定を変更します</div>
+                    <div class="command-usage">/settings speed:1.2 pitch:1.0 volume:1.0</div>
+                </div>
+            </section>
+
+            <section id="advanced">
+                <h2>高度な設定</h2>
+                
+                <h3>自動読み上げ機能</h3>
+                <div class="command-example">
+                    <div class="command-title">/auto-read</div>
+                    <div class="command-desc">特定のチャンネルでの自動読み上げを設定します</div>
+                    <div class="command-usage">/auto-read enable:true channel:#general</div>
+                </div>
+                
+                <h3>辞書機能</h3>
+                <div class="command-example">
+                    <div class="command-title">/dictionary</div>
+                    <div class="command-desc">読み方辞書を管理します</div>
+                    <div class="command-usage">/dictionary add word:GitHub reading:ギットハブ</div>
+                </div>
+                
+                <h3>フィルター設定</h3>
+                <div class="command-example">
+                    <div class="command-title">/filter</div>
+                    <div class="command-desc">読み上げをスキップする条件を設定します</div>
+                    <div class="command-usage">/filter add type:user target:@ユーザー名</div>
+                </div>
+            </section>
+
+            <section id="troubleshooting">
+                <h2>トラブルシューティング</h2>
+                
+                <h3>Botが音声チャンネルに参加できない</h3>
+                <ul>
+                    <li>Botに「ボイスチャンネルに接続」権限があることを確認してください</li>
+                    <li>チャンネルの人数制限に達していないか確認してください</li>
+                    <li>あなたが音声チャンネルに参加していることを確認してください</li>
+                </ul>
+                
+                <h3>音声が再生されない</h3>
+                <ul>
+                    <li>Botに「ボイスチャンネルで発言」権限があることを確認してください</li>
+                    <li>Discordの音量設定を確認してください</li>
+                    <li>Botの音量設定を確認してください（<code>/settings volume:1.0</code>）</li>
+                </ul>
+                
+                <h3>コマンドが動作しない</h3>
+                <ul>
+                    <li>スラッシュコマンドを使用していることを確認してください（<code>/</code>で始まる）</li>
+                    <li>Botに「スラッシュコマンドを使用」権限があることを確認してください</li>
+                    <li>コマンドの綴りが正しいことを確認してください</li>
+                </ul>
+            </section>
+
+            <section id="faq">
+                <h2>よくある質問</h2>
+                
+                <h3>Q: Botは無料で使えますか？</h3>
+                <p>A: はい、基本機能は無料でご利用いただけます。より高品質な音声や追加機能をご希望の場合は、有料プランをご検討ください。</p>
+                
+                <h3>Q: 複数のサーバーで同時に使用できますか？</h3>
+                <p>A: はい、Aivis-chan Botは複数のサーバーで同時にご利用いただけます。</p>
+                
+                <h3>Q: カスタム話者を追加できますか？</h3>
+                <p>A: Premiumプランでは、カスタム話者の追加が可能です。詳細はサポートサーバーにお問い合わせください。</p>
+                
+                <h3>Q: データは保存されますか？</h3>
+                <p>A: Botは音声合成のために一時的にテキストを処理しますが、永続的な保存は行いません。プライバシーを重視した設計となっています。</p>
+                
+                <h3>Q: サポートはどこで受けられますか？</h3>
+                <p>A: <a href="https://discord.gg/MPx2ny8HXT" target="_blank">公式Discordサーバー</a>でサポートを受けることができます。</p>
+            </section>
+        </main>
+    </div>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="../images/aivis-logo.svg" alt="Aivis-chan Bot ロゴ" width="32" height="32">
+                        <span class="footer-title">Aivis-chan Bot</span>
+                    </div>
+                    <p class="footer-description">
+                        高品質なDiscord音声合成ボットで、<br>
+                        コミュニケーションに新しい価値を。
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-section-title">プロダクト</h4>
+                    <ul class="footer-links">
+                        <li><a href="/#features">機能</a></li>
+                        <li><a href="/#pricing">プラン</a></li>
+                        <li><a href="/docs">ドキュメント</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-section-title">コミュニティ</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://discord.gg/MPx2ny8HXT" target="_blank">Discord</a></li>
+                        <li><a href="https://www.patreon.com/AlecJP02" target="_blank">Patreon</a></li>
+                        <li><a href="https://github.com/paradise-lost-developer-team/Aivis-chan-bot" target="_blank">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p class="footer-copyright">
+                        © 2024 Paradise Lost Developer Team. All rights reserved.
+                    </p>
+                    <div class="footer-bottom-links">
+                        <a href="/privacy">プライバシーポリシー</a>
+                        <li><a href="/terms">利用規約</a></li>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

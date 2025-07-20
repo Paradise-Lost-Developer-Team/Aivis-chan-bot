@@ -18,15 +18,18 @@
     --danger-color: #FF4757;
     --success-color: #2ED573;
     
-    /* グレースケール */
+    /* グレースケール - 視認性改善 */
     --text-primary: #FFFFFF;
-    --text-secondary: #B9BBBE;
-    --text-muted: #72767D;
+    --text-secondary: #E0E0E0;
+    --text-muted: #B0B0B0;
+    --text-accent: #00D4AA;
     --background-primary: #0A0E1A;
     --background-secondary: #1A1F2E;
     --background-tertiary: #2C3E50;
     --surface: #36393F;
     --surface-hover: #40444B;
+    --surface-light: rgba(255, 255, 255, 0.1);
+    --overlay-dark: rgba(0, 0, 0, 0.8);
     
     /* グラデーション */
     --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -116,6 +119,9 @@ section {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    /* フォールバック色を追加 */
+    color: var(--text-primary);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .section-description {
@@ -123,6 +129,7 @@ section {
     color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 /* ボタン */
@@ -317,13 +324,16 @@ section {
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .hero-description {
     font-size: var(--font-size-lg);
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-secondary);
     margin-bottom: var(--spacing-2xl);
     line-height: 1.8;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .hero-buttons {
@@ -345,12 +355,14 @@ section {
     font-size: var(--font-size-3xl);
     font-weight: 700;
     color: var(--text-primary);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .stat-label {
     font-size: var(--font-size-sm);
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
     margin-top: var(--spacing-xs);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .hero-image {
@@ -890,6 +902,33 @@ section {
     }
 }
 
+/* Google AdSense 広告スタイル */
+.adsbygoogle {
+    display: block;
+    margin: var(--spacing-xl) auto;
+    max-width: 100%;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+
+/* レスポンシブ広告コンテナ */
+.ad-container {
+    margin: var(--spacing-2xl) auto;
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--surface);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--surface-hover);
+}
+
+.ad-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* スクロールバー */
 ::-webkit-scrollbar {
     width: 8px;
@@ -1024,25 +1063,30 @@ section {
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-lg);
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .bot-detail-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: var(--surface-light);
 }
 
 .bot-detail-card.online {
     border-left: 4px solid var(--success-color);
+    background: rgba(46, 213, 115, 0.05);
 }
 
 .bot-detail-card.offline {
     border-left: 4px solid var(--text-muted);
-    opacity: 0.7;
+    opacity: 0.8;
+    background: rgba(114, 118, 125, 0.05);
 }
 
 .bot-detail-card.loading {
     border-left: 4px solid var(--warning-color);
     animation: loadingPulse 1.5s infinite ease-in-out;
+    background: rgba(255, 217, 61, 0.05);
 }
 
 @keyframes loadingPulse {
@@ -1074,7 +1118,9 @@ section {
 .bot-header h4 {
     color: var(--text-primary);
     font-size: var(--font-size-lg);
+    font-weight: 600;
     margin: 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .bot-status-badge {
@@ -1110,12 +1156,14 @@ section {
 .stat-item .label {
     color: var(--text-secondary);
     font-size: var(--font-size-sm);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .stat-item .value {
     color: var(--text-primary);
     font-weight: 600;
     font-size: var(--font-size-sm);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 /* Bot アクションボタン */

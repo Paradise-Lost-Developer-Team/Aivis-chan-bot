@@ -446,37 +446,37 @@ class AivisWebsite {
         const botConfigs = [
             { 
                 id: 'bot1', 
-                name: 'Aivis-chan-bot', 
+                name: 'Aivis-chan Bot 1台目', 
                 botId: '1333819940645638154',
                 endpoint: 'https://status.aivis-chan-bot.com/api/bot1/status' 
             },
             { 
                 id: 'bot2', 
-                name: 'Aivis-chan-bot-2nd', 
+                name: 'Aivis-chan Bot 2台目', 
                 botId: '1334732369831268352',
                 endpoint: 'https://status.aivis-chan-bot.com/api/bot2/status' 
             },
             { 
                 id: 'bot3', 
-                name: 'Aivis-chan-bot-3rd', 
+                name: 'Aivis-chan Bot 3台目', 
                 botId: '1334734681656262770',
                 endpoint: 'https://status.aivis-chan-bot.com/api/bot3/status' 
             },
             { 
                 id: 'bot4', 
-                name: 'Aivis-chan-bot-4th', 
+                name: 'Aivis-chan Bot 4台目', 
                 botId: '1365633502988472352',
                 endpoint: 'https://status.aivis-chan-bot.com/api/bot4/status' 
             },
             { 
                 id: 'bot5', 
-                name: 'Aivis-chan-bot-5th', 
+                name: 'Aivis-chan Bot 5台目', 
                 botId: '1365633586123771934',
                 endpoint: 'https://status.aivis-chan-bot.com/api/bot5/status' 
             },
             { 
                 id: 'bot6', 
-                name: 'Aivis-chan-bot-6th', 
+                name: 'Aivis-chan Bot 6台目', 
                 botId: '1365633656173101086',
                 endpoint: 'https://status.aivis-chan-bot.com/api/bot6/status' 
             }
@@ -727,12 +727,12 @@ if (process.env.NODE_ENV === 'development') {
         testNotification: () => new AivisWebsite().showNotification('テスト通知', 'success'),
         showBotIds: () => {
             const botIds = [
-                { name: 'Aivis-chan-bot (Main)', id: '1333819940645638154' },
-                { name: 'Aivis-chan-bot-2nd', id: '1334732369831268352' },
-                { name: 'Aivis-chan-bot-3rd', id: '1334734681656262770' },
-                { name: 'Aivis-chan-bot-4th', id: '1365633502988472352' },
-                { name: 'Aivis-chan-bot-5th', id: '1365633586123771934' },
-                { name: 'Aivis-chan-bot-6th', id: '1365633656173101086' }
+                { name: 'Aivis-chan Bot 1台目', id: '1333819940645638154' },
+                { name: 'Aivis-chan Bot 2台目', id: '1334732369831268352' },
+                { name: 'Aivis-chan Bot 3台目', id: '1334734681656262770' },
+                { name: 'Aivis-chan Bot 4台目', id: '1365633502988472352' },
+                { name: 'Aivis-chan Bot 5台目', id: '1365633586123771934' },
+                { name: 'Aivis-chan Bot 6台目', id: '1365633656173101086' }
             ];
             console.table(botIds);
         },
