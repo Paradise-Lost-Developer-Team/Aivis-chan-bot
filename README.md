@@ -220,6 +220,37 @@ php -S localhost:8000
 
 MIT License - Paradise Lost Developer Team
 
+## 🔄 Webサイト更新方法
+
+### クイック更新（推奨）
+```powershell
+# PowerShell でクイック更新
+.\quick-update.ps1 -UpdateType css    # CSSのみ更新
+.\quick-update.ps1 -UpdateType js     # JavaScriptのみ更新  
+.\quick-update.ps1 -UpdateType html   # HTMLのみ更新
+.\quick-update.ps1 -UpdateType all    # 全ファイル更新
+```
+
+### 完全アップロード
+```bash
+# 更新前チェック
+chmod +x check-update.sh upload.sh
+./check-update.sh
+
+# 全ファイルアップロード  
+./upload.sh
+```
+
+### 手動更新
+```bash
+# 個別ファイル更新
+scp index.html root@alecjp02.asuscomm.com:/srv/www/htdocs/aivis-chan-bot.com/
+scp css/main.css root@alecjp02.asuscomm.com:/srv/www/htdocs/aivis-chan-bot.com/css/
+scp js/main.js root@alecjp02.asuscomm.com:/srv/www/htdocs/aivis-chan-bot.com/js/
+```
+
+詳細な更新手順は [UPDATE_GUIDE.md](UPDATE_GUIDE.md) を参照してください。
+
 ## サポート
 
 - [サポートサーバー](https://discord.gg/MPx2ny8HXT)

@@ -3,7 +3,7 @@
 # Apache サーバーへの手動アップロード用
 
 # サーバー設定
-SERVER_HOST="your-openSUSE-server.com"
+SERVER_HOST="alecjp02.asuscomm.com"
 SERVER_USER="root"
 SERVER_PATH="/srv/www/htdocs/aivis-chan-bot.com"
 
