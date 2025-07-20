@@ -1,0 +1,100 @@
+// Aivis-chan Bot メインサイト JavaScript
+
+class AivisWebsite {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.setupNavigation();
+        this.setupScrollEffects();
+        this.setupCounters();
+        this.setupIntersectionObserver();
+        this.setupSmoothScroll();
+        this.setupMobileMenu();
+        this.setupBotStatus();
+        this.setupHeroStats(); // 追加: ヒーロー統計情報の設定
+        
+        console.log('🤖 Aivis-chan Bot Website loaded');
+    }
+
+    // ナビゲーション設定
+    setupNavigation() {
+        const header = document.querySelector('.header');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(10, 14, 26, 0.95)';
+                header.style.backdropFilter = 'blur(20px)';
+            } else {
+                header.style.background = 'rgba(10, 14, 26, 0.8)';
+                header.style.backdropFilter = 'blur(10px)';
+            }
+        });
+
+        // アクティブリンク設定
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    }
+
+    // スクロールエフェクト
+    setupScrollEffects() {
+        // パララックス効果
+        const heroParticles = document.querySelector('.hero-particles');
+        
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * -0.5;
+            
+            if (heroParticles) {
+                heroParticles.style.transform = `translateY(${rate}px)`;
+            }
+        });
+    }
+
+    // カウンターアニメーション
+    setupCounters() {
+        const counters = document.querySelectorAll('.stat-number');
+        
+        const animateCounter = (counter) => {
+            const target = parseInt(counter.getAttribute('data-count'));
+            const increment = target / 100;
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                
+                if (target === 99.9) {
+                    counter.textContent = current.toFixed(1);
+                } else {
+                    counter.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 20);
+        };
+
+        // Intersection Observer でカウンター開始
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {

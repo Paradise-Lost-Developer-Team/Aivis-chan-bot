@@ -1,0 +1,125 @@
+// Bot Status専用JavaScript
+// このファイルはbot-status.js として保存してください
+
+class BotStatusManager {
+    constructor() {
+        this.botIds = [
+            '1333819940645638154',
+            '1334732369831268352', 
+            '1334734681656262770',
+            '1365633502988472352',
+            '1365633586123771934',
+            '1365633656173101086'
+        ];
+        this.botNames = [
+            'Aivis-chan Bot 1台目',
+            'Aivis-chan Bot 2台目',
+            'Aivis-chan Bot 3台目', 
+            'Aivis-chan Bot 4台目',
+            'Aivis-chan Bot 5台目',
+            'Aivis-chan Bot 6台目'
+        ];
+        this.init();
+    }
+
+    init() {
+        console.log('🤖 Bot Status Manager initialized');
+        this.updateBotStatus();
+        
+        // 2分ごとにBot詳細ステータスを更新
+        setInterval(() => {
+            this.updateBotStatus();
+        }, 2 * 60 * 1000);
+    }
+
+    async updateBotStatus() {
+        try {
+            const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3001'
+                : 'https://aivis-chan-bot.com';
+                
+            const response = await fetch(`${apiBaseUrl}/api/bot-stats`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            this.updateBotDetailCards(data.bots);
+            
+        } catch (error) {
+            console.error('❌ Error fetching bot status:', error);
+            this.showErrorState();
+        }
+    }
+
+    updateBotDetailCards(botsData) {
+        const botCards = document.querySelectorAll('.bot-detail-card');
+        
+        botCards.forEach((card, index) => {
+            const botData = botsData[index];
+            if (botData) {
+                this.updateSingleBotCard(card, botData, index);
+            }
+        });
+    }
+
+    updateSingleBotCard(card, botData, index) {
+        // ステータスバッジ更新
+        const statusBadge = card.querySelector('.bot-status-badge');
+        if (statusBadge) {
+            statusBadge.classList.remove('loading', 'online', 'offline');
+            if (botData.online && botData.success) {
+                statusBadge.classList.add('online');
+                statusBadge.textContent = 'オンライン';
+            } else {
+                statusBadge.classList.add('offline');
+                statusBadge.textContent = 'オフライン';
+            }
+        }
+
+        // 統計情報更新
+        const statItems = card.querySelectorAll('.stat-item .value');
+        if (statItems.length >= 3) {
+            statItems[0].textContent = botData.success ? botData.server_count.toLocaleString() : '---';
+            statItems[1].textContent = botData.success ? botData.user_count.toLocaleString() : '---';
+            statItems[2].textContent = botData.success ? `${botData.uptime.toFixed(1)}%` : '---%';
+        }
+
+        // カード全体のローディング状態を解除
+        card.classList.remove('loading');
+    }
+
+    showErrorState() {
+        const botCards = document.querySelectorAll('.bot-detail-card');
+        
+        botCards.forEach(card => {
+            const statusBadge = card.querySelector('.bot-status-badge');
+            if (statusBadge) {
+                statusBadge.classList.remove('loading', 'online');
+                statusBadge.classList.add('offline');
+                statusBadge.textContent = 'エラー';
+            }
+
+            const statItems = card.querySelectorAll('.stat-item .value');
+            statItems.forEach(item => {
+                item.textContent = 'エラー';
+            });
+
+            card.classList.remove('loading');
+        });
+    }
+
+    // 個別Bot招待リンク生成
+    generateInviteLink(botId) {
+        return `https://discord.com/api/oauth2/authorize?client_id=${botId}&permissions=3148800&scope=bot%20applications.commands`;
+    }
+}
+
+// ページ読み込み完了後に初期化
+document.addEventListener('DOMContentLoaded', () => {
+    new BotStatusManager();
+});
+
+// グローバルに公開
+window.BotStatusManager = BotStatusManager;
