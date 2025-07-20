@@ -638,15 +638,16 @@ class AivisWebsite {
         // 初期値をすぐに設定（NaN回避）
         this.animateHeroStat('total-servers', 1200);
         this.animateHeroStat('total-users', 50000);
+        this.animateHeroStat('total-vc-users', 219);
         this.animateHeroStat('total-uptime', 99.5);
         
         // APIから実際のデータを取得
         await this.updateHeroStats();
         
-        // 5分ごとに統計情報を更新
+        // 2分ごとに統計情報を更新（VC接続数は変動が激しいため）
         setInterval(() => {
             this.updateHeroStats();
-        }, 5 * 60 * 1000);
+        }, 2 * 60 * 1000);
     }
 
     // 全Bot統計情報を取得してヒーロー部分を更新
@@ -675,6 +676,7 @@ class AivisWebsite {
             const totals = {
                 servers: 0,
                 users: 0,
+                vcUsers: 0,
                 uptime: 0,
                 onlineBots: 0
             };
@@ -683,6 +685,7 @@ class AivisWebsite {
                 if (bot.success && bot.online) {
                     totals.servers += bot.server_count || 0;
                     totals.users += bot.user_count || 0;
+                    totals.vcUsers += bot.vc_count || 0;
                     totals.onlineBots++;
                 }
             });
@@ -698,7 +701,15 @@ class AivisWebsite {
             // ヒーロー統計をアニメーション付きで更新
             this.animateHeroStat('total-servers', totals.servers);
             this.animateHeroStat('total-users', totals.users);
+            this.animateHeroStat('total-vc-users', totals.vcUsers);
             this.animateHeroStat('total-uptime', totals.uptime.toFixed(1));
+
+            console.log('📈 Hero stats updated:', {
+                servers: totals.servers,
+                users: totals.users,
+                vcUsers: totals.vcUsers,
+                uptime: totals.uptime.toFixed(1)
+            });
 
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
@@ -707,6 +718,7 @@ class AivisWebsite {
             console.log('📊 Using fallback values for hero stats');
             this.animateHeroStat('total-servers', 1200);
             this.animateHeroStat('total-users', 50000);
+            this.animateHeroStat('total-vc-users', 219);
             this.animateHeroStat('total-uptime', 99.5);
         }
     }
