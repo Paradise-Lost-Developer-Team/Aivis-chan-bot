@@ -10,9 +10,9 @@ class APIConnectionTest {
         console.log('🎙️ AivisSpeech Engine接続テスト開始...');
         
         const endpoints = [
-            'http://mcserver:50021/speakers',
-            'http://mcserver:50021/docs',
-            'http://localhost:50021/speakers', // ローカル接続
+            'http://mcserver:10101/speakers',
+            'http://mcserver:10101/docs',
+            'http://localhost:10101/speakers', // ローカル接続
         ];
 
         for (const endpoint of endpoints) {

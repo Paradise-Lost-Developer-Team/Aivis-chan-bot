@@ -1,13 +1,13 @@
 {
-  "name": "Aivis-chan Bot ステータス",
-  "short_name": "Aivis Status",
-  "description": "Aivis-chan Bot Discord音声合成ボットの稼働状況とステータス情報",
+  "name": "Aivis-chan Bot - Discord音声合成Bot",
+  "short_name": "Aivis Bot",
+  "description": "高品質音声合成技術を搭載した6台のDiscord Botステータス・招待・サポート",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
+  "background_color": "#0A0E1A",
   "theme_color": "#5865F2",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "social"],
   "lang": "ja",
   "dir": "ltr",
   "icons": [

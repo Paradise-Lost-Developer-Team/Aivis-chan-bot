@@ -12,6 +12,7 @@ class AivisWebsite {
         this.setupIntersectionObserver();
         this.setupSmoothScroll();
         this.setupMobileMenu();
+        this.setupBotStatus();
         
         console.log('🤖 Aivis-chan Bot Website loaded');
     }
@@ -175,9 +176,9 @@ class AivisWebsite {
         }
     }
 
-    // Discord Bot招待リンク生成
+    // Discord Bot招待リンク生成（メインBot用）
     generateInviteLink() {
-        const botId = 'YOUR_BOT_CLIENT_ID'; // 実際のBot IDに置き換え
+        const botId = '1333819940645638154'; // メインBot ID
         const permissions = '3148800'; // 必要な権限
         const scope = 'bot%20applications.commands';
         
@@ -348,6 +349,310 @@ class AivisWebsite {
         
         searchResults.innerHTML = resultsHTML;
     }
+
+    // Botステータス取得（複数Bot対応）
+    setupBotStatus() {
+        this.updateMultipleBotStatus();
+        // 3分ごとにステータスを更新（6台分のAPIコールを考慮して短縮）
+        setInterval(() => {
+            this.updateMultipleBotStatus();
+        }, 180000);
+    }
+
+    async updateBotStatus() {
+        // 後方互換性のため残す（単一Bot用）
+        return this.updateMultipleBotStatus();
+    }
+
+    updateStatusDisplay(data) {
+        // ヒーローセクションの統計情報を更新
+        const serverCountElement = document.querySelector('[data-count="1200"]');
+        const userCountElement = document.querySelector('[data-count="50000"]');
+        const uptimeElement = document.querySelector('[data-count="99.9"]');
+
+        if (serverCountElement && data.serverCount) {
+            serverCountElement.setAttribute('data-count', data.serverCount);
+            this.animateCounterToValue(serverCountElement, data.serverCount);
+        }
+
+        if (userCountElement && data.userCount) {
+            userCountElement.setAttribute('data-count', data.userCount);
+            this.animateCounterToValue(userCountElement, data.userCount);
+        }
+
+        if (uptimeElement && data.uptime) {
+            uptimeElement.setAttribute('data-count', data.uptime);
+            this.animateCounterToValue(uptimeElement, data.uptime);
+        }
+
+        // ステータスインジケーターの更新
+        this.updateStatusIndicator(data.status || 'online');
+
+        console.log('📊 Bot status updated:', data);
+    }
+
+    animateCounterToValue(element, targetValue) {
+        const duration = 1000;
+        const steps = 60;
+        const increment = targetValue / steps;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= targetValue) {
+                current = targetValue;
+                clearInterval(timer);
+            }
+            
+            if (element.getAttribute('data-count').includes('.')) {
+                element.textContent = current.toFixed(1);
+            } else {
+                element.textContent = Math.floor(current).toLocaleString();
+            }
+        }, duration / steps);
+    }
+
+    updateStatusIndicator(status) {
+        // ナビゲーションにステータスインジケーターを追加
+        let statusIndicator = document.querySelector('.status-indicator');
+        
+        if (!statusIndicator) {
+            statusIndicator = document.createElement('div');
+            statusIndicator.className = 'status-indicator';
+            
+            const navActions = document.querySelector('.nav-actions');
+            if (navActions) {
+                navActions.insertBefore(statusIndicator, navActions.firstChild);
+            }
+        }
+
+        const statusConfig = {
+            online: { color: '#57F287', text: 'オンライン' },
+            idle: { color: '#FEE75C', text: 'アイドル' },
+            dnd: { color: '#ED4245', text: '取り込み中' },
+            offline: { color: '#747F8D', text: 'オフライン' }
+        };
+
+        const config = statusConfig[status] || statusConfig.online;
+        
+        statusIndicator.innerHTML = `
+            <div class="status-dot" style="background-color: ${config.color}"></div>
+            <span class="status-text">${config.text}</span>
+        `;
+    }
+
+    // 複数Bot統合ステータス取得
+    async updateMultipleBotStatus() {
+        const botConfigs = [
+            { 
+                id: 'bot1', 
+                name: 'Aivis-chan-bot', 
+                botId: '1333819940645638154',
+                endpoint: 'https://status.aivis-chan-bot.com/api/bot1/status' 
+            },
+            { 
+                id: 'bot2', 
+                name: 'Aivis-chan-bot-2nd', 
+                botId: '1334732369831268352',
+                endpoint: 'https://status.aivis-chan-bot.com/api/bot2/status' 
+            },
+            { 
+                id: 'bot3', 
+                name: 'Aivis-chan-bot-3rd', 
+                botId: '1334734681656262770',
+                endpoint: 'https://status.aivis-chan-bot.com/api/bot3/status' 
+            },
+            { 
+                id: 'bot4', 
+                name: 'Aivis-chan-bot-4th', 
+                botId: '1365633502988472352',
+                endpoint: 'https://status.aivis-chan-bot.com/api/bot4/status' 
+            },
+            { 
+                id: 'bot5', 
+                name: 'Aivis-chan-bot-5th', 
+                botId: '1365633586123771934',
+                endpoint: 'https://status.aivis-chan-bot.com/api/bot5/status' 
+            },
+            { 
+                id: 'bot6', 
+                name: 'Aivis-chan-bot-6th', 
+                botId: '1365633656173101086',
+                endpoint: 'https://status.aivis-chan-bot.com/api/bot6/status' 
+            }
+        ];
+
+        const allStats = {
+            totalServers: 0,
+            totalUsers: 0,
+            averageUptime: 0,
+            onlineBots: 0,
+            totalBots: botConfigs.length
+        };
+
+        const botStatuses = [];
+
+        // 各Botのステータスを並行取得
+        const statusPromises = botConfigs.map(async (bot) => {
+            try {
+                const response = await fetch(bot.endpoint, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    timeout: 8000
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    botStatuses.push({ ...bot, ...data, online: true });
+                    
+                    allStats.totalServers += data.serverCount || 0;
+                    allStats.totalUsers += data.userCount || 0;
+                    allStats.averageUptime += data.uptime || 0;
+                    allStats.onlineBots += 1;
+                } else {
+                    botStatuses.push({ ...bot, online: false, status: 'offline' });
+                }
+            } catch (error) {
+                console.warn(`Bot ${bot.name} status fetch failed:`, error);
+                botStatuses.push({ ...bot, online: false, status: 'offline' });
+            }
+        });
+
+        await Promise.allSettled(statusPromises);
+
+        // 平均稼働率を計算
+        allStats.averageUptime = allStats.onlineBots > 0 ? 
+            allStats.averageUptime / allStats.onlineBots : 0;
+
+        // デフォルト値の適用（全Bot不通の場合）
+        if (allStats.onlineBots === 0) {
+            allStats.totalServers = 1200;
+            allStats.totalUsers = 50000;
+            allStats.averageUptime = 95.0;
+        }
+
+        // 統計情報を更新
+        this.updateStatusDisplay({
+            serverCount: allStats.totalServers,
+            userCount: allStats.totalUsers,
+            uptime: allStats.averageUptime,
+            status: allStats.onlineBots > 0 ? 'online' : 'offline'
+        });
+
+        // 詳細ステータスを更新
+        this.updateDetailedBotStatus(botStatuses, allStats);
+
+        console.log('🤖 Multiple bot status updated:', { allStats, botStatuses });
+    }
+
+    updateDetailedBotStatus(botStatuses, allStats) {
+        // ステータスインジケーターに詳細情報を追加
+        const statusIndicator = document.querySelector('.status-indicator');
+        if (statusIndicator) {
+            const onlineCount = allStats.onlineBots;
+            const totalCount = allStats.totalBots;
+            const statusText = statusIndicator.querySelector('.status-text');
+            
+            if (statusText) {
+                statusText.textContent = `${onlineCount}/${totalCount} Bot稼働中`;
+            }
+
+            // ツールチップで詳細表示
+            const tooltip = this.createBotStatusTooltip(botStatuses);
+            statusIndicator.appendChild(tooltip);
+
+            // ホバーイベント
+            statusIndicator.addEventListener('mouseenter', () => {
+                tooltip.style.display = 'block';
+            });
+            statusIndicator.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+
+        // Bot詳細ページがある場合の更新
+        this.updateBotDetailPage(botStatuses);
+    }
+
+    createBotStatusTooltip(botStatuses) {
+        const existingTooltip = document.querySelector('.bot-status-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'bot-status-tooltip';
+        
+        const tooltipContent = botStatuses.map(bot => {
+            const statusColor = bot.online ? '#57F287' : '#747F8D';
+            const statusIcon = bot.online ? '●' : '○';
+            
+            return `
+                <div class="bot-status-item">
+                    <span class="bot-status-icon" style="color: ${statusColor}">${statusIcon}</span>
+                    <span class="bot-name">${bot.name}</span>
+                    <span class="bot-servers">${bot.serverCount || 'N/A'}</span>
+                </div>
+            `;
+        }).join('');
+
+        tooltip.innerHTML = `
+            <div class="tooltip-header">Bot Status Details</div>
+            <div class="tooltip-content">${tooltipContent}</div>
+        `;
+
+        return tooltip;
+    }
+
+    updateBotDetailPage(botStatuses) {
+        const botDetailContainer = document.querySelector('.bot-detail-grid');
+        if (botDetailContainer) {
+            const detailHTML = botStatuses.map(bot => `
+                <div class="bot-detail-card ${bot.online ? 'online' : 'offline'}">
+                    <div class="bot-header">
+                        <h4>${bot.name}</h4>
+                        <span class="bot-status-badge ${bot.status || 'offline'}">${bot.online ? 'オンライン' : 'オフライン'}</span>
+                    </div>
+                    <div class="bot-stats">
+                        <div class="stat-item">
+                            <span class="label">サーバー数</span>
+                            <span class="value">${(bot.serverCount || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">ユーザー数</span>
+                            <span class="value">${(bot.userCount || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">稼働率</span>
+                            <span class="value">${(bot.uptime || 0).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="${this.generateSpecificInviteLink(bot.botId)}" 
+                           class="btn btn-primary btn-sm" 
+                           target="_blank" 
+                           rel="noopener noreferrer">
+                            ${bot.name}を招待
+                        </a>
+                        <button class="btn btn-secondary btn-sm" 
+                                onclick="navigator.clipboard.writeText('${bot.botId}')">
+                            Bot ID コピー
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            botDetailContainer.innerHTML = detailHTML;
+        }
+    }
+
+    // 特定のBotの招待リンク生成
+    generateSpecificInviteLink(botId) {
+        const permissions = '3148800'; // 必要な権限
+        const scope = 'bot%20applications.commands';
+        
+        return `https://discord.com/api/oauth2/authorize?client_id=${botId}&permissions=${permissions}&scope=${scope}`;
+    }
 }
 
 // コピー機能
@@ -419,7 +724,26 @@ if (process.env.NODE_ENV === 'development') {
             onLine: navigator.onLine,
             cookieEnabled: navigator.cookieEnabled
         }),
-        testNotification: () => new AivisWebsite().showNotification('テスト通知', 'success')
+        testNotification: () => new AivisWebsite().showNotification('テスト通知', 'success'),
+        showBotIds: () => {
+            const botIds = [
+                { name: 'Aivis-chan-bot (Main)', id: '1333819940645638154' },
+                { name: 'Aivis-chan-bot-2nd', id: '1334732369831268352' },
+                { name: 'Aivis-chan-bot-3rd', id: '1334734681656262770' },
+                { name: 'Aivis-chan-bot-4th', id: '1365633502988472352' },
+                { name: 'Aivis-chan-bot-5th', id: '1365633586123771934' },
+                { name: 'Aivis-chan-bot-6th', id: '1365633656173101086' }
+            ];
+            console.table(botIds);
+        },
+        testBotStatus: () => new AivisWebsite().updateMultipleBotStatus(),
+        generateAllInviteLinks: () => {
+            const website = new AivisWebsite();
+            const botIds = ['1333819940645638154', '1334732369831268352', '1334734681656262770', '1365633502988472352', '1365633586123771934', '1365633656173101086'];
+            const links = botIds.map(id => website.generateSpecificInviteLink(id));
+            console.log('🔗 All Bot Invite Links:', links);
+            return links;
+        }
     };
 }
 

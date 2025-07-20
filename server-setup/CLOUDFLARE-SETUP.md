@@ -57,9 +57,12 @@ Zone Resources:
 WindowsからLinuxサーバーにファイルをアップロード：
 
 ```bash
-# SCP経由でファイル転送
-scp -r server-setup/ user@your-server-ip:/home/user/
-scp -r *.html *.css js/ images/ user@your-server-ip:/home/user/Aivis-chan-bot-web/
+# SCP経由でファイル転送（完全版サイト）
+scp -r c:\Users\uketp\Aivis-chan-bot-web\server-setup user@your-server-ip:/home/user/
+scp -r c:\Users\uketp\Aivis-chan-bot-web\*.html c:\Users\uketp\Aivis-chan-bot-web\css c:\Users\uketp\Aivis-chan-bot-web\js c:\Users\uketp\Aivis-chan-bot-web\images c:\Users\uketp\Aivis-chan-bot-web\manifest.json c:\Users\uketp\Aivis-chan-bot-web\sw.js c:\Users\uketp\Aivis-chan-bot-web\offline.html user@your-server-ip:/home/user/Aivis-chan-bot-web/
+
+# または全体をアップロード
+scp -r c:\Users\uketp\Aivis-chan-bot-web user@your-server-ip:/home/user/
 ```
 
 ### 2. セットアップスクリプト実行
@@ -68,7 +71,7 @@ scp -r *.html *.css js/ images/ user@your-server-ip:/home/user/Aivis-chan-bot-we
 
 ```bash
 ssh user@your-server-ip
-cd server-setup
+cd ~/Aivis-chan-bot-web/server-setup
 chmod +x cloudflare-setup.sh
 sudo ./cloudflare-setup.sh
 ```

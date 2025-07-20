@@ -1,28 +1,33 @@
-// Service Worker for Aivis-chan Bot Status Page
-// PWA機能とオフライン対応
+// Service Worker for Aivis-chan Bot Website
+// PWA機能、オフライン対応、6台Bot対応
 
-const CACHE_NAME = 'aivis-status-v1.2.0';
-const STATIC_CACHE = 'aivis-static-v1.2.0';
-const DYNAMIC_CACHE = 'aivis-dynamic-v1.0.0';
+const CACHE_NAME = 'aivis-bot-v2.0.0';
+const STATIC_CACHE = 'aivis-static-v2.0.0';
+const DYNAMIC_CACHE = 'aivis-dynamic-v2.0.0';
 
 // キャッシュするファイルリスト
 const STATIC_FILES = [
     '/',
     '/index.html',
-    '/css/style.css',
-    '/js/status.js',
+    '/css/main.css',
+    '/js/main.js',
     '/images/aivis-logo.svg',
     '/images/favicon.svg',
+    '/images/icon-192.png',
+    '/images/icon-512.png',
     '/manifest.json',
-    // フォールバック用オフラインページ
     '/offline.html'
 ];
 
-// API エンドポイント（動的キャッシュ）
-const API_ENDPOINTS = [
-    'https://discord.com/api/v10/gateway',
-    'http://alecjp02.asuscomm.com:10101/speakers',
-    'https://alecjp02.asuscomm.com/speakers'
+// Bot API エンドポイント（動的キャッシュ）
+const BOT_API_ENDPOINTS = [
+    'https://status.aivis-chan-bot.com/api/bot1/status',
+    'https://status.aivis-chan-bot.com/api/bot2/status',
+    'https://status.aivis-chan-bot.com/api/bot3/status',
+    'https://status.aivis-chan-bot.com/api/bot4/status',
+    'https://status.aivis-chan-bot.com/api/bot5/status',
+    'https://status.aivis-chan-bot.com/api/bot6/status',
+    'https://discord.com/api/v10/gateway'
 ];
 
 // インストール時の処理
