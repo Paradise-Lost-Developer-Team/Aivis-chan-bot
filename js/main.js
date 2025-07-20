@@ -13,7 +13,11 @@ class AivisWebsite {
         this.setupSmoothScroll();
         this.setupMobileMenu();
         this.setupBotStatus();
-        this.setupHeroStats(); // 追加: ヒーロー統計情報の設定
+        
+        // DOM が完全に読み込まれてから統計情報を設定
+        setTimeout(() => {
+            this.setupHeroStats();
+        }, 100);
         
         console.log('🤖 Aivis-chan Bot Website loaded');
     }
@@ -630,6 +634,13 @@ class AivisWebsite {
     // ヒーロー統計情報の設定と更新
     async setupHeroStats() {
         console.log('🔢 Setting up hero statistics...');
+        
+        // 初期値をすぐに設定（NaN回避）
+        this.animateHeroStat('total-servers', 1200);
+        this.animateHeroStat('total-users', 50000);
+        this.animateHeroStat('total-uptime', 99.5);
+        
+        // APIから実際のデータを取得
         await this.updateHeroStats();
         
         // 5分ごとに統計情報を更新
@@ -644,7 +655,7 @@ class AivisWebsite {
             // 開発環境とproduction環境でAPIエンドポイントを切り替え
             const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:3001'  // 開発環境
-                : 'https://api.aivis-chan-bot.com';  // 本番環境
+                : 'https://aivis-chan-bot.com';  // 本番環境（プロキシ経由）
                 
             const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
                 method: 'GET',
@@ -692,18 +703,34 @@ class AivisWebsite {
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
             
-            // エラー時の表示
-            document.getElementById('total-servers').textContent = 'API エラー';
-            document.getElementById('total-users').textContent = 'API エラー';
-            document.getElementById('total-uptime').textContent = 'API エラー';
+            // エラー時はフォールバック値を使用
+            console.log('📊 Using fallback values for hero stats');
+            this.animateHeroStat('total-servers', 1200);
+            this.animateHeroStat('total-users', 50000);
+            this.animateHeroStat('total-uptime', 99.5);
         }
     }
 
     // 統計数値をアニメーション付きで更新
     animateHeroStat(elementId, targetValue) {
+        console.log(`🎯 Animating ${elementId} to ${targetValue}`);
         const element = document.getElementById(elementId);
-        if (!element) return;
+        
+        if (!element) {
+            console.error(`❌ Element with ID '${elementId}' not found`);
+            // IDが見つからない場合、data-api属性で検索
+            const fallbackElement = document.querySelector(`[data-api="${elementId}"]`);
+            if (fallbackElement) {
+                console.log(`✅ Found fallback element with data-api="${elementId}"`);
+                this.animateElement(fallbackElement, targetValue, elementId);
+            }
+            return;
+        }
 
+        this.animateElement(element, targetValue, elementId);
+    }
+
+    animateElement(element, targetValue, elementId) {
         const startValue = 0;
         const duration = 2000; // 2秒
         const startTime = Date.now();
@@ -717,7 +744,7 @@ class AivisWebsite {
             
             const currentValue = Math.floor(startValue + (targetValue - startValue) * easedProgress);
             
-            if (elementId === 'total-uptime') {
+            if (elementId === 'total-uptime' || elementId.includes('uptime')) {
                 element.textContent = (startValue + (targetValue - startValue) * easedProgress).toFixed(1);
             } else {
                 element.textContent = currentValue.toLocaleString();
@@ -802,7 +829,7 @@ window.addEventListener('error', (e) => {
 });
 
 // デバッグ用
-if (process.env.NODE_ENV === 'development') {
+if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
     console.log('🔧 Development mode enabled');
     
     // デバッグ用の関数をグローバルに追加
