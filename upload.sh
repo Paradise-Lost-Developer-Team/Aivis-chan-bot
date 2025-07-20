@@ -4,7 +4,7 @@
 
 # サーバー設定
 SERVER_HOST="alecjp02.asuscomm.com"
-SERVER_USER="root"
+SERVER_USER="alec"
 SERVER_PATH="/srv/www/htdocs/aivis-chan-bot.com"
 
 # 色付きメッセージ用関数
@@ -89,7 +89,7 @@ fi
 
 # ファイル権限設定
 print_info "ファイル権限を設定..."
-ssh ${SERVER_USER}@${SERVER_HOST} "chown -R wwwrun:www ${SERVER_PATH} && chmod -R 644 ${SERVER_PATH}/* && find ${SERVER_PATH} -type d -exec chmod 755 {} \;"
+ssh ${SERVER_USER}@${SERVER_HOST} "sudo chown -R wwwrun:www ${SERVER_PATH} && sudo chmod -R 644 ${SERVER_PATH}/* && sudo find ${SERVER_PATH} -type d -exec chmod 755 {} \;"
 
 if [[ $? -eq 0 ]]; then
     print_success "ファイル権限設定完了"
@@ -99,7 +99,7 @@ fi
 
 # Apache設定の確認・リロード
 print_info "Apache設定を確認..."
-ssh ${SERVER_USER}@${SERVER_HOST} "systemctl reload apache2"
+ssh ${SERVER_USER}@${SERVER_HOST} "sudo systemctl reload apache2"
 
 if [[ $? -eq 0 ]]; then
     print_success "Apache リロード完了"

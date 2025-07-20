@@ -2,9 +2,9 @@
 # Apache サーバーへのアップロード用
 
 param(
-    [string]$ServerPath = "/var/www/html/aivis-chan-bot.com",
-    [string]$ServerUser = "root",
-    [string]$ServerHost = "your-server.com",
+    [string]$ServerPath = "/srv/www/htdocs/aivis-chan-bot.com",
+    [string]$ServerUser = "alec",
+    [string]$ServerHost = "alecjp02.asuscomm.com",
     [switch]$DryRun = $false
 )
 
