@@ -1,0 +1,31 @@
+{
+  "name": "aivis-chan-bot-api",
+  "version": "1.0.0",
+  "description": "Discord Bot Statistics API Server for Aivis-chan Bot",
+  "main": "bot-stats-server.js",
+  "scripts": {
+    "start": "node bot-stats-server.js",
+    "dev": "nodemon bot-stats-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "api",
+    "statistics",
+    "aivis"
+  ],
+  "author": "Aivis Development Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

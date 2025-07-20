@@ -136,8 +136,8 @@
         <nav class="nav">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <img src="images/aivis-logo.svg" alt="Aivis-chan Bot ロゴ" width="40" height="40">
-                    <span class="nav-title">Aivis-chan Bot</span>
+                    <img src="images/aivis-logo.svg" alt="Aivis chan Bot ロゴ" width="40" height="40">
+                    <span class="nav-title">Aivis chan Bot</span>
                 </div>
                 <ul class="nav-menu">
                     <li><a href="#home" class="nav-link">ホーム</a></li>
@@ -189,15 +189,15 @@
                     </div>
                     <div class="hero-stats">
                         <div class="stat">
-                            <div class="stat-number" data-count="1200">0</div>
+                            <div class="stat-number" id="total-servers" data-api="server_count">API取得中...</div>
                             <div class="stat-label">導入サーバー数</div>
                         </div>
                         <div class="stat">
-                            <div class="stat-number" data-count="50000">0</div>
+                            <div class="stat-number" id="total-users" data-api="user_count">API取得中...</div>
                             <div class="stat-label">利用ユーザー数</div>
                         </div>
                         <div class="stat">
-                            <div class="stat-number" data-count="99.9">0</div>
+                            <div class="stat-number" id="total-uptime" data-api="uptime">API取得中...</div>
                             <div class="stat-label">稼働率(%)</div>
                         </div>
                     </div>
@@ -439,6 +439,12 @@
                             <span class="value">---%</span>
                         </div>
                     </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1333819940645638154&permissions=3148800&scope=bot%20applications.commands" 
+                           target="_blank" class="btn btn-primary btn-sm">
+                            Bot 1台目を招待
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="bot-detail-card loading">
@@ -459,6 +465,12 @@
                             <span class="label">稼働率</span>
                             <span class="value">---%</span>
                         </div>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1334732369831268352&permissions=3148800&scope=bot%20applications.commands" 
+                           target="_blank" class="btn btn-primary btn-sm">
+                            Bot 2台目を招待
+                        </a>
                     </div>
                 </div>
                 
@@ -481,6 +493,12 @@
                             <span class="value">---%</span>
                         </div>
                     </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1334734681656262770&permissions=3148800&scope=bot%20applications.commands" 
+                           target="_blank" class="btn btn-primary btn-sm">
+                            Bot 3台目を招待
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="bot-detail-card loading">
@@ -501,6 +519,12 @@
                             <span class="label">稼働率</span>
                             <span class="value">---%</span>
                         </div>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1365633502988472352&permissions=3148800&scope=bot%20applications.commands" 
+                           target="_blank" class="btn btn-primary btn-sm">
+                            Bot 4台目を招待
+                        </a>
                     </div>
                 </div>
                 
@@ -523,6 +547,12 @@
                             <span class="value">---%</span>
                         </div>
                     </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1365633586123771934&permissions=3148800&scope=bot%20applications.commands" 
+                           target="_blank" class="btn btn-primary btn-sm">
+                            Bot 5台目を招待
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="bot-detail-card loading">
@@ -543,6 +573,12 @@
                             <span class="label">稼働率</span>
                             <span class="value">---%</span>
                         </div>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1365633656173101086&permissions=3148800&scope=bot%20applications.commands" 
+                           target="_blank" class="btn btn-primary btn-sm">
+                            Bot 6台目を招待
+                        </a>
                     </div>
                 </div>
             </div>
@@ -675,5 +711,6 @@
 
     <!-- JavaScript -->
     <script src="js/main.js"></script>
+    <script src="js/bot-status.js"></script>
 </body>
 </html>

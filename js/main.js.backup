@@ -13,7 +13,6 @@ class AivisWebsite {
         this.setupSmoothScroll();
         this.setupMobileMenu();
         this.setupBotStatus();
-        this.setupHeroStats(); // 追加: ヒーロー統計情報の設定
         
         console.log('🤖 Aivis-chan Bot Website loaded');
     }
@@ -651,111 +650,57 @@ class AivisWebsite {
     }
 
     generateSpecificInviteLink(botId) {
-        return `https://discord.com/api/oauth2/authorize?client_id=${botId}&permissions=3145728&scope=bot`;
+        return `https://discord.com/api/oauth2/authorize?client_id=${botId}&permissions=3148800&scope=bot%20applications.commands`;
     }
 
-    // ヒーロー統計情報の設定と更新
-    async setupHeroStats() {
-        console.log('🔢 Setting up hero statistics...');
-        await this.updateHeroStats();
-        
-        // 5分ごとに統計情報を更新
-        setInterval(() => {
-            this.updateHeroStats();
-        }, 5 * 60 * 1000);
-    }
-
-    // 全Bot統計情報を取得してヒーロー部分を更新
-    async updateHeroStats() {
-        try {
-            // 開発環境とproduction環境でAPIエンドポイントを切り替え
-            const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3001'  // 開発環境
-                : 'https://api.aivis-chan-bot.com';  // 本番環境
-                
-            const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const allStatsData = await response.json();
-            console.log('📊 All bot stats received:', allStatsData);
-
-            // 全Botの合計統計を計算
-            const totals = {
-                servers: 0,
-                users: 0,
-                uptime: 0,
-                onlineBots: 0
-            };
-
-            allStatsData.bots.forEach(bot => {
-                if (bot.success && bot.online) {
-                    totals.servers += bot.server_count || 0;
-                    totals.users += bot.user_count || 0;
-                    totals.onlineBots++;
-                }
-            });
-
-            // 平均稼働率を計算
-            if (totals.onlineBots > 0) {
-                const uptimeSum = allStatsData.bots
-                    .filter(bot => bot.success && bot.online)
-                    .reduce((sum, bot) => sum + (bot.uptime || 0), 0);
-                totals.uptime = uptimeSum / totals.onlineBots;
-            }
-
-            // ヒーロー統計をアニメーション付きで更新
-            this.animateHeroStat('total-servers', totals.servers);
-            this.animateHeroStat('total-users', totals.users);
-            this.animateHeroStat('total-uptime', totals.uptime.toFixed(1));
-
-        } catch (error) {
-            console.error('❌ Error fetching hero stats:', error);
+    updateBotDetailPage(botStatuses) {
+        const botDetailContainer = document.querySelector('.bot-detail-grid');
+        if (botDetailContainer) {
+            const detailHTML = botStatuses.map(bot => `
+                <div class="bot-detail-card ${bot.online ? 'online' : 'offline'}">
+                    <div class="bot-header">
+                        <h4>${bot.name}</h4>
+                        <span class="bot-status-badge ${bot.status || 'offline'}">${bot.online ? 'オンライン' : 'オフライン'}</span>
+                    </div>
+                    <div class="bot-stats">
+                        <div class="stat-item">
+                            <span class="label">サーバー数</span>
+                            <span class="value">${(bot.serverCount || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">ユーザー数</span>
+                            <span class="value">${(bot.userCount || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">稼働率</span>
+                            <span class="value">${(bot.uptime || 0).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="${this.generateSpecificInviteLink(bot.botId)}" 
+                           class="btn btn-primary btn-sm" 
+                           target="_blank" 
+                           rel="noopener noreferrer">
+                            ${bot.name}を招待
+                        </a>
+                        <button class="btn btn-secondary btn-sm" 
+                                onclick="navigator.clipboard.writeText('${bot.botId}')">
+                            Bot ID コピー
+                        </button>
+                    </div>
+                </div>
+            `).join('');
             
-            // エラー時の表示
-            document.getElementById('total-servers').textContent = 'API エラー';
-            document.getElementById('total-users').textContent = 'API エラー';
-            document.getElementById('total-uptime').textContent = 'API エラー';
+            botDetailContainer.innerHTML = detailHTML;
         }
     }
 
-    // 統計数値をアニメーション付きで更新
-    animateHeroStat(elementId, targetValue) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        const startValue = 0;
-        const duration = 2000; // 2秒
-        const startTime = Date.now();
-
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // easeOutQuart イージング関数
-            const easedProgress = 1 - Math.pow(1 - progress, 4);
-            
-            const currentValue = Math.floor(startValue + (targetValue - startValue) * easedProgress);
-            
-            if (elementId === 'total-uptime') {
-                element.textContent = (startValue + (targetValue - startValue) * easedProgress).toFixed(1);
-            } else {
-                element.textContent = currentValue.toLocaleString();
-            }
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        };
-
-        animate();
+    // 特定のBotの招待リンク生成
+    generateSpecificInviteLink(botId) {
+        const permissions = '3148800'; // 必要な権限
+        const scope = 'bot%20applications.commands';
+        
+        return `https://discord.com/api/oauth2/authorize?client_id=${botId}&permissions=${permissions}&scope=${scope}`;
     }
 }
 
