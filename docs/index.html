@@ -208,9 +208,9 @@
                 
                 <h3>3. 初期設定</h3>
                 <div class="command-example">
-                    <div class="command-title">/setup</div>
-                    <div class="command-desc">Botの初期設定を行います</div>
-                    <div class="command-usage">/setup</div>
+                    <div class="command-title">/join</div>
+                    <div class="command-desc">音声チャンネルに参加してBotを開始します</div>
+                    <div class="command-usage">/join</div>
                 </div>
             </section>
 
@@ -218,15 +218,9 @@
                 <h2>基本コマンド</h2>
                 
                 <div class="command-example">
-                    <div class="command-title">/speak</div>
-                    <div class="command-desc">テキストを音声で読み上げます</div>
-                    <div class="command-usage">/speak text:こんにちは、世界！</div>
-                </div>
-                
-                <div class="command-example">
                     <div class="command-title">/join</div>
-                    <div class="command-desc">あなたがいるボイスチャンネルに参加します</div>
-                    <div class="command-usage">/join</div>
+                    <div class="command-desc">あなたがいるボイスチャンネルに参加します。特定のチャンネルを指定することも可能です。</div>
+                    <div class="command-usage">/join [channel:チャンネル名]</div>
                 </div>
                 
                 <div class="command-example">
@@ -236,65 +230,138 @@
                 </div>
                 
                 <div class="command-example">
+                    <div class="command-title">自動読み上げ</div>
+                    <div class="command-desc">Botがボイスチャンネルにいる状態で、テキストチャンネルにメッセージを送信すると自動的に読み上げます</div>
+                    <div class="command-usage">こんにちは、世界！</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/speak</div>
+                    <div class="command-desc">指定したテキストを直接読み上げます（オプション）</div>
+                    <div class="command-usage">/speak text:読み上げたいテキスト</div>
+                </div>
+                
+                <div class="command-example">
                     <div class="command-title">/help</div>
-                    <div class="command-desc">ヘルプメッセージを表示します</div>
+                    <div class="command-desc">ヘルプメッセージとコマンド一覧を表示します</div>
                     <div class="command-usage">/help</div>
                 </div>
+            </section>
+
+            <section id="usage-patterns">
+                <h2>使用方法</h2>
+                
+                <h3>方法1: 同じチャンネルで使用</h3>
+                <ol>
+                    <li>ボイスチャンネルに接続</li>
+                    <li><code>/join</code> でBotを呼び出し</li>
+                    <li>同じテキストチャンネルでメッセージを送信すると自動読み上げ</li>
+                </ol>
+                
+                <h3>方法2: チャンネルを指定して使用</h3>
+                <ol>
+                    <li><code>/join channel:特定のボイスチャンネル</code> でBotを指定チャンネルに参加させる</li>
+                    <li>そのボイスチャンネルに対応するテキストチャンネルでメッセージを送信</li>
+                </ol>
+                
+                <h3>方法3: 分離して使用</h3>
+                <ol>
+                    <li>読み上げ用のボイスチャンネルとテキストチャンネルを別々に設定</li>
+                    <li>設定されたテキストチャンネルでメッセージを送信すると、指定のボイスチャンネルで読み上げ</li>
+                </ol>
+                
+                <p><strong>注意:</strong> 設定方法の詳細については、サポートサーバーでお問い合わせください。</p>
             </section>
 
             <section id="voice-settings">
                 <h2>音声設定</h2>
                 
                 <div class="command-example">
-                    <div class="command-title">/voice</div>
+                    <div class="command-title">/set_speaker</div>
                     <div class="command-desc">話者を変更します</div>
-                    <div class="command-usage">/voice speaker:ずんだもん</div>
+                    <div class="command-usage">/set_speaker speaker:話者名</div>
                 </div>
                 
                 <h3>利用可能な話者</h3>
-                <ul>
-                    <li>ずんだもん</li>
-                    <li>四国めたん</li>
-                    <li>春日部つむぎ</li>
-                    <li>波音リツ</li>
-                    <li>玄野武宏</li>
-                    <li>白上虎太郎</li>
-                    <li>青山龍星</li>
-                    <li>冥鳴ひまり</li>
-                    <li>九州そら</li>
-                    <li>もち子さん</li>
-                    <li>剣崎雌雄</li>
-                </ul>
+                <p>AivisSpeech Engineを使用した高品質な日本語音声合成で、複数の話者をサポートしています。利用可能な話者は /set_speaker コマンドで確認できます。</p>
                 
                 <div class="command-example">
-                    <div class="command-title">/settings</div>
-                    <div class="command-desc">音声の詳細設定を変更します</div>
-                    <div class="command-usage">/settings speed:1.2 pitch:1.0 volume:1.0</div>
+                    <div class="command-title">/set_speed</div>
+                    <div class="command-desc">読み上げ速度を調整します（0.5～2.0）</div>
+                    <div class="command-usage">/set_speed speed:1.2</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/set_volume</div>
+                    <div class="command-desc">読み上げ音量を調整します（0.1～1.0）</div>
+                    <div class="command-usage">/set_volume volume:0.8</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/set_pitch</div>
+                    <div class="command-desc">音声のピッチを調整します</div>
+                    <div class="command-usage">/set_pitch pitch:0.0</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/set_intonation</div>
+                    <div class="command-desc">音声のイントネーションを調整します</div>
+                    <div class="command-usage">/set_intonation intonation:1.0</div>
                 </div>
             </section>
 
             <section id="advanced">
                 <h2>高度な設定</h2>
                 
-                <h3>自動読み上げ機能</h3>
-                <div class="command-example">
-                    <div class="command-title">/auto-read</div>
-                    <div class="command-desc">特定のチャンネルでの自動読み上げを設定します</div>
-                    <div class="command-usage">/auto-read enable:true channel:#general</div>
-                </div>
-                
                 <h3>辞書機能</h3>
                 <div class="command-example">
-                    <div class="command-title">/dictionary</div>
-                    <div class="command-desc">読み方辞書を管理します</div>
-                    <div class="command-usage">/dictionary add word:GitHub reading:ギットハブ</div>
+                    <div class="command-title">/add_word</div>
+                    <div class="command-desc">読み方辞書に単語を追加します</div>
+                    <div class="command-usage">/add_word word:GitHub reading:ギットハブ</div>
                 </div>
                 
-                <h3>フィルター設定</h3>
                 <div class="command-example">
-                    <div class="command-title">/filter</div>
-                    <div class="command-desc">読み上げをスキップする条件を設定します</div>
-                    <div class="command-usage">/filter add type:user target:@ユーザー名</div>
+                    <div class="command-title">/list_words</div>
+                    <div class="command-desc">登録された辞書の単語一覧を表示します</div>
+                    <div class="command-usage">/list_words</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/remove_word</div>
+                    <div class="command-desc">辞書から単語を削除します</div>
+                    <div class="command-usage">/remove_word word:GitHub</div>
+                </div>
+                
+                <h3>自動参加機能</h3>
+                <div class="command-example">
+                    <div class="command-title">/register_auto_join</div>
+                    <div class="command-desc">特定のボイスチャンネルへの自動参加を設定します</div>
+                    <div class="command-usage">/register_auto_join</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/unregister_auto_join</div>
+                    <div class="command-desc">自動参加設定を解除します</div>
+                    <div class="command-usage">/unregister_auto_join</div>
+                </div>
+                
+                <h3>その他の機能</h3>
+                <div class="command-example">
+                    <div class="command-title">/queue</div>
+                    <div class="command-desc">読み上げキューの状態を確認します</div>
+                    <div class="command-usage">/queue</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/voice-history</div>
+                    <div class="command-desc">音声履歴を表示します</div>
+                    <div class="command-usage">/voice-history</div>
+                </div>
+                
+                <div class="command-example">
+                    <div class="command-title">/ping</div>
+                    <div class="command-desc">Botの応答時間を確認します</div>
+                    <div class="command-usage">/ping</div>
                 </div>
             </section>
 
@@ -312,14 +379,18 @@
                 <ul>
                     <li>Botに「ボイスチャンネルで発言」権限があることを確認してください</li>
                     <li>Discordの音量設定を確認してください</li>
-                    <li>Botの音量設定を確認してください（<code>/settings volume:1.0</code>）</li>
+                <ul>
+                    <li>Discordの音量設定を確認してください</li>
+                    <li>Botの音量設定を確認してください（<code>/set_volume volume:1.0</code>）</li>
+                </ul>
                 </ul>
                 
                 <h3>コマンドが動作しない</h3>
                 <ul>
-                    <li>スラッシュコマンドを使用していることを確認してください（<code>/</code>で始まる）</li>
+                    <li>スラッシュコマンド（<code>/</code>で始まる）を使用していることを確認してください</li>
                     <li>Botに「スラッシュコマンドを使用」権限があることを確認してください</li>
                     <li>コマンドの綴りが正しいことを確認してください</li>
+                    <li><code>/help</code>でコマンド一覧を確認してください</li>
                 </ul>
             </section>
 

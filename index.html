@@ -355,17 +355,17 @@
                 <div class="step">
                     <div class="step-number">2</div>
                     <div class="step-content">
-                        <h3 class="step-title">権限設定</h3>
-                        <p class="step-description">音声チャンネルへの接続権限を設定</p>
-                        <code class="step-code">/setup voice_channel</code>
+                        <h3 class="step-title">ボイスチャンネルに参加</h3>
+                        <p class="step-description">ボイスチャンネルに接続して /join でBotを呼び出し</p>
+                        <code class="step-code">/join</code>
                     </div>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
                     <div class="step-content">
                         <h3 class="step-title">利用開始</h3>
-                        <p class="step-description">コマンドを使って音声合成を開始</p>
-                        <code class="step-code">/speak こんにちは！</code>
+                        <p class="step-description">テキストチャンネルでメッセージを送信すると自動読み上げ</p>
+                        <code class="step-code">こんにちは、Aivis-chan！</code>
                     </div>
                 </div>
             </div>
@@ -381,19 +381,9 @@
             </div>
             <div class="commands-grid">
                 <div class="command-card">
-                    <h3 class="command-name">/speak</h3>
-                    <p class="command-description">テキストを音声で読み上げ</p>
-                    <code class="command-usage">/speak メッセージ</code>
-                </div>
-                <div class="command-card">
-                    <h3 class="command-name">/voice</h3>
-                    <p class="command-description">話者を変更</p>
-                    <code class="command-usage">/voice speaker:ずんだもん</code>
-                </div>
-                <div class="command-card">
                     <h3 class="command-name">/join</h3>
-                    <p class="command-description">ボイスチャンネルに参加</p>
-                    <code class="command-usage">/join</code>
+                    <p class="command-description">現在のボイスチャンネルに参加（または指定チャンネルに参加）</p>
+                    <code class="command-usage">/join [channel:チャンネル名]</code>
                 </div>
                 <div class="command-card">
                     <h3 class="command-name">/leave</h3>
@@ -401,13 +391,23 @@
                     <code class="command-usage">/leave</code>
                 </div>
                 <div class="command-card">
-                    <h3 class="command-name">/settings</h3>
-                    <p class="command-description">Botの設定を変更</p>
-                    <code class="command-usage">/settings</code>
+                    <h3 class="command-name">テキスト送信</h3>
+                    <p class="command-description">Botがボイスチャンネルにいる時、テキスト送信で自動読み上げ</p>
+                    <code class="command-usage">こんにちは、世界！</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/set_speaker</h3>
+                    <p class="command-description">音声の話者を変更（AivisSpeech Engine）</p>
+                    <code class="command-usage">/set_speaker speaker:話者名</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/set_speed</h3>
+                    <p class="command-description">読み上げ速度を調整</p>
+                    <code class="command-usage">/set_speed speed:1.2</code>
                 </div>
                 <div class="command-card">
                     <h3 class="command-name">/help</h3>
-                    <p class="command-description">ヘルプを表示</p>
+                    <p class="command-description">ヘルプとコマンド一覧を表示</p>
                     <code class="command-usage">/help</code>
                 </div>
             </div>
