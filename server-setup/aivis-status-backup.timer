@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Aivis-chan Bot Status Page Backup
+Requires=aivis-status-backup.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

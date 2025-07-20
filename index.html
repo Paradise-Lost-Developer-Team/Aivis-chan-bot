@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aivis-chan Bot | 高品質Discord音声合成ボット</title>
+    <meta name="description" content="AivisSpeech Engine搭載の高品質Discord音声合成ボット。自然な日本語音声でDiscordを更に楽しく。">
+    <meta name="keywords" content="Discord Bot, 音声合成, TTS, AivisSpeech, 日本語, ボイスチャット">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aivis-chan-bot.com/">
+    <meta property="og:title" content="Aivis-chan Bot | 高品質Discord音声合成ボット">
+    <meta property="og:description" content="AivisSpeech Engine搭載の高品質Discord音声合成ボット。自然な日本語音声でDiscordを更に楽しく。">
+    <meta property="og:image" content="https://aivis-chan-bot.com/images/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://aivis-chan-bot.com/">
+    <meta property="twitter:title" content="Aivis-chan Bot | 高品質Discord音声合成ボット">
+    <meta property="twitter:description" content="AivisSpeech Engine搭載の高品質Discord音声合成ボット。自然な日本語音声でDiscordを更に楽しく。">
+    <meta property="twitter:image" content="https://aivis-chan-bot.com/images/og-image.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5865F2">
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <img src="images/aivis-logo.svg" alt="Aivis-chan Bot" height="40">
+                    <span class="nav-title">Aivis-chan Bot</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#home" class="nav-link">ホーム</a></li>
+                    <li><a href="#features" class="nav-link">機能</a></li>
+                    <li><a href="#pricing" class="nav-link">プラン</a></li>
+                    <li><a href="#setup" class="nav-link">導入方法</a></li>
+                    <li><a href="https://status.aivis-chan-bot.com" class="nav-link">ステータス</a></li>
+                    <li><a href="#support" class="nav-link">サポート</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="#invite" class="btn btn-primary">Botを追加</a>
+                    <button class="nav-toggle" id="nav-toggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- メインヒーロー -->
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <div class="hero-particles"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">
+                        <span class="gradient-text">高品質な音声合成</span>で<br>
+                        Discordをもっと楽しく
+                    </h1>
+                    <p class="hero-description">
+                        AivisSpeech Engine搭載のAivis-chan Botは、自然で美しい日本語音声でテキストを読み上げます。
+                        Discord サーバーに新しい体験をもたらしましょう。
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#invite" class="btn btn-primary btn-large">
+                            <span class="btn-icon">🤖</span>
+                            無料でBotを追加
+                        </a>
+                        <a href="#features" class="btn btn-secondary btn-large">
+                            <span class="btn-icon">✨</span>
+                            機能を見る
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="stat-number" data-count="1200">0</div>
+                            <div class="stat-label">導入サーバー数</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" data-count="50000">0</div>
+                            <div class="stat-label">利用ユーザー数</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" data-count="99.9">0</div>
+                            <div class="stat-label">稼働率(%)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="hero-bot-container">
+                        <img src="images/aivis-chan-3d.png" alt="Aivis-chan Bot キャラクター" class="hero-bot">
+                        <div class="hero-bot-glow"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 機能セクション -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Aivis-chan Botの特徴</h2>
+                <p class="section-description">最先端の技術と使いやすさを両立した音声合成ボット</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3 class="feature-title">高品質音声合成</h3>
+                    <p class="feature-description">AivisSpeech Engineにより、自然で聞き取りやすい日本語音声を実現</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">高速レスポンス</h3>
+                    <p class="feature-description">最適化されたエンジンで、瞬時にテキストを音声に変換</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <h3 class="feature-title">多彩な話者</h3>
+                    <p class="feature-description">豊富な話者から選択可能、キャラクターに合わせた音声を選択</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛠️</div>
+                    <h3 class="feature-title">簡単設定</h3>
+                    <p class="feature-description">直感的なコマンドで誰でも簡単に設定・操作可能</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">安全・安心</h3>
+                    <p class="feature-description">プライバシーを重視した設計で、安全にご利用いただけます</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3 class="feature-title">継続的改善</h3>
+                    <p class="feature-description">定期的なアップデートで機能向上とバグ修正を実施</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- プランセクション -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">利用プラン</h2>
+                <p class="section-description">あなたのニーズに合わせた最適なプランをお選びください</p>
+            </div>
+            <div class="pricing-grid">
+                <!-- Free プラン -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Free</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">¥0</span>
+                            <span class="price-period">/月</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li class="feature-included">基本的な音声合成機能</li>
+                        <li class="feature-included">3つの話者</li>
+                        <li class="feature-included">1日50回まで利用可能</li>
+                        <li class="feature-included">基本的なコマンド</li>
+                        <li class="feature-excluded">優先サポート</li>
+                        <li class="feature-excluded">カスタム話者</li>
+                    </ul>
+                    <a href="#invite" class="btn btn-outline btn-full">無料で始める</a>
+                </div>
+
+                <!-- Pro プラン -->
+                <div class="pricing-card pricing-card-featured">
+                    <div class="pricing-badge">人気</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Pro</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">¥500</span>
+                            <span class="price-period">/月</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li class="feature-included">高品質音声合成</li>
+                        <li class="feature-included">10個の話者</li>
+                        <li class="feature-included">1日500回まで利用可能</li>
+                        <li class="feature-included">全てのコマンド</li>
+                        <li class="feature-included">優先サポート</li>
+                        <li class="feature-included">音声設定カスタマイズ</li>
+                    </ul>
+                    <a href="https://www.patreon.com/aivis_chan_bot/membership" target="_blank" class="btn btn-primary btn-full">
+                        Patreonで支援する
+                    </a>
+                </div>
+
+                <!-- Premium プラン -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Premium</h3>
+                        <div class="pricing-price">
+                            <span class="price-amount">¥1,000</span>
+                            <span class="price-period">/月</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li class="feature-included">最高品質音声合成</li>
+                        <li class="feature-included">20+の話者</li>
+                        <li class="feature-included">無制限利用</li>
+                        <li class="feature-included">全ての機能</li>
+                        <li class="feature-included">優先サポート</li>
+                        <li class="feature-included">カスタム話者追加</li>
+                        <li class="feature-included">API アクセス</li>
+                    </ul>
+                    <a href="https://www.patreon.com/aivis_chan_bot/membership" target="_blank" class="btn btn-primary btn-full">
+                        Patreonで支援する
+                    </a>
+                </div>
+            </div>
+            <div class="pricing-note">
+                <p>💡 PatreonでのサポートによりAivis-chan Botの継続的な開発・運営が可能になります</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- セットアップセクション -->
+    <section id="setup" class="setup">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">簡単3ステップで導入</h2>
+                <p class="section-description">数分でDiscordサーバーにAivis-chan Botを追加できます</p>
+            </div>
+            <div class="setup-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Botを招待</h3>
+                        <p class="step-description">下のボタンからDiscordサーバーにBotを招待</p>
+                        <a href="#invite" class="btn btn-primary">Bot招待リンク</a>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">権限設定</h3>
+                        <p class="step-description">音声チャンネルへの接続権限を設定</p>
+                        <code class="step-code">/setup voice_channel</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">利用開始</h3>
+                        <p class="step-description">コマンドを使って音声合成を開始</p>
+                        <code class="step-code">/speak こんにちは！</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- コマンド一覧 -->
+    <section id="commands" class="commands">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">主なコマンド</h2>
+                <p class="section-description">Aivis-chan Botの基本的な使い方</p>
+            </div>
+            <div class="commands-grid">
+                <div class="command-card">
+                    <h3 class="command-name">/speak</h3>
+                    <p class="command-description">テキストを音声で読み上げ</p>
+                    <code class="command-usage">/speak メッセージ</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/voice</h3>
+                    <p class="command-description">話者を変更</p>
+                    <code class="command-usage">/voice speaker:ずんだもん</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/join</h3>
+                    <p class="command-description">ボイスチャンネルに参加</p>
+                    <code class="command-usage">/join</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/leave</h3>
+                    <p class="command-description">ボイスチャンネルから退出</p>
+                    <code class="command-usage">/leave</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/settings</h3>
+                    <p class="command-description">Botの設定を変更</p>
+                    <code class="command-usage">/settings</code>
+                </div>
+                <div class="command-card">
+                    <h3 class="command-name">/help</h3>
+                    <p class="command-description">ヘルプを表示</p>
+                    <code class="command-usage">/help</code>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- サポートセクション -->
+    <section id="support" class="support">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">サポート・コミュニティ</h2>
+                <p class="section-description">困ったときはお気軽にお声がけください</p>
+            </div>
+            <div class="support-grid">
+                <div class="support-card">
+                    <div class="support-icon">💬</div>
+                    <h3 class="support-title">Discord サポートサーバー</h3>
+                    <p class="support-description">リアルタイムでサポートを受けられます</p>
+                    <a href="https://discord.gg/MPx2ny8HXT" target="_blank" class="btn btn-outline">参加する</a>
+                </div>
+                <div class="support-card">
+                    <div class="support-icon">📖</div>
+                    <h3 class="support-title">ドキュメント</h3>
+                    <p class="support-description">詳細な使用方法とFAQ</p>
+                    <a href="/docs" class="btn btn-outline">ドキュメントを見る</a>
+                </div>
+                <div class="support-card">
+                    <div class="support-icon">❤️</div>
+                    <h3 class="support-title">Patreon</h3>
+                    <p class="support-description">開発支援で更なる機能向上に貢献</p>
+                    <a href="https://www.patreon.com/aivis_chan_bot" target="_blank" class="btn btn-outline">支援する</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bot招待セクション -->
+    <section id="invite" class="invite">
+        <div class="container">
+            <div class="invite-content">
+                <h2 class="invite-title">今すぐAivis-chan Botを導入しよう</h2>
+                <p class="invite-description">高品質な音声合成でDiscordサーバーを盛り上げましょう</p>
+                <div class="invite-buttons">
+                    <a href="https://discord.com/api/oauth2/authorize?client_id=YOUR_BOT_ID&permissions=3148800&scope=bot%20applications.commands" 
+                       target="_blank" class="btn btn-primary btn-large">
+                        <span class="btn-icon">🚀</span>
+                        Discordに追加
+                    </a>
+                    <a href="https://status.aivis-chan-bot.com" class="btn btn-secondary btn-large">
+                        <span class="btn-icon">📊</span>
+                        ステータス確認
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="images/aivis-logo.svg" alt="Aivis-chan Bot" height="32">
+                        <span class="footer-title">Aivis-chan Bot</span>
+                    </div>
+                    <p class="footer-description">
+                        高品質なDiscord音声合成ボットで、<br>
+                        コミュニケーションに新しい価値を。
+                    </p>
+                    <div class="footer-social">
+                        <a href="https://discord.gg/MPx2ny8HXT" target="_blank" aria-label="Discord">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.patreon.com/aivis_chan_bot" target="_blank" aria-label="Patreon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M0 .48v23.04h4.22V.48H0zm15.385 0c-4.764 0-8.641 3.88-8.641 8.65 0 4.755 3.877 8.623 8.641 8.623 4.75 0 8.615-3.868 8.615-8.623C24 4.36 20.136.48 15.385.48z"/>
+                            </svg>
+                        </a>
+                        <a href="https://github.com/paradise-lost-developer-team" target="_blank" aria-label="GitHub">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-section-title">プロダクト</h4>
+                    <ul class="footer-links">
+                        <li><a href="#features">機能</a></li>
+                        <li><a href="#pricing">プラン</a></li>
+                        <li><a href="https://status.aivis-chan-bot.com">ステータス</a></li>
+                        <li><a href="/docs">ドキュメント</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-section-title">サポート</h4>
+                    <ul class="footer-links">
+                        <li><a href="#setup">導入方法</a></li>
+                        <li><a href="https://discord.gg/MPx2ny8HXT" target="_blank">サポートサーバー</a></li>
+                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="/contact">お問い合わせ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-section-title">コミュニティ</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://discord.gg/MPx2ny8HXT" target="_blank">Discord</a></li>
+                        <li><a href="https://www.patreon.com/aivis_chan_bot" target="_blank">Patreon</a></li>
+                        <li><a href="https://github.com/paradise-lost-developer-team" target="_blank">GitHub</a></li>
+                        <li><a href="/blog">ブログ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p class="footer-copyright">
+                        © 2024 Paradise Lost Developer Team. All rights reserved.
+                    </p>
+                    <div class="footer-bottom-links">
+                        <a href="/privacy">プライバシーポリシー</a>
+                        <a href="/terms">利用規約</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "name": "Aivis-chan Bot ステータス",
+  "short_name": "Aivis Status",
+  "description": "Aivis-chan Bot Discord音声合成ボットの稼働状況とステータス情報",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#5865F2",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "lang": "ja",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/screenshot-mobile.png",
+      "type": "image/png",
+      "sizes": "390x844",
+      "form_factor": "narrow",
+      "label": "Aivis-chan Bot ステータスページ（モバイル）"
+    },
+    {
+      "src": "images/screenshot-desktop.png",
+      "type": "image/png",
+      "sizes": "1920x1080",
+      "form_factor": "wide",
+      "label": "Aivis-chan Bot ステータスページ（デスクトップ）"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ステータス確認",
+      "short_name": "ステータス",
+      "description": "現在のBot稼働状況を確認",
+      "url": "/",
+      "icons": [
+        {
+          "src": "images/shortcut-status.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "scope": "/",
+  "id": "aivis-chan-bot-status",
+  "prefer_related_applications": false
+}

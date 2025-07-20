@@ -1,0 +1,13 @@
+[Unit]
+Description=Aivis-chan Bot Status Page Backup
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/bin/backup-aivis-status.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

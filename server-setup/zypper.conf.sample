@@ -1,0 +1,45 @@
+# openSUSE Leap zypper設定ファイル
+# /etc/zypp/zypp.conf に追加する設定
+
+## ライセンス自動同意
+# 更新時に毎回ライセンス同意を求められないようにする
+autoAgreeWithLicenses = yes
+
+## パッケージ候補の自動選択
+# 依存関係の競合時に自動的に最適な候補を選択
+solver.allowVendorChange = true
+solver.dupAllowVendorChange = true
+
+## ダウンロード設定
+# 並列ダウンロード数（高速化）
+download.max_concurrent_connections = 5
+
+# メタデータのキャッシュ期間（秒）
+repo.refresh.delay = 600
+
+## セキュリティ設定
+# GPG署名チェックを有効化
+gpgcheck = 1
+
+# リポジトリのメタデータ署名チェック
+repo_gpgcheck = 1
+
+## ログ設定
+# 詳細ログの有効化
+log.showtime = yes
+log.showpid = yes
+
+## 更新動作設定
+# 古いカーネルの自動削除設定
+multiversion = provides:multiversion(kernel)
+multiversion.kernels = latest,latest-1,running
+
+## パッケージマネージャーの動作設定
+# プロンプトでのデフォルト選択
+defaultAnswer = yes
+
+# インストール推奨パッケージ
+installRecommends = yes
+
+# 依存関係の解決時の動作
+solver.onlyRequires = no
