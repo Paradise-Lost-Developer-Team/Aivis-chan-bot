@@ -369,30 +369,29 @@ class AivisWebsite {
     }
 
     updateStatusDisplay(data) {
+        console.log('🎯 Updating status display with data:', data);
+        
         // ヒーローセクションの統計情報を更新
-        const serverCountElement = document.querySelector('[data-count="1200"]');
-        const userCountElement = document.querySelector('[data-count="50000"]');
-        const uptimeElement = document.querySelector('[data-count="99.9"]');
-
-        if (serverCountElement && data.serverCount) {
-            serverCountElement.setAttribute('data-count', data.serverCount);
-            this.animateCounterToValue(serverCountElement, data.serverCount);
+        if (data.serverCount !== undefined) {
+            this.animateHeroStat('total-servers', data.serverCount);
         }
 
-        if (userCountElement && data.userCount) {
-            userCountElement.setAttribute('data-count', data.userCount);
-            this.animateCounterToValue(userCountElement, data.userCount);
+        if (data.userCount !== undefined) {
+            this.animateHeroStat('total-users', data.userCount);
         }
 
-        if (uptimeElement && data.uptime) {
-            uptimeElement.setAttribute('data-count', data.uptime);
-            this.animateCounterToValue(uptimeElement, data.uptime);
+        if (data.vcCount !== undefined) {
+            this.animateHeroStat('total-vc-users', data.vcCount);
+        }
+
+        if (data.uptime !== undefined) {
+            this.animateHeroStat('total-uptime', data.uptime);
         }
 
         // ステータスインジケーターの更新
         this.updateStatusIndicator(data.status || 'online');
 
-        console.log('📊 Bot status updated:', data);
+        console.log('📊 Status display updated');
     }
 
     animateCounterToValue(element, targetValue) {
@@ -482,42 +481,120 @@ class AivisWebsite {
             }
         ];
 
-        const allStats = {
-            totalServers: 1200,      // 固定値
-            totalUsers: 50000,       // 固定値  
-            averageUptime: 99.5,     // 固定値
-            onlineBots: 6,           // 固定値
-            totalBots: botConfigs.length
-        };
+        try {
+            // 実際のAPIから統計情報を取得
+            const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3001'
+                : 'https://aivis-chan-bot.com';
+                
+            const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-        const botStatuses = [];
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        // 簡易的なBot状態表示（外部APIなしで動作）
-        botConfigs.forEach((bot, index) => {
-            // 簡易的な状態判定（実際のAPIがない場合）
-            const isOnline = Math.random() > 0.1; // 90%の確率でオンライン
-            botStatuses.push({
-                ...bot,
-                online: isOnline,
-                status: isOnline ? 'online' : 'offline',
+            const apiData = await response.json();
+            console.log('📊 API data received:', apiData);
+
+            // 全Bot統計を計算
+            const allStats = {
+                totalServers: 0,
+                totalUsers: 0,
+                totalVcUsers: 0,
+                averageUptime: 0,
+                onlineBots: 0,
+                totalBots: botConfigs.length
+            };
+
+            const botStatuses = [];
+
+            // APIから取得したデータを処理
+            apiData.bots.forEach((botData, index) => {
+                const config = botConfigs[index];
+                if (!config) return;
+
+                const isOnline = botData.success && botData.online;
+                const status = {
+                    ...config,
+                    online: isOnline,
+                    status: isOnline ? 'online' : 'offline',
+                    serverCount: botData.server_count || 0,
+                    userCount: botData.user_count || 0,
+                    vcCount: botData.vc_count || 0,
+                    uptime: botData.uptime || 0
+                };
+
+                botStatuses.push(status);
+
+                if (isOnline) {
+                    allStats.totalServers += status.serverCount;
+                    allStats.totalUsers += status.userCount;
+                    allStats.totalVcUsers += status.vcCount;
+                    allStats.onlineBots++;
+                }
+            });
+
+            // 平均稼働率を計算
+            if (allStats.onlineBots > 0) {
+                const uptimeSum = botStatuses
+                    .filter(bot => bot.online)
+                    .reduce((sum, bot) => sum + bot.uptime, 0);
+                allStats.averageUptime = uptimeSum / allStats.onlineBots;
+            }
+
+            console.log('📈 Calculated stats:', allStats);
+
+            // 統計情報を更新
+            this.updateStatusDisplay({
+                serverCount: allStats.totalServers,
+                userCount: allStats.totalUsers,
+                vcCount: allStats.totalVcUsers,
+                uptime: allStats.averageUptime,
+                status: 'online'
+            });
+
+            // 詳細ステータスを更新
+            this.updateDetailedBotStatus(botStatuses, allStats);
+
+        } catch (error) {
+            console.error('❌ Error fetching real bot status:', error);
+            
+            // エラー時は基本的なフォールバック値を使用
+            const fallbackStats = {
+                totalServers: 1200,
+                totalUsers: 50000,
+                totalVcUsers: 219,
+                averageUptime: 99.5,
+                onlineBots: 6,
+                totalBots: botConfigs.length
+            };
+
+            // フォールバック用のボットステータス
+            const fallbackBotStatuses = botConfigs.map((config, index) => ({
+                ...config,
+                online: true,
+                status: 'online',
                 serverCount: Math.floor(150 + Math.random() * 100),
                 userCount: Math.floor(7000 + Math.random() * 3000),
+                vcCount: Math.floor(20 + Math.random() * 50),
                 uptime: 95 + Math.random() * 4.5
+            }));
+
+            this.updateStatusDisplay({
+                serverCount: fallbackStats.totalServers,
+                userCount: fallbackStats.totalUsers,
+                vcCount: fallbackStats.totalVcUsers,
+                uptime: fallbackStats.averageUptime,
+                status: 'online'
             });
-        });
 
-        // 統計情報を更新
-        this.updateStatusDisplay({
-            serverCount: allStats.totalServers,
-            userCount: allStats.totalUsers,
-            uptime: allStats.averageUptime,
-            status: 'online'
-        });
-
-        // 詳細ステータスを更新
-        this.updateDetailedBotStatus(botStatuses, allStats);
-
-        console.log('🤖 Bot status updated with fixed values:', { allStats, botStatuses });
+            this.updateDetailedBotStatus(fallbackBotStatuses, fallbackStats);
+        }
     }
 
     updateDetailedBotStatus(botStatuses, allStats) {
@@ -543,13 +620,19 @@ class AivisWebsite {
                     console.log(`Status badge updated: ${statusBadge.textContent}`);
                 }
                 
-                // 統計値を更新
+                // 統計値を更新（VC接続数を含む）
                 const statValues = card.querySelectorAll('.stat-item .value');
                 if (statValues.length >= 3) {
                     statValues[0].textContent = (bot.serverCount || 0).toLocaleString();
                     statValues[1].textContent = (bot.userCount || 0).toLocaleString(); 
                     statValues[2].textContent = `${(bot.uptime || 0).toFixed(1)}%`;
-                    console.log(`Stats updated: servers=${statValues[0].textContent}, users=${statValues[1].textContent}, uptime=${statValues[2].textContent}`);
+                    
+                    // VC接続数が4番目の統計として存在する場合
+                    if (statValues[3]) {
+                        statValues[3].textContent = (bot.vcCount || 0).toLocaleString();
+                    }
+                    
+                    console.log(`Stats updated: servers=${statValues[0].textContent}, users=${statValues[1].textContent}, uptime=${statValues[2].textContent}, vc=${statValues[3] ? statValues[3].textContent : 'N/A'}`);
                 }
                 
                 // 招待ボタンがあれば更新
@@ -726,6 +809,14 @@ class AivisWebsite {
     // 統計数値をアニメーション付きで更新
     animateHeroStat(elementId, targetValue) {
         console.log(`🎯 Animating ${elementId} to ${targetValue}`);
+        
+        // 数値のバリデーション
+        const numericValue = parseFloat(targetValue);
+        if (isNaN(numericValue)) {
+            console.error(`❌ Invalid target value for ${elementId}: ${targetValue}`);
+            return;
+        }
+        
         const element = document.getElementById(elementId);
         
         if (!element) {
@@ -734,15 +825,30 @@ class AivisWebsite {
             const fallbackElement = document.querySelector(`[data-api="${elementId}"]`);
             if (fallbackElement) {
                 console.log(`✅ Found fallback element with data-api="${elementId}"`);
-                this.animateElement(fallbackElement, targetValue, elementId);
+                this.animateElement(fallbackElement, numericValue, elementId);
+            } else {
+                // どちらも見つからない場合、class名で検索
+                const classElement = document.querySelector(`.${elementId}`);
+                if (classElement) {
+                    console.log(`✅ Found element by class: ${elementId}`);
+                    this.animateElement(classElement, numericValue, elementId);
+                }
             }
             return;
         }
 
-        this.animateElement(element, targetValue, elementId);
+        this.animateElement(element, numericValue, elementId);
     }
 
     animateElement(element, targetValue, elementId) {
+        // 数値の安全性チェック
+        const safeTargetValue = parseFloat(targetValue);
+        if (isNaN(safeTargetValue)) {
+            console.error(`❌ Invalid target value in animateElement: ${targetValue}`);
+            element.textContent = '0';
+            return;
+        }
+        
         const startValue = 0;
         const duration = 2000; // 2秒
         const startTime = Date.now();
@@ -754,16 +860,23 @@ class AivisWebsite {
             // easeOutQuart イージング関数
             const easedProgress = 1 - Math.pow(1 - progress, 4);
             
-            const currentValue = Math.floor(startValue + (targetValue - startValue) * easedProgress);
+            const currentValue = startValue + (safeTargetValue - startValue) * easedProgress;
             
             if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-                element.textContent = (startValue + (targetValue - startValue) * easedProgress).toFixed(1);
+                element.textContent = currentValue.toFixed(1);
             } else {
-                element.textContent = currentValue.toLocaleString();
+                element.textContent = Math.floor(currentValue).toLocaleString();
             }
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
+            } else {
+                // アニメーション完了時に最終値を確実に設定
+                if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+                    element.textContent = safeTargetValue.toFixed(1);
+                } else {
+                    element.textContent = Math.floor(safeTargetValue).toLocaleString();
+                }
             }
         };
 
