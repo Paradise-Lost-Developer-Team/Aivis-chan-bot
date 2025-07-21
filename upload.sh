@@ -4,7 +4,7 @@
 
 
 # ローカル公開ディレクトリ（必要に応じて変更）
-SERVER_PATH="/var/www/html"
+SERVER_PATH="/srv/www/htdocs"
 
 
 # 色付きメッセージ用関数（printfで互換性向上）
