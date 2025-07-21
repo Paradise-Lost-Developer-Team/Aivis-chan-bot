@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お問い合わせ | Aivis-chan Bot</title>
+    <meta name="description" content="Aivis-chan Botへのお問い合わせフォーム。ご質問・ご要望・不具合報告などお気軽にご連絡ください。">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <img src="/images/aivis-logo.svg" alt="Aivis chan Bot ロゴ" width="40" height="40">
+                    <span class="nav-title">Aivis chan Bot</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-link">ホーム</a></li>
+                    <li><a href="/docs/" class="nav-link">ドキュメント</a></li>
+                    <li><a href="/faq/" class="nav-link">FAQ</a></li>
+                    <li><a href="/contact/" class="nav-link active">お問い合わせ</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main class="main contact-main">
+        <div class="container">
+            <div class="section-header">
+                <h1 class="section-title">お問い合わせ</h1>
+                <p class="section-description">Aivis-chan Botに関するご質問・ご要望・不具合報告など、お気軽にご連絡ください。</p>
+            </div>
+            <form class="contact-form" action="mailto:info@aivis-chan-bot.com" method="POST" enctype="text/plain">
+                <div class="form-group">
+                    <label for="name">お名前</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">メールアドレス</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">お問い合わせ内容</label>
+                    <textarea id="message" name="message" rows="6" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">送信</button>
+            </form>
+            <div class="contact-alt">
+                <p>Discordサポートサーバーでもご相談いただけます：<a href="https://discord.gg/MPx2ny8HXT" target="_blank">参加する</a></p>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom-links">
+                <a href="/privacy/">プライバシーポリシー</a>
+                <a href="/terms/">利用規約</a>
+                <a href="/docs/">ドキュメント</a>
+                <a href="/faq/">FAQ</a>
+                <a href="/contact/">お問い合わせ</a>
+            </div>
+            <p class="footer-copyright">© 2025 Paradise Lost Developer Team. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
