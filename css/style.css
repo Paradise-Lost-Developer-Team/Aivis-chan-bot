@@ -555,6 +555,9 @@ section {
 
 .pricing-card .btn {
     margin-top: 8%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .pricing-note {
