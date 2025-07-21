@@ -103,7 +103,7 @@ function isStaticAsset(request) {
 // API リクエストかどうかの判定
 function isAPIRequest(request) {
     const url = new URL(request.url);
-    return API_ENDPOINTS.some(endpoint => request.url.includes(endpoint)) ||
+    return BOT_API_ENDPOINTS.some(endpoint => request.url.includes(endpoint)) ||
            url.pathname.includes('/api/') ||
            url.pathname.includes('/speakers');
 }
