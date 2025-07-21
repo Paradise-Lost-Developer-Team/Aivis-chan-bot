@@ -903,18 +903,21 @@ if ('serviceWorker' in navigator) {
 
 // ページ読み込み完了後に初期化
 document.addEventListener('DOMContentLoaded', () => {
-    const website = new AivisWebsite();
-    
+    // グローバル変数でインスタンス管理（多重生成防止）
+    if (!window.website) {
+        window.website = new AivisWebsite();
+    }
+
     // デバッグ用: グローバルスコープにテスト関数を追加
     window.testBotStatus = () => {
         console.log('🧪 Manual bot status test triggered');
-        website.updateMultipleBotStatus();
+        window.website.updateMultipleBotStatus();
     };
-    
+
     // デバッグ用: 5秒後に手動実行
     setTimeout(() => {
         console.log('🔍 Auto-testing bot status after 5 seconds...');
-        website.updateMultipleBotStatus();
+        window.website.updateMultipleBotStatus();
     }, 5000);
 });
 
