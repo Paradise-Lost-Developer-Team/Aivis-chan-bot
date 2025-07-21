@@ -783,16 +783,12 @@ class AivisWebsite {
         }
     }
 
-    // 統計数値をアニメーション付きで更新
-    animateHeroStat(elementId, targetValue) {
-        console.log(`🎯 Animating ${elementId} to ${targetValue}`);
-        const numericValue = parseFloat(targetValue);
-        const element = document.getElementById(elementId);
 
-        // 要素が見つからない場合のフォールバック
-        let targetElement = element;
+    // 統計数値を即座に表示（アニメーションなし）
+    animateHeroStat(elementId, targetValue) {
+        const numericValue = parseFloat(targetValue);
+        let targetElement = document.getElementById(elementId);
         if (!targetElement) {
-            console.error(`❌ Element with ID '${elementId}' not found`);
             targetElement = document.querySelector(`[data-api="${elementId}"]`);
             if (!targetElement) {
                 targetElement = document.querySelector(`.${elementId}`);
@@ -800,51 +796,18 @@ class AivisWebsite {
         }
         if (!targetElement) return;
 
-        // NaNや異常値の場合は「API取得中...」
-        if (isNaN(numericValue) || numericValue === null || numericValue === undefined) {
-            targetElement.textContent = 'API取得中...';
-            return;
+        // NaNや異常値の場合は0を表示
+        let safeValue = (!isNaN(numericValue) && numericValue !== null && numericValue !== undefined) ? numericValue : 0;
+        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            targetElement.textContent = safeValue.toFixed(1);
+        } else {
+            targetElement.textContent = Math.floor(safeValue).toLocaleString();
         }
-
-        this.animateElement(targetElement, numericValue, elementId);
     }
 
+    // アニメーション機能は不要なので空実装
     animateElement(element, targetValue, elementId) {
-        const safeTargetValue = parseFloat(targetValue);
-        if (isNaN(safeTargetValue) || safeTargetValue === null || safeTargetValue === undefined) {
-            console.error(`❌ Invalid target value in animateElement: ${targetValue}`);
-            element.textContent = 'API取得中...';
-            return;
-        }
-
-        const startValue = 0;
-        const duration = 2000; // 2秒
-        const startTime = Date.now();
-
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easedProgress = 1 - Math.pow(1 - progress, 4);
-            const currentValue = startValue + (safeTargetValue - startValue) * easedProgress;
-
-            if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-                element.textContent = currentValue.toFixed(1);
-            } else {
-                element.textContent = Math.floor(currentValue).toLocaleString();
-            }
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-                    element.textContent = safeTargetValue.toFixed(1);
-                } else {
-                    element.textContent = Math.floor(safeTargetValue).toLocaleString();
-                }
-            }
-        };
-
-        animate();
+        // 何もしない
     }
 }
 
