@@ -202,6 +202,16 @@ section {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+.gradient-text {
+    background: linear-gradient(90deg, #5865F2 0%, #00C3FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+    filter: none !important;
+    opacity: 1 !important;
+    text-shadow: 0 2px 8px rgba(88,101,242,0.12);
 }
 
 /* ヘッダー */
