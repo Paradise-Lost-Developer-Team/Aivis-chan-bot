@@ -486,7 +486,7 @@ class AivisWebsite {
                 totalVcUsers: 0,
                 averageUptime: 0,
                 onlineBots: 0,
-                totalBots: botConfigs.length
+                totalBots: Object.keys(botIdToName).length
             };
 
             const botStatuses = [];
@@ -545,52 +545,31 @@ class AivisWebsite {
 
         } catch (error) {
             console.error('❌ Error fetching real bot status:', error);
-            
-            // エラー時は基本的なフォールバック値を使用
-            const fallbackStats = {
-                totalServers: 1200,
-                totalUsers: 50000,
-                totalVcUsers: 219,
-                averageUptime: 99.5,
-                onlineBots: 6,
-                totalBots: botConfigs.length
-            };
-
-            // フォールバック用のボットステータス
-            const fallbackBotStatuses = botConfigs.map((config, index) => ({
-                ...config,
-                online: true,
-                status: 'online',
-                serverCount: Math.floor(150 + Math.random() * 100),
-                userCount: Math.floor(7000 + Math.random() * 3000),
-                vcCount: Math.floor(20 + Math.random() * 50),
-                uptime: 95 + Math.random() * 4.5
-            }));
-
-            // フォールバック時も保存
-            this._latestBotStatuses = fallbackBotStatuses;
-            // ダミーjsonも保存・上書き
+            // エラー内容を画面に通知
+            this._latestBotStatuses = [];
             this._latestBotApiResponse = {
-                bots: fallbackBotStatuses,
-                total_bots: fallbackStats.totalBots,
-                online_bots: fallbackStats.onlineBots,
-                timestamp: new Date().toISOString()
+                bots: [],
+                total_bots: 0,
+                online_bots: 0,
+                timestamp: new Date().toISOString(),
+                error: error.message || String(error)
             };
-
             this.updateStatusDisplay({
-                serverCount: fallbackStats.totalServers,
-                userCount: fallbackStats.totalUsers,
-                vcCount: fallbackStats.totalVcUsers,
-                uptime: fallbackStats.averageUptime,
-                status: 'online'
+                serverCount: 0,
+                userCount: 0,
+                vcCount: 0,
+                uptime: 0,
+                status: 'offline'
             });
-
-            this.updateDetailedBotStatus(fallbackBotStatuses, fallbackStats);
-
-            // ここで必ずセット
-
-            console.warn('⚠️ Using fallback bot statuses due to error:', fallbackBotStatuses);
-            console.warn('⚠️ Fallback stats:', fallbackStats);
+            this.updateDetailedBotStatus([], {
+                totalServers: 0,
+                totalUsers: 0,
+                totalVcUsers: 0,
+                averageUptime: 0,
+                onlineBots: 0,
+                totalBots: 0
+            });
+            this.showNotification('Botステータス取得エラー: ' + (error.message || String(error)), 'error');
         }
     }
 
