@@ -73,7 +73,7 @@ for dir in faq docs privacy terms contact blog; do
     else
         print_warning "$dir/index.html がありません"
     fi
-
+done
 # PWA関連ファイル
 print_info "PWAファイルのコピー..."
 for file in manifest.json sw.js; do
