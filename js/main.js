@@ -737,14 +737,10 @@ class AivisWebsite {
 
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
             botStatuses.forEach(bot => {
-                let s = Number(bot.serverCount);
-                let u = Number(bot.userCount);
-                let v = Number(bot.vcCount);
-                let up = Number(bot.uptime);
-                s = Number.isFinite(s) ? s : 0;
-                u = Number.isFinite(u) ? u : 0;
-                v = Number.isFinite(v) ? v : 0;
-                up = Number.isFinite(up) ? up : 0;
+                let s = Number.isFinite(Number(bot.serverCount)) ? Number(bot.serverCount) : 0;
+                let u = Number.isFinite(Number(bot.userCount)) ? Number(bot.userCount) : 0;
+                let v = Number.isFinite(Number(bot.vcCount)) ? Number(bot.vcCount) : 0;
+                let up = Number.isFinite(Number(bot.uptime)) ? Number(bot.uptime) : 0;
                 servers += s;
                 users += u;
                 vcUsers += v;
@@ -757,10 +753,10 @@ class AivisWebsite {
             const avgVcUsers = count > 0 ? vcUsers / count : 0;
             const avgUptime = count > 0 ? uptimeSum / count : 0;
 
-            let dispServers = Math.round(avgServers);
-            let dispUsers = Math.round(avgUsers);
-            let dispVcUsers = Math.round(avgVcUsers);
-            let dispUptime = avgUptime.toFixed(1);
+            let dispServers = Number.isFinite(avgServers) ? Math.round(avgServers) : 0;
+            let dispUsers = Number.isFinite(avgUsers) ? Math.round(avgUsers) : 0;
+            let dispVcUsers = Number.isFinite(avgVcUsers) ? Math.round(avgVcUsers) : 0;
+            let dispUptime = Number.isFinite(avgUptime) ? avgUptime.toFixed(1) : '0.0';
 
             // NaN補正
             dispServers = isNaN(dispServers) ? 0 : dispServers;
