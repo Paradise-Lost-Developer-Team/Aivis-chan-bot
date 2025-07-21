@@ -59,6 +59,22 @@ else
     done
 fi
 
+# サブディレクトリのindex.htmlもコピー
+for dir in faq docs privacy terms contact; do
+    if [[ -f "$dir/index.html" ]]; then
+        sudo mkdir -p "${SERVER_PATH}/$dir"
+        sudo cp "$dir/index.html" "${SERVER_PATH}/$dir/index.html"
+        if [[ $? -eq 0 ]]; then
+            print_success "$dir/index.html コピー完了"
+        else
+            print_error "$dir/index.html コピー失敗"
+            exit 1
+        fi
+    else
+        print_warning "$dir/index.html がありません"
+    fi
+done
+
 # PWA関連ファイル
 print_info "PWAファイルのコピー..."
 for file in manifest.json sw.js; do
