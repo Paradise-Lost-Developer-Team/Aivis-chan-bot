@@ -688,18 +688,29 @@ class AivisWebsite {
     // ヒーロー統計情報の設定と更新
     async setupHeroStats() {
         console.log('🔢 Setting up hero statistics...');
-        
-        // 初期値をすぐに0で設定（NaN点滅防止）
+
+        // 初期値を直接0でセット（NaN点滅防止・HTML初期値補正）
+        const statIds = ['total-servers', 'total-users', 'total-vc-users', 'total-uptime'];
+        statIds.forEach(id => {
+            let el = document.getElementById(id)
+                || document.querySelector(`[data-api="${id}"]`)
+                || document.querySelector(`.${id}`);
+            if (el) {
+                el.textContent = (id === 'total-uptime') ? '0.0' : '0';
+            }
+        });
+
+        // さらにanimateHeroStatで0をセット
         this.animateHeroStat('total-servers', 0);
         this.animateHeroStat('total-users', 0);
         this.animateHeroStat('total-vc-users', 0);
         this.animateHeroStat('total-uptime', 0);
-        
+
         // APIから実際のデータを取得（初期化時は1秒遅延）
         setTimeout(() => {
             this.updateHeroStats();
         }, 1000);
-        
+
         // 60秒ごとに統計情報を更新（VC接続数は変動が激しいため）
         setInterval(() => {
             this.updateHeroStats();
@@ -708,16 +719,13 @@ class AivisWebsite {
 
     async updateHeroStats() {
         try {
-            // APIレスポンスが未保存・空の場合は必ずAPI取得をawait
-            if (!this._latestBotStatuses || !Array.isArray(this._latestBotStatuses) || this._latestBotStatuses.length === 0) {
-                await this.updateMultipleBotStatus();
-            }
+            // API取得は行わず、キャッシュのみ参照
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
             console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
 
-            // 取得後も空なら0で補正
+            // キャッシュが空なら0で補正
             if (!botStatuses || botStatuses.length === 0) {
-                console.warn("⚠️ botStatuses is empty after API fetch, setting hero stats to 0");
+                console.warn("⚠️ botStatuses cache is empty, setting hero stats to 0");
                 this.animateHeroStat('total-servers', 0);
                 this.animateHeroStat('total-users', 0);
                 this.animateHeroStat('total-vc-users', 0);
@@ -770,7 +778,7 @@ class AivisWebsite {
                 dispUptime
             });
         } catch (error) {
-            // API取得失敗時も必ず0で補正
+            // キャッシュ取得失敗時も必ず0で補正
             console.error('❌ Error fetching hero stats:', error);
             this.animateHeroStat('total-servers', 0);
             this.animateHeroStat('total-users', 0);
