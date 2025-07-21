@@ -554,7 +554,7 @@ section {
 }
 
 .pricing-card .btn {
-    margin-top: auto;
+    margin-top: 8%;
 }
 
 .pricing-note {
@@ -924,11 +924,11 @@ section {
 /* プライバシーポリシー・利用規約ページ用 */
 .legal-container {
     max-width: 900px;
-    margin: 80px auto 0 auto;
+    margin: 8% auto 0 auto;
     background: rgba(30,34,44,0.98);
     border-radius: 16px;
     box-shadow: 0 4px 32px rgba(0,0,0,0.18);
-    padding: 64px 32px 40px 32px;
+    padding: 6% 32px 40px 32px;
     box-sizing: border-box;
     overflow-wrap: break-word;
     word-break: break-word;
