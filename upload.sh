@@ -34,7 +34,7 @@ print_success "全ファイルの存在を確認"
 
 # ディレクトリの準備
 print_info "公開ディレクトリを準備..."
-sudo mkdir -p ${SERVER_PATH}/{css,js,images}
+sudo mkdir -p "${SERVER_PATH}/css" "${SERVER_PATH}/js" "${SERVER_PATH}/images"
 print_success "公開ディレクトリOK"
 
 # ファイルアップロード
@@ -42,57 +42,80 @@ print_info "ファイルをアップロード中..."
 
 # HTMLファイル
 print_info "HTMLファイルのコピー..."
-sudo cp *.html ${SERVER_PATH}/
-if [[ $? -eq 0 ]]; then
-    print_success "HTMLファイル コピー完了"
+html_files=( *.html )
+if [[ ${#html_files[@]} -eq 0 ]]; then
+    print_warning "HTMLファイルがありません"
 else
-    print_error "HTMLファイル コピー失敗"
-    exit 1
+    for file in *.html; do
+        if [[ -f "$file" ]]; then
+            sudo cp "$file" "${SERVER_PATH}/"
+            if [[ $? -eq 0 ]]; then
+                print_success "$file コピー完了"
+            else
+                print_error "$file コピー失敗"
+                exit 1
+            fi
+        fi
+    done
 fi
 
 # PWA関連ファイル
 print_info "PWAファイルのコピー..."
-sudo cp manifest.json sw.js ${SERVER_PATH}/
-if [[ $? -eq 0 ]]; then
-    print_success "PWAファイル コピー完了"
-else
-    print_error "PWAファイル コピー失敗"
-    exit 1
-fi
+for file in manifest.json sw.js; do
+    if [[ -f "$file" ]]; then
+        sudo cp "$file" "${SERVER_PATH}/"
+        if [[ $? -eq 0 ]]; then
+            print_success "$file コピー完了"
+        else
+            print_error "$file コピー失敗"
+            exit 1
+        fi
+    else
+        print_warning "$file がありません"
+    fi
+done
 
 # CSS/JSファイル
 print_info "CSS/JSファイルのコピー..."
-for file in css/*.css; do
-    if [[ -f "$file" ]]; then
-        sudo cp "$file" ${SERVER_PATH}/css/
-        if [[ $? -eq 0 ]]; then
-            print_success "$file コピー完了"
-        else
-            print_error "$file コピー失敗"
-            exit 1
+css_files=( css/*.css )
+if [[ ${#css_files[@]} -eq 0 ]]; then
+    print_warning "CSSファイルがありません"
+else
+    for file in css/*.css; do
+        if [[ -f "$file" ]]; then
+            sudo cp "$file" "${SERVER_PATH}/css/"
+            if [[ $? -eq 0 ]]; then
+                print_success "$file コピー完了"
+            else
+                print_error "$file コピー失敗"
+                exit 1
+            fi
         fi
-    fi
-done
-for file in js/*.js; do
-    if [[ -f "$file" ]]; then
-        sudo cp "$file" ${SERVER_PATH}/js/
-        if [[ $? -eq 0 ]]; then
-            print_success "$file コピー完了"
-        else
-            print_error "$file コピー失敗"
-            exit 1
+    done
+fi
+js_files=( js/*.js )
+if [[ ${#js_files[@]} -eq 0 ]]; then
+    print_warning "JSファイルがありません"
+else
+    for file in js/*.js; do
+        if [[ -f "$file" ]]; then
+            sudo cp "$file" "${SERVER_PATH}/js/"
+            if [[ $? -eq 0 ]]; then
+                print_success "$file コピー完了"
+            else
+                print_error "$file コピー失敗"
+                exit 1
+            fi
         fi
-    fi
-done
+    done
+fi
 
 # 画像ファイル（空ディレクトリ対応）
 print_info "画像ファイルのコピー..."
-shopt -s nullglob
-img_files=(images/*)
-if [[ ${#img_files[@]} -eq 0 ]]; then
+if [[ -z $(ls -A images) ]]; then
     print_warning "画像ファイルがありません（imagesディレクトリは空です）"
 else
-    sudo cp -r images/* ${SERVER_PATH}/images/
+    sudo cp -r images/. "${SERVER_PATH}/images/"
     if [[ $? -eq 0 ]]; then
         print_success "画像ファイル コピー完了"
     else
@@ -100,13 +123,12 @@ else
         exit 1
     fi
 fi
-shopt -u nullglob
 
 # ファイル権限設定
 print_info "ファイル権限を設定..."
-sudo chown -R wwwrun:www ${SERVER_PATH}
-sudo chmod -R 644 ${SERVER_PATH}/*
-sudo find ${SERVER_PATH} -type d -exec chmod 755 {} \;
+sudo chown -R wwwrun:www "${SERVER_PATH}"
+sudo find "${SERVER_PATH}" -type f -exec chmod 644 {} \;
+sudo find "${SERVER_PATH}" -type d -exec chmod 755 {} \;
 print_success "ファイル権限設定完了"
 
 # Apache設定のリロード
