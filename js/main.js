@@ -748,10 +748,14 @@ class AivisWebsite {
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
             botStatuses.forEach(bot => {
                 if (bot && bot.online) {
-                    const s = Number.isFinite(Number(bot.serverCount)) ? Number(bot.serverCount) : 0;
-                    const u = Number.isFinite(Number(bot.userCount)) ? Number(bot.userCount) : 0;
-                    const v = Number.isFinite(Number(bot.vcCount)) ? Number(bot.vcCount) : 0;
-                    const up = Number.isFinite(Number(bot.uptime)) ? Number(bot.uptime) : 0;
+                    let s = Number(bot.serverCount);
+                    let u = Number(bot.userCount);
+                    let v = Number(bot.vcCount);
+                    let up = Number(bot.uptime);
+                    if (!Number.isFinite(s)) s = 0;
+                    if (!Number.isFinite(u)) u = 0;
+                    if (!Number.isFinite(v)) v = 0;
+                    if (!Number.isFinite(up)) up = 0;
                     servers += s;
                     users += u;
                     vcUsers += v;
@@ -796,11 +800,12 @@ class AivisWebsite {
         if (!targetElement) return;
 
         // NaNや異常値の場合は0を表示
-        let safeValue = Number.isFinite(Number(targetValue)) ? Number(targetValue) : 0;
+        let safeValue = Number(targetValue);
+        if (!Number.isFinite(safeValue) || safeValue === null || safeValue === undefined) safeValue = 0;
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            targetElement.textContent = safeValue.toFixed(1);
+            targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toFixed(1) : '0.0';
         } else {
-            targetElement.textContent = Math.floor(safeValue).toLocaleString();
+            targetElement.textContent = Number.isFinite(safeValue) ? Math.floor(safeValue).toLocaleString() : '0';
         }
     }
 
