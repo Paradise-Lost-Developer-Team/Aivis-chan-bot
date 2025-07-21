@@ -1,3 +1,26 @@
+/* 利用規約ページの見出し・本文スタイル */
+.legal-content h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 2.2rem;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+.legal-content h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 2.2rem;
+  margin-bottom: 1.2rem;
+  color: #ffd700;
+  letter-spacing: 0.03em;
+}
+.legal-content p {
+  font-size: 1.05rem;
+  line-height: 2.1;
+  margin-bottom: 1.5rem;
+  color: #f3f3f3;
+}
 /* Aivis-chan Bot メインサイト CSS */
 
 /* リセット */
