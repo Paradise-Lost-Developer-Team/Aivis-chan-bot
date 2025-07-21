@@ -16,7 +16,7 @@ echo "🚀 Aivis-chan Bot Website アップロード開始"
 
 # ファイル存在チェック
 print_info "ファイル存在チェック..."
-required_files=("index.html" "manifest.json" "sw.js" "offline.html" "css/main.css" "js/main.js")
+required_files=("index.html" "manifest.json" "sw.js" "offline.html" "css/style.css" "js/main.js")
 
 for file in "${required_files[@]}"; do
     if [[ ! -f "$file" ]]; then
