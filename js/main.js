@@ -733,10 +733,10 @@ class AivisWebsite {
         // APIから実際のデータを取得
         await this.updateHeroStats();
         
-        // 2分ごとに統計情報を更新（VC接続数は変動が激しいため）
+        // 30秒ごとに統計情報を更新（VC接続数は変動が激しいため）
         setInterval(() => {
             this.updateHeroStats();
-        }, 2 * 60 * 1000);
+        }, 30 * 1000);
     }
 
     async updateHeroStats() {
