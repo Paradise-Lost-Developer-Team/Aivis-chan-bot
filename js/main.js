@@ -40,7 +40,7 @@ class AivisWebsite {
         // アクティブリンク設定
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('.nav-link');
-
+        // safeValueの参照を削除（不要な変数参照を除去）
         window.addEventListener('scroll', () => {
             let current = '';
             sections.forEach(section => {
