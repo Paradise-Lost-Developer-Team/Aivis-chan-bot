@@ -3,7 +3,7 @@
 # Apache サーバーへの手動アップロード用
 
 # ローカル公開ディレクトリ（必要に応じて変更）
-SERVER_PATH="/srv/www/htdocs"
+SERVER_PATH="/srv/www/htdocs/"
 
 
 # 色付きメッセージ用関数（printfで互換性向上）
@@ -42,7 +42,7 @@ print_info "ファイルをアップロード中..."
 
 # HTMLファイル
 print_info "HTMLファイルのコピー..."
-sudo cp index.html offline.html ${SERVER_PATH}/
+sudo cp *.html ${SERVER_PATH}/
 if [[ $? -eq 0 ]]; then
     print_success "HTMLファイル コピー完了"
 else
@@ -62,7 +62,7 @@ fi
 
 # CSS/JSファイル
 print_info "CSS/JSファイルのコピー..."
-css_js_files=("css/main.css" "js/main.js")
+css_js_files=("css/*.css" "js/*.js")
 for file in "${css_js_files[@]}"; do
     sudo cp "$file" ${SERVER_PATH}/$(dirname "$file")/
     if [[ $? -eq 0 ]]; then
