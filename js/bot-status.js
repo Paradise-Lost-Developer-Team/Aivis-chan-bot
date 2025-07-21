@@ -102,15 +102,15 @@ async function updateBotStatus() {
             const statValues = card.querySelectorAll('.stat-item .value');
             if (statValues.length >= 4) {
                 if (bot.serverCount === null) {
-                    statValues[0].textContent = '取得中...';
-                    statValues[1].textContent = '取得中...';
-                    statValues[2].textContent = '取得中...';
-                    statValues[3].textContent = '取得中...';
+                    statValues[0].textContent = '取得中...'; // サーバー数
+                    statValues[1].textContent = '取得中...'; // ユーザー数
+                    statValues[2].textContent = '取得中...'; // VC接続数
+                    statValues[3].textContent = '取得中...'; // 稼働率
                 } else {
-                    statValues[0].textContent = bot.serverCount.toLocaleString();
-                    statValues[1].textContent = bot.userCount.toLocaleString();
-                    statValues[2].textContent = bot.vcCount.toLocaleString();
-                    statValues[3].textContent = `${bot.uptime.toFixed(1)}%`;
+                    statValues[0].textContent = bot.serverCount.toLocaleString(); // サーバー数
+                    statValues[1].textContent = bot.userCount.toLocaleString(); // ユーザー数
+                    statValues[2].textContent = bot.vcCount.toLocaleString(); // VC接続数
+                    statValues[3].textContent = `${bot.uptime.toFixed(1)}%`; // 稼働率
                 }
             }
             
