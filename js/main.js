@@ -820,7 +820,6 @@ class AivisWebsite {
         }
         safeValue = Number(safeValue);
 
-        // 表示形式
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
             targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
         } else {
