@@ -479,6 +479,28 @@ class AivisWebsite {
             this._latestBotApiResponse = apiData;
             console.log('📊 API data received:', apiData);
 
+            // APIレスポンス取得直後にヒーロー統計を即時更新
+            let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
+            apiData.bots.forEach((botData) => {
+                const isOnline = botData.success && botData.online;
+                const serverCount = Number.isFinite(Number(botData.server_count)) ? Number(botData.server_count) : 0;
+                const userCount = Number.isFinite(Number(botData.user_count)) ? Number(botData.user_count) : 0;
+                const vcCount = Number.isFinite(Number(botData.vc_count)) ? Number(botData.vc_count) : 0;
+                const uptime = Number.isFinite(Number(botData.uptime)) ? Number(botData.uptime) : 0;
+                if (isOnline) {
+                    servers += serverCount;
+                    users += userCount;
+                    vcUsers += vcCount;
+                    uptimeSum += uptime;
+                    onlineBots++;
+                }
+            });
+            const avgUptime = onlineBots > 0 ? uptimeSum / onlineBots : 0;
+            this.animateHeroStat('total-servers', servers);
+            this.animateHeroStat('total-users', users);
+            this.animateHeroStat('total-vc-users', vcUsers);
+            this.animateHeroStat('total-uptime', avgUptime);
+
             // 全Bot統計を計算
             const allStats = {
                 totalServers: 0,
@@ -780,9 +802,21 @@ class AivisWebsite {
 
 
 
-    // 統計数値をアニメーションで表示
+    // 統計数値をアニメーションで表示（クールダウン付き）
     animateHeroStat(elementId, targetValue) {
-        // ...existing code...
+        // クールダウン管理用プロパティ初期化
+        if (!this._heroStatCooldowns) {
+            this._heroStatCooldowns = {};
+        }
+        const now = Date.now();
+        const cooldownMs = 300; // 300msクールダウン
+        const lastUpdate = this._heroStatCooldowns[elementId] || 0;
+        if (now - lastUpdate < cooldownMs) {
+            // クールダウン中は更新しない
+            return;
+        }
+        this._heroStatCooldowns[elementId] = now;
+
         let targetElement = document.getElementById(elementId)
             || document.querySelector(`[data-api="${elementId}"]`)
             || document.querySelector(`.${elementId}`);
@@ -802,12 +836,16 @@ class AivisWebsite {
         // 現在の表示値と同じ場合は何もしない
         let currentValue;
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            currentValue = parseFloat(targetElement.textContent);
+            let text = targetElement.textContent;
+            if (text === undefined || text === null || text === '' || text === 'NaN') text = '0';
+            currentValue = parseFloat(text);
             if (!Number.isFinite(currentValue)) currentValue = 0;
             if (currentValue === safeValue) return;
             targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
         } else {
-            currentValue = parseInt((targetElement.textContent || '0').replace(/,/g, ''));
+            let text = targetElement.textContent;
+            if (text === undefined || text === null || text === '' || text === 'NaN') text = '0';
+            currentValue = parseInt((text || '0').replace(/,/g, ''));
             if (!Number.isFinite(currentValue)) currentValue = 0;
             if (currentValue === Math.round(safeValue)) return;
             targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
