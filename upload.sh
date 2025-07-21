@@ -60,7 +60,7 @@ else
 fi
 
 # サブディレクトリのindex.htmlもコピー
-for dir in faq docs privacy terms contact status; do
+for dir in faq docs privacy terms contact; do
     if [[ -f "$dir/index.html" ]]; then
         sudo mkdir -p "${SERVER_PATH}/$dir"
         sudo cp "$dir/index.html" "${SERVER_PATH}/$dir/index.html"
@@ -73,37 +73,6 @@ for dir in faq docs privacy terms contact status; do
     else
         print_warning "$dir/index.html がありません"
     fi
-
-    # statusディレクトリのcss, js, imagesもコピー
-    if [[ "$dir" == "status" ]]; then
-        # css
-        if [[ -d "$dir/css" ]]; then
-            sudo mkdir -p "${SERVER_PATH}/$dir/css"
-            for file in $dir/css/*.css; do
-                if [[ -f "$file" ]]; then
-                    sudo cp "$file" "${SERVER_PATH}/$dir/css/"
-                    print_success "$file コピー完了 (status/css)"
-                fi
-            done
-        fi
-        # js
-        if [[ -d "$dir/js" ]]; then
-            sudo mkdir -p "${SERVER_PATH}/$dir/js"
-            for file in $dir/js/*.js; do
-                if [[ -f "$file" ]]; then
-                    sudo cp "$file" "${SERVER_PATH}/$dir/js/"
-                    print_success "$file コピー完了 (status/js)"
-                fi
-            done
-        fi
-        # images
-        if [[ -d "$dir/images" ]]; then
-            sudo mkdir -p "${SERVER_PATH}/$dir/images"
-            sudo cp -r $dir/images/. "${SERVER_PATH}/$dir/images/"
-            print_success "status/images コピー完了"
-        fi
-    fi
-done
 
 # PWA関連ファイル
 print_info "PWAファイルのコピー..."
