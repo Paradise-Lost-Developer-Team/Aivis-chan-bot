@@ -374,19 +374,19 @@ class AivisWebsite {
         
         // ヒーローセクションの統計情報を更新
         if (data.serverCount !== undefined) {
-            this.animateHeroStat('total-servers', data.serverCount);
+            this.animateHeroStat('total-servers', data.serverCount ?? "0");
         }
 
         if (data.userCount !== undefined) {
-            this.animateHeroStat('total-users', data.userCount);
+            this.animateHeroStat('total-users', data.userCount ?? "0");
         }
 
         if (data.vcCount !== undefined) {
-            this.animateHeroStat('total-vc-users', data.vcCount);
+            this.animateHeroStat('total-vc-users', data.vcCount ?? "0");
         }
 
         if (data.uptime !== undefined) {
-            this.animateHeroStat('total-uptime', data.uptime);
+            this.animateHeroStat('total-uptime', data.uptime ?? "0%");
         }
 
         // ステータスインジケーターの更新
