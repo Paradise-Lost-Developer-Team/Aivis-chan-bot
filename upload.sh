@@ -191,6 +191,10 @@ fi
 
 print_info "Webサイトアクセス確認..."
 response_code=$(curl -s -o /dev/null -w "%{http_code}" https://aivis-chan-bot.com)
+
+if [[ "$response_code" == "403" ]]; then
+    print_warning "Webサイトアクセス確認: 403 Forbidden (権限設定を確認してください)"
+fi
 if [[ "$response_code" == "200" ]]; then
     print_success "Webサイトアクセス確認OK (HTTP $response_code)"
 elif [[ "$response_code" == "000" ]]; then
