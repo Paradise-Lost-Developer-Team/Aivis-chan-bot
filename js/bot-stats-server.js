@@ -215,13 +215,23 @@ app.get('/api/bot-stats', async (req, res) => {
                 });
         });
 
-        const allStats = await Promise.all(statsPromises);
+        let allStats = await Promise.all(statsPromises);
+        // ダミー番号（mockStatsに存在しないID）を除外
+        const validBotIds = [
+            '1333819940645638154',
+            '1334732369831268352',
+            '1334734681656262770',
+            '1365633502988472352',
+            '1365633586123771934',
+            '1365633656173101086'
+        ];
+        allStats = allStats.filter(stat => validBotIds.includes(stat.bot_id));
         const responseJson = {
             bots: allStats,
             total_bots: allStats.length,
             online_bots: allStats.filter(bot => bot.online).length,
             timestamp: new Date().toISOString()
-        };
+　        };
 
         // public-bot-status.jsonとして保存
         try {

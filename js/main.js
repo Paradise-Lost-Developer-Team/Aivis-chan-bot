@@ -447,38 +447,15 @@ class AivisWebsite {
     async updateMultipleBotStatus() {
         console.log('🔄 Starting bot status update...');
         
-        const botConfigs = [
-            { 
-                id: 'bot1', 
-                name: 'Aivis-chan Bot 1台目', 
-                botId: '1333819940645638154'
-            },
-            { 
-                id: 'bot2', 
-                name: 'Aivis-chan Bot 2台目', 
-                botId: '1334732369831268352'
-            },
-            { 
-                id: 'bot3', 
-                name: 'Aivis-chan Bot 3台目', 
-                botId: '1334734681656262770'
-            },
-            { 
-                id: 'bot4', 
-                name: 'Aivis-chan Bot 4台目', 
-                botId: '1365633502988472352'
-            },
-            { 
-                id: 'bot5', 
-                name: 'Aivis-chan Bot 5台目', 
-                botId: '1365633586123771934'
-            },
-            { 
-                id: 'bot6', 
-                name: 'Aivis-chan Bot 6台目', 
-                botId: '1365633656173101086'
-            }
-        ];
+        // APIのbotIdのみで処理（ダミー番号を消す）
+        const botIdToName = {
+            '1333819940645638154': 'Aivis-chan Bot 1台目',
+            '1334732369831268352': 'Aivis-chan Bot 2台目',
+            '1334734681656262770': 'Aivis-chan Bot 3台目',
+            '1365633502988472352': 'Aivis-chan Bot 4台目',
+            '1365633586123771934': 'Aivis-chan Bot 5台目',
+            '1365633656173101086': 'Aivis-chan Bot 6台目'
+        };
 
         try {
             // 実際のAPIから統計情報を取得
@@ -513,19 +490,18 @@ class AivisWebsite {
             };
 
             const botStatuses = [];
-
-            // APIから取得したデータを処理
-            apiData.bots.forEach((botData, index) => {
-                const config = botConfigs[index];
-                if (!config) return;
-
+            // APIから取得したデータを処理（botIdのみで処理）
+            apiData.bots.forEach((botData) => {
+                const botId = botData.bot_id;
+                const name = botIdToName[botId] || `Bot (${botId})`;
                 const isOnline = botData.success && botData.online;
                 const serverCount = Number.isFinite(Number(botData.server_count)) ? Number(botData.server_count) : 0;
                 const userCount = Number.isFinite(Number(botData.user_count)) ? Number(botData.user_count) : 0;
                 const vcCount = Number.isFinite(Number(botData.vc_count)) ? Number(botData.vc_count) : 0;
                 const uptime = Number.isFinite(Number(botData.uptime)) ? Number(botData.uptime) : 0;
                 const status = {
-                    ...config,
+                    botId,
+                    name,
                     online: isOnline,
                     status: isOnline ? 'online' : 'offline',
                     serverCount,
@@ -533,9 +509,7 @@ class AivisWebsite {
                     vcCount,
                     uptime
                 };
-
                 botStatuses.push(status);
-
                 if (isOnline) {
                     allStats.totalServers += serverCount;
                     allStats.totalUsers += userCount;
