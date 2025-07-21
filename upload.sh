@@ -195,6 +195,16 @@ sudo find "${SERVER_PATH}" -type f -exec chmod 644 {} \;
 sudo find "${SERVER_PATH}" -type d -exec chmod 755 {} \;
 print_success "ファイル権限設定完了"
 
+# statusディレクトリ内のcss/jsファイルの権限も明示的に644に
+if [[ -d "${SERVER_PATH}/status/css" ]]; then
+    sudo find "${SERVER_PATH}/status/css" -type f -name "*.css" -exec chmod 644 {} \;
+    print_success "status/css/*.css 権限設定完了"
+fi
+if [[ -d "${SERVER_PATH}/status/js" ]]; then
+    sudo find "${SERVER_PATH}/status/js" -type f -name "*.js" -exec chmod 644 {} \;
+    print_success "status/js/*.js 権限設定完了"
+fi
+
 # Apache設定のリロード
 print_info "Apache設定をリロード..."
 sudo systemctl reload apache2
