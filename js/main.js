@@ -498,6 +498,8 @@ class AivisWebsite {
             }
 
             const apiData = await response.json();
+            // APIレスポンスjsonを保存・上書き
+            this._latestBotApiResponse = apiData;
             console.log('📊 API data received:', apiData);
 
             // 全Bot統計を計算
@@ -552,6 +554,9 @@ class AivisWebsite {
 
             console.log('📈 Calculated stats:', allStats);
 
+            // 最新のbotステータスを保存
+            this._latestBotStatuses = botStatuses;
+
             // 統計情報を更新
             this.updateStatusDisplay({
                 serverCount: allStats.totalServers,
@@ -587,6 +592,16 @@ class AivisWebsite {
                 vcCount: Math.floor(20 + Math.random() * 50),
                 uptime: 95 + Math.random() * 4.5
             }));
+
+            // フォールバック時も保存
+            this._latestBotStatuses = fallbackBotStatuses;
+            // ダミーjsonも保存・上書き
+            this._latestBotApiResponse = {
+                bots: fallbackBotStatuses,
+                total_bots: fallbackStats.totalBots,
+                online_bots: fallbackStats.onlineBots,
+                timestamp: new Date().toISOString()
+            };
 
             this.updateStatusDisplay({
                 serverCount: fallbackStats.totalServers,
