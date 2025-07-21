@@ -767,20 +767,16 @@ class AivisWebsite {
                 vcUsers += v;
                 uptimeSum += up;
             });
-            // 文字列化
-            const serversStr = servers.toLocaleString();
-            const usersStr = users.toLocaleString();
-            const vcUsersStr = vcUsers.toLocaleString();
-            const uptimeStr = uptimeSum.toFixed(1);
-            this.animateHeroStat('total-servers', serversStr);
-            this.animateHeroStat('total-users', usersStr);
-            this.animateHeroStat('total-uptime', uptimeStr);
-            this.animateHeroStat('total-vc-users', vcUsersStr);
-            console.log('📈 Hero stats updated (sum, string):', {
-                servers: serversStr,
-                users: usersStr,
-                vcUsers: vcUsersStr,
-                uptime: uptimeStr
+            // 数値型のまま渡す
+            this.animateHeroStat('total-servers', servers);
+            this.animateHeroStat('total-users', users);
+            this.animateHeroStat('total-uptime', uptimeSum);
+            this.animateHeroStat('total-vc-users', vcUsers);
+            console.log('📈 Hero stats updated (sum, number):', {
+                servers,
+                users,
+                vcUsers,
+                uptime: uptimeSum
             });
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
@@ -809,7 +805,7 @@ class AivisWebsite {
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
             targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toFixed(1) : '0.0';
         } else {
-            targetElement.textContent = Number.isFinite(safeValue) ? Math.floor(safeValue).toLocaleString() : '0';
+            targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toLocaleString() : '0';
         }
     }
 
