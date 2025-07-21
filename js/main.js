@@ -598,6 +598,9 @@ class AivisWebsite {
     }
 
     updateDetailedBotStatus(botStatuses, allStats) {
+        // 最新の詳細Botステータスを保存（ヒーロー統計集計用）
+        this._latestBotStatuses = botStatuses;
+        
         console.log('🎯 Updating detailed bot status...', botStatuses);
         
         // 既存の読み込み中のカードを更新
@@ -733,31 +736,22 @@ class AivisWebsite {
         }, 2 * 60 * 1000);
     }
 
-    // 全Bot統計情報を取得してヒーロー部分を更新
+    // 全Bot統計情報を取得してヒーロー部分を更新（詳細Botステータスから合計値算出）
     async updateHeroStats() {
         try {
-            const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3001'
-                : window.location.protocol + '//' + window.location.hostname;
-
-            const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-            const allStatsData = await response.json();
-            console.log('📊 All bot stats received:', allStatsData);
-
-            // bots配列が不正でも0で初期化
-            const bots = Array.isArray(allStatsData.bots) ? allStatsData.bots : [];
+            // 既存の詳細Botステータスを取得
+            if (!this._latestBotStatuses || !Array.isArray(this._latestBotStatuses)) {
+                // 初回はAPIから取得
+                await this.updateMultipleBotStatus();
+            }
+            const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
-            bots.forEach(bot => {
-                if (bot && bot.success && bot.online) {
-                    const s = Number(bot.server_count);
-                    const u = Number(bot.user_count);
-                    const v = Number(bot.vc_count);
-                    const up = Number(bot.uptime);
+            botStatuses.forEach(bot => {
+                if (bot && bot.online) {
+                    const s = Number(bot.serverCount ?? 0);
+                    const u = Number(bot.userCount ?? 0);
+                    const v = Number(bot.vcCount ?? 0);
+                    const up = Number(bot.uptime ?? 0);
                     servers += isNaN(s) ? 0 : s;
                     users += isNaN(u) ? 0 : u;
                     vcUsers += isNaN(v) ? 0 : v;
@@ -765,30 +759,23 @@ class AivisWebsite {
                     onlineBots++;
                 }
             });
-            // 平均稼働率
             let uptime = onlineBots > 0 ? uptimeSum / onlineBots : 0;
-
-            // NaN防止（数値以外は0）
-            servers = isNaN(servers) ? 0 : servers;
-            users = isNaN(users) ? 0 : users;
-            vcUsers = isNaN(vcUsers) ? 0 : vcUsers;
-            uptime = isNaN(uptime) ? 0 : uptime;
-
+            servers = (servers == null || isNaN(servers)) ? 0 : servers;
+            users = (users == null || isNaN(users)) ? 0 : users;
+            vcUsers = (vcUsers == null || isNaN(vcUsers)) ? 0 : vcUsers;
+            uptime = (uptime == null || isNaN(uptime)) ? 0 : uptime;
             this.animateHeroStat('total-servers', servers);
             this.animateHeroStat('total-users', users);
             this.animateHeroStat('total-uptime', uptime.toFixed(1));
             this.animateHeroStat('total-vc-users', vcUsers);
-
-            console.log('📈 Hero stats updated:', {
+            console.log('📈 Hero stats updated (from botStatuses):', {
                 servers,
                 users,
                 vcUsers,
                 uptime: uptime.toFixed(1)
             });
-
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
-            // エラー時はフォールバック値
             this.animateHeroStat('total-servers', 1200);
             this.animateHeroStat('total-users', 50000);
             this.animateHeroStat('total-vc-users', 219);
