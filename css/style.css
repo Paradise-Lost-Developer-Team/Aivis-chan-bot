@@ -924,6 +924,10 @@ section {
     border-radius: 16px;
     box-shadow: 0 4px 32px rgba(0,0,0,0.18);
     padding: 40px 32px;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
 }
 .legal-content {
     font-size: 1.15rem;
@@ -972,7 +976,11 @@ section {
 }
 @media (max-width: 600px) {
     .legal-container {
-        padding: 16px 4vw;
+        padding: 16px 6vw;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
     .legal-content h1 {
         font-size: 1.3rem;
