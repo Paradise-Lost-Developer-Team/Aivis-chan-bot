@@ -3,15 +3,16 @@
 # Apache サーバーへの手動アップロード用
 
 # サーバー設定
-SERVER_HOST="alecjp02.asuscomm.com"
+SERVER_HOST="aivis-chan-bot.com"
 SERVER_USER="alec"
 SERVER_PATH="/srv/www/htdocs"
 
-# 色付きメッセージ用関数
-print_success() { echo -e "\e[32m✅ $1\e[0m"; }
-print_error() { echo -e "\e[31m❌ $1\e[0m"; }
-print_warning() { echo -e "\e[33m⚠️  $1\e[0m"; }
-print_info() { echo -e "\e[36m🔍 $1\e[0m"; }
+
+# 色付きメッセージ用関数（printfで互換性向上）
+print_success() { printf "\033[32m✅ %s\033[0m\n" "$1"; }
+print_error()   { printf "\033[31m❌ %s\033[0m\n" "$1"; }
+print_warning() { printf "\033[33m⚠️  %s\033[0m\n" "$1"; }
+print_info()    { printf "\033[36m🔍 %s\033[0m\n" "$1"; }
 
 echo "🚀 Aivis-chan Bot Website アップロード開始"
 
@@ -68,24 +69,36 @@ else
 fi
 
 # CSS/JSファイル
-print_info "CSS/JSファイルのアップロード..."
-scp css/main.css ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/css/
-scp js/main.js ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/js/
-if [[ $? -eq 0 ]]; then
-    print_success "CSS/JSファイル アップロード完了"
-else
-    print_error "CSS/JSファイル アップロード失敗"
-    exit 1
-fi
 
-# 画像ファイル
+print_info "CSS/JSファイルのアップロード..."
+css_js_files=("css/main.css" "js/main.js")
+for file in "${css_js_files[@]}"; do
+    scp "$file" ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/$(dirname "$file")/
+    if [[ $? -eq 0 ]]; then
+        print_success "$file アップロード完了"
+    else
+        print_error "$file アップロード失敗"
+        exit 1
+    fi
+done
+
+
+# 画像ファイル（空ディレクトリ対応）
 print_info "画像ファイルのアップロード..."
-scp -r images/* ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/images/
-if [[ $? -eq 0 ]]; then
-    print_success "画像ファイル アップロード完了"
+shopt -s nullglob
+img_files=(images/*)
+if [[ ${#img_files[@]} -eq 0 ]]; then
+    print_warning "画像ファイルがありません（imagesディレクトリは空です）"
 else
-    print_warning "画像ファイル アップロードに問題がある可能性があります"
+    scp -r images/* ${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}/images/
+    if [[ $? -eq 0 ]]; then
+        print_success "画像ファイル アップロード完了"
+    else
+        print_error "画像ファイル アップロード失敗"
+        exit 1
+    fi
 fi
+shopt -u nullglob
 
 # ファイル権限設定
 print_info "ファイル権限を設定..."
@@ -125,5 +138,5 @@ echo "🌐 https://aivis-chan-bot.com でアクセス可能です"
 echo ""
 
 # デプロイログの記録
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Deploy completed - Files: ${required_files[*]}" >> deploy.log
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Deploy completed - Files: ${required_files[*]}, Dirs: images css js" >> deploy.log
 print_info "デプロイログを deploy.log に記録しました"
