@@ -197,13 +197,14 @@
                             <div class="stat-label">利用ユーザー数</div>
                         </div>
                         <div class="stat">
-                            <div class="stat-number" id="total-vc-users" data-api="vc_count">API取得中...</div>
-                            <div class="stat-label">現在のVC接続数</div>
-                        </div>
-                        <div class="stat">
                             <div class="stat-number" id="total-uptime" data-api="uptime">API取得中...</div>
                             <div class="stat-label">稼働率(%)</div>
                         </div>
+                        <div class="stat">
+                            <div class="stat-number" id="total-vc-users" data-api="vc_count">API取得中...</div>
+                            <div class="stat-label">現在のVC接続数</div>
+                        </div>
+
                     </div>
                 </div>
                 <div class="hero-image">
@@ -561,15 +562,16 @@
                         <div class="stat-item">
                             <span class="label">ユーザー数</span>
                             <span class="value">---</span>
+                        </div>                        
+                        <div class="stat-item">
+                            <span class="label">稼働率</span>
+                            <span class="value">---%</span>
                         </div>
                         <div class="stat-item">
                             <span class="label">VC接続数</span>
                             <span class="value">---</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="label">稼働率</span>
-                            <span class="value">---%</span>
-                        </div>
+
                     </div>
                     <div class="bot-actions">
                         <a href="https://discord.com/api/oauth2/authorize?client_id=1365633586123771934&permissions=3148800&scope=bot%20applications.commands" 
@@ -603,7 +605,17 @@
                         </div>
                     </div>
                     <div class="bot-actions">
-                        <a href="https://discord.com/api/oauth2/authorize?client_id=1365633656173101086&permissions=3148800&scope=bot%20applications.commands" 
+                        <div class="stat-item">
+                            <span class="label">稼働率</span>
+                            <span class="value">---%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">VC接続数</span>
+                            <span class="value">---</span>
+                        </div>
+                    </div>
+                    <div class="bot-actions">
+                        <a href="https://discord.com/api/oauth2/authorize?client_id=1365633656173101086&permissions=3148800&scope=bot%20applications.commands"
                            target="_blank" class="btn btn-primary btn-sm">
                             Bot 6台目を招待
                         </a>

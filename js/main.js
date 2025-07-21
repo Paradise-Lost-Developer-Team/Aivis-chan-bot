@@ -781,11 +781,11 @@ class AivisWebsite {
                 totals.uptime = uptimeSum / totals.onlineBots;
             }
 
-            // ヒーロー統計をアニメーション付きで更新
+            // ヒーロー統計をアニメーション付きで更新（稼働率→VC接続数の順に）
             this.animateHeroStat('total-servers', totals.servers);
             this.animateHeroStat('total-users', totals.users);
-            this.animateHeroStat('total-vc-users', totals.vcUsers);
             this.animateHeroStat('total-uptime', totals.uptime.toFixed(1));
+            this.animateHeroStat('total-vc-users', totals.vcUsers);
 
             console.log('📈 Hero stats updated:', {
                 servers: totals.servers,

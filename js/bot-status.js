@@ -104,13 +104,13 @@ async function updateBotStatus() {
                 if (bot.serverCount === null) {
                     statValues[0].textContent = '取得中...'; // サーバー数
                     statValues[1].textContent = '取得中...'; // ユーザー数
-                    statValues[2].textContent = '取得中...'; // VC接続数
-                    statValues[3].textContent = '取得中...'; // 稼働率
+                    statValues[2].textContent = '取得中...'; // 稼働率
+                    statValues[3].textContent = '取得中...'; // VC接続数
                 } else {
                     statValues[0].textContent = bot.serverCount.toLocaleString(); // サーバー数
                     statValues[1].textContent = bot.userCount.toLocaleString(); // ユーザー数
-                    statValues[2].textContent = bot.vcCount.toLocaleString(); // VC接続数
-                    statValues[3].textContent = `${bot.uptime.toFixed(1)}%`; // 稼働率
+                    statValues[2].textContent = `${bot.uptime.toFixed(1)}%`; // 稼働率
+                    statValues[3].textContent = bot.vcCount.toLocaleString(); // VC接続数
                 }
             }
             
