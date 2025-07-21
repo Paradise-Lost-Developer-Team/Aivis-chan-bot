@@ -736,69 +736,59 @@ class AivisWebsite {
     // 全Bot統計情報を取得してヒーロー部分を更新
     async updateHeroStats() {
         try {
-            // 開発環境とproduction環境でAPIエンドポイントを切り替え
             const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3001'  // 開発環境
-                : window.location.protocol + '//' + window.location.hostname;  // 本番環境（同じドメイン）
-                
+                ? 'http://localhost:3001'
+                : window.location.protocol + '//' + window.location.hostname;
+
             const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const allStatsData = await response.json();
             console.log('📊 All bot stats received:', allStatsData);
 
-            // 全Botの合計統計を計算
-            const totals = {
-                servers: 0,
-                users: 0,
-                vcUsers: 0,
-                uptime: 0,
-                onlineBots: 0
-            };
-
-            allStatsData.bots.forEach(bot => {
-                if (bot.success && bot.online) {
-                    totals.servers += bot.server_count || 0;
-                    totals.users += bot.user_count || 0;
-                    totals.vcUsers += bot.vc_count || 0;
-                    totals.onlineBots++;
+            // bots配列が不正でも0で初期化
+            const bots = Array.isArray(allStatsData.bots) ? allStatsData.bots : [];
+            let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
+            bots.forEach(bot => {
+                if (bot && bot.success && bot.online) {
+                    const s = Number(bot.server_count);
+                    const u = Number(bot.user_count);
+                    const v = Number(bot.vc_count);
+                    const up = Number(bot.uptime);
+                    servers += isNaN(s) ? 0 : s;
+                    users += isNaN(u) ? 0 : u;
+                    vcUsers += isNaN(v) ? 0 : v;
+                    uptimeSum += isNaN(up) ? 0 : up;
+                    onlineBots++;
                 }
             });
+            // 平均稼働率
+            let uptime = onlineBots > 0 ? uptimeSum / onlineBots : 0;
 
-            // 平均稼働率を計算
-            if (totals.onlineBots > 0) {
-                const uptimeSum = allStatsData.bots
-                    .filter(bot => bot.success && bot.online)
-                    .reduce((sum, bot) => sum + (bot.uptime || 0), 0);
-                totals.uptime = uptimeSum / totals.onlineBots;
-            }
+            // NaN防止（数値以外は0）
+            servers = isNaN(servers) ? 0 : servers;
+            users = isNaN(users) ? 0 : users;
+            vcUsers = isNaN(vcUsers) ? 0 : vcUsers;
+            uptime = isNaN(uptime) ? 0 : uptime;
 
-            // NaNなら「API取得中...」を表示
-            this.animateHeroStat('total-servers', isNaN(totals.servers) ? 'API取得中...' : totals.servers);
-            this.animateHeroStat('total-users', isNaN(totals.users) ? 'API取得中...' : totals.users);
-            this.animateHeroStat('total-uptime', isNaN(totals.uptime) ? 'API取得中...' : totals.uptime.toFixed(1));
-            this.animateHeroStat('total-vc-users', isNaN(totals.vcUsers) ? 'API取得中...' : totals.vcUsers);
+            this.animateHeroStat('total-servers', servers);
+            this.animateHeroStat('total-users', users);
+            this.animateHeroStat('total-uptime', uptime.toFixed(1));
+            this.animateHeroStat('total-vc-users', vcUsers);
 
             console.log('📈 Hero stats updated:', {
-                servers: totals.servers,
-                users: totals.users,
-                vcUsers: totals.vcUsers,
-                uptime: totals.uptime.toFixed(1)
+                servers,
+                users,
+                vcUsers,
+                uptime: uptime.toFixed(1)
             });
 
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
-            
-            // エラー時はフォールバック値を使用
-            console.log('📊 Using fallback values for hero stats');
+            // エラー時はフォールバック値
             this.animateHeroStat('total-servers', 1200);
             this.animateHeroStat('total-users', 50000);
             this.animateHeroStat('total-vc-users', 219);
