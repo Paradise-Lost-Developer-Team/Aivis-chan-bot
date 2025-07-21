@@ -832,10 +832,13 @@ class AivisWebsite {
 function animateElement(element, targetValue, elementId) {
     if (!element) return;
     let startValue;
+    // 現在の値がNaNの場合は0にする
     if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-        startValue = parseFloat(element.textContent) || 0;
+        startValue = parseFloat(element.textContent);
+        if (!Number.isFinite(startValue)) startValue = 0;
     } else {
-        startValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+        startValue = parseInt((element.textContent || '0').replace(/,/g, ''));
+        if (!Number.isFinite(startValue)) startValue = 0;
     }
     let endValue = typeof targetValue === 'string' ? Number(targetValue) : targetValue;
     if (!Number.isFinite(endValue)) endValue = 0;
@@ -850,6 +853,9 @@ function animateElement(element, targetValue, elementId) {
         let progress = frame / totalFrames;
         if (progress > 1) progress = 1;
         let value = startValue + (endValue - startValue) * progress;
+
+        // NaN防止
+        if (!Number.isFinite(value)) value = 0;
 
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
             element.textContent = (!isNaN(value)) ? value.toFixed(1) : '0.0';
