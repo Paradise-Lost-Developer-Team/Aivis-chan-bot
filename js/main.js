@@ -386,6 +386,12 @@ class AivisWebsite {
         this.animateHeroStat('total-uptime', toSafeNumber(data.uptime)); // 数値のみ渡す（% 表示は animateHeroStat 側で処理）
         
         this.updateStatusIndicator(data.status || 'online');
+
+        if (!apiData.bots || apiData.bots.length === 0) {
+            console.warn("⚠️ API returned empty bots array, skipping status update");
+            return;
+        }
+
     }
 
 
@@ -594,13 +600,16 @@ class AivisWebsite {
             });
 
             this.updateDetailedBotStatus(fallbackBotStatuses, fallbackStats);
+
+            // 統計情報更新直前に
+            this._latestBotStatuses = botStatuses;
+
+            console.warn('⚠️ Using fallback bot statuses due to error:', fallbackBotStatuses);
+            console.warn('⚠️ Fallback stats:', fallbackStats);
         }
     }
 
     updateDetailedBotStatus(botStatuses, allStats) {
-        // 最新の詳細Botステータスを保存（ヒーロー統計集計用）
-        this._latestBotStatuses = botStatuses;
-        
         console.log('🎯 Updating detailed bot status...', botStatuses);
         
         // 既存の読み込み中のカードを更新
@@ -736,48 +745,51 @@ class AivisWebsite {
         }, 2 * 60 * 1000);
     }
 
-    // 全Bot統計情報を取得してヒーロー部分を更新（詳細Botステータスから合計値算出）
     async updateHeroStats() {
         try {
-            // 既存の詳細Botステータスを取得
             if (!this._latestBotStatuses || !Array.isArray(this._latestBotStatuses)) {
-                // 初回はAPIから取得
                 await this.updateMultipleBotStatus();
             }
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
-            // デバッグ: API値の中身を毎回表示
             console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
-            // 6台分の合計値を文字列で表示
+
+            if (botStatuses.length === 0) {
+                console.warn("⚠️ botStatuses is empty, skipping stats update");
+                return; // 空なら更新しない
+            }
+
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
             botStatuses.forEach(bot => {
                 let s = Number(bot.serverCount);
                 let u = Number(bot.userCount);
                 let v = Number(bot.vcCount);
                 let up = Number(bot.uptime);
-                if (!Number.isFinite(s)) s = 0;
-                if (!Number.isFinite(u)) u = 0;
-                if (!Number.isFinite(v)) v = 0;
-                if (!Number.isFinite(up)) up = 0;
+                s = Number.isFinite(s) ? s : 0;
+                u = Number.isFinite(u) ? u : 0;
+                v = Number.isFinite(v) ? v : 0;
+                up = Number.isFinite(up) ? up : 0;
                 servers += s;
                 users += u;
                 vcUsers += v;
                 uptimeSum += up;
             });
-            // 6台分の平均値を表示
-            let count = botStatuses.length;
+
+            const count = botStatuses.length;
             const avgServers = count > 0 ? servers / count : 0;
             const avgUsers = count > 0 ? users / count : 0;
             const avgVcUsers = count > 0 ? vcUsers / count : 0;
             const avgUptime = count > 0 ? uptimeSum / count : 0;
-            // 表示フォーマット調整
+
             const dispServers = Math.round(avgServers);
             const dispUsers = Math.round(avgUsers);
             const dispVcUsers = Math.round(avgVcUsers);
             const dispUptime = avgUptime.toFixed(1);
+
             this.animateHeroStat('total-servers', dispServers);
             this.animateHeroStat('total-users', dispUsers);
-            this.animateHeroStat('total-uptime', dispUptime);
+            this.animateHeroStat('total-uptime', Number(dispUptime));
             this.animateHeroStat('total-vc-users', dispVcUsers);
+
             console.log('📈 Hero stats updated (average, formatted):', {
                 dispServers,
                 dispUsers,
@@ -794,8 +806,10 @@ class AivisWebsite {
     }
 
 
+
     // 統計数値をアニメーションで表示
     animateHeroStat(elementId, targetValue) {
+        console.log(`animateHeroStat called with: elementId=${elementId}, targetValue=${targetValue} (${typeof targetValue})`);
         let targetElement = document.getElementById(elementId)
             || document.querySelector(`[data-api="${elementId}"]`)
             || document.querySelector(`.${elementId}`);
@@ -812,8 +826,12 @@ class AivisWebsite {
             return;
         }
 
-        const duration = 1000;
-        const startValue = 0;
+        const currentDisplayed = targetElement.textContent.replace(/[,％%]/g, "").trim();
+        if (parseInt(currentDisplayed) === Math.floor(num)) {
+            return; // すでに表示中ならアニメーション不要
+        }
+
+        const duration = 800;
         const startTime = performance.now();
 
         const update = (currentTime) => {
@@ -832,7 +850,7 @@ class AivisWebsite {
 
         requestAnimationFrame(update);
     }
-}
+
 
 // 指定要素の数値をアニメーションで更新する（汎用版）
 function animateElement(element, targetValue, elementId) {
