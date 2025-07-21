@@ -1,8 +1,50 @@
 // status/js/status.js
 // サーバーステータス表示用スクリプト
 
-// Discord.jsで取得した値を返す自作API
-const API_URL = "https://status.aivis-chan-bot.com/api/status";
+async function fetchDiscordBotStats(botId) {
+    try {
+        // セキュリティ上の理由で、直接Discord APIにアクセスするのではなく
+        // 独自のバックエンドAPI経由でBot統計を取得
+        // 開発環境とproduction環境でAPIエンドポイントを切り替え
+        const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3001'  // 開発環境
+            : window.location.protocol + '//' + window.location.hostname;  // 本番環境（同じドメイン）
+            
+        const response = await fetch(`${apiBaseUrl}/api/bot-stats/${botId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const statsData = await response.json();
+        
+        return {
+            online: statsData.online || false,
+            serverCount: statsData.server_count || 0,
+            userCount: statsData.user_count || 0,
+            vcCount: statsData.vc_count || 0,
+            uptime: statsData.uptime || 0,
+            lastUpdate: new Date().toISOString()
+        };
+
+    } catch (error) {
+        console.error(`Failed to fetch stats for bot ${botId}:`, error);
+        // フォールバック: APIが利用できない場合は「取得中」を表示
+        return {
+            online: null, // null = 取得中状態
+            serverCount: null,
+            userCount: null,
+            vcCount: null,
+            uptime: null,
+            error: error.message
+        };
+    }
+}
 
 function formatDate(dateStr) {
     const d = new Date(dateStr);
@@ -10,6 +52,11 @@ function formatDate(dateStr) {
 }
 
 function updateStatus() {
+    // APIエンドポイントを環境で切り替え
+    const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3001'  // 開発環境
+        : window.location.protocol + '//' + window.location.hostname;  // 本番環境（同じドメイン）
+    const API_URL = `${apiBaseUrl}/api/status`;
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
