@@ -749,37 +749,25 @@ class AivisWebsite {
                 await this.updateMultipleBotStatus();
             }
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
-            let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
-            botStatuses.forEach(bot => {
-                // 合計値として全Bot分加算（オンライン/オフライン問わず）
-                let s = (Object.prototype.hasOwnProperty.call(bot, 'serverCount') && typeof bot.serverCount === 'number' && Number.isFinite(bot.serverCount)) ? bot.serverCount : Number(bot.serverCount);
-                let u = (Object.prototype.hasOwnProperty.call(bot, 'userCount') && typeof bot.userCount === 'number' && Number.isFinite(bot.userCount)) ? bot.userCount : Number(bot.userCount);
-                let v = (Object.prototype.hasOwnProperty.call(bot, 'vcCount') && typeof bot.vcCount === 'number' && Number.isFinite(bot.vcCount)) ? bot.vcCount : Number(bot.vcCount);
-                let up = (Object.prototype.hasOwnProperty.call(bot, 'uptime') && typeof bot.uptime === 'number' && Number.isFinite(bot.uptime)) ? bot.uptime : Number(bot.uptime);
-                if (!Number.isFinite(s)) s = 0;
-                if (!Number.isFinite(u)) u = 0;
-                if (!Number.isFinite(v)) v = 0;
-                if (!Number.isFinite(up)) up = 0;
-                servers += s;
-                users += u;
-                vcUsers += v;
-                uptimeSum += up;
-                onlineBots++;
-            });
-            // uptimeは合計値で表示
-            servers = Number.isFinite(servers) ? servers : 0;
-            users = Number.isFinite(users) ? users : 0;
-            vcUsers = Number.isFinite(vcUsers) ? vcUsers : 0;
-            uptimeSum = Number.isFinite(uptimeSum) ? uptimeSum : 0;
+            // 1台目のみ表示
+            const bot1 = botStatuses[0] || {};
+            let servers = Number(bot1.serverCount);
+            let users = Number(bot1.userCount);
+            let vcUsers = Number(bot1.vcCount);
+            let uptime = Number(bot1.uptime);
+            if (!Number.isFinite(servers)) servers = 0;
+            if (!Number.isFinite(users)) users = 0;
+            if (!Number.isFinite(vcUsers)) vcUsers = 0;
+            if (!Number.isFinite(uptime)) uptime = 0;
             this.animateHeroStat('total-servers', servers);
             this.animateHeroStat('total-users', users);
-            this.animateHeroStat('total-uptime', uptimeSum);
+            this.animateHeroStat('total-uptime', uptime);
             this.animateHeroStat('total-vc-users', vcUsers);
-            console.log('📈 Hero stats updated (from botStatuses):', {
+            console.log('📈 Hero stats updated (bot1 only):', {
                 servers,
                 users,
                 vcUsers,
-                uptime: Number.isFinite(uptimeSum) ? uptimeSum.toFixed(1) : 0
+                uptime: Number.isFinite(uptime) ? uptime.toFixed(1) : 0
             });
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
