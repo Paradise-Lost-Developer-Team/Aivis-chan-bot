@@ -14,6 +14,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs'); // 追加
 require('dotenv').config();
 
 const app = express();
@@ -204,12 +205,22 @@ app.get('/api/bot-stats', async (req, res) => {
         });
 
         const allStats = await Promise.all(statsPromises);
-        res.json({
+        const responseJson = {
             bots: allStats,
             total_bots: allStats.length,
             online_bots: allStats.filter(bot => bot.online).length,
             timestamp: new Date().toISOString()
-        });
+        };
+
+        // public-bot-status.jsonとして保存
+        try {
+            fs.writeFileSync('public-bot-status.json', JSON.stringify(responseJson, null, 2), 'utf8');
+            console.log('💾 public-bot-status.json saved');
+        } catch (err) {
+            console.warn('⚠️ Failed to save public-bot-status.json:', err);
+        }
+
+        res.json(responseJson);
     } catch (error) {
         console.error('API error for all bots:', error);
         res.status(500).json({
