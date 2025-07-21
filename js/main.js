@@ -749,6 +749,8 @@ class AivisWebsite {
                 await this.updateMultipleBotStatus();
             }
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
+            // デバッグ: API値の中身を毎回表示
+            console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
             // 6台分の合計値を文字列で表示
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
             botStatuses.forEach(bot => {
