@@ -752,10 +752,11 @@ class AivisWebsite {
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
             botStatuses.forEach(bot => {
                 if (bot && bot.online) {
-                    let s = Number(bot.serverCount);
-                    let u = Number(bot.userCount);
-                    let v = Number(bot.vcCount);
-                    let up = Number(bot.uptime);
+                    // キー存在と型チェックを厳密化
+                    let s = (Object.prototype.hasOwnProperty.call(bot, 'serverCount') && typeof bot.serverCount === 'number' && Number.isFinite(bot.serverCount)) ? bot.serverCount : Number(bot.serverCount);
+                    let u = (Object.prototype.hasOwnProperty.call(bot, 'userCount') && typeof bot.userCount === 'number' && Number.isFinite(bot.userCount)) ? bot.userCount : Number(bot.userCount);
+                    let v = (Object.prototype.hasOwnProperty.call(bot, 'vcCount') && typeof bot.vcCount === 'number' && Number.isFinite(bot.vcCount)) ? bot.vcCount : Number(bot.vcCount);
+                    let up = (Object.prototype.hasOwnProperty.call(bot, 'uptime') && typeof bot.uptime === 'number' && Number.isFinite(bot.uptime)) ? bot.uptime : Number(bot.uptime);
                     if (!Number.isFinite(s)) s = 0;
                     if (!Number.isFinite(u)) u = 0;
                     if (!Number.isFinite(v)) v = 0;
