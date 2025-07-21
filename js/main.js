@@ -372,29 +372,22 @@ class AivisWebsite {
     updateStatusDisplay(data) {
         console.log('🎯 Updating status display with data:', data);
 
-        if (data.serverCount !== undefined) {
-            this.animateHeroStat('total-servers', Number(data.serverCount) || 0);
-        }
+        const toSafeNumber = (value) => {
+            if (typeof value === "string") {
+                value = value.replace("%", "").trim();
+            }
+            const num = Number(value);
+            return isNaN(num) ? 0 : num;
+        };
 
-        if (data.userCount !== undefined) {
-            this.animateHeroStat('total-users', Number(data.userCount) || 0);
-        }
-
-        if (data.vcCount !== undefined) {
-            this.animateHeroStat('total-vc-users', Number(data.vcCount) || 0);
-        }
-
-        if (data.uptime !== undefined) {
-            const uptimeValue = typeof data.uptime === "string"
-                ? parseFloat(data.uptime.replace("%", ""))
-                : Number(data.uptime);
-            this.animateHeroStat('total-uptime', uptimeValue || 0);
-        }
-
+        this.animateHeroStat('total-servers', toSafeNumber(data.serverCount));
+        this.animateHeroStat('total-users', toSafeNumber(data.userCount));
+        this.animateHeroStat('total-vc-users', toSafeNumber(data.vcCount));
+        this.animateHeroStat('total-uptime', toSafeNumber(data.uptime)); // 数値のみ渡す（% 表示は animateHeroStat 側で処理）
+        
         this.updateStatusIndicator(data.status || 'online');
-
-        console.log('📊 Status display updated');
     }
+
 
 
     animateCounterToValue(element, targetValue) {
@@ -803,31 +796,22 @@ class AivisWebsite {
 
     // 統計数値をアニメーションで表示
     animateHeroStat(elementId, targetValue) {
-        let targetElement = document.getElementById(elementId);
-        if (!targetElement) {
-            targetElement = document.querySelector(`[data-api="${elementId}"]`);
-            if (!targetElement) {
-                targetElement = document.querySelector(`.${elementId}`);
-            }
-        }
+        let targetElement = document.getElementById(elementId)
+            || document.querySelector(`[data-api="${elementId}"]`)
+            || document.querySelector(`.${elementId}`);
+
         if (!targetElement) {
             console.warn(`[WARN] HeroStat element not found: ${elementId}`);
             return;
         }
 
-        // 安全な数値変換
-        const numericValue = typeof targetValue === "string"
-            ? parseFloat(targetValue.replace("%", ""))
-            : Number(targetValue);
-
-        // NaNだったらデフォルト値にする
-        if (isNaN(numericValue)) {
-            console.warn(`[WARN] NaN detected for ${elementId}, fallback to 0`);
+        const num = Number(targetValue);
+        if (isNaN(num)) {
+            console.warn(`[WARN] NaN passed to animateHeroStat for ${elementId}, defaulting to 0`);
             targetElement.textContent = "0";
             return;
         }
 
-        // アニメーション処理（例）
         const duration = 1000;
         const startValue = 0;
         const startTime = performance.now();
@@ -835,7 +819,7 @@ class AivisWebsite {
         const update = (currentTime) => {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            const value = Math.floor(progress * numericValue);
+            const value = Math.floor(progress * num);
 
             targetElement.textContent = elementId.includes("uptime")
                 ? `${value}%`
@@ -848,49 +832,49 @@ class AivisWebsite {
 
         requestAnimationFrame(update);
     }
+}
 
-    // 指定要素の数値をアニメーションで更新する（汎用版）
-    animateElement(element, targetValue, elementId) {
-        if (!element) return;
-        let startValue;
-        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            startValue = parseFloat(element.textContent) || 0;
-        } else {
-            startValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
-        }
-        let endValue = typeof targetValue === 'string' ? Number(targetValue) : targetValue;
-        if (!Number.isFinite(endValue)) endValue = 0;
-
-        const duration = 800;
-        const frameRate = 30;
-        const totalFrames = Math.round(duration / (1000 / frameRate));
-        let frame = 0;
-
-        const animate = () => {
-            frame++;
-            let progress = frame / totalFrames;
-            if (progress > 1) progress = 1;
-            let value = startValue + (endValue - startValue) * progress;
-
-            if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-                element.textContent = (!isNaN(value)) ? value.toFixed(1) : '0.0';
-            } else {
-                element.textContent = (!isNaN(value)) ? Math.round(value).toLocaleString() : '0';
-            }
-
-            if (frame < totalFrames) {
-                requestAnimationFrame(animate);
-            } else {
-                // 最終値で上書き
-                if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-                    element.textContent = (!isNaN(endValue)) ? endValue.toFixed(1) : '0.0';
-                } else {
-                    element.textContent = (!isNaN(endValue)) ? Math.round(endValue).toLocaleString() : '0';
-                }
-            }
-        };
-        animate();
+// 指定要素の数値をアニメーションで更新する（汎用版）
+function animateElement(element, targetValue, elementId) {
+    if (!element) return;
+    let startValue;
+    if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+        startValue = parseFloat(element.textContent) || 0;
+    } else {
+        startValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
     }
+    let endValue = typeof targetValue === 'string' ? Number(targetValue) : targetValue;
+    if (!Number.isFinite(endValue)) endValue = 0;
+
+    const duration = 800;
+    const frameRate = 30;
+    const totalFrames = Math.round(duration / (1000 / frameRate));
+    let frame = 0;
+
+    const animate = () => {
+        frame++;
+        let progress = frame / totalFrames;
+        if (progress > 1) progress = 1;
+        let value = startValue + (endValue - startValue) * progress;
+
+        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            element.textContent = (!isNaN(value)) ? value.toFixed(1) : '0.0';
+        } else {
+            element.textContent = (!isNaN(value)) ? Math.round(value).toLocaleString() : '0';
+        }
+
+        if (frame < totalFrames) {
+            requestAnimationFrame(animate);
+        } else {
+            // 最終値で上書き
+            if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+                element.textContent = (!isNaN(endValue)) ? endValue.toFixed(1) : '0.0';
+            } else {
+                element.textContent = (!isNaN(endValue)) ? Math.round(endValue).toLocaleString() : '0';
+            }
+        }
+    };
+    animate();
 }
 
 // コピー機能
