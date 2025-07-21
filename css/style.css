@@ -931,7 +931,7 @@ section {
     background: rgba(30,34,44,0.98);
     border-radius: 16px;
     box-shadow: 0 4px 32px rgba(0,0,0,0.18);
-    padding: 6% 32px 40px 32px;
+        padding: 10% 32px 40px 32px; /* ヘッダー高さ分のpadding-top追加 */
     box-sizing: border-box;
     overflow-wrap: break-word;
     word-break: break-word;
