@@ -45,7 +45,7 @@ print_info "ファイルをアップロード中..."
 
 # HTMLファイル
 print_info "HTMLファイルのコピー..."
-cp index.html offline.html ${SERVER_PATH}/
+sudo cp index.html offline.html ${SERVER_PATH}/
 if [[ $? -eq 0 ]]; then
     print_success "HTMLファイル コピー完了"
 else
@@ -56,7 +56,7 @@ fi
 
 # PWA関連ファイル
 print_info "PWAファイルのコピー..."
-cp manifest.json sw.js ${SERVER_PATH}/
+sudo cp manifest.json sw.js ${SERVER_PATH}/
 if [[ $? -eq 0 ]]; then
     print_success "PWAファイル コピー完了"
 else
@@ -69,7 +69,7 @@ fi
 print_info "CSS/JSファイルのコピー..."
 css_js_files=("css/main.css" "js/main.js")
 for file in "${css_js_files[@]}"; do
-    cp "$file" ${SERVER_PATH}/$(dirname "$file")/
+    sudo cp "$file" ${SERVER_PATH}/$(dirname "$file")/
     if [[ $? -eq 0 ]]; then
         print_success "$file コピー完了"
     else
@@ -87,7 +87,7 @@ img_files=(images/*)
 if [[ ${#img_files[@]} -eq 0 ]]; then
     print_warning "画像ファイルがありません（imagesディレクトリは空です）"
 else
-    cp -r images/* ${SERVER_PATH}/images/
+    sudo cp -r images/* ${SERVER_PATH}/images/
     if [[ $? -eq 0 ]]; then
         print_success "画像ファイル コピー完了"
     else
