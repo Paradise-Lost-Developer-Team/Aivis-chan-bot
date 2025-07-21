@@ -36,7 +36,7 @@ print_success "全ファイルの存在を確認"
 
 # ディレクトリの準備
 print_info "公開ディレクトリを準備..."
-mkdir -p ${SERVER_PATH}/{css,js,images}
+sudo mkdir -p ${SERVER_PATH}/{css,js,images}
 print_success "公開ディレクトリOK"
 
 # ファイルアップロード
