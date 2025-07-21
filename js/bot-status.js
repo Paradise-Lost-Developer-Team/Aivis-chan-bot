@@ -106,21 +106,27 @@ async function updateBotStatus() {
                     statValues[1].textContent = '取得中...'; // ユーザー数
                     statValues[2].textContent = '取得中...'; // 稼働率
                     statValues[3].textContent = '取得中...'; // VC接続数
-                let safeServer = bot.serverCount;
-                if (safeServer === undefined || safeServer === null || safeServer === '' || (typeof safeServer === 'number' && !Number.isFinite(safeServer)) || (typeof safeServer === 'string' && safeServer === 'NaN')) safeServer = '0';
-                statValues[0].textContent = safeServer; // サーバー数
-                
-                let safeUser = bot.userCount;
-                if (safeUser === undefined || safeUser === null || safeUser === '' || (typeof safeUser === 'number' && !Number.isFinite(safeUser)) || (typeof safeUser === 'string' && safeUser === 'NaN')) safeUser = '0';
-                statValues[1].textContent = safeUser; // ユーザー数
-                
-                let safeUptime = bot.uptime;
-                if (safeUptime === undefined || safeUptime === null || safeUptime === '' || (typeof safeUptime === 'number' && !Number.isFinite(safeUptime)) || (typeof safeUptime === 'string' && safeUptime === 'NaN')) safeUptime = '0';
-                statValues[2].textContent = `${safeUptime}%`; // 稼働率
-                
-                let safeVc = bot.vcCount;
-                if (safeVc === undefined || safeVc === null || safeVc === '' || (typeof safeVc === 'number' && !Number.isFinite(safeVc)) || (typeof safeVc === 'string' && safeVc === 'NaN')) safeVc = '0';
-                statValues[3].textContent = safeVc; // VC接続数
+                } else {
+                    let safeServer = bot.serverCount;
+                    if (safeServer === undefined || safeServer === null || safeServer === '' || (typeof safeServer === 'number' && !Number.isFinite(safeServer)) || (typeof safeServer === 'string' && safeServer === 'NaN')) safeServer = '0';
+                    statValues[0].textContent = safeServer; // サーバー数
+                    
+                    let safeUser = bot.userCount;
+                    if (safeUser === undefined || safeUser === null || safeUser === '' || (typeof safeUser === 'number' && !Number.isFinite(safeUser)) || (typeof safeUser === 'string' && safeUser === 'NaN')) safeUser = '0';
+                    statValues[1].textContent = safeUser; // ユーザー数
+                    
+                    let safeUptime = bot.uptime;
+                    if (safeUptime === undefined || safeUptime === null || safeUptime === '' || (typeof safeUptime === 'number' && !Number.isFinite(safeUptime)) || (typeof safeUptime === 'string' && safeUptime === 'NaN')) safeUptime = '0';
+                    statValues[2].textContent = `${safeUptime}%`; // 稼働率
+                    
+                    let safeVc = bot.vcCount;
+                    if (safeVc === undefined || safeVc === null || safeVc === '' || (typeof safeVc === 'number' && !Number.isFinite(safeVc)) || (typeof safeVc === 'string' && safeVc === 'NaN')) safeVc = '0';
+                    statValues[3].textContent = safeVc; // VC接続数
+                }
+            }
+
+            // 招待ボタンを更新
+            const inviteBtn = card.querySelector('.invite-btn');
             if (inviteBtn) {
                 inviteBtn.href = `https://discord.com/api/oauth2/authorize?client_id=${bot.botId}&permissions=3148800&scope=bot%20applications.commands`;
                 inviteBtn.textContent = `${bot.name}を招待`;
