@@ -387,10 +387,7 @@ class AivisWebsite {
         
         this.updateStatusIndicator(data.status || 'online');
 
-        if (!apiData.bots || apiData.bots.length === 0) {
-            console.warn("⚠️ API returned empty bots array, skipping status update");
-            return;
-        }
+        // apiData参照を削除（未定義変数の参照を除去）
 
     }
 
