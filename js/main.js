@@ -519,22 +519,26 @@ class AivisWebsite {
                 if (!config) return;
 
                 const isOnline = botData.success && botData.online;
+                const serverCount = Number.isFinite(Number(botData.server_count)) ? Number(botData.server_count) : 0;
+                const userCount = Number.isFinite(Number(botData.user_count)) ? Number(botData.user_count) : 0;
+                const vcCount = Number.isFinite(Number(botData.vc_count)) ? Number(botData.vc_count) : 0;
+                const uptime = Number.isFinite(Number(botData.uptime)) ? Number(botData.uptime) : 0;
                 const status = {
                     ...config,
                     online: isOnline,
                     status: isOnline ? 'online' : 'offline',
-                    serverCount: botData.server_count || 0,
-                    userCount: botData.user_count || 0,
-                    vcCount: botData.vc_count || 0,
-                    uptime: botData.uptime || 0
+                    serverCount,
+                    userCount,
+                    vcCount,
+                    uptime
                 };
 
                 botStatuses.push(status);
 
                 if (isOnline) {
-                    allStats.totalServers += status.serverCount;
-                    allStats.totalUsers += status.userCount;
-                    allStats.totalVcUsers += status.vcCount;
+                    allStats.totalServers += serverCount;
+                    allStats.totalUsers += userCount;
+                    allStats.totalVcUsers += vcCount;
                     allStats.onlineBots++;
                 }
             });
