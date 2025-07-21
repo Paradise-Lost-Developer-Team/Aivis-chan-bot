@@ -598,8 +598,8 @@ class AivisWebsite {
 
             this.updateDetailedBotStatus(fallbackBotStatuses, fallbackStats);
 
-            // 統計情報更新直前に
-            this._latestBotStatuses = botStatuses;
+            // ここで必ずセット
+            this._latestBotStatuses = fallbackBotStatuses;
 
             console.warn('⚠️ Using fallback bot statuses due to error:', fallbackBotStatuses);
             console.warn('⚠️ Fallback stats:', fallbackStats);
