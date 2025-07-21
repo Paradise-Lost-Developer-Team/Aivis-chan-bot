@@ -179,6 +179,7 @@ class AivisWebsite {
                     navMenu.classList.remove('active');
                 });
             });
+        }
     }
 
     // Discord Bot招待リンク生成（メインBot用）
@@ -828,7 +829,6 @@ class AivisWebsite {
         } else {
             targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
         }
-    }
     }
 }
 
