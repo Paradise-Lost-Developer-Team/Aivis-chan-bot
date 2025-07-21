@@ -144,6 +144,20 @@ else
     print_warning "Apache リロードに問題がある可能性があります"
 fi
 
+# pm2の再起動
+print_info "pm2の再起動..."
+if command -v pm2 &> /dev/null; then
+    pm2 restart bot-stats-server
+    if [[ $? -eq 0 ]]; then
+        print_success "pm2 再起動完了"
+    else
+        print_error "pm2 再起動失敗"
+        exit 1
+    fi
+else
+    print_warning "pm2 がインストールされていません"
+fi
+
 print_info "Webサイトアクセス確認..."
 response_code=$(curl -s -o /dev/null -w "%{http_code}" https://aivis-chan-bot.com)
 if [[ "$response_code" == "200" ]]; then
