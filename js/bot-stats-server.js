@@ -63,9 +63,10 @@ async function fetchBotStatistics(botId, token) {
             return {
                 success: true,
                 online: true,
-                server_count: stats.servers,
-                user_count: stats.users,
-                uptime: stats.uptime,
+                server_count: Number(stats.servers) || 0,
+                user_count: Number(stats.users) || 0,
+                uptime: Number(stats.uptime) || 0,
+                vc_count: 0,
                 last_updated: new Date().toISOString(),
                 mock: true
             };
@@ -133,9 +134,10 @@ async function fetchBotStatistics(botId, token) {
         return {
             success: true,
             online: true,
-            server_count: serverCount,
-            user_count: totalUsers,
-            uptime: uptime,
+            server_count: Number(serverCount) || 0,
+            user_count: Number(totalUsers) || 0,
+            uptime: Number(uptime) || 0,
+            vc_count: 0,
             last_updated: new Date().toISOString()
         };
 
