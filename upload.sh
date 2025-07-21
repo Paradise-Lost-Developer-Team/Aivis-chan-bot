@@ -62,14 +62,26 @@ fi
 
 # CSS/JSファイル
 print_info "CSS/JSファイルのコピー..."
-css_js_files=("css/*.css" "js/*.js")
-for file in "${css_js_files[@]}"; do
-    sudo cp "$file" ${SERVER_PATH}/$(dirname "$file")/
-    if [[ $? -eq 0 ]]; then
-        print_success "$file コピー完了"
-    else
-        print_error "$file コピー失敗"
-        exit 1
+for file in css/*.css; do
+    if [[ -f "$file" ]]; then
+        sudo cp "$file" ${SERVER_PATH}/css/
+        if [[ $? -eq 0 ]]; then
+            print_success "$file コピー完了"
+        else
+            print_error "$file コピー失敗"
+            exit 1
+        fi
+    fi
+done
+for file in js/*.js; do
+    if [[ -f "$file" ]]; then
+        sudo cp "$file" ${SERVER_PATH}/js/
+        if [[ $? -eq 0 ]]; then
+            print_success "$file コピー完了"
+        else
+            print_error "$file コピー失敗"
+            exit 1
+        fi
     fi
 done
 
