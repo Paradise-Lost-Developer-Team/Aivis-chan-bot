@@ -182,9 +182,18 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
 });
 
 // API エンドポイント: 全Bot統計情報を取得
+// --- 5秒キャッシュ用変数 ---
+let cachedStats = null;
+let cachedStatsTimestamp = 0;
+const CACHE_DURATION_MS = 5000;
+
 app.get('/api/bot-stats', async (req, res) => {
     console.log('📊 Fetching stats for all bots');
-    
+    const now = Date.now();
+    if (cachedStats && (now - cachedStatsTimestamp < CACHE_DURATION_MS)) {
+        console.log('🗄️ Returning cached stats');
+        return res.json(cachedStats);
+    }
     try {
         const statsPromises = Object.entries(BOT_TOKENS).map(([botId, token]) => {
             return fetchBotStatistics(botId, token)
@@ -220,6 +229,8 @@ app.get('/api/bot-stats', async (req, res) => {
             console.warn('⚠️ Failed to save public-bot-status.json:', err);
         }
 
+        cachedStats = responseJson;
+        cachedStatsTimestamp = now;
         res.json(responseJson);
     } catch (error) {
         console.error('API error for all bots:', error);
