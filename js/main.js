@@ -748,22 +748,22 @@ class AivisWebsite {
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
             botStatuses.forEach(bot => {
                 if (bot && bot.online) {
-                    const s = Number(bot.serverCount ?? 0);
-                    const u = Number(bot.userCount ?? 0);
-                    const v = Number(bot.vcCount ?? 0);
-                    const up = Number(bot.uptime ?? 0);
-                    servers += isNaN(s) ? 0 : s;
-                    users += isNaN(u) ? 0 : u;
-                    vcUsers += isNaN(v) ? 0 : v;
-                    uptimeSum += isNaN(up) ? 0 : up;
+                    const s = Number.isFinite(Number(bot.serverCount)) ? Number(bot.serverCount) : 0;
+                    const u = Number.isFinite(Number(bot.userCount)) ? Number(bot.userCount) : 0;
+                    const v = Number.isFinite(Number(bot.vcCount)) ? Number(bot.vcCount) : 0;
+                    const up = Number.isFinite(Number(bot.uptime)) ? Number(bot.uptime) : 0;
+                    servers += s;
+                    users += u;
+                    vcUsers += v;
+                    uptimeSum += up;
                     onlineBots++;
                 }
             });
             let uptime = onlineBots > 0 ? uptimeSum / onlineBots : 0;
-            servers = (servers == null || isNaN(servers)) ? 0 : servers;
-            users = (users == null || isNaN(users)) ? 0 : users;
-            vcUsers = (vcUsers == null || isNaN(vcUsers)) ? 0 : vcUsers;
-            uptime = (uptime == null || isNaN(uptime)) ? 0 : uptime;
+            servers = Number.isFinite(servers) ? servers : 0;
+            users = Number.isFinite(users) ? users : 0;
+            vcUsers = Number.isFinite(vcUsers) ? vcUsers : 0;
+            uptime = Number.isFinite(uptime) ? uptime : 0;
             this.animateHeroStat('total-servers', servers);
             this.animateHeroStat('total-users', users);
             this.animateHeroStat('total-uptime', uptime.toFixed(1));
