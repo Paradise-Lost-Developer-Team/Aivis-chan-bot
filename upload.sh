@@ -102,6 +102,10 @@ else
             sudo cp "$file" "${SERVER_PATH}/js/"
             if [[ $? -eq 0 ]]; then
                 print_success "$file コピー完了"
+                if [[ "$file" == "js/main.js" ]]; then
+                    print_info "main.jsのサーバー上の内容を表示（デバッグ）..."
+                    sudo cat "${SERVER_PATH}/js/main.js" | head -n 20
+                fi
             else
                 print_error "$file コピー失敗"
                 exit 1
