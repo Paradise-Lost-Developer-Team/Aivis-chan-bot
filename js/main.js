@@ -692,11 +692,11 @@ class AivisWebsite {
     async setupHeroStats() {
         console.log('🔢 Setting up hero statistics...');
         
-        // 初期値をすぐに設定（NaN回避）
-        this.animateHeroStat('total-servers', 1200);
-        this.animateHeroStat('total-users', 50000);
-        this.animateHeroStat('total-vc-users', 219);
-        this.animateHeroStat('total-uptime', 99.5);
+        // 初期値をすぐに0で設定（NaN点滅防止）
+        this.animateHeroStat('total-servers', 0);
+        this.animateHeroStat('total-users', 0);
+        this.animateHeroStat('total-vc-users', 0);
+        this.animateHeroStat('total-uptime', 0);
         
         // APIから実際のデータを取得
         await this.updateHeroStats();
@@ -771,10 +771,10 @@ class AivisWebsite {
             });
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
-            this.animateHeroStat('total-servers', 1200);
-            this.animateHeroStat('total-users', 50000);
-            this.animateHeroStat('total-vc-users', 219);
-            this.animateHeroStat('total-uptime', 99.5);
+            this.animateHeroStat('total-servers', 0);
+            this.animateHeroStat('total-users', 0);
+            this.animateHeroStat('total-vc-users', 0);
+            this.animateHeroStat('total-uptime', 0);
         }
     }
 
