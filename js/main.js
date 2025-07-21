@@ -715,9 +715,14 @@ class AivisWebsite {
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
             console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
 
+
             if (botStatuses.length === 0) {
-                console.warn("⚠️ botStatuses is empty, skipping stats update");
-                return; // 空なら更新しない
+                console.warn("⚠️ botStatuses is empty, setting hero stats to 0");
+                this.animateHeroStat('total-servers', 0);
+                this.animateHeroStat('total-users', 0);
+                this.animateHeroStat('total-vc-users', 0);
+                this.animateHeroStat('total-uptime', 0);
+                return; // 空なら0で更新
             }
 
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
@@ -742,14 +747,20 @@ class AivisWebsite {
             const avgVcUsers = count > 0 ? vcUsers / count : 0;
             const avgUptime = count > 0 ? uptimeSum / count : 0;
 
-            const dispServers = Math.round(avgServers);
-            const dispUsers = Math.round(avgUsers);
-            const dispVcUsers = Math.round(avgVcUsers);
-            const dispUptime = avgUptime.toFixed(1);
+            let dispServers = Math.round(avgServers);
+            let dispUsers = Math.round(avgUsers);
+            let dispVcUsers = Math.round(avgVcUsers);
+            let dispUptime = avgUptime.toFixed(1);
+
+            // NaN補正
+            dispServers = isNaN(dispServers) ? 0 : dispServers;
+            dispUsers = isNaN(dispUsers) ? 0 : dispUsers;
+            dispVcUsers = isNaN(dispVcUsers) ? 0 : dispVcUsers;
+            dispUptime = isNaN(Number(dispUptime)) ? 0 : Number(dispUptime);
 
             this.animateHeroStat('total-servers', dispServers);
             this.animateHeroStat('total-users', dispUsers);
-            this.animateHeroStat('total-uptime', Number(dispUptime));
+            this.animateHeroStat('total-uptime', dispUptime);
             this.animateHeroStat('total-vc-users', dispVcUsers);
 
             console.log('📈 Hero stats updated (average, formatted):', {
@@ -771,7 +782,7 @@ class AivisWebsite {
 
     // 統計数値をアニメーションで表示
     animateHeroStat(elementId, targetValue) {
-        console.log(`animateHeroStat called with: elementId=${elementId}, targetValue=${targetValue} (${typeof targetValue})`);
+        // ...existing code...
         let targetElement = document.getElementById(elementId)
             || document.querySelector(`[data-api="${elementId}"]`)
             || document.querySelector(`.${elementId}`);
@@ -788,9 +799,17 @@ class AivisWebsite {
         }
         safeValue = Number(safeValue);
 
+        // 現在の表示値と同じ場合は何もしない
+        let currentValue;
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            currentValue = parseFloat(targetElement.textContent);
+            if (!Number.isFinite(currentValue)) currentValue = 0;
+            if (currentValue === safeValue) return;
             targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
         } else {
+            currentValue = parseInt((targetElement.textContent || '0').replace(/,/g, ''));
+            if (!Number.isFinite(currentValue)) currentValue = 0;
+            if (currentValue === Math.round(safeValue)) return;
             targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
         }
     }
