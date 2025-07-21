@@ -768,16 +768,22 @@ class AivisWebsite {
                 vcUsers += v;
                 uptimeSum += up;
             });
+            // 6台分の平均値を表示
+            let count = botStatuses.length;
+            const avgServers = count > 0 ? servers / count : 0;
+            const avgUsers = count > 0 ? users / count : 0;
+            const avgVcUsers = count > 0 ? vcUsers / count : 0;
+            const avgUptime = count > 0 ? uptimeSum / count : 0;
             // 数値型のまま渡す
-            this.animateHeroStat('total-servers', servers);
-            this.animateHeroStat('total-users', users);
-            this.animateHeroStat('total-uptime', uptimeSum);
-            this.animateHeroStat('total-vc-users', vcUsers);
-            console.log('📈 Hero stats updated (sum, number):', {
-                servers,
-                users,
-                vcUsers,
-                uptime: uptimeSum
+            this.animateHeroStat('total-servers', avgServers);
+            this.animateHeroStat('total-users', avgUsers);
+            this.animateHeroStat('total-uptime', avgUptime);
+            this.animateHeroStat('total-vc-users', avgVcUsers);
+            console.log('📈 Hero stats updated (average, number):', {
+                avgServers,
+                avgUsers,
+                avgVcUsers,
+                avgUptime
             });
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
@@ -806,10 +812,13 @@ class AivisWebsite {
         // NaNや異常値の場合は0を表示
         let safeValue = Number(targetValue);
         if (!Number.isFinite(safeValue) || safeValue === null || safeValue === undefined) safeValue = 0;
+        // NaNの場合は必ず0または0.0で表示
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toFixed(1) : '0.0';
+            targetElement.textContent = (safeValue !== null && safeValue !== undefined && !isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
+            if (targetElement.textContent === 'NaN' || targetElement.textContent === 'NaN.0') targetElement.textContent = '0.0';
         } else {
-            targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toLocaleString() : '0';
+            targetElement.textContent = (safeValue !== null && safeValue !== undefined && !isNaN(safeValue)) ? safeValue.toLocaleString() : '0';
+            if (targetElement.textContent === 'NaN') targetElement.textContent = '0';
         }
     }
 
