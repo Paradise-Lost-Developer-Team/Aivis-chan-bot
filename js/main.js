@@ -77,20 +77,22 @@ class AivisWebsite {
 
     // カウンターアニメーション
     setupCounters() {
-        const counters = document.querySelectorAll('.stat-number');
-        
+        // ヒーロー統計IDは除外
+        const heroStatIds = ['total-servers', 'total-users', 'total-uptime', 'total-vc-users'];
+        const counters = Array.from(document.querySelectorAll('.stat-number')).filter(counter => !heroStatIds.includes(counter.id));
+
         const animateCounter = (counter) => {
             const target = parseInt(counter.getAttribute('data-count'));
             const increment = target / 100;
             let current = 0;
-            
+
             const timer = setInterval(() => {
                 current += increment;
                 if (current >= target) {
                     current = target;
                     clearInterval(timer);
                 }
-                
+
                 if (target === 99.9) {
                     counter.textContent = current.toFixed(1);
                 } else {
