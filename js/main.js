@@ -655,8 +655,6 @@ class AivisWebsite {
         });
         
         console.log('✅ Detailed bot status update completed');
-        
-        // ステータスインジケーターの更新
         const statusIndicator = document.querySelector('.status-indicator');
         if (statusIndicator) {
             const onlineCount = allStats.onlineBots;
