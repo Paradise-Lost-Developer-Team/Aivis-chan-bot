@@ -916,6 +916,75 @@ section {
     overflow: hidden;
 }
 
+/* プライバシーポリシー・利用規約ページ用 */
+.legal-container {
+    max-width: 900px;
+    margin: 40px auto 0 auto;
+    background: rgba(30,34,44,0.98);
+    border-radius: 16px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+    padding: 40px 32px;
+}
+.legal-content {
+    font-size: 1.15rem;
+    line-height: 2.1;
+    color: #f3f6fa;
+    letter-spacing: 0.01em;
+}
+.legal-content h1, .legal-content h2, .legal-content h3 {
+    color: #fff;
+    margin-top: 2.2em;
+    margin-bottom: 1em;
+    font-weight: 700;
+}
+.legal-content h1 {
+    font-size: 2.1rem;
+    text-align: center;
+    margin-top: 0;
+}
+.legal-content h2 {
+    font-size: 1.4rem;
+    border-bottom: 1px solid #5865F2;
+    padding-bottom: 0.3em;
+}
+.legal-content h3 {
+    font-size: 1.15rem;
+    color: #00D4AA;
+}
+.legal-content ul {
+    margin-left: 1.5em;
+    margin-bottom: 1.5em;
+}
+.legal-content li {
+    margin-bottom: 0.5em;
+}
+.effective-date {
+    color: #FFD93D;
+    font-size: 1rem;
+    margin-bottom: 2em;
+    text-align: right;
+}
+.contact-info {
+    background: rgba(88,101,242,0.08);
+    border-radius: 8px;
+    padding: 1em 1.5em;
+    margin-top: 2em;
+}
+@media (max-width: 600px) {
+    .legal-container {
+        padding: 16px 4vw;
+    }
+    .legal-content h1 {
+        font-size: 1.3rem;
+    }
+    .legal-content h2 {
+        font-size: 1.1rem;
+    }
+    .legal-content {
+        font-size: 1rem;
+    }
+}
+
 /* レスポンシブ広告コンテナ */
 .ad-container {
     margin: var(--spacing-2xl) auto;
