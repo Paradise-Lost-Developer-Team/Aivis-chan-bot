@@ -14,7 +14,7 @@
 
 const express = require('express');
 const cors = require('cors');
-const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
+const fs = require('fs'); // 追加
 require('dotenv').config();
 
 const app = express();
@@ -22,20 +22,9 @@ const PORT = process.env.PORT || 3001;
 const MOCK_MODE = process.env.MOCK_MODE === 'true' || !process.env.BOT_TOKEN_1; // トークンが設定されていない場合はモックモード
 
 // CORS設定
-const allowedOrigins = process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',')
-    : [
-        'http://localhost:3000', 
-        'https://aivis-chan-bot.com',
-        'https://www.aivis-chan-bot.com',
-        'https://status.aivis-chan-bot.com'
-    ];
-
 app.use(cors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: ['http://localhost:3000', 'https://aivis-chan-bot.com'],
+    credentials: true
 }));
 
 app.use(express.json());
@@ -50,155 +39,119 @@ const BOT_TOKENS = {
     '1365633656173101086': process.env.BOT_TOKEN_6
 };
 
-// Discord.js クライアントの管理
-const botClients = new Map();
-const clientStartTimes = new Map();
-
-// モックデータ生成関数
-async function generateMockData(botId) {
-    const mockStats = {
-        '1333819940645638154': { servers: 245, users: 12500, uptime: 99.8, vcUsers: 12 },
-        '1334732369831268352': { servers: 189, users: 9800, uptime: 99.5, vcUsers: 8 },
-        '1334734681656262770': { servers: 156, users: 8200, uptime: 99.2, vcUsers: 6 },
-        '1365633502988472352': { servers: 134, users: 7100, uptime: 99.7, vcUsers: 5 },
-        '1365633586123771934': { servers: 112, users: 5900, uptime: 99.4, vcUsers: 4 },
-        '1365633656173101086': { servers: 98, users: 4800, uptime: 99.1, vcUsers: 3 }
-    };
-    
-    const stats = mockStats[botId] || { servers: 50, users: 2500, uptime: 98.5, vcUsers: 2 };
-    
-    return {
-        success: true,
-        online: true,
-        server_count: stats.servers,
-        user_count: stats.users,
-        vc_count: stats.vcUsers,
-        uptime: stats.uptime,
-        last_updated: new Date().toISOString(),
-        source: 'mock_fallback'
-    };
-}
-
-// Discord Bot クライアントを初期化
-async function initializeBotClients() {
-    for (const [botId, token] of Object.entries(BOT_TOKENS)) {
-        if (!token || MOCK_MODE) continue;
-        
-        try {
-            const client = new Client({
-                intents: [
-                    GatewayIntentBits.Guilds
-                    // VC統計取得にはGuildVoiceStatesが必要だが、権限不足の場合は基本機能のみ使用
-                ]
-            });
-
-            client.once('ready', () => {
-                console.log(`✅ Bot ${botId} is ready!`);
-                clientStartTimes.set(botId, Date.now());
-                
-                // Botのアクティビティを定期更新
-                startStatusUpdates(client, botId);
-            });
-
-            client.on('error', (error) => {
-                console.error(`❌ Bot ${botId} connection error:`, error.message);
-            });
-
-            await client.login(token);
-            botClients.set(botId, client);
-            
-        } catch (error) {
-            console.error(`❌ Failed to initialize bot ${botId}:`, error.message);
-        }
-    }
-}
-
-// Botのステータス更新機能
-function startStatusUpdates(client, botId) {
-    setInterval(async () => {
-        try {
-            const joinServerCount = client.guilds.cache.size;
-            client.user?.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
-            await new Promise(resolve => setTimeout(resolve, 15000));
-            
-            const joinVCCount = client.voice?.adapters?.size || 0;
-            client.user?.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
-            await new Promise(resolve => setTimeout(resolve, 15000));
-        } catch (error) {
-            console.error(`ステータス更新エラー (Bot ${botId}):`, error);
-        }
-    }, 30000);
-}
-
 // Discord API統計情報取得関数
 async function fetchBotStatistics(botId, token) {
     try {
         // モックモード（トークンが設定されていない場合）
         if (MOCK_MODE || !token) {
             console.log(`📋 Mock mode: Generating fake stats for bot ${botId}`);
-            return await generateMockData(botId);
+            
+            // 実際のAPIの代わりにモックデータを返す
+            await new Promise(resolve => setTimeout(resolve, 500)); // APIの遅延を模擬
+            
+            const mockStats = {
+                '1333819940645638154': { servers: 245, users: 12500, uptime: 99.8 },
+                '1334732369831268352': { servers: 189, users: 9800, uptime: 99.5 },
+                '1334734681656262770': { servers: 156, users: 8200, uptime: 99.2 },
+                '1365633502988472352': { servers: 134, users: 7100, uptime: 99.7 },
+                '1365633586123771934': { servers: 112, users: 5900, uptime: 99.4 },
+                '1365633656173101086': { servers: 98, users: 4800, uptime: 99.1 }
+            };
+            
+            const stats = mockStats[botId] || { servers: 50, users: 2500, uptime: 98.5 };
+            
+            return {
+                success: true,
+                online: true,
+                server_count: Number(stats.servers) || 0,
+                user_count: Number(stats.users) || 0,
+                uptime: Number(stats.uptime) || 0,
+                vc_count: 0,
+                last_updated: new Date().toISOString(),
+                mock: true
+            };
         }
 
-        // Discord.js クライアントを使用した実際の統計取得
-        const client = botClients.get(botId);
-        if (!client) {
-            console.log(`⚠️ Bot ${botId} client not initialized, using mock data`);
-            return await generateMockData(botId);
-        }
-        
-        if (!client.isReady()) {
-            console.log(`⚠️ Bot ${botId} not ready yet, using mock data`);
-            return await generateMockData(botId);
+        if (!token) {
+            throw new Error('Bot token not configured');
         }
 
-        console.log(`📊 Getting real stats for bot ${botId}`);
-
-        // サーバー数（ギルド数）
-        const serverCount = client.guilds.cache.size;
-
-        // ユーザー数を計算（メンバー数の概算）
-        let totalUsers = 0;
-        client.guilds.cache.forEach(guild => {
-            totalUsers += guild.memberCount || 0;
+        // Discord APIからアプリケーション情報を取得
+        const appResponse = await fetch(`https://discord.com/api/v10/oauth2/applications/@me`, {
+            headers: {
+                'Authorization': `Bot ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
 
-        // VC接続数を取得（voice adaptersを使用）
-        let vcCount = 0;
-        try {
-            // client.voice.adapters.sizeでVC接続数を取得
-            vcCount = client.voice?.adapters?.size || 0;
-            console.log(`🎤 Bot ${botId} VC connections: ${vcCount}`);
-        } catch (error) {
-            console.warn(`Warning: Could not get VC count for bot ${botId}:`, error.message);
-            vcCount = Math.floor(Math.random() * 20) + 5; // フォールバック値（少し減らす）
+        if (!appResponse.ok) {
+            throw new Error(`Discord API error: ${appResponse.status}`);
         }
 
-        // アップタイム計算
-        const startTime = clientStartTimes.get(botId);
-        let uptime = 99.5; // デフォルト値
-        if (startTime) {
-            const currentTime = Date.now();
-            const uptimeMs = currentTime - startTime;
-            uptime = Math.min(99.9, 95 + (uptimeMs / (1000 * 60 * 60 * 24)) * 2); // 1日ごとに2%向上
+        // Botが参加しているギルド一覧を取得
+        const guildsResponse = await fetch('https://discord.com/api/v10/users/@me/guilds', {
+            headers: {
+                'Authorization': `Bot ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!guildsResponse.ok) {
+            throw new Error(`Discord Guilds API error: ${guildsResponse.status}`);
         }
+
+        const guilds = await guildsResponse.json();
+        const serverCount = guilds.length;
+
+        // 概算ユーザー数を計算（各ギルドのメンバー数を取得）
+        let totalUsers = 0;
+        const guildPromises = guilds.slice(0, 50).map(async (guild) => {
+            try {
+                const guildResponse = await fetch(`https://discord.com/api/v10/guilds/${guild.id}?with_counts=true`, {
+                    headers: {
+                        'Authorization': `Bot ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (guildResponse.ok) {
+                    const guildData = await guildResponse.json();
+                    return guildData.approximate_member_count || 0;
+                }
+                return 0;
+            } catch (error) {
+                console.warn(`Failed to get guild ${guild.id} member count:`, error);
+                return 0;
+            }
+        });
+
+        const memberCounts = await Promise.all(guildPromises);
+        totalUsers = memberCounts.reduce((sum, count) => sum + count, 0);
+
+        // アップタイム計算（簡易版）
+        const uptime = 99.0 + Math.random() * 1.0; // 実際は起動時間ベースで計算
 
         return {
             success: true,
             online: true,
-            server_count: serverCount,
-            user_count: totalUsers,
-            vc_count: vcCount,
-            uptime: Math.round(uptime * 10) / 10,
-            last_updated: new Date().toISOString(),
-            source: 'discord_api'
+            server_count: Number(serverCount) || 0,
+            user_count: Number(totalUsers) || 0,
+            uptime: Number(uptime) || 0,
+            vc_count: 0,
+            last_updated: new Date().toISOString()
         };
 
     } catch (error) {
-        console.error(`Error fetching stats for bot ${botId}:`, error.message);
-        
-        // エラー時はモックデータを返す
-        console.log(`Using fallback mock data for bot ${botId}`);
-        return await generateMockData(botId);
+        console.error(`Error fetching stats for bot ${botId}:`, error);
+        return {
+            success: false,
+            online: false,
+            server_count: 0,
+            user_count: 0,
+            vc_count: 0,
+            uptime: 0,
+            error: error.message
+        };
     }
 }
 
@@ -231,25 +184,66 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
 });
 
 // API エンドポイント: 全Bot統計情報を取得
+// --- 5秒キャッシュ用変数 ---
+let cachedStats = null;
+let cachedStatsTimestamp = 0;
+const CACHE_DURATION_MS = 5000;
+
 app.get('/api/bot-stats', async (req, res) => {
     console.log('📊 Fetching stats for all bots');
-    
+    const now = Date.now();
+    if (cachedStats && (now - cachedStatsTimestamp < CACHE_DURATION_MS)) {
+        console.log('🗄️ Returning cached stats');
+        return res.json(cachedStats);
+    }
     try {
-        const statsPromises = Object.entries(BOT_TOKENS).map(async ([botId, token]) => {
-            const stats = await fetchBotStatistics(botId, token);
-            return {
-                bot_id: botId,
-                ...stats
-            };
+        const statsPromises = Object.entries(BOT_TOKENS).map(([botId, token]) => {
+            return fetchBotStatistics(botId, token)
+                .then(stats => ({ bot_id: botId, ...stats }))
+                .catch(error => {
+                    console.error(`Error for bot ${botId}:`, error);
+                    return {
+                        bot_id: botId,
+                        success: false,
+                        online: false,
+                        server_count: 0,
+                        user_count: 0,
+                        vc_count: 0,
+                        uptime: 0,
+                        error: error.message || String(error)
+                    };
+                });
         });
 
-        const allStats = await Promise.all(statsPromises);
-        res.json({
+        let allStats = await Promise.all(statsPromises);
+        // ダミー番号（mockStatsに存在しないID）を除外
+        const validBotIds = [
+            '1333819940645638154',
+            '1334732369831268352',
+            '1334734681656262770',
+            '1365633502988472352',
+            '1365633586123771934',
+            '1365633656173101086'
+        ];
+        allStats = allStats.filter(stat => validBotIds.includes(stat.bot_id));
+        const responseJson = {
             bots: allStats,
             total_bots: allStats.length,
             online_bots: allStats.filter(bot => bot.online).length,
             timestamp: new Date().toISOString()
-        });
+　        };
+
+        // public-bot-status.jsonとして保存
+        try {
+            fs.writeFileSync('public-bot-status.json', JSON.stringify(responseJson, null, 2), 'utf8');
+            console.log('💾 public-bot-status.json saved');
+        } catch (err) {
+            console.warn('⚠️ Failed to save public-bot-status.json:', err);
+        }
+
+        cachedStats = responseJson;
+        cachedStatsTimestamp = now;
+        res.json(responseJson);
     } catch (error) {
         console.error('API error for all bots:', error);
         res.status(500).json({
@@ -269,17 +263,13 @@ app.get('/health', (req, res) => {
 });
 
 // サーバー起動
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
     console.log(`🤖 Discord Bot Stats API Server running on port ${PORT}`);
     console.log(`📊 Configured bots: ${Object.keys(BOT_TOKENS).length}`);
     console.log(`🌐 Health check: http://localhost:${PORT}/health`);
-    
     if (MOCK_MODE) {
         console.log(`🎭 Running in MOCK MODE - no real Discord API calls`);
         console.log(`💡 To use real API: Set BOT_TOKEN_1, BOT_TOKEN_2, etc. in .env file`);
-    } else {
-        console.log(`🔌 Initializing Discord bot clients...`);
-        await initializeBotClients();
     }
 });
 
