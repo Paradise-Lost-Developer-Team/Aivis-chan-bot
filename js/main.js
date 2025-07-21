@@ -830,6 +830,13 @@ class AivisWebsite {
             targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
             if (targetElement.textContent === 'NaN') targetElement.textContent = '0';
         }
+        // デバッグ出力
+        console.log(`[DEBUG] animateHeroStat`, {
+            elementId,
+            targetValue,
+            safeValue,
+            textContent: targetElement.textContent
+        });
     }
 
     // アニメーション機能は不要なので空実装
