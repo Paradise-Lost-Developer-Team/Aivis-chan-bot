@@ -479,27 +479,7 @@ class AivisWebsite {
             this._latestBotApiResponse = apiData;
             console.log('📊 API data received:', apiData);
 
-            // APIレスポンス取得直後にヒーロー統計を即時更新
-            let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0, onlineBots = 0;
-            apiData.bots.forEach((botData) => {
-                const isOnline = botData.success && botData.online;
-                const serverCount = Number.isFinite(Number(botData.server_count)) ? Number(botData.server_count) : 0;
-                const userCount = Number.isFinite(Number(botData.user_count)) ? Number(botData.user_count) : 0;
-                const vcCount = Number.isFinite(Number(botData.vc_count)) ? Number(botData.vc_count) : 0;
-                const uptime = Number.isFinite(Number(botData.uptime)) ? Number(botData.uptime) : 0;
-                if (isOnline) {
-                    servers += serverCount;
-                    users += userCount;
-                    vcUsers += vcCount;
-                    uptimeSum += uptime;
-                    onlineBots++;
-                }
-            });
-            const avgUptime = onlineBots > 0 ? uptimeSum / onlineBots : 0;
-            this.animateHeroStat('total-servers', servers);
-            this.animateHeroStat('total-users', users);
-            this.animateHeroStat('total-vc-users', vcUsers);
-            this.animateHeroStat('total-uptime', avgUptime);
+            // ...ヒーロー統計の即時更新は行わず、統計値の保存のみ...
 
             // 全Bot統計を計算
             const allStats = {
