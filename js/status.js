@@ -2,7 +2,7 @@
 
 class StatusMonitor {
     constructor() {
-        this.updateInterval = 30000; // 30秒ごとに更新
+        this.updateInterval = 120000; // 2分ごとに更新
         this.debugMode = false;
         this.init();
     }
@@ -264,17 +264,26 @@ class StatusMonitor {
             await this.updateResponseTimes();
         } catch (error) {
             console.error('統計情報の更新エラー:', error);
+            // 失敗時は全てエラー表示
+            this.updateStatElement('guild-count', 'エラー');
+            this.updateStatElement('user-count', 'エラー');
+            this.updateStatElement('voice-channels', 'エラー');
+            this.updateStatElement('messages-today', 'エラー');
         }
     }
 
     // 統計要素の更新
     updateStatElement(elementId, value) {
         const element = document.getElementById(elementId);
+        let safeValue = value;
+        // NaN/undefined/null/空文字は「0」または「エラー」に
+        if (safeValue === undefined || safeValue === null || safeValue === '' || (typeof safeValue === 'number' && !Number.isFinite(safeValue)) || (typeof safeValue === 'string' && safeValue === 'NaN')) {
+            safeValue = '0';
+        }
         if (element) {
-            // アニメーション効果
             element.style.transform = 'scale(1.1)';
             setTimeout(() => {
-                element.textContent = value;
+                element.textContent = safeValue;
                 element.style.transform = 'scale(1)';
             }, 200);
         }
