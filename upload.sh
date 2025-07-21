@@ -60,7 +60,7 @@ else
 fi
 
 # サブディレクトリのindex.htmlもコピー
-for dir in faq docs privacy terms contact; do
+for dir in faq docs privacy terms contact blog; do
     if [[ -f "$dir/index.html" ]]; then
         sudo mkdir -p "${SERVER_PATH}/$dir"
         sudo cp "$dir/index.html" "${SERVER_PATH}/$dir/index.html"
