@@ -762,10 +762,10 @@ class AivisWebsite {
                 if (!Number.isFinite(u)) u = 0;
                 if (!Number.isFinite(v)) v = 0;
                 if (!Number.isFinite(up)) up = 0;
-                servers += s;
-                users += u;
-                vcUsers += v;
-                uptimeSum += up;
+                servers += Math.floor(s);
+                users += Math.floor(u);
+                vcUsers += Math.floor(v);
+                uptimeSum += Math.floor(up);
             });
             // 数値型のまま渡す
             this.animateHeroStat('total-servers', servers);
@@ -805,11 +805,8 @@ class AivisWebsite {
         // NaNや異常値の場合は0を表示
         let safeValue = Number(targetValue);
         if (!Number.isFinite(safeValue) || safeValue === null || safeValue === undefined) safeValue = 0;
-        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toFixed(1) : '0.0';
-        } else {
-            targetElement.textContent = Number.isFinite(safeValue) ? safeValue.toLocaleString() : '0';
-        }
+        // すべて整数で表示
+        targetElement.textContent = Number.isFinite(safeValue) ? Math.floor(safeValue).toLocaleString() : '0';
     }
 
     // アニメーション機能は不要なので空実装
