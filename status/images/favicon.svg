@@ -1,0 +1,8 @@
+<!-- ファビコン用のSVG（16x16サイズ） -->
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="8" cy="8" r="7" fill="#3498db"/>
+  <circle cx="8" cy="8" r="5" fill="#2ecc71"/>
+  <circle cx="6" cy="6" r="1" fill="#ffffff"/>
+  <circle cx="10" cy="6" r="1" fill="#ffffff"/>
+  <path d="M6 10 Q8 11 10 10" stroke="#ffffff" stroke-width="1" fill="none" stroke-linecap="round"/>
+</svg>
