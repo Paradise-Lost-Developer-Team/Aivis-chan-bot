@@ -2,7 +2,7 @@
 // サーバーステータス表示用スクリプト
 
 // APIエンドポイント（必要に応じて変更）
-const API_URL = "https://aivis-chan-bot.com/api/status";
+const API_URL = "https://discord.com/api/v10/gateway";
 
 function formatDate(dateStr) {
     const d = new Date(dateStr);
