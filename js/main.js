@@ -790,13 +790,6 @@ class AivisWebsite {
         }
         const now = Date.now();
         const cooldownMs = 300; // 300msクールダウン
-        const lastUpdate = this._heroStatCooldowns[elementId] || 0;
-        if (now - lastUpdate < cooldownMs) {
-            // クールダウン中は更新しない
-            return;
-        }
-        this._heroStatCooldowns[elementId] = now;
-
         let targetElement = document.getElementById(elementId)
             || document.querySelector(`[data-api="${elementId}"]`)
             || document.querySelector(`.${elementId}`);
@@ -813,21 +806,34 @@ class AivisWebsite {
         }
         safeValue = Number(safeValue);
 
-        // 現在の表示値と同じ場合は何もしない
+        // 現在の表示値取得
         let currentValue;
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
             let text = targetElement.textContent;
             if (text === undefined || text === null || text === '' || text === 'NaN') text = '0';
             currentValue = parseFloat(text);
             if (!Number.isFinite(currentValue)) currentValue = 0;
+            // 値が同じなら何もしない
             if (currentValue === safeValue) return;
-            targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
         } else {
             let text = targetElement.textContent;
             if (text === undefined || text === null || text === '' || text === 'NaN') text = '0';
             currentValue = parseInt((text || '0').replace(/,/g, ''));
             if (!Number.isFinite(currentValue)) currentValue = 0;
             if (currentValue === Math.round(safeValue)) return;
+        }
+        // クールダウン判定（値が変わった時のみリセット）
+        const lastUpdate = this._heroStatCooldowns[elementId] || 0;
+        if (now - lastUpdate < cooldownMs) {
+            // クールダウン中は更新しない
+            return;
+        }
+        this._heroStatCooldowns[elementId] = now;
+
+        // 表示値を更新
+        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
+        } else {
             targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
         }
     }
