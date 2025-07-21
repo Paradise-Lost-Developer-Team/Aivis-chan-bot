@@ -766,13 +766,13 @@ class AivisWebsite {
             uptime = Number.isFinite(uptime) ? uptime : 0;
             this.animateHeroStat('total-servers', servers);
             this.animateHeroStat('total-users', users);
-            this.animateHeroStat('total-uptime', uptime.toFixed(1));
+            this.animateHeroStat('total-uptime', uptime);
             this.animateHeroStat('total-vc-users', vcUsers);
             console.log('📈 Hero stats updated (from botStatuses):', {
                 servers,
                 users,
                 vcUsers,
-                uptime: uptime.toFixed(1)
+                uptime: Number.isFinite(uptime) ? uptime.toFixed(1) : 0
             });
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
@@ -786,7 +786,6 @@ class AivisWebsite {
 
     // 統計数値を即座に表示（アニメーションなし）
     animateHeroStat(elementId, targetValue) {
-        const numericValue = parseFloat(targetValue);
         let targetElement = document.getElementById(elementId);
         if (!targetElement) {
             targetElement = document.querySelector(`[data-api="${elementId}"]`);
@@ -797,7 +796,7 @@ class AivisWebsite {
         if (!targetElement) return;
 
         // NaNや異常値の場合は0を表示
-        let safeValue = (!isNaN(numericValue) && numericValue !== null && numericValue !== undefined) ? numericValue : 0;
+        let safeValue = Number.isFinite(Number(targetValue)) ? Number(targetValue) : 0;
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
             targetElement.textContent = safeValue.toFixed(1);
         } else {
