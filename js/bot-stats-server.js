@@ -185,12 +185,22 @@ app.get('/api/bot-stats', async (req, res) => {
     console.log('📊 Fetching stats for all bots');
     
     try {
-        const statsPromises = Object.entries(BOT_TOKENS).map(async ([botId, token]) => {
-            const stats = await fetchBotStatistics(botId, token);
-            return {
-                bot_id: botId,
-                ...stats
-            };
+        const statsPromises = Object.entries(BOT_TOKENS).map(([botId, token]) => {
+            return fetchBotStatistics(botId, token)
+                .then(stats => ({ bot_id: botId, ...stats }))
+                .catch(error => {
+                    console.error(`Error for bot ${botId}:`, error);
+                    return {
+                        bot_id: botId,
+                        success: false,
+                        online: false,
+                        server_count: 0,
+                        user_count: 0,
+                        vc_count: 0,
+                        uptime: 0,
+                        error: error.message || String(error)
+                    };
+                });
         });
 
         const allStats = await Promise.all(statsPromises);
