@@ -198,7 +198,7 @@ section {
 
 /* グラデーションテキスト */
 .gradient-text {
-    background: linear-gradient(90deg, #5865F2 0%, #00C3FF 100%);
+    background: linear-gradient(90deg, #FFFFFF 0%, #00D4AA 60%, #5865F2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -206,7 +206,7 @@ section {
     font-weight: 700;
     filter: none !important;
     opacity: 1 !important;
-    text-shadow: 0 2px 8px rgba(88,101,242,0.12);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.35), 0 0 2px #00D4AA;
 }
 
 /* ヘッダー */
