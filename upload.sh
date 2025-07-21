@@ -87,6 +87,7 @@ if [[ -f ".env" ]]; then
     fi
 else
     print_warning ".envファイルがありません"
+fi
 
 # CSS/JSファイル
 print_info "CSS/JSファイルのコピー..."
