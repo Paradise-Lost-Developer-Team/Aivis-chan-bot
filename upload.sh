@@ -156,12 +156,22 @@ else
         exit 1
     fi
 fi
-
 # ファイル権限設定
 print_info "ファイル権限を設定..."
+
+# 所有者とグループをwwwrun:wwwに再帰的に変更
 sudo chown -R wwwrun:www "${SERVER_PATH}"
-sudo find "${SERVER_PATH}" -type f -exec chmod 644 {} \;
+
+# ディレクトリは755、ファイルは644に設定（.envは600にする）
 sudo find "${SERVER_PATH}" -type d -exec chmod 755 {} \;
+sudo find "${SERVER_PATH}" -type f -exec chmod 644 {} \;
+
+# .envファイルがあれば600にする
+if [[ -f "${SERVER_PATH}/.env" ]]; then
+    sudo chmod 600 "${SERVER_PATH}/.env"
+    print_info ".envファイルの権限を600に設定"
+fi
+
 print_success "ファイル権限設定完了"
 
 # Apache設定のリロード
