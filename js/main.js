@@ -749,25 +749,36 @@ class AivisWebsite {
                 await this.updateMultipleBotStatus();
             }
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
-            // 1台目のみ表示
-            const bot1 = botStatuses[0] || {};
-            let servers = Number(bot1.serverCount);
-            let users = Number(bot1.userCount);
-            let vcUsers = Number(bot1.vcCount);
-            let uptime = Number(bot1.uptime);
-            if (!Number.isFinite(servers)) servers = 0;
-            if (!Number.isFinite(users)) users = 0;
-            if (!Number.isFinite(vcUsers)) vcUsers = 0;
-            if (!Number.isFinite(uptime)) uptime = 0;
-            this.animateHeroStat('total-servers', servers);
-            this.animateHeroStat('total-users', users);
-            this.animateHeroStat('total-uptime', uptime);
-            this.animateHeroStat('total-vc-users', vcUsers);
-            console.log('📈 Hero stats updated (bot1 only):', {
-                servers,
-                users,
-                vcUsers,
-                uptime: Number.isFinite(uptime) ? uptime.toFixed(1) : 0
+            // 6台分の合計値を文字列で表示
+            let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
+            botStatuses.forEach(bot => {
+                let s = Number(bot.serverCount);
+                let u = Number(bot.userCount);
+                let v = Number(bot.vcCount);
+                let up = Number(bot.uptime);
+                if (!Number.isFinite(s)) s = 0;
+                if (!Number.isFinite(u)) u = 0;
+                if (!Number.isFinite(v)) v = 0;
+                if (!Number.isFinite(up)) up = 0;
+                servers += s;
+                users += u;
+                vcUsers += v;
+                uptimeSum += up;
+            });
+            // 文字列化
+            const serversStr = servers.toLocaleString();
+            const usersStr = users.toLocaleString();
+            const vcUsersStr = vcUsers.toLocaleString();
+            const uptimeStr = uptimeSum.toFixed(1);
+            this.animateHeroStat('total-servers', serversStr);
+            this.animateHeroStat('total-users', usersStr);
+            this.animateHeroStat('total-uptime', uptimeStr);
+            this.animateHeroStat('total-vc-users', vcUsersStr);
+            console.log('📈 Hero stats updated (sum, string):', {
+                servers: serversStr,
+                users: usersStr,
+                vcUsers: vcUsersStr,
+                uptime: uptimeStr
             });
         } catch (error) {
             console.error('❌ Error fetching hero stats:', error);
