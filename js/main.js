@@ -797,7 +797,10 @@ class AivisWebsite {
                 targetElement = document.querySelector(`.${elementId}`);
             }
         }
-        if (!targetElement) return;
+        if (!targetElement) {
+            console.warn(`[WARN] HeroStat element not found: ${elementId}`);
+            return;
+        }
 
         // NaNや異常値の場合は0を表示
         let safeValue = Number(targetValue);
