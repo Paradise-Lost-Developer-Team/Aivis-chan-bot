@@ -371,29 +371,31 @@ class AivisWebsite {
 
     updateStatusDisplay(data) {
         console.log('🎯 Updating status display with data:', data);
-        
-        // ヒーローセクションの統計情報を更新
+
         if (data.serverCount !== undefined) {
-            this.animateHeroStat('total-servers', data.serverCount ?? "0");
+            this.animateHeroStat('total-servers', Number(data.serverCount) || 0);
         }
 
         if (data.userCount !== undefined) {
-            this.animateHeroStat('total-users', data.userCount ?? "0");
+            this.animateHeroStat('total-users', Number(data.userCount) || 0);
         }
 
         if (data.vcCount !== undefined) {
-            this.animateHeroStat('total-vc-users', data.vcCount ?? "0");
+            this.animateHeroStat('total-vc-users', Number(data.vcCount) || 0);
         }
 
         if (data.uptime !== undefined) {
-            this.animateHeroStat('total-uptime', data.uptime ?? "0%");
+            const uptimeValue = typeof data.uptime === "string"
+                ? parseFloat(data.uptime.replace("%", ""))
+                : Number(data.uptime);
+            this.animateHeroStat('total-uptime', uptimeValue || 0);
         }
 
-        // ステータスインジケーターの更新
         this.updateStatusIndicator(data.status || 'online');
 
         console.log('📊 Status display updated');
     }
+
 
     animateCounterToValue(element, targetValue) {
         const duration = 1000;
@@ -799,7 +801,7 @@ class AivisWebsite {
     }
 
 
-    // 統計数値を即座に表示（アニメーションなし）
+    // 統計数値をアニメーションで表示
     animateHeroStat(elementId, targetValue) {
         let targetElement = document.getElementById(elementId);
         if (!targetElement) {
@@ -813,35 +815,81 @@ class AivisWebsite {
             return;
         }
 
-        // 型判定と変換を強化
-        let safeValue;
-        if (typeof targetValue === 'string') {
-            safeValue = Number(targetValue);
-        } else {
-            safeValue = targetValue;
-        }
-        if (!Number.isFinite(safeValue) || safeValue === null || safeValue === undefined) safeValue = 0;
+        // 安全な数値変換
+        const numericValue = typeof targetValue === "string"
+            ? parseFloat(targetValue.replace("%", ""))
+            : Number(targetValue);
 
-        // NaNの場合は必ず0または0.0で表示
-        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
-            if (targetElement.textContent === 'NaN' || targetElement.textContent === 'NaN.0') targetElement.textContent = '0.0';
-        } else {
-            targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
-            if (targetElement.textContent === 'NaN') targetElement.textContent = '0';
+        // NaNだったらデフォルト値にする
+        if (isNaN(numericValue)) {
+            console.warn(`[WARN] NaN detected for ${elementId}, fallback to 0`);
+            targetElement.textContent = "0";
+            return;
         }
-        // デバッグ出力
-        console.log(`[DEBUG] animateHeroStat`, {
-            elementId,
-            targetValue,
-            safeValue,
-            textContent: targetElement.textContent
-        });
+
+        // アニメーション処理（例）
+        const duration = 1000;
+        const startValue = 0;
+        const startTime = performance.now();
+
+        const update = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const value = Math.floor(progress * numericValue);
+
+            targetElement.textContent = elementId.includes("uptime")
+                ? `${value}%`
+                : value.toLocaleString();
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        };
+
+        requestAnimationFrame(update);
     }
 
-    // アニメーション機能は不要なので空実装
+    // 指定要素の数値をアニメーションで更新する（汎用版）
     animateElement(element, targetValue, elementId) {
-        // 何もしない
+        if (!element) return;
+        let startValue;
+        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            startValue = parseFloat(element.textContent) || 0;
+        } else {
+            startValue = parseInt(element.textContent.replace(/,/g, '')) || 0;
+        }
+        let endValue = typeof targetValue === 'string' ? Number(targetValue) : targetValue;
+        if (!Number.isFinite(endValue)) endValue = 0;
+
+        const duration = 800;
+        const frameRate = 30;
+        const totalFrames = Math.round(duration / (1000 / frameRate));
+        let frame = 0;
+
+        const animate = () => {
+            frame++;
+            let progress = frame / totalFrames;
+            if (progress > 1) progress = 1;
+            let value = startValue + (endValue - startValue) * progress;
+
+            if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+                element.textContent = (!isNaN(value)) ? value.toFixed(1) : '0.0';
+            } else {
+                element.textContent = (!isNaN(value)) ? Math.round(value).toLocaleString() : '0';
+            }
+
+            if (frame < totalFrames) {
+                requestAnimationFrame(animate);
+            } else {
+                // 最終値で上書き
+                if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+                    element.textContent = (!isNaN(endValue)) ? endValue.toFixed(1) : '0.0';
+                } else {
+                    element.textContent = (!isNaN(endValue)) ? Math.round(endValue).toLocaleString() : '0';
+                }
+            }
+        };
+        animate();
     }
 }
 
