@@ -145,6 +145,7 @@ async function fetchBotStatistics(botId, token) {
             online: false,
             server_count: 0,
             user_count: 0,
+            vc_count: 0,
             uptime: 0,
             error: error.message
         };
