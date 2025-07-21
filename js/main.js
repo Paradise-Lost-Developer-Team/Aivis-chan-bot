@@ -380,11 +380,9 @@ class AivisWebsite {
             return isNaN(num) ? 0 : num;
         };
 
-        // ヒーロー統計の表示更新はupdateHeroStatsのみで行う
-        
+        // ヒーロー統計の表示更新はupdateHeroStatsのみで行う（DOM値の直接更新は絶対にしない）
+        // ここではステータスインジケーターのみ更新
         this.updateStatusIndicator(data.status || 'online');
-
-        // apiData参照を削除（未定義変数の参照を除去）
 
     }
 
@@ -697,8 +695,10 @@ class AivisWebsite {
         this.animateHeroStat('total-vc-users', 0);
         this.animateHeroStat('total-uptime', 0);
         
-        // APIから実際のデータを取得
-        await this.updateHeroStats();
+        // APIから実際のデータを取得（初期化時は1秒遅延）
+        setTimeout(() => {
+            this.updateHeroStats();
+        }, 1000);
         
         // 60秒ごとに統計情報を更新（VC接続数は変動が激しいため）
         setInterval(() => {
@@ -708,20 +708,21 @@ class AivisWebsite {
 
     async updateHeroStats() {
         try {
-            if (!this._latestBotStatuses || !Array.isArray(this._latestBotStatuses)) {
+            // APIレスポンスが未保存・空の場合は必ずAPI取得をawait
+            if (!this._latestBotStatuses || !Array.isArray(this._latestBotStatuses) || this._latestBotStatuses.length === 0) {
                 await this.updateMultipleBotStatus();
             }
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
             console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
 
-
-            if (botStatuses.length === 0) {
-                console.warn("⚠️ botStatuses is empty, setting hero stats to 0");
+            // 取得後も空なら0で補正
+            if (!botStatuses || botStatuses.length === 0) {
+                console.warn("⚠️ botStatuses is empty after API fetch, setting hero stats to 0");
                 this.animateHeroStat('total-servers', 0);
                 this.animateHeroStat('total-users', 0);
                 this.animateHeroStat('total-vc-users', 0);
                 this.animateHeroStat('total-uptime', 0);
-                return; // 空なら0で更新
+                return;
             }
 
             let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
@@ -769,6 +770,7 @@ class AivisWebsite {
                 dispUptime
             });
         } catch (error) {
+            // API取得失敗時も必ず0で補正
             console.error('❌ Error fetching hero stats:', error);
             this.animateHeroStat('total-servers', 0);
             this.animateHeroStat('total-users', 0);
@@ -796,27 +798,27 @@ class AivisWebsite {
             return;
         }
 
-        // 型変換とNaN防止
+        // 型変換とNaN防止（targetValueの補正）
         let safeValue = targetValue;
-        if (safeValue === undefined || safeValue === null || safeValue === '' || (typeof safeValue === 'number' && !Number.isFinite(safeValue)) || (typeof safeValue === 'string' && (safeValue === 'NaN' || isNaN(Number(safeValue))))) {
+        if (safeValue === undefined || safeValue === null || safeValue === '' || (typeof safeValue === 'number' && !Number.isFinite(safeValue)) || (typeof safeValue === 'string' && (safeValue === 'NaN' || isNaN(Number(safeValue)))) ) {
             safeValue = 0;
         }
         safeValue = Number(safeValue);
+        if (!Number.isFinite(safeValue) || isNaN(safeValue)) safeValue = 0;
 
-        // 現在の表示値取得
+        // 現在の表示値取得（textContentの補正）
+        let text = targetElement.textContent;
+        if (text === undefined || text === null || text === '' || text === 'NaN' || isNaN(Number(text))) text = '0';
+
         let currentValue;
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            let text = targetElement.textContent;
-            if (text === undefined || text === null || text === '' || text === 'NaN') text = '0';
             currentValue = parseFloat(text);
-            if (!Number.isFinite(currentValue)) currentValue = 0;
+            if (!Number.isFinite(currentValue) || isNaN(currentValue)) currentValue = 0;
             // 値が同じなら何もしない
             if (currentValue === safeValue) return;
         } else {
-            let text = targetElement.textContent;
-            if (text === undefined || text === null || text === '' || text === 'NaN') text = '0';
-            currentValue = parseInt((text || '0').replace(/,/g, ''));
-            if (!Number.isFinite(currentValue)) currentValue = 0;
+            currentValue = parseInt(text.replace(/,/g, ''));
+            if (!Number.isFinite(currentValue) || isNaN(currentValue)) currentValue = 0;
             if (currentValue === Math.round(safeValue)) return;
         }
         // クールダウン判定（値が変わった時のみリセット）
@@ -827,11 +829,11 @@ class AivisWebsite {
         }
         this._heroStatCooldowns[elementId] = now;
 
-        // 表示値を更新
+        // 表示値を更新（NaN防止）
         if (elementId === 'total-uptime' || elementId.includes('uptime')) {
-            targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
+            targetElement.textContent = (Number.isFinite(safeValue) && !isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
         } else {
-            targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
+            targetElement.textContent = (Number.isFinite(safeValue) && !isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
         }
     }
 }
