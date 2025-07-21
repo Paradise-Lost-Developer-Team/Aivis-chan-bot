@@ -77,32 +77,25 @@ scp -r images/* "${SERVER_USER}@${SERVER_HOST}:${TEMP_PATH}/images/"
 
 Write-Success "一時ディレクトリへのアップロード完了"
 
-Write-Host ""
-Write-Host "📝 Step 2: 以下のコマンドをSSH接続先で実行してください:" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "ssh ${SERVER_USER}@${SERVER_HOST}" -ForegroundColor Green
-Write-Host ""
-Write-Host "サーバーにログイン後、以下を順番に実行:" -ForegroundColor Cyan
-Write-Host "# ファイルを本来の場所にコピー" -ForegroundColor Yellow
-Write-Host "sudo cp -r ${TEMP_PATH}/* ${SERVER_PATH}/" -ForegroundColor White
-Write-Host "sudo chown -R wwwrun:www ${SERVER_PATH}/*" -ForegroundColor White  
-Write-Host "sudo chmod -R 644 ${SERVER_PATH}/*" -ForegroundColor White
-Write-Host "sudo find ${SERVER_PATH} -type d -exec chmod 755 {} \;" -ForegroundColor White
-Write-Host ""
-Write-Host "# Discord API依存関係のインストール" -ForegroundColor Yellow
-Write-Host "cd ${SERVER_PATH}" -ForegroundColor White
-Write-Host "sudo npm install" -ForegroundColor White
-Write-Host ""
-Write-Host "# PM2でDiscord APIサーバーを再起動" -ForegroundColor Yellow
-Write-Host "pm2 delete bot-stats-server 2>/dev/null || echo 'No existing process to delete'" -ForegroundColor White
-Write-Host "pm2 start bot-stats-server.js --name bot-stats-server" -ForegroundColor White
-Write-Host "pm2 save" -ForegroundColor White
-Write-Host "pm2 logs bot-stats-server --lines 20" -ForegroundColor White
-Write-Host ""
-Write-Host "# 一時ファイル削除" -ForegroundColor Yellow
-Write-Host "rm -rf ${TEMP_PATH}" -ForegroundColor White
-Write-Host "exit" -ForegroundColor White
-Write-Host ""
+
+# Step 2: SSHで一括自動化
+Write-Info "Step 2: サーバーで自動デプロイ処理を実行..."
+$sshCommands = @(
+    "sudo cp -r ${TEMP_PATH}/* ${SERVER_PATH}/",
+    "sudo chown -R wwwrun:www ${SERVER_PATH}/*",
+    "sudo chmod -R 644 ${SERVER_PATH}/*",
+    "sudo find ${SERVER_PATH} -type d -exec chmod 755 {} \;",
+    "cd ${SERVER_PATH}",
+    "sudo npm install",
+    "pm2 delete bot-stats-server 2>/dev/null || echo 'No existing process to delete'",
+    "pm2 start bot-stats-server.js --name bot-stats-server",
+    "pm2 save",
+    "pm2 logs bot-stats-server --lines 20",
+    "rm -rf ${TEMP_PATH}"
+)
+$sshScript = $sshCommands -join "; "
+ssh ${SERVER_USER}@${SERVER_HOST} $sshScript
+Write-Success "サーバー側の自動デプロイ完了"
 
 Write-Host "🎯 完了後、以下でアクセス確認:" -ForegroundColor Yellow
 Write-Host "https://aivis-chan-bot.com" -ForegroundColor Green
