@@ -1,5 +1,5 @@
 #!/bin/bash
-# Aivis-chan Bot Website アップロードスクリプト (SCP版)
+# Aivis-chan Bot Website アップロードスクリプト 
 # Apache サーバーへの手動アップロード用
 
 # ローカル公開ディレクトリ（必要に応じて変更）
