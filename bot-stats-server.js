@@ -27,7 +27,8 @@ const allowedOrigins = process.env.CORS_ORIGIN
     : [
         'http://localhost:3000', 
         'https://aivis-chan-bot.com',
-        'https://www.aivis-chan-bot.com'
+        'https://www.aivis-chan-bot.com',
+        'https://status.aivis-chan-bot.com'
     ];
 
 app.use(cors({

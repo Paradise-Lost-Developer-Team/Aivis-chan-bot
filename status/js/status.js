@@ -1,8 +1,8 @@
 // status/js/status.js
 // サーバーステータス表示用スクリプト
 
-// APIエンドポイント（必要に応じて変更）
-const API_URL = "https://discord.com/api/v10/gateway";
+// Discord.jsで取得した値を返す自作API
+const API_URL = "https://status.aivis-chan-bot.com/api/status";
 
 function formatDate(dateStr) {
     const d = new Date(dateStr);
@@ -13,11 +13,11 @@ function updateStatus() {
     fetch(API_URL)
         .then(res => res.json())
         .then(data => {
-            // Bot名やステータスを表示
+            // 自作API: { servers, uptime, online, last_update }
             const botCard = document.querySelector('.bot-detail-card');
             if (!botCard || !data) return;
 
-            // オンライン/オフライン表示
+            // オンライン判定
             const badge = botCard.querySelector('.bot-status-badge');
             if (badge) {
                 if (data.online) {
@@ -37,11 +37,11 @@ function updateStatus() {
 
             // サーバー数
             const serverElem = botCard.querySelector('.stat-item .value');
-            if (serverElem) serverElem.textContent = data.servers || "-";
+            if (serverElem) serverElem.textContent = data.servers ?? "-";
 
             // 稼働率
             const uptimeElem = botCard.querySelectorAll('.stat-item .value')[1];
-            if (uptimeElem) uptimeElem.textContent = (data.uptime ? `${data.uptime}%` : "-");
+            if (uptimeElem) uptimeElem.textContent = (data.uptime !== undefined ? `${data.uptime}%` : "-");
 
             // 最終更新
             const updateElem = botCard.querySelectorAll('.stat-item .value')[2];
