@@ -380,10 +380,7 @@ class AivisWebsite {
             return isNaN(num) ? 0 : num;
         };
 
-        this.animateHeroStat('total-servers', toSafeNumber(data.serverCount));
-        this.animateHeroStat('total-users', toSafeNumber(data.userCount));
-        this.animateHeroStat('total-vc-users', toSafeNumber(data.vcCount));
-        this.animateHeroStat('total-uptime', toSafeNumber(data.uptime)); // 数値のみ渡す（% 表示は animateHeroStat 側で処理）
+        // ヒーロー統計の表示更新はupdateHeroStatsのみで行う
         
         this.updateStatusIndicator(data.status || 'online');
 
@@ -703,10 +700,10 @@ class AivisWebsite {
         // APIから実際のデータを取得
         await this.updateHeroStats();
         
-        // 30秒ごとに統計情報を更新（VC接続数は変動が激しいため）
+        // 60秒ごとに統計情報を更新（VC接続数は変動が激しいため）
         setInterval(() => {
             this.updateHeroStats();
-        }, 30 * 1000);
+        }, 60 * 1000);
     }
 
     async updateHeroStats() {
