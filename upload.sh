@@ -147,7 +147,10 @@ fi
 # pm2の再起動
 print_info "pm2の再起動..."
 if command -v pm2 &> /dev/null; then
-    pm2 restart bot-stats-server
+    pm2 delete bot-stats-server 2>/dev/null || echo 'No existing process to delete'
+    pm2 start bot-stats-server.js --name bot-stats-server
+    pm2 save
+    pm2 logs bot-stats-server --lines 20
     if [[ $? -eq 0 ]]; then
         print_success "pm2 再起動完了"
     else
