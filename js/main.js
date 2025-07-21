@@ -781,11 +781,11 @@ class AivisWebsite {
                 totals.uptime = uptimeSum / totals.onlineBots;
             }
 
-            // ヒーロー統計をアニメーション付きで更新（稼働率→VC接続数の順に）
-            this.animateHeroStat('total-servers', totals.servers);
-            this.animateHeroStat('total-users', totals.users);
-            this.animateHeroStat('total-uptime', totals.uptime.toFixed(1));
-            this.animateHeroStat('total-vc-users', totals.vcUsers);
+            // NaNなら「API取得中...」を表示
+            this.animateHeroStat('total-servers', isNaN(totals.servers) ? 'API取得中...' : totals.servers);
+            this.animateHeroStat('total-users', isNaN(totals.users) ? 'API取得中...' : totals.users);
+            this.animateHeroStat('total-uptime', isNaN(totals.uptime) ? 'API取得中...' : totals.uptime.toFixed(1));
+            this.animateHeroStat('total-vc-users', isNaN(totals.vcUsers) ? 'API取得中...' : totals.vcUsers);
 
             console.log('📈 Hero stats updated:', {
                 servers: totals.servers,
