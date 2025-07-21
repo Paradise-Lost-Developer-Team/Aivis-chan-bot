@@ -75,6 +75,20 @@ for file in manifest.json sw.js; do
     fi
 done
 
+# .envファイルのコピー
+print_info ".envファイルのコピー..."
+if [[ -f ".env" ]]; then
+    sudo cp .env "${SERVER_PATH}/.env"
+    if [[ $? -eq 0 ]]; then
+        print_success ".env コピー完了"
+    else
+        print_error ".env コピー失敗"
+        exit 1
+    fi
+else
+    print_warning ".envファイルがありません"
+done
+
 # CSS/JSファイル
 print_info "CSS/JSファイルのコピー..."
 css_files=( css/*.css )
