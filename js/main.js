@@ -179,7 +179,6 @@ class AivisWebsite {
                     navMenu.classList.remove('active');
                 });
             });
-        }
     }
 
     // Discord Bot招待リンク生成（メインBot用）
@@ -816,36 +815,20 @@ class AivisWebsite {
             return;
         }
 
-        const num = Number(targetValue);
-        if (isNaN(num)) {
-            console.warn(`[WARN] NaN passed to animateHeroStat for ${elementId}, defaulting to 0`);
-            targetElement.textContent = "0";
-            return;
+        // 型変換とNaN防止
+        let safeValue = targetValue;
+        if (safeValue === undefined || safeValue === null || safeValue === '' || (typeof safeValue === 'number' && !Number.isFinite(safeValue)) || (typeof safeValue === 'string' && (safeValue === 'NaN' || isNaN(Number(safeValue))))) {
+            safeValue = 0;
         }
+        safeValue = Number(safeValue);
 
-        const currentDisplayed = targetElement.textContent.replace(/[,％%]/g, "").trim();
-        if (parseInt(currentDisplayed) === Math.floor(num)) {
-            return; // すでに表示中ならアニメーション不要
+        // 表示形式
+        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            targetElement.textContent = (!isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
+        } else {
+            targetElement.textContent = (!isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
         }
-
-        const duration = 800;
-        const startTime = performance.now();
-
-        const update = (currentTime) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const value = Math.floor(progress * num);
-
-            targetElement.textContent = elementId.includes("uptime")
-                ? `${value}%`
-                : value.toLocaleString();
-
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            }
-        };
-
-        requestAnimationFrame(update);
+    }
     }
 }
 
