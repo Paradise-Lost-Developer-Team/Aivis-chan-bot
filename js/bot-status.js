@@ -7,7 +7,7 @@ async function fetchDiscordBotStats(botId) {
         // 開発環境とproduction環境でAPIエンドポイントを切り替え
         const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3001'  // 開発環境
-            : 'https://api.aivis-chan-bot.com';  // 本番環境
+            : window.location.protocol + '//' + window.location.hostname;  // 本番環境（同じドメイン）
             
         const response = await fetch(`${apiBaseUrl}/api/bot-stats/${botId}`, {
             method: 'GET',
@@ -26,6 +26,7 @@ async function fetchDiscordBotStats(botId) {
             online: statsData.online || false,
             serverCount: statsData.server_count || 0,
             userCount: statsData.user_count || 0,
+            vcCount: statsData.vc_count || 0,
             uptime: statsData.uptime || 0,
             lastUpdate: new Date().toISOString()
         };
@@ -37,6 +38,7 @@ async function fetchDiscordBotStats(botId) {
             online: null, // null = 取得中状態
             serverCount: null,
             userCount: null,
+            vcCount: null,
             uptime: null,
             error: error.message
         };
@@ -98,15 +100,17 @@ async function updateBotStatus() {
             
             // 統計値を更新（実際のAPIデータを使用）
             const statValues = card.querySelectorAll('.stat-item .value');
-            if (statValues.length >= 3) {
+            if (statValues.length >= 4) {
                 if (bot.serverCount === null) {
                     statValues[0].textContent = '取得中...';
                     statValues[1].textContent = '取得中...';
                     statValues[2].textContent = '取得中...';
+                    statValues[3].textContent = '取得中...';
                 } else {
                     statValues[0].textContent = bot.serverCount.toLocaleString();
                     statValues[1].textContent = bot.userCount.toLocaleString();
-                    statValues[2].textContent = `${bot.uptime.toFixed(1)}%`;
+                    statValues[2].textContent = bot.vcCount.toLocaleString();
+                    statValues[3].textContent = `${bot.uptime.toFixed(1)}%`;
                 }
             }
             

@@ -485,7 +485,7 @@ class AivisWebsite {
             // 実際のAPIから統計情報を取得
             const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:3001'
-                : 'https://aivis-chan-bot.com';
+                : window.location.protocol + '//' + window.location.hostname;  // 同じドメインを使用
                 
             const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
                 method: 'GET',
@@ -739,7 +739,7 @@ class AivisWebsite {
             // 開発環境とproduction環境でAPIエンドポイントを切り替え
             const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:3001'  // 開発環境
-                : 'https://aivis-chan-bot.com';  // 本番環境（プロキシ経由）
+                : window.location.protocol + '//' + window.location.hostname;  // 本番環境（同じドメイン）
                 
             const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
                 method: 'GET',
@@ -809,46 +809,37 @@ class AivisWebsite {
     // 統計数値をアニメーション付きで更新
     animateHeroStat(elementId, targetValue) {
         console.log(`🎯 Animating ${elementId} to ${targetValue}`);
-        
-        // 数値のバリデーション
         const numericValue = parseFloat(targetValue);
-        if (isNaN(numericValue)) {
-            console.error(`❌ Invalid target value for ${elementId}: ${targetValue}`);
-            return;
-        }
-        
         const element = document.getElementById(elementId);
-        
-        if (!element) {
+
+        // 要素が見つからない場合のフォールバック
+        let targetElement = element;
+        if (!targetElement) {
             console.error(`❌ Element with ID '${elementId}' not found`);
-            // IDが見つからない場合、data-api属性で検索
-            const fallbackElement = document.querySelector(`[data-api="${elementId}"]`);
-            if (fallbackElement) {
-                console.log(`✅ Found fallback element with data-api="${elementId}"`);
-                this.animateElement(fallbackElement, numericValue, elementId);
-            } else {
-                // どちらも見つからない場合、class名で検索
-                const classElement = document.querySelector(`.${elementId}`);
-                if (classElement) {
-                    console.log(`✅ Found element by class: ${elementId}`);
-                    this.animateElement(classElement, numericValue, elementId);
-                }
+            targetElement = document.querySelector(`[data-api="${elementId}"]`);
+            if (!targetElement) {
+                targetElement = document.querySelector(`.${elementId}`);
             }
+        }
+        if (!targetElement) return;
+
+        // NaNや異常値の場合は「API取得中...」
+        if (isNaN(numericValue) || numericValue === null || numericValue === undefined) {
+            targetElement.textContent = 'API取得中...';
             return;
         }
 
-        this.animateElement(element, numericValue, elementId);
+        this.animateElement(targetElement, numericValue, elementId);
     }
 
     animateElement(element, targetValue, elementId) {
-        // 数値の安全性チェック
         const safeTargetValue = parseFloat(targetValue);
-        if (isNaN(safeTargetValue)) {
+        if (isNaN(safeTargetValue) || safeTargetValue === null || safeTargetValue === undefined) {
             console.error(`❌ Invalid target value in animateElement: ${targetValue}`);
-            element.textContent = '0';
+            element.textContent = 'API取得中...';
             return;
         }
-        
+
         const startValue = 0;
         const duration = 2000; // 2秒
         const startTime = Date.now();
@@ -856,12 +847,9 @@ class AivisWebsite {
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
-            // easeOutQuart イージング関数
             const easedProgress = 1 - Math.pow(1 - progress, 4);
-            
             const currentValue = startValue + (safeTargetValue - startValue) * easedProgress;
-            
+
             if (elementId === 'total-uptime' || elementId.includes('uptime')) {
                 element.textContent = currentValue.toFixed(1);
             } else {
@@ -871,7 +859,6 @@ class AivisWebsite {
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                // アニメーション完了時に最終値を確実に設定
                 if (elementId === 'total-uptime' || elementId.includes('uptime')) {
                     element.textContent = safeTargetValue.toFixed(1);
                 } else {
