@@ -207,6 +207,3 @@ echo ""
 # デプロイログの記録
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Deploy completed - Files: ${required_files[*]}, Dirs: images css js" >> deploy.log
 print_info "デプロイログを deploy.log に記録しました"
-# スクリプト終了
-exit 0
-fi
