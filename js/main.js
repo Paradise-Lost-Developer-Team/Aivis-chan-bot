@@ -850,7 +850,7 @@ class AivisWebsite {
 
         requestAnimationFrame(update);
     }
-
+}
 
 // 指定要素の数値をアニメーションで更新する（汎用版）
 function animateElement(element, targetValue, elementId) {
