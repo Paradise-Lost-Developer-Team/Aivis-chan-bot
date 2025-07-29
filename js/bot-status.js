@@ -49,12 +49,12 @@ async function updateBotStatus() {
     console.log('🔄 Fetching real Discord API data...');
     
     const botConfigs = [
-        { name: 'Aivis-chan Bot 1台目', botId: '1333819940645638154' },
-        { name: 'Aivis-chan Bot 2台目', botId: '1334732369831268352' },
-        { name: 'Aivis-chan Bot 3台目', botId: '1334734681656262770' },
-        { name: 'Aivis-chan Bot 4台目', botId: '1365633502988472352' },
-        { name: 'Aivis-chan Bot 5台目', botId: '1365633586123771934' },
-        { name: 'Aivis-chan Bot 6台目', botId: '1365633656173101086' }
+        { name: 'Aivis chan Bot 1台目', botId: '1333819940645638154' },
+        { name: 'Aivis chan Bot 2台目', botId: '1334732369831268352' },
+        { name: 'Aivis chan Bot 3台目', botId: '1334734681656262770' },
+        { name: 'Aivis chan Bot 4台目', botId: '1365633502988472352' },
+        { name: 'Aivis chan Bot 5台目', botId: '1365633586123771934' },
+        { name: 'Aivis chan Bot 6台目', botId: '1365633656173101086' }
     ];
 
     // 実際のAPI呼び出しでBot統計を取得
