@@ -1,0 +1,142 @@
+{
+  "serverId": "1380024906988654695",
+  "serverName": "親しい人",
+  "totalMessages": 51,
+  "totalCharacters": 338,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1380024907458547807",
+      {
+        "channelId": "1380024907458547807",
+        "channelName": "一般",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1380024907458547808",
+      {
+        "channelId": "1380024907458547808",
+        "channelName": "一般",
+        "totalMessages": 50,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          50,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    51,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    51,
+    0,
+    0
+  ],
+  "averageMessageLength": 6.627450980392157,
+  "messageDistribution": [
+    [
+      "2025-06-05",
+      51
+    ]
+  ],
+  "mostActiveUser": "1291737292599197717",
+  "mostActiveChannel": "1380024907458547808"
+}

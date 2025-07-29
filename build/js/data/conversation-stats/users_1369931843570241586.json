@@ -1,0 +1,158 @@
+[
+  [
+    "1147432915739869247",
+    {
+      "userId": "1147432915739869247",
+      "username": "ri_ku006",
+      "totalMessages": 6,
+      "totalCharacters": 79,
+      "totalWords": 6,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-08T07:04:11.601Z",
+      "lastMessageDate": "2025-05-08T07:15:34.273Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "お願いします",
+          1
+        ],
+        [
+          "ファイルでお願いします",
+          1
+        ],
+        [
+          "forgeはlatestですか？recommendedですか？",
+          1
+        ],
+        [
+          "大丈夫です！どうしましょう？",
+          1
+        ],
+        [
+          "明日17時くらいなら",
+          1
+        ],
+        [
+          "お疲れ様です！",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0
+      ],
+      "voiceMinutes": 14.2115,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ],
+  [
+    "1121394385393823746",
+    {
+      "userId": "1121394385393823746",
+      "username": "garu_098",
+      "totalMessages": 4,
+      "totalCharacters": 129,
+      "totalWords": 4,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-08T07:05:54.732Z",
+      "lastMessageDate": "2025-05-08T07:10:20.792Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "https://d.kuku.lu/45xsbdxwf",
+          1
+        ],
+        [
+          "https://files.minecraftforge.net/net/minecraftforge/forge/index_1.12.2.html",
+          1
+        ],
+        [
+          "s1.ssnetwork.io:51656",
+          1
+        ],
+        [
+          "latest",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0
+      ],
+      "voiceMinutes": 14.230883333333333,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]
