@@ -272,7 +272,12 @@ import { Request, Response } from 'express';
 apiApp.get('/api/stats', (req: Request, res: Response) => {
     const serverCount = client.guilds.cache.size;
     const vcCount = client.voice.adapters.size;
-    res.json({ serverCount, vcCount });
+    const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+
+    // 稼働率: ボイスチャンネル接続数 ÷ サーバー数（%表示）
+    const uptimeRate = serverCount > 0 ? Math.round((vcCount / serverCount) * 100) : 0;
+
+    res.json({ serverCount, vcCount, userCount, uptimeRate });
 });
 apiApp.listen(3005, () => {
     console.log('Stats APIサーバーがポート3005で起動しました');
