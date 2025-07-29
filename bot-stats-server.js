@@ -279,13 +279,8 @@ app.listen(PORT, async () => {
     console.log(`📊 Configured bots: ${Object.keys(BOT_TOKENS).length}`);
     console.log(`🌐 Health check: http://localhost:${PORT}/health`);
     
-    if (MOCK_MODE) {
-        console.log(`🎭 Running in MOCK MODE - no real Discord API calls`);
-        console.log(`💡 To use real API: Set BOT_TOKEN_1, BOT_TOKEN_2, etc. in .env file`);
-    } else {
-        console.log(`🔌 Initializing Discord bot clients...`);
-        await initializeBotClients();
-    }
+    // Botクライアントの初期化・起動を無効化
+    console.log('⚠️ Botクライアントの起動は無効化されています。APIサーバーのみ稼働します。');
 });
 
 module.exports = app;
