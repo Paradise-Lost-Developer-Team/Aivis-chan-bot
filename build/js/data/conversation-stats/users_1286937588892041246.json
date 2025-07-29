@@ -1,0 +1,68 @@
+[
+  [
+    "1285961677426262120",
+    {
+      "userId": "1285961677426262120",
+      "username": "tinyddc",
+      "totalMessages": 5,
+      "totalCharacters": 15,
+      "totalWords": 5,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-05-04T10:33:07.951Z",
+      "lastMessageDate": "2025-05-04T10:33:29.680Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "低遅延",
+          1
+        ],
+        [
+          "すごいかも？",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 1.2532333333333334,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

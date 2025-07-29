@@ -1,0 +1,154 @@
+{
+  "serverId": "1239897457832230985",
+  "serverName": "試験用サーバー",
+  "totalMessages": 10,
+  "totalCharacters": 481,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1239897457832230990",
+      {
+        "channelId": "1239897457832230990",
+        "channelName": "┣",
+        "totalMessages": 3,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ]
+      }
+    ],
+    [
+      "1360923232332546058",
+      {
+        "channelId": "1360923232332546058",
+        "channelName": "ai-test",
+        "totalMessages": 7,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          6
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    3,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    9
+  ],
+  "averageMessageLength": 48.1,
+  "messageDistribution": [
+    [
+      "2025-05-10",
+      3
+    ],
+    [
+      "2025-05-16",
+      1
+    ],
+    [
+      "2025-05-17",
+      4
+    ],
+    [
+      "2025-05-24",
+      2
+    ]
+  ],
+  "mostActiveUser": "1366024161931296899",
+  "mostActiveChannel": "1360923232332546058"
+}

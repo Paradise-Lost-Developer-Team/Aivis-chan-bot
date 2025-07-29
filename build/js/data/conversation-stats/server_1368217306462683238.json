@@ -1,0 +1,98 @@
+{
+  "serverId": "1368217306462683238",
+  "serverName": "白狐鯖（新規",
+  "totalMessages": 5,
+  "totalCharacters": 36,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1368223935044518019",
+      {
+        "channelId": "1368223935044518019",
+        "channelName": "┣maincraft-t",
+        "totalMessages": 5,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5
+  ],
+  "averageMessageLength": 7.2,
+  "messageDistribution": [
+    [
+      "2025-05-03",
+      5
+    ]
+  ],
+  "mostActiveUser": "966626583735574598",
+  "mostActiveChannel": "1368223935044518019"
+}
