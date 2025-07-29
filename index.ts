@@ -14,6 +14,7 @@ import { ConversationTrackingService } from "./utils/conversation-tracking-servi
 import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
 import { initSentry } from './utils/sentry';
 import { VoiceConnection, VoiceConnectionStatus, entersState } from "@discordjs/voice";
+import express from 'express';
 
 // アプリケーション起動の最初にSentryを初期化
 initSentry();
@@ -264,6 +265,19 @@ client.on("guildCreate", async (guild) => {
         console.error('Error sending welcome embed:', error);
     }
 });
+
+// --- サーバー数・VC数API ---
+const apiApp = express();
+import { Request, Response } from 'express';
+apiApp.get('/api/stats', (req: Request, res: Response) => {
+    const serverCount = client.guilds.cache.size;
+    const vcCount = client.voice.adapters.size;
+    res.json({ serverCount, vcCount });
+});
+apiApp.listen(3001, () => {
+    console.log('Stats APIサーバーがポート3001で起動しました');
+});
+// --- ここまで追加 ---
 
 client.login(TOKEN).catch(error => {
     console.error("ログインエラー:", error);
