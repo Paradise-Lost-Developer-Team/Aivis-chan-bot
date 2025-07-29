@@ -138,71 +138,27 @@ function startStatusUpdates(client, botId) {
 // Discord API統計情報取得関数
 async function fetchBotStatistics(botId, token) {
     try {
-        // モックモード（トークンが設定されていない場合）
-        if (MOCK_MODE || !token) {
-            console.log(`📋 Mock mode: Generating fake stats for bot ${botId}`);
-            return await generateMockData(botId);
-        }
-
-        // Discord.js クライアントを使用した実際の統計取得
-        const client = botClients.get(botId);
-        if (!client) {
-            console.log(`⚠️ Bot ${botId} client not initialized, using mock data`);
-            return await generateMockData(botId);
-        }
-        
-        if (!client.isReady()) {
-            console.log(`⚠️ Bot ${botId} not ready yet, using mock data`);
-            return await generateMockData(botId);
-        }
-
-        console.log(`📊 Getting real stats for bot ${botId}`);
-
-        // サーバー数（ギルド数）
-        const serverCount = client.guilds.cache.size;
-
-        // ユーザー数を計算（メンバー数の概算）
-        let totalUsers = 0;
-        client.guilds.cache.forEach(guild => {
-            totalUsers += guild.memberCount || 0;
-        });
-
-        // VC接続数を取得（voice adaptersを使用）
-        let vcCount = 0;
-        try {
-            // client.voice.adapters.sizeでVC接続数を取得
-            vcCount = client.voice?.adapters?.size || 0;
-            console.log(`🎤 Bot ${botId} VC connections: ${vcCount}`);
-        } catch (error) {
-            console.warn(`Warning: Could not get VC count for bot ${botId}:`, error.message);
-            vcCount = Math.floor(Math.random() * 20) + 5; // フォールバック値（少し減らす）
-        }
-
-        // アップタイム計算
-        const startTime = clientStartTimes.get(botId);
-        let uptime = 99.5; // デフォルト値
-        if (startTime) {
-            const currentTime = Date.now();
-            const uptimeMs = currentTime - startTime;
-            uptime = Math.min(99.9, 95 + (uptimeMs / (1000 * 60 * 60 * 24)) * 2); // 1日ごとに2%向上
-        }
+        // サーバー数・VC数をAPIサーバー側で取得（Bot非起動設計のためモック値）
+        let joinServerCount = 0;
+        let joinVCCount = 0;
+        // モックデータから取得
+        const mockStats = await generateMockData(botId);
+        joinServerCount = mockStats.server_count;
+        joinVCCount = mockStats.vc_count;
 
         return {
             success: true,
             online: true,
-            server_count: serverCount,
-            user_count: totalUsers,
-            vc_count: vcCount,
-            uptime: Math.round(uptime * 10) / 10,
+            server_count: joinServerCount,
+            user_count: mockStats.user_count,
+            vc_count: joinVCCount,
+            uptime: mockStats.uptime,
             last_updated: new Date().toISOString(),
-            source: 'discord_api'
+            source: 'api_server_mock'
         };
-
     } catch (error) {
         console.error(`Error fetching stats for bot ${botId}:`, error.message);
-        
         // エラー時はモックデータを返す
-        console.log(`Using fallback mock data for bot ${botId}`);
         return await generateMockData(botId);
     }
 }
