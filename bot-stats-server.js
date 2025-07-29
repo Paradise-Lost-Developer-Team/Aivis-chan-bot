@@ -139,10 +139,7 @@ function startStatusUpdates(client, botId) {
 // Discord API統計情報取得関数
 async function fetchBotStatistics(botId) {
     try {
-        // モックデータのみ返す
-        // 実データ取得: 各BotのAPIエンドポイントから情報を取得
         const axios = require('axios');
-        // Bot IDとAPIエンドポイントの対応表（必要に応じてPORTやURLを調整）
         const botApiMap = {
             '1333819940645638154': 'http://localhost:3002/api/stats',
             '1334732369831268352': 'http://localhost:3003/api/stats',
@@ -151,41 +148,34 @@ async function fetchBotStatistics(botId) {
             '1365633586123771934': 'http://localhost:3006/api/stats',
             '1365633656173101086': 'http://localhost:3007/api/stats'
         };
-
-        const bots = await Promise.all(Object.entries(botApiMap).map(async ([botId, apiUrl]) => {
-            try {
-                const res = await axios.get(apiUrl, { timeout: 3000 });
-                const data = res.data;
-                return {
-                    bot_id: botId,
-                    success: true,
-                    online: true,
-                    server_count: data.serverCount || 0,
-                    user_count: data.userCount || 0,
-                    vc_count: data.vcCount || 0,
-                    uptime: data.uptime || 0
-                };
-            } catch (err) {
-                return {
-                    bot_id: botId,
-                    success: false,
-                    online: false,
-                    server_count: 0,
-                    user_count: 0,
-                    vc_count: 0,
-                    uptime: 0,
-                    error: err.message
-                };
-            }
-        }));
-
-        const onlineBots = bots.filter(bot => bot.online).length;
-        return {
-            bots,
-            total_bots: bots.length,
-            online_bots: onlineBots,
-            timestamp: new Date().toISOString()
-        };
+        const apiUrl = botApiMap[botId];
+        if (!apiUrl) {
+            return await generateMockData(botId);
+        }
+        try {
+            const res = await axios.get(apiUrl, { timeout: 3000 });
+            const data = res.data;
+            return {
+                bot_id: botId,
+                success: true,
+                online: true,
+                server_count: data.serverCount || 0,
+                user_count: data.userCount || 0,
+                vc_count: data.vcCount || 0,
+                uptime: data.uptime || 0
+            };
+        } catch (err) {
+            return {
+                bot_id: botId,
+                success: false,
+                online: false,
+                server_count: 0,
+                user_count: 0,
+                vc_count: 0,
+                uptime: 0,
+                error: err.message
+            };
+        }
     } catch (error) {
         console.error(`Error fetching stats for bot ${botId}:`, error.message);
         return await generateMockData(botId);
