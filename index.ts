@@ -274,8 +274,8 @@ apiApp.get('/api/stats', (req: Request, res: Response) => {
     const vcCount = client.voice.adapters.size;
     res.json({ serverCount, vcCount });
 });
-apiApp.listen(3002, () => {
-    console.log('Stats APIサーバーがポート3002で起動しました');
+apiApp.listen(3003, () => {
+    console.log('Stats APIサーバーがポート3003で起動しました');
 });
 // --- ここまで追加 ---
 
