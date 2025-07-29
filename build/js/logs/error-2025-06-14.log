@@ -1,0 +1,27 @@
+<<<<<<< HEAD
+[2025-06-14T05-45-16.066Z] [unhandledRejection] Cannot perform IP discovery - socket closed
+Error: Cannot perform IP discovery - socket closed
+    at Socket.<anonymous> (C:\Users\AZ-hima\2台目-Aivis-Chan-Bot\node_modules\@discordjs\voice\dist\index.js:373:46)
+    at Object.onceWrapper (node:events:632:28)
+    at Socket.emit (node:events:530:35)
+    at socketCloseNT (node:dgram:808:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+[2025-06-14T07-55-17.461Z] [uncaughtException] getaddrinfo ENOTFOUND japan197.discord.media
+Error: getaddrinfo ENOTFOUND japan197.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+[2025-06-14T07-55-23.940Z] [uncaughtException] 
+AggregateError [ETIMEDOUT]: 
+    at internalConnectMultiple (node:net:1139:18)
+    at afterConnectMultiple (node:net:1712:7)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+=======
+[2025-06-14T07-55-10.226Z] [uncaughtException] getaddrinfo ENOTFOUND japan11038.discord.media
+Error: getaddrinfo ENOTFOUND japan11038.discord.media
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)
+    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+
+>>>>>>> origin

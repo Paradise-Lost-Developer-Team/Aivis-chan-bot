@@ -1,0 +1,96 @@
+[
+  [
+    "1107210702105620510",
+    {
+      "userId": "1107210702105620510",
+      "username": "subaru2012",
+      "totalMessages": 2,
+      "totalCharacters": 223,
+      "totalWords": 11,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-09T00:01:10.611Z",
+      "lastMessageDate": "2025-07-09T06:21:04.306Z",
+      "mentionsGiven": 1,
+      "mentionsReceived": 1,
+      "wordFrequency": [
+        [
+          "【第四弾が公開されていました‼️】",
+          1
+        ],
+        [
+          "中津川さんにufo見れる場所案内してもらったら",
+          1
+        ],
+        [
+          "やっぱりufo来て、しかます！",
+          1
+        ],
+        [
+          "https://youtu.be/4amwfkdbm-k?si=njmtn9yluxosqyf6",
+          1
+        ],
+        [
+          "暑中お見舞い｜中津川",
+          1
+        ],
+        [
+          "subaru",
+          1
+        ],
+        [
+          "nakatsugawa",
+          1
+        ],
+        [
+          "<@1107210702105620510>",
+          1
+        ],
+        [
+          "https://note.com/subaru2012/n/nc552e8d6f810?sub_rt=share_pw",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

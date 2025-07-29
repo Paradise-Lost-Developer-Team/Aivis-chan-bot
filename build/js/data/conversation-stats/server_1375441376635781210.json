@@ -1,0 +1,190 @@
+{
+  "serverId": "1375441376635781210",
+  "serverName": "ENDOU TAKETO コミュニティサーバー",
+  "totalMessages": 8,
+  "totalCharacters": 135,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1375441378255048907",
+      {
+        "channelId": "1375441378255048907",
+        "channelName": "🔰｜はじめに読んでね",
+        "totalMessages": 4,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          4,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1379245238689730611",
+      {
+        "channelId": "1379245238689730611",
+        "channelName": "📩｜お問い合わせ",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1382253304351821844",
+      {
+        "channelId": "1382253304351821844",
+        "channelName": "📋｜フレンド申請",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    6,
+    0,
+    2,
+    0,
+    0
+  ],
+  "averageMessageLength": 16.875,
+  "messageDistribution": [
+    [
+      "2025-06-03",
+      6
+    ],
+    [
+      "2025-06-12",
+      2
+    ]
+  ],
+  "mostActiveUser": "1355006234289377380",
+  "mostActiveChannel": "1375441378255048907"
+}

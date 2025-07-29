@@ -1,0 +1,64 @@
+[
+  [
+    "386884999670005773",
+    {
+      "userId": "386884999670005773",
+      "username": "kyarakon.",
+      "totalMessages": 1,
+      "totalCharacters": 58,
+      "totalWords": 1,
+      "totalEmojis": 0,
+      "firstMessageDate": "2025-07-08T13:44:30.786Z",
+      "lastMessageDate": "2025-07-08T13:44:30.635Z",
+      "mentionsGiven": 0,
+      "mentionsReceived": 0,
+      "wordFrequency": [
+        [
+          "https://youtube.com/shorts/keboe3gxn_4?si=t51htw6cn6_yfk54",
+          1
+        ]
+      ],
+      "emojiFrequency": [],
+      "hourlyActivity": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "weekdayActivity": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "voiceMinutes": 0,
+      "responseTime": 0,
+      "reactionCount": 0,
+      "reactionGiven": 0,
+      "commandUsage": []
+    }
+  ]
+]

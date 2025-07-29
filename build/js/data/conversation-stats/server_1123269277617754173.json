@@ -1,0 +1,142 @@
+{
+  "serverId": "1123269277617754173",
+  "serverName": "世界の超常現象探求サークル",
+  "totalMessages": 2,
+  "totalCharacters": 223,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1123278819554496612",
+      {
+        "channelId": "1123278819554496612",
+        "channelName": "ufo-and-uap",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "1124845994903867516",
+      {
+        "channelId": "1124845994903867516",
+        "channelName": "alternative-twitter",
+        "totalMessages": 1,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0
+  ],
+  "averageMessageLength": 111.5,
+  "messageDistribution": [
+    [
+      "2025-07-09",
+      2
+    ]
+  ],
+  "mostActiveUser": "1107210702105620510",
+  "mostActiveChannel": "1123278819554496612"
+}

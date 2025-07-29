@@ -1,0 +1,150 @@
+{
+  "serverId": "1310469854402314250",
+  "serverName": "Japan Mineraft Mods",
+  "totalMessages": 11,
+  "totalCharacters": 332,
+  "activeUsers": 0,
+  "userStats": {},
+  "channelStats": [
+    [
+      "1310469854423158900",
+      {
+        "channelId": "1310469854423158900",
+        "channelName": "🚪ようこそ",
+        "totalMessages": 2,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "1390904370027040790",
+      {
+        "channelId": "1390904370027040790",
+        "channelName": "curios APIで追加されるアクセサリースロットの編集方法がわからない",
+        "totalMessages": 9,
+        "messageByUsers": {},
+        "hourlyActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "weekdayActivity": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          9
+        ]
+      }
+    ]
+  ],
+  "hourlyActivity": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    7,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "weekdayActivity": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    10
+  ],
+  "averageMessageLength": 30.181818181818183,
+  "messageDistribution": [
+    [
+      "2025-07-04",
+      1
+    ],
+    [
+      "2025-07-05",
+      9
+    ],
+    [
+      "2025-07-09",
+      1
+    ]
+  ],
+  "mostActiveUser": "809627147333140531",
+  "mostActiveChannel": "1390904370027040790"
+}
