@@ -140,7 +140,7 @@ function startStatusUpdates(client, botId) {
 async function fetchBotStatistics(botId) {
     try {
         // Bot本体APIから詳細ステータスを取得
-        const apiUrl = `http://localhost:3001/api/stats/${botId}`;
+        const apiUrl = `http://localhost:5000/status/${botId}`;
         const response = await axios.get(apiUrl, { timeout: 3000 });
         const data = response.data;
 
