@@ -113,17 +113,22 @@ async function initializeBotClients() {
     }
 }
 
-// Botのステータス更新機能
+// Botのステータス更新機能（Bot本体から取得するように変更）
 function startStatusUpdates(client, botId) {
     setInterval(async () => {
         try {
-            const joinServerCount = client.guilds.cache.size;
-            client.user?.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
-            await new Promise(resolve => setTimeout(resolve, 15000));
-            
-            const joinVCCount = client.voice?.adapters?.size || 0;
-            client.user?.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
-            await new Promise(resolve => setTimeout(resolve, 15000));
+            // サーバー数（ギルド数）をBot本体から取得
+            const joinServerCount = await client.guilds.fetch().then(guilds => guilds.size);
+
+            // VC接続数をBot本体から取得
+            let joinVCCount = 0;
+            if (client.guilds.cache.size > 0) {
+                joinVCCount = client.guilds.cache.reduce((acc, guild) => {
+                    return acc + guild.channels.cache.filter(
+                        ch => ch.type === 2 && ch.members.size > 0 // type 2: GUILD_VOICE
+                    ).reduce((sum, ch) => sum + ch.members.size, 0);
+                }, 0);
+            }
         } catch (error) {
             console.error(`ステータス更新エラー (Bot ${botId}):`, error);
         }
