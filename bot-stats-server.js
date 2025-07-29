@@ -13,6 +13,7 @@
  */
 
 const express = require('express');
+const axios = require('axios');
 const cors = require('cors');
 const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
 require('dotenv').config();
@@ -136,28 +137,25 @@ function startStatusUpdates(client, botId) {
 }
 
 // Discord API統計情報取得関数
-async function fetchBotStatistics(botId, token) {
+async function fetchBotStatistics(botId) {
     try {
-        // サーバー数・VC数をAPIサーバー側で取得（Bot非起動設計のためモック値）
-        let joinServerCount = 0;
-        let joinVCCount = 0;
-        // モックデータから取得
-        const mockStats = await generateMockData(botId);
-        joinServerCount = mockStats.server_count;
-        joinVCCount = mockStats.vc_count;
+        // Bot本体APIから詳細ステータスを取得
+        const apiUrl = `http://localhost:3001/api/stats/${botId}`;
+        const response = await axios.get(apiUrl, { timeout: 3000 });
+        const data = response.data;
 
         return {
             success: true,
-            online: true,
-            server_count: joinServerCount,
-            user_count: mockStats.user_count,
-            vc_count: joinVCCount,
-            uptime: mockStats.uptime,
-            last_updated: new Date().toISOString(),
-            source: 'api_server_mock'
+            online: data.online ?? true,
+            server_count: data.server_count ?? 0,
+            user_count: data.user_count ?? 0,
+            vc_count: data.vc_count ?? 0,
+            uptime: data.uptime ?? 99.9,
+            last_updated: data.last_updated ?? new Date().toISOString(),
+            source: 'bot_main_api'
         };
     } catch (error) {
-        console.error(`Error fetching stats for bot ${botId}:`, error.message);
+        console.error(`Error fetching stats for bot ${botId} from bot main API:`, error.message);
         // エラー時はモックデータを返す
         return await generateMockData(botId);
     }
