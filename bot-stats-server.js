@@ -81,6 +81,7 @@ async function generateMockData(botId) {
 }
 
 // Discord Bot クライアントを初期化
+// Discord Bot クライアントを初期化
 async function initializeBotClients() {
     for (const [botId, token] of Object.entries(BOT_TOKENS)) {
         if (!token || MOCK_MODE) continue;
@@ -88,17 +89,26 @@ async function initializeBotClients() {
         try {
             const client = new Client({
                 intents: [
-                    GatewayIntentBits.Guilds
-                    // VC統計取得にはGuildVoiceStatesが必要だが、権限不足の場合は基本機能のみ使用
+                    GatewayIntentBits.Guilds,
+                    GatewayIntentBits.GuildVoiceStates
                 ]
             });
-
-            client.once('ready', () => {
-                console.log(`✅ Bot ${botId} is ready!`);
-                clientStartTimes.set(botId, Date.now());
-                
-                // Botのアクティビティを定期更新
-                startStatusUpdates(client, botId);
+            client.once('ready', async () => {
+                try {
+                    // サーバー数（ギルド数）取得
+                    const guilds = await client.guilds.fetch();
+                    let vcCount = 0;
+                    for (const [_, guild] of guilds) {
+                        await guild.channels.fetch();
+                        vcCount += guild.channels.cache
+                            .filter(ch => ch.type === 2) // ChannelType.GuildVoice
+                            .reduce((sum, ch) => sum + ch.members.size, 0);
+                    }
+                    // 必要ならここで stats を保存・利用
+                    console.log(`✅ Bot ${botId} ready. Guilds: ${guilds.size}, VC Users: ${vcCount}`);
+                } catch (err) {
+                    console.error(`❌ Error fetching stats for bot ${botId}:`, err.message);
+                }
             });
 
             client.on('error', (error) => {
@@ -134,6 +144,51 @@ function startStatusUpdates(client, botId) {
             console.error(`ステータス更新エラー (Bot ${botId}):`, error);
         }
     }, 30000);
+}
+
+// Botクライアント初期化後にステータス更新関数を呼び出す
+async function initializeBotClients() {
+    for (const [botId, token] of Object.entries(BOT_TOKENS)) {
+        if (!token || MOCK_MODE) continue;
+        
+        try {
+            const client = new Client({
+                intents: [
+                    GatewayIntentBits.Guilds,
+                    GatewayIntentBits.GuildVoiceStates
+                ]
+            });
+            client.once('ready', async () => {
+                try {
+                    // サーバー数（ギルド数）取得
+                    const guilds = await client.guilds.fetch();
+                    let vcCount = 0;
+                    for (const [_, guild] of guilds) {
+                        await guild.channels.fetch();
+                        vcCount += guild.channels.cache
+                            .filter(ch => ch.type === 2) // ChannelType.GuildVoice
+                            .reduce((sum, ch) => sum + ch.members.size, 0);
+                    }
+                    // 必要ならここで stats を保存・利用
+                    console.log(`✅ Bot ${botId} ready. Guilds: ${guilds.size}, VC Users: ${vcCount}`);
+                    // ステータス更新関数を呼び出す
+                    startStatusUpdates(client, botId);
+                } catch (err) {
+                    console.error(`❌ Error fetching stats for bot ${botId}:`, err.message);
+                }
+            });
+
+            client.on('error', (error) => {
+                console.error(`❌ Bot ${botId} connection error:`, error.message);
+            });
+
+            await client.login(token);
+            botClients.set(botId, client);
+            
+        } catch (error) {
+            console.error(`❌ Failed to initialize bot ${botId}:`, error.message);
+        }
+    }
 }
 
 // Discord API統計情報取得関数
@@ -256,6 +311,8 @@ app.listen(PORT, async () => {
     
     // Botクライアントの初期化・起動を無効化
     console.log('⚠️ Botクライアントの起動は無効化されています。APIサーバーのみ稼働します。');
+    // Botクライアントの初期化関数を呼び出し
+    initializeBotClients();
 });
 
 module.exports = app;
