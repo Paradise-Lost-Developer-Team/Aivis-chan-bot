@@ -53,7 +53,9 @@ const BOT_TOKENS = {
 
 // Discord.js クライアントの管理
 const botClients = new Map();
-const clientStartTimes = new Map();
+// オンライン履歴管理（Botごとに24h分の履歴を保持）
+const ONLINE_HISTORY = new Map(); // botId => [{ start, end }]
+const HISTORY_WINDOW_MS = 1000 * 60 * 60 * 24; // 24時間
 
 // モックデータ生成関数
 async function generateMockData(botId) {
@@ -104,6 +106,10 @@ async function initializeBotClients() {
                             .filter(ch => ch.type === 2) // ChannelType.GuildVoice
                             .reduce((sum, ch) => sum + ch.members.size, 0);
                     }
+                    // オンライン履歴に追加
+                    const now = Date.now();
+                    if (!ONLINE_HISTORY.has(botId)) ONLINE_HISTORY.set(botId, []);
+                    ONLINE_HISTORY.get(botId).push({ start: now, end: null });
                     // 必要ならここで stats を保存・利用
                     console.log(`✅ Bot ${botId} ready. Guilds: ${guilds.size}, VC Users: ${vcCount}`);
                 } catch (err) {
@@ -113,6 +119,12 @@ async function initializeBotClients() {
 
             client.on('error', (error) => {
                 console.error(`❌ Bot ${botId} connection error:`, error.message);
+                // オンライン履歴のendを記録
+                const now = Date.now();
+                const history = ONLINE_HISTORY.get(botId);
+                if (history && history.length > 0 && !history[history.length - 1].end) {
+                    history[history.length - 1].end = now;
+                }
             });
 
             await client.login(token);
@@ -210,15 +222,20 @@ async function fetchBotStatistics(botId) {
         try {
             const res = await axios.get(apiUrl, { timeout: 3000 });
             const data = res.data;
-            // 稼働率（uptime）が0または未定義の場合はBotクライアントのuptimeから計算
+            // 稼働率（uptime）が0または未定義の場合はオンライン履歴から計算
             let uptime = data.uptime;
             if (!uptime || uptime === 0) {
-                const client = botClients.get(botId);
-                if (client && typeof client.uptime === 'number') {
-                    uptime = Math.min(100, (client.uptime / (1000 * 60 * 60 * 24)) * 100).toFixed(1); // 24時間で100%
-                } else {
-                    uptime = 0.0;
+                const now = Date.now();
+                const history = ONLINE_HISTORY.get(botId) || [];
+                // 24時間以内の履歴のみ抽出
+                const windowStart = now - HISTORY_WINDOW_MS;
+                let onlineMs = 0;
+                for (const session of history) {
+                    const s = Math.max(session.start, windowStart);
+                    const e = session.end ? Math.min(session.end, now) : now;
+                    if (e > s) onlineMs += (e - s);
                 }
+                uptime = ((onlineMs / HISTORY_WINDOW_MS) * 100).toFixed(1);
             }
             return {
                 bot_id: botId,
