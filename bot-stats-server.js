@@ -210,6 +210,21 @@ async function fetchBotStatistics(botId) {
         try {
             const res = await axios.get(apiUrl, { timeout: 3000 });
             const data = res.data;
+            // 稼働率（uptime）が0または未定義の場合はBotクライアントの稼働時間から計算
+            let uptime = data.uptime;
+            if (!uptime || uptime === 0) {
+                // 稼働率計算: 起動からの時間を24時間で割ったパーセンテージ（例）
+                const client = botClients.get(botId);
+                const startTime = clientStartTimes.get(botId);
+                if (client && startTime) {
+                    const now = Date.now();
+                    const runningMs = now - startTime;
+                    const runningHours = runningMs / (1000 * 60 * 60);
+                    uptime = Math.min(100, ((runningHours / 24) * 100)).toFixed(1); // 24時間で100%
+                } else {
+                    uptime = 0.0;
+                }
+            }
             return {
                 bot_id: botId,
                 success: true,
@@ -217,7 +232,7 @@ async function fetchBotStatistics(botId) {
                 server_count: data.serverCount || 0,
                 user_count: data.userCount || 0,
                 vc_count: data.vcCount || 0,
-                uptime: data.uptime || 0
+                uptime: uptime
             };
         } catch (err) {
             return {
