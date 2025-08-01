@@ -600,7 +600,7 @@ class AivisWebsite {
                 if (statValues.length >= 3) {
                     statValues[0].textContent = (bot.serverCount || 0).toLocaleString();
                     statValues[1].textContent = (bot.userCount || 0).toLocaleString(); 
-                    statValues[2].textContent = `${(bot.uptime || 0).toFixed(1)}%`;
+                    statValues[2].textContent = (bot.shardCount || 0).toLocaleString();
                     
                     // VC接続数が4番目の統計として存在する場合
                     if (statValues[3]) {

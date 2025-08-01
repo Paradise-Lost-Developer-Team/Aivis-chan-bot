@@ -222,20 +222,13 @@ async function fetchBotStatistics(botId) {
         try {
             const res = await axios.get(apiUrl, { timeout: 3000 });
             const data = res.data;
-            // 稼働率（uptime）が0または未定義の場合はオンライン履歴から計算
-            let uptime = data.uptime;
-            if (!uptime || uptime === 0) {
-                const now = Date.now();
-                const history = ONLINE_HISTORY.get(botId) || [];
-                // 24時間以内の履歴のみ抽出
-                const windowStart = now - HISTORY_WINDOW_MS;
-                let onlineMs = 0;
-                for (const session of history) {
-                    const s = Math.max(session.start, windowStart);
-                    const e = session.end ? Math.min(session.end, now) : now;
-                    if (e > s) onlineMs += (e - s);
-                }
-                uptime = ((onlineMs / HISTORY_WINDOW_MS) * 100).toFixed(1);
+            // シャード数を取得
+            let shard_count = null;
+            const client = botClients.get(botId);
+            if (client && client.shard && typeof client.shard.count === 'number') {
+                shard_count = client.shard.count;
+            } else {
+                shard_count = 1; // 単一シャードの場合は1
             }
             return {
                 bot_id: botId,
@@ -244,7 +237,7 @@ async function fetchBotStatistics(botId) {
                 server_count: data.serverCount || 0,
                 user_count: data.userCount || 0,
                 vc_count: data.vcCount || 0,
-                uptime: uptime,
+                shard_count: shard_count,
             };
         } catch (err) {
             return {
