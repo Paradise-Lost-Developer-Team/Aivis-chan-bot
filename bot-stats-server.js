@@ -228,7 +228,7 @@ async function fetchBotStatistics(botId) {
             if (client && client.shard && typeof client.shard.count === 'number') {
                 shard_count = client.shard.count;
             } else {
-                shard_count = 1; // 単一シャードの場合は1
+                shard_count = null; // シャード数が不明な場合はnullを設定
             }
             return {
                 bot_id: botId,
@@ -248,6 +248,7 @@ async function fetchBotStatistics(botId) {
                 user_count: 0,
                 vc_count: 0,
                 uptime: 0,
+                shard_count: 0,
                 error: err.message
             };
         }
