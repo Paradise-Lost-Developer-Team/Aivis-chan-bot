@@ -10,11 +10,13 @@ import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
+import config from '../data/config.json'; // ← あなたのコードのインポートパスに合わせてください
 
-// TTS設定のデフォルト値（config.jsonに依存しない）
-const TTS_HOST = "127.0.0.1";
-const TTS_PORT = 10101;
-const TTS_BASE_URL = `http://${TTS_HOST}:${TTS_PORT}`;
+export const TTS_BASE_URL = config.speechEngineUrl; // ← config.jsonの値を使うように変更！
+
+// 以下の固定値は不要になるので削除またはコメントアウトします
+// const TTS_HOST = "127.0.0.1";
+// const TTS_PORT = 10101;
 const TTS_TIMEOUT = 15000; // 15秒
 const TTS_MAX_RETRIES = 3;
 const TTS_RETRY_DELAY = 1000;

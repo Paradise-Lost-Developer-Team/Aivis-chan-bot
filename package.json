@@ -17,9 +17,7 @@
     "openai": "^4.97.0",
     "p-queue": "^8.1.0",
     "requests": "^0.3.0",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
+    "uuid": "^11.1.0",
     "@discordjs/builders": "^1.10.1",
     "@discordjs/rest": "^2.4.3",
     "@discordjs/voice": "^0.18.0",
@@ -35,12 +33,12 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
     "prettier": "^3.5.1",
-    "typescript": "^5.7.3"
-  },
-  "optionalDependencies": {
+    "typescript": "^5.7.3",
     "@discordjs/opus": "^0.11.0",
     "opusscript": "^0.0.8"
   },
+  "devDependencies": {},
+  "optionalDependencies": {},
   "name": "aivis-chan-bot",
   "version": "1.0.0",
   "description": "[![Release](https://img.shields.io/github/release/Paladise-Lost-Developer-Team/Aivis-chan-bot?include_prereleases=&sort=semver&color=blue)](https://github.com/Paladise-Lost-Developer-Team/Aivis-chan-bot/releases/)\r [![Discord](https://discord.com/api/guilds/1337303326332813334/widget.png)](https://discord.gg/MPx2ny8HXT)",

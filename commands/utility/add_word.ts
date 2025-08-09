@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, CommandInteractionOptionResolver, MessageFlags } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import { DICTIONARY_FILE } from '../../utils/TTS-Engine';
+import { DICTIONARY_FILE, TTS_BASE_URL } from '../../utils/TTS-Engine';
 
 // 辞書ファイルの読み込み
 function loadDictionaryFile() {
@@ -62,8 +62,8 @@ async function sendToVoicevox(word: string, pronunciation: string, accentType: n
         const encodedPronunciation = encodeURIComponent(pronunciation);
         const encodedWordType = encodeURIComponent(wordType);
 
-        const url = `http://localhost:10101/user_dict_word?surface=${encodedWord}&pronunciation=${encodedPronunciation}&accent_type=${accentType}&word_type=${encodedWordType}`;
-        
+        const url = `${TTS_BASE_URL}/user_dict_word?surface=${encodedWord}&pronunciation=${encodedPronunciation}&accent_type=${accentType}&word_type=${encodedWordType}`;
+
         console.log(`Sending request to: ${url}`);
         const response = await fetch(url, {
             method: 'POST'
