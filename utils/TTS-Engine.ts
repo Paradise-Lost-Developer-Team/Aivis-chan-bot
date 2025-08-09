@@ -1,3 +1,4 @@
+import config from '../data/config.json'; // 本番環境用
 import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState, getVoiceConnection } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
@@ -10,9 +11,9 @@ import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
-import config from '../data/config.json'; // ← あなたのコードのインポートパスに合わせてください
+// config.jsonは使わず、環境変数のみ参照
 
-export const TTS_BASE_URL = config.speechEngineUrl; // ← config.jsonの値を使うように変更！
+export const TTS_BASE_URL = config.speechEngineUrl || process.env.TTS_BASE_URL || "http://127.0.0.1:10101";
 
 // 以下の固定値は不要になるので削除またはコメントアウトします
 // const TTS_HOST = "127.0.0.1";
@@ -578,22 +579,31 @@ function chunkText(text: string): string[] {
 }
 
 
-// 追加：並列チャンク合成＆順次再生
-async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency = 1, userId?: string) {    const limit = getMaxTextLength(guildId);
+// 追加：並列チャンク合成＆順次再生（プロファイリング＆maxConcurrency設定対応）
+async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency?: number, userId?: string) {
+    // maxConcurrencyをconfigまたは環境変数から取得（なければ2）
+    if (typeof maxConcurrency !== 'number' || isNaN(maxConcurrency)) {
+        maxConcurrency = (process.env.TTS_MAX_CONCURRENCY && !isNaN(Number(process.env.TTS_MAX_CONCURRENCY)))
+            ? Number(process.env.TTS_MAX_CONCURRENCY)
+            : 2;
+    }
+    const limit = getMaxTextLength(guildId);
     if (text.length > limit) {
         text = text.slice(0, limit) + "以下省略";
     }
     const chunks = chunkText(text);
     console.log("チャンク分割結果:", chunks); // デバッグ用
 
-    // チャンクごとに合成（メモリ効率化：必要最小限のバッファのみ保持）
     const results: Buffer[] = new Array(chunks.length);
     let currentIndex = 0;
+    const chunkTimes: number[] = new Array(chunks.length);
+    const startAll = Date.now();
     await Promise.all(
-        Array.from({ length: maxConcurrency }, async () => {
+        Array.from({ length: Number(maxConcurrency) }, async () => {
             while (true) {
                 const idx = currentIndex++;
                 if (idx >= chunks.length) break;
+                const t0 = Date.now();
                 try {
                     let audioQuery = await postAudioQuery(chunks[idx], speakerId);
                     if (!audioQuery) {
@@ -602,51 +612,53 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
                     }
                     audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
                     let buf = await postSynthesis(audioQuery, speakerId);
-                    // チャンクの先頭・末尾の無音を除去
                     buf = trimSilence(buf);
                     results[idx] = buf;
-                    // audioQueryを即座に破棄
                     audioQuery = null;
                 } catch (e) {
                     console.error(`チャンク ${idx} 合成失敗`, e);
                     results[idx] = Buffer.alloc(0);
+                } finally {
+                    chunkTimes[idx] = Date.now() - t0;
                 }
             }
         })
     );
-    
-    const nonEmpty = results.filter(buf => buf.length > 100); // 100バイト未満は無音とみなす
+    const totalChunkTime = Date.now() - startAll;
+    console.log(`[TTS計測] チャンク合成全体: ${totalChunkTime}ms, 各チャンク:`, chunkTimes);
+
+    const nonEmpty = results.filter(buf => buf.length > 100);
     if (nonEmpty.length === 0) {
-        // 空のバッファを即座に破棄
         results.length = 0;
         return;
     }
 
     const fullBuffer = Buffer.concat(nonEmpty);
-    // 個別バッファを即座に破棄（メモリ効率化）
     results.length = 0;
     nonEmpty.length = 0;
 
-    // 1回だけFFmpeg変換して再生
+    // 再生・FFmpeg変換の計測
+    const startFfmpeg = Date.now();
     const player = getOrCreateAudioPlayer(guildId);
     const vc = voiceClients[guildId];
     if (vc) vc.subscribe(player);
-    
+
     let ffmpeg: ChildProcess | null = null;
     let resource: AudioResource | null = null;
-    
+
     try {
         const result = await createFFmpegAudioSource(fullBuffer);
         ffmpeg = result.ffmpeg;
         resource = result.resource;
-        
+
         player.play(resource);
         await entersState(player, AudioPlayerStatus.Playing, 5000);
         await entersState(player, AudioPlayerStatus.Idle, 60000);
+        const ffmpegTime = Date.now() - startFfmpeg;
+        console.log(`[TTS計測] FFmpeg変換＋再生: ${ffmpegTime}ms`);
     } catch (err) {
         console.error("再生中にエラー:", err);
     } finally {
-        // リソースの確実な破棄
         if (resource) {
             try {
                 resource.audioPlayer?.stop();
@@ -662,7 +674,6 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
                 console.warn("FFmpegプール解放エラー:", e);
             }
         }
-        // メモリ強制開放（Node.jsガベージコレクション促進）
         if (global.gc) {
             global.gc();
         }
