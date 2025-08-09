@@ -253,8 +253,8 @@ export function AivisAdapter() {
                     pitchScale: 0.0,
                     intonationScale: 1.0,
                     volumeScale: 1.0,
-                    prePhonemeLength: 0.1,
-                    postPhonemeLength: 0.1,
+                    prePhonemeLength: 0.0,
+                    postPhonemeLength: 0.0,
                     outputSamplingRate: 48000,
                     outputStereo: false,
                     kana: ""
@@ -281,9 +281,6 @@ export function AivisAdapter() {
 
 // AivisSpeech Engine から話者情報を取得して speakers.json に保存
 export async function fetchAndSaveSpeakers() {
-    const TTS_HOST = "127.0.0.1";
-    const TTS_PORT = 10101;
-    const TTS_BASE_URL = `http://${TTS_HOST}:${TTS_PORT}`;
     const SPEAKERS_FILE = path.join(getProjectRoot(), "data", "speakers.json");
     try {
         const res = await fetch(`${TTS_BASE_URL}/speakers`, { method: "GET" });
@@ -530,7 +527,6 @@ try {
 }
 
 export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: string) {
-    // 追加：必ず 44.1kHz, モノラルで出力させる
     audioQuery["outputSamplingRate"] = 44100;
     audioQuery["outputStereo"] = false;
 
@@ -551,6 +547,8 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
     audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
     audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
     audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
+    audioQuery["prePhonemeLength"]  = 0.0;
+    audioQuery["postPhonemeLength"] = 0.0;
 
     return audioQuery;
 }
