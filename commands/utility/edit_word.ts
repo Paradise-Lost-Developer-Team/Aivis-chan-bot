@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import { DICTIONARY_FILE } from '../../utils/TTS-Engine';
+import { DICTIONARY_FILE, TTS_BASE_URL } from '../../utils/TTS-Engine';
 
 // 辞書ファイルの読み込み
 function loadDictionaryFile() {
@@ -57,7 +57,7 @@ async function editWordInDictionary(guildId: string, word: string, pronunciation
 // UUID一覧を取得
 async function fetchAllUUIDs() {
     try {
-        const response = await fetch("http://localhost:10101/user_dict");
+        const response = await fetch(`${TTS_BASE_URL}/user_dict`);
         if (!response.ok) {
             throw new Error(`Error fetching user dictionary: ${response.statusText}`);
         }
@@ -125,8 +125,8 @@ module.exports = {
             const encodedPronunciation = encodeURIComponent(newPronunciation);
             const encodedWordType = encodeURIComponent(wordType);
 
-            const url = `http://localhost:10101/user_dict_word/${uuid}?surface=${encodedWord}&pronunciation=${encodedPronunciation}&accent_type=${accentType}&word_type=${encodedWordType}`;
-            
+            const url = `${TTS_BASE_URL}/user_dict_word/${uuid}?surface=${encodedWord}&pronunciation=${encodedPronunciation}&accent_type=${accentType}&word_type=${encodedWordType}`;
+
             try {
                 console.log(`Sending request to: ${url}`);
                 const response = await fetch(url, { method: 'PUT' });
