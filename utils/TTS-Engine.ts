@@ -551,6 +551,8 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
     audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
     audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
     audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
+    audioQuery["prePhonemeLength"]  = 0.0;
+    audioQuery["postPhonemeLength"] = 0.0;
 
     return audioQuery;
 }
