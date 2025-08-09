@@ -253,8 +253,8 @@ export function AivisAdapter() {
                     pitchScale: 0.0,
                     intonationScale: 1.0,
                     volumeScale: 1.0,
-                    prePhonemeLength: 0.1,
-                    postPhonemeLength: 0.1,
+                    prePhonemeLength: 0.0,
+                    postPhonemeLength: 0.0,
                     outputSamplingRate: 48000,
                     outputStereo: false,
                     kana: ""
@@ -527,7 +527,7 @@ try {
 }
 
 export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: string) {
-    audioQuery["outputSamplingRate"] = 16000;
+    audioQuery["outputSamplingRate"] = 44100;
     audioQuery["outputStereo"] = false;
 
     // userIdが指定されていればユーザーごとの設定、なければギルドごとの設定を参照
