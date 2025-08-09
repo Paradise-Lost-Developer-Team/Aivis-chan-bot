@@ -281,9 +281,6 @@ export function AivisAdapter() {
 
 // AivisSpeech Engine から話者情報を取得して speakers.json に保存
 export async function fetchAndSaveSpeakers() {
-    const TTS_HOST = "127.0.0.1";
-    const TTS_PORT = 10101;
-    const TTS_BASE_URL = `http://${TTS_HOST}:${TTS_PORT}`;
     const SPEAKERS_FILE = path.join(getProjectRoot(), "data", "speakers.json");
     try {
         const res = await fetch(`${TTS_BASE_URL}/speakers`, { method: "GET" });
@@ -530,8 +527,7 @@ try {
 }
 
 export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: string) {
-    // 追加：必ず 44.1kHz, モノラルで出力させる
-    audioQuery["outputSamplingRate"] = 44100;
+    audioQuery["outputSamplingRate"] = 16000;
     audioQuery["outputStereo"] = false;
 
     // userIdが指定されていればユーザーごとの設定、なければギルドごとの設定を参照
