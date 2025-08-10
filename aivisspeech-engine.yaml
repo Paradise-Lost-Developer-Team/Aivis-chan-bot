@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivisspeech-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivisspeech-engine
+  template:
+    metadata:
+      labels:
+        app: aivisspeech-engine
+    spec:
+      containers:
+        - name: aivisspeech-engine
+          image: ghcr.io/aivis-project/aivisspeech-engine:nvidia-latest
+          ports:
+            - containerPort: 10101
+          volumeMounts:
+            - name: aivisspeech-data
+              mountPath: /home/user/.local/share/AivisSpeech-Engine-Dev
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+      volumes:
+        - name: aivisspeech-data
+          hostPath:
+            path: /home/user/.local/share/AivisSpeech-Engine
+            type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivisspeech-engine
+spec:
+  type: NodePort
+  ports:
+    - port: 10101
+      targetPort: 10101
+      nodePort: 30101
+  selector:
+    app: aivisspeech-engine
