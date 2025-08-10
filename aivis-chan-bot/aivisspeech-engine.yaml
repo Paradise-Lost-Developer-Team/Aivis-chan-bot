@@ -28,6 +28,10 @@ spec:
           hostPath:
             path: /home/user/.local/share/AivisSpeech-Engine
             type: DirectoryOrCreate
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
 
 ---
 apiVersion: v1
