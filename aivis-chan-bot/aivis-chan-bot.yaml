@@ -26,6 +26,8 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-1st-data
             type: DirectoryOrCreate
+      imagePullSecrets:
+        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -67,6 +69,8 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-2nd-data
             type: DirectoryOrCreate
+      imagePullSecrets:
+        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -108,6 +112,8 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-3rd-data
             type: DirectoryOrCreate
+      imagePullSecrets:
+        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -149,6 +155,8 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-4th-data
             type: DirectoryOrCreate
+      imagePullSecrets:
+        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -190,6 +198,8 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-5th-data
             type: DirectoryOrCreate
+      imagePullSecrets:
+        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -231,6 +241,8 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-6th-data
             type: DirectoryOrCreate
+      imagePullSecrets:
+        - name: alec
 ---
 apiVersion: v1
 kind: Service
