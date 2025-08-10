@@ -1,0 +1,246 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-1st
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-1st
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-1st
+    spec:
+      containers:
+        - name: aivis-chan-bot-1st
+          image: alecjp02/aivis-chan-bot-1:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/data
+      volumes:
+        - name: bot-data
+          hostPath:
+            path: /home/user/aivis-chan-bot-1st-data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-1st
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31001
+  selector:
+    app: aivis-chan-bot-1st
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-2nd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-2nd
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-2nd
+    spec:
+      containers:
+        - name: aivis-chan-bot-2nd
+          image: alecjp02/aivis-chan-bot-2:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/data
+      volumes:
+        - name: bot-data
+          hostPath:
+            path: /home/user/aivis-chan-bot-2nd-data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-2nd
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31002
+  selector:
+    app: aivis-chan-bot-2nd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-3rd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-3rd
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-3rd
+    spec:
+      containers:
+        - name: aivis-chan-bot-3rd
+          image: alecjp02/aivis-chan-bot-3:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/data
+      volumes:
+        - name: bot-data
+          hostPath:
+            path: /home/user/aivis-chan-bot-3rd-data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-3rd
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31003
+  selector:
+    app: aivis-chan-bot-3rd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-4th
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-4th
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-4th
+    spec:
+      containers:
+        - name: aivis-chan-bot-4th
+          image: alecjp02/aivis-chan-bot-4:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/data
+      volumes:
+        - name: bot-data
+          hostPath:
+            path: /home/user/aivis-chan-bot-4th-data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-4th
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31004
+  selector:
+    app: aivis-chan-bot-4th
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-5th
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-5th
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-5th
+    spec:
+      containers:
+        - name: aivis-chan-bot-5th
+          image: alecjp02/aivis-chan-bot-5:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/data
+      volumes:
+        - name: bot-data
+          hostPath:
+            path: /home/user/aivis-chan-bot-5th-data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-5th
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31005
+  selector:
+    app: aivis-chan-bot-5th
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-6th
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-6th
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-6th
+    spec:
+      containers:
+        - name: aivis-chan-bot-6th
+          image: alecjp02/aivis-chan-bot-6:latest
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: bot-data
+              mountPath: /app/data
+      volumes:
+        - name: bot-data
+          hostPath:
+            path: /home/user/aivis-chan-bot-6th-data
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-6th
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31006
+  selector:
+    app: aivis-chan-bot-6th
