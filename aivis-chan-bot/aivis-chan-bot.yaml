@@ -15,26 +15,6 @@ spec:
       labels:
         app: aivis-chan-bot-1st
     spec:
-      initContainers:
-        - name: setup-config
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /usr/src/app/data
-              if [ ! -f /usr/src/app/data/config.json ]; then
-                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
-              fi
-              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
-                echo '{}' > /usr/src/app/data/guild_dictionaries.json
-              fi
-              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
-                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
-              fi
-              chmod -R 755 /usr/src/app/data
-          volumeMounts:
-            - name: bot-data
-              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-1st
           image: alecjp02/aivis-chan-bot-1:latest
@@ -78,8 +58,6 @@ spec:
         - name: config-files
           configMap:
             name: aivis-chan-bot-1st-config
-      imagePullSecrets:
-        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -110,26 +88,6 @@ spec:
       labels:
         app: aivis-chan-bot-2nd
     spec:
-      initContainers:
-        - name: setup-config
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /usr/src/app/data
-              if [ ! -f /usr/src/app/data/config.json ]; then
-                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
-              fi
-              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
-                echo '{}' > /usr/src/app/data/guild_dictionaries.json
-              fi
-              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
-                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
-              fi
-              chmod -R 755 /usr/src/app/data
-          volumeMounts:
-            - name: bot-data
-              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-2nd
           image: alecjp02/aivis-chan-bot-2:latest
@@ -173,8 +131,6 @@ spec:
         - name: config-files
           configMap:
             name: aivis-chan-bot-2nd-config
-      imagePullSecrets:
-        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -205,26 +161,6 @@ spec:
       labels:
         app: aivis-chan-bot-3rd
     spec:
-      initContainers:
-        - name: setup-config
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /usr/src/app/data
-              if [ ! -f /usr/src/app/data/config.json ]; then
-                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
-              fi
-              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
-                echo '{}' > /usr/src/app/data/guild_dictionaries.json
-              fi
-              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
-                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
-              fi
-              chmod -R 755 /usr/src/app/data
-          volumeMounts:
-            - name: bot-data
-              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-3rd
           image: alecjp02/aivis-chan-bot-3:latest
@@ -268,8 +204,6 @@ spec:
         - name: config-files
           configMap:
             name: aivis-chan-bot-3rd-config
-      imagePullSecrets:
-        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -300,26 +234,6 @@ spec:
       labels:
         app: aivis-chan-bot-4th
     spec:
-      initContainers:
-        - name: setup-config
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /usr/src/app/data
-              if [ ! -f /usr/src/app/data/config.json ]; then
-                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
-              fi
-              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
-                echo '{}' > /usr/src/app/data/guild_dictionaries.json
-              fi
-              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
-                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
-              fi
-              chmod -R 755 /usr/src/app/data
-          volumeMounts:
-            - name: bot-data
-              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-4th
           image: alecjp02/aivis-chan-bot-4:latest
@@ -363,8 +277,6 @@ spec:
         - name: config-files
           configMap:
             name: aivis-chan-bot-4th-config
-      imagePullSecrets:
-        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -395,26 +307,6 @@ spec:
       labels:
         app: aivis-chan-bot-5th
     spec:
-      initContainers:
-        - name: setup-config
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /usr/src/app/data
-              if [ ! -f /usr/src/app/data/config.json ]; then
-                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
-              fi
-              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
-                echo '{}' > /usr/src/app/data/guild_dictionaries.json
-              fi
-              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
-                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
-              fi
-              chmod -R 755 /usr/src/app/data
-          volumeMounts:
-            - name: bot-data
-              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-5th
           image: alecjp02/aivis-chan-bot-5:latest
@@ -458,8 +350,6 @@ spec:
         - name: config-files
           configMap:
             name: aivis-chan-bot-5th-config
-      imagePullSecrets:
-        - name: alec
 ---
 apiVersion: v1
 kind: Service
@@ -490,26 +380,6 @@ spec:
       labels:
         app: aivis-chan-bot-6th
     spec:
-      initContainers:
-        - name: setup-config
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /usr/src/app/data
-              if [ ! -f /usr/src/app/data/config.json ]; then
-                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
-              fi
-              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
-                echo '{}' > /usr/src/app/data/guild_dictionaries.json
-              fi
-              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
-                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
-              fi
-              chmod -R 755 /usr/src/app/data
-          volumeMounts:
-            - name: bot-data
-              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-6th
           image: alecjp02/aivis-chan-bot-6:latest
@@ -553,8 +423,6 @@ spec:
         - name: config-files
           configMap:
             name: aivis-chan-bot-6th-config
-      imagePullSecrets:
-        - name: alec
 ---
 apiVersion: v1
 kind: Service
