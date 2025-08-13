@@ -16,6 +16,22 @@ spec:
     spec:
       nodeSelector:
         nvidia.com/gpu.present: "true"
+      initContainers:
+        - name: copy-models
+          image: busybox:latest
+          command: ['/bin/sh', '-c']
+          args:
+            - |
+              mkdir -p /aivisspeech-data/Models
+              mkdir -p /aivisspeech-data/Logs
+              cp -r /models/* /aivisspeech-data/Models/ 2>/dev/null || echo "No models to copy or directory already exists"
+              chown -R 1000:1000 /aivisspeech-data
+              ls -la /aivisspeech-data/Models/
+          volumeMounts:
+            - name: aivisspeech-data
+              mountPath: /aivisspeech-data
+            - name: models-data
+              mountPath: /models
       containers:
         - name: aivisspeech-engine
           image: ghcr.io/aivis-project/aivisspeech-engine:nvidia-latest
@@ -23,7 +39,7 @@ spec:
             - containerPort: 10101
           volumeMounts:
             - name: aivisspeech-data
-              mountPath: /tmp/aivisspeech-data
+              mountPath: /home/user/.local/share/AivisSpeech-Engine-Dev
             - name: models-data
               mountPath: /models
           resources:
@@ -40,12 +56,10 @@ spec:
               value: "all"
             - name: NVIDIA_DRIVER_CAPABILITIES
               value: "compute,utility"
-            - name: AIVISSPEECH_ENGINE_ROOT
-              value: "/tmp/aivisspeech-data"
       volumes:
         - name: aivisspeech-data
           hostPath:
-            path: /home/user/.local/share/AivisSpeech-Engine
+            path: /home/alec/aivisspeech-data
             type: DirectoryOrCreate
         - name: models-data
           hostPath:
