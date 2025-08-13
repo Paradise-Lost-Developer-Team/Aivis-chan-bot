@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: aivis-chan-bot-1st
-          image: alecjp02/aivis-chan-bot-1:latest
+          image: docker.io/alecjp02/aivis-chan-bot-1:latest
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -78,7 +78,7 @@ spec:
     spec:
       containers:
         - name: aivis-chan-bot-2nd
-          image: alecjp02/aivis-chan-bot-2:latest
+          image: docker.io/alecjp02/aivis-chan-bot-2:latest
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -139,7 +139,7 @@ spec:
     spec:
       containers:
         - name: aivis-chan-bot-3rd
-          image: alecjp02/aivis-chan-bot-3:latest
+          image: docker.io/alecjp02/aivis-chan-bot-3:latest
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -200,7 +200,7 @@ spec:
     spec:
       containers:
         - name: aivis-chan-bot-4th
-          image: alecjp02/aivis-chan-bot-4:latest
+          image: docker.io/alecjp02/aivis-chan-bot-4:latest
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -261,7 +261,7 @@ spec:
     spec:
       containers:
         - name: aivis-chan-bot-5th
-          image: alecjp02/aivis-chan-bot-5:latest
+          image: docker.io/alecjp02/aivis-chan-bot-5:latest
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -322,7 +322,7 @@ spec:
     spec:
       containers:
         - name: aivis-chan-bot-6th
-          image: alecjp02/aivis-chan-bot-6:latest
+          image: docker.io/alecjp02/aivis-chan-bot-6:latest
           ports:
             - containerPort: 3000
           volumeMounts:
