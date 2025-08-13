@@ -18,7 +18,6 @@ spec:
       containers:
         - name: aivis-chan-bot-1st
           image: alecjp02/aivis-chan-bot-1:latest
-          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -80,7 +79,6 @@ spec:
       containers:
         - name: aivis-chan-bot-2nd
           image: alecjp02/aivis-chan-bot-2:latest
-          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -142,7 +140,6 @@ spec:
       containers:
         - name: aivis-chan-bot-3rd
           image: alecjp02/aivis-chan-bot-3:latest
-          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -204,7 +201,6 @@ spec:
       containers:
         - name: aivis-chan-bot-4th
           image: alecjp02/aivis-chan-bot-4:latest
-          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -266,7 +262,6 @@ spec:
       containers:
         - name: aivis-chan-bot-5th
           image: alecjp02/aivis-chan-bot-5:latest
-          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -328,7 +323,6 @@ spec:
       containers:
         - name: aivis-chan-bot-6th
           image: alecjp02/aivis-chan-bot-6:latest
-          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           volumeMounts:
