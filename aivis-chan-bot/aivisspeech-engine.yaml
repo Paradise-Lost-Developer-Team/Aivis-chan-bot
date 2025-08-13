@@ -21,7 +21,7 @@ spec:
             - containerPort: 10101
           volumeMounts:
             - name: aivisspeech-data
-              mountPath: /home/user/.local/share/AivisSpeech-Engine-Dev
+              mountPath: /tmp/aivisspeech-data
           resources:
             requests:
               nvidia.com/gpu: 1
@@ -36,6 +36,8 @@ spec:
               value: "all"
             - name: NVIDIA_DRIVER_CAPABILITIES
               value: "compute,utility"
+            - name: AIVISSPEECH_ENGINE_ROOT
+              value: "/tmp/aivisspeech-data"
       volumes:
         - name: aivisspeech-data
           hostPath:
