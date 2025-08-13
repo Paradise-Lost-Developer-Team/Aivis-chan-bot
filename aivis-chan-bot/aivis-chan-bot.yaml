@@ -21,6 +21,16 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: NODE_ENV
+              value: "production"
       volumes:
         - name: bot-data
           hostPath:
@@ -64,6 +74,16 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: NODE_ENV
+              value: "production"
       volumes:
         - name: bot-data
           hostPath:
@@ -107,6 +127,16 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: NODE_ENV
+              value: "production"
       volumes:
         - name: bot-data
           hostPath:
@@ -150,6 +180,16 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: NODE_ENV
+              value: "production"
       volumes:
         - name: bot-data
           hostPath:
@@ -193,6 +233,16 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: NODE_ENV
+              value: "production"
       volumes:
         - name: bot-data
           hostPath:
@@ -236,6 +286,16 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: NODE_ENV
+              value: "production"
       volumes:
         - name: bot-data
           hostPath:
