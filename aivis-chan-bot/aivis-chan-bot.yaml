@@ -26,18 +26,6 @@ spec:
             - name: config-files
               mountPath: /usr/src/app/data/config.json
               subPath: config.json
-            - name: config-files
-              mountPath: /usr/src/app/data/config-secrets.json
-              subPath: config-secrets.json
-            - name: config-files
-              mountPath: /usr/src/app/data/config-safe.json
-              subPath: config-safe.json
-            - name: config-files
-              mountPath: /usr/src/app/data/guild_dictionaries.json
-              subPath: guild_dictionaries.json
-            - name: config-files
-              mountPath: /usr/src/app/data/custom_responses.json
-              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
