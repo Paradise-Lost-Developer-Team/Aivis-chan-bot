@@ -14,10 +14,6 @@ spec:
     spec:
       nodeSelector:
         nvidia.com/gpu.present: "true"
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
         - name: aivisspeech-engine
           image: ghcr.io/aivis-project/aivisspeech-engine:nvidia-latest
@@ -40,10 +36,6 @@ spec:
               value: "all"
             - name: NVIDIA_DRIVER_CAPABILITIES
               value: "compute,utility"
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
-            runAsNonRoot: true
       volumes:
         - name: aivisspeech-data
           hostPath:
