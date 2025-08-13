@@ -12,6 +12,8 @@ spec:
       labels:
         app: aivisspeech-engine
     spec:
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
       containers:
         - name: aivisspeech-engine
           image: ghcr.io/aivis-project/aivisspeech-engine:nvidia-latest
@@ -21,8 +23,19 @@ spec:
             - name: aivisspeech-data
               mountPath: /home/user/.local/share/AivisSpeech-Engine-Dev
           resources:
+            requests:
+              nvidia.com/gpu: 1
+              memory: "2Gi"
+              cpu: "1000m"
             limits:
               nvidia.com/gpu: 1
+              memory: "4Gi"
+              cpu: "2000m"
+          env:
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: "all"
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: "compute,utility"
       volumes:
         - name: aivisspeech-data
           hostPath:
