@@ -24,13 +24,15 @@ spec:
           volumeMounts:
             - name: aivisspeech-data
               mountPath: /tmp/aivisspeech-data
+            - name: models-data
+              mountPath: /models
           resources:
             requests:
-              nvidia.com/gpu: 1
+              nvidia.com/gpu: "1"
               memory: "2Gi"
               cpu: "1000m"
             limits:
-              nvidia.com/gpu: 1
+              nvidia.com/gpu: "1"
               memory: "4Gi"
               cpu: "2000m"
           env:
@@ -45,6 +47,10 @@ spec:
           hostPath:
             path: /home/user/.local/share/AivisSpeech-Engine
             type: DirectoryOrCreate
+        - name: models-data
+          hostPath:
+            path: /home/alec/models
+            type: Directory
       tolerations:
         - key: "nvidia.com/gpu"
           operator: "Exists"
