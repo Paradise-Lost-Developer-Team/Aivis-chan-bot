@@ -77,7 +77,7 @@ spec:
             type: DirectoryOrCreate
         - name: config-files
           configMap:
-            name: aivis-chan-bot-config
+            name: aivis-chan-bot-1st-config
       imagePullSecrets:
         - name: alec
 ---
@@ -172,7 +172,7 @@ spec:
             type: DirectoryOrCreate
         - name: config-files
           configMap:
-            name: aivis-chan-bot-config
+            name: aivis-chan-bot-2nd-config
       imagePullSecrets:
         - name: alec
 ---
@@ -267,7 +267,7 @@ spec:
             type: DirectoryOrCreate
         - name: config-files
           configMap:
-            name: aivis-chan-bot-config
+            name: aivis-chan-bot-3rd-config
       imagePullSecrets:
         - name: alec
 ---
@@ -362,7 +362,7 @@ spec:
             type: DirectoryOrCreate
         - name: config-files
           configMap:
-            name: aivis-chan-bot-config
+            name: aivis-chan-bot-4th-config
       imagePullSecrets:
         - name: alec
 ---
@@ -457,7 +457,7 @@ spec:
             type: DirectoryOrCreate
         - name: config-files
           configMap:
-            name: aivis-chan-bot-config
+            name: aivis-chan-bot-5th-config
       imagePullSecrets:
         - name: alec
 ---
@@ -552,7 +552,7 @@ spec:
             type: DirectoryOrCreate
         - name: config-files
           configMap:
-            name: aivis-chan-bot-config
+            name: aivis-chan-bot-6th-config
       imagePullSecrets:
         - name: alec
 ---

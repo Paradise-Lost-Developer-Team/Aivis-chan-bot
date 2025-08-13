@@ -3,3 +3,4 @@ data/
 node_modules/
 __pycache__/
 .vscode/
+aivis-chan-bot/config-configmap.yaml
