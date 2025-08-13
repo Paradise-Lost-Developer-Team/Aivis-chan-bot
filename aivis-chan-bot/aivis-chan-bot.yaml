@@ -15,6 +15,26 @@ spec:
       labels:
         app: aivis-chan-bot-1st
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /usr/src/app/data
+              if [ ! -f /usr/src/app/data/config.json ]; then
+                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
+              fi
+              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
+                echo '{}' > /usr/src/app/data/guild_dictionaries.json
+              fi
+              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
+                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
+              fi
+              chmod -R 755 /usr/src/app/data
+          volumeMounts:
+            - name: bot-data
+              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-1st
           image: alecjp02/aivis-chan-bot-1:latest
@@ -23,6 +43,21 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
+            - name: config-files
+              mountPath: /usr/src/app/data/config.json
+              subPath: config.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-secrets.json
+              subPath: config-secrets.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-safe.json
+              subPath: config-safe.json
+            - name: config-files
+              mountPath: /usr/src/app/data/guild_dictionaries.json
+              subPath: guild_dictionaries.json
+            - name: config-files
+              mountPath: /usr/src/app/data/custom_responses.json
+              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
@@ -40,6 +75,9 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-1st-data
             type: DirectoryOrCreate
+        - name: config-files
+          configMap:
+            name: aivis-chan-bot-config
       imagePullSecrets:
         - name: alec
 ---
@@ -72,6 +110,26 @@ spec:
       labels:
         app: aivis-chan-bot-2nd
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /usr/src/app/data
+              if [ ! -f /usr/src/app/data/config.json ]; then
+                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
+              fi
+              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
+                echo '{}' > /usr/src/app/data/guild_dictionaries.json
+              fi
+              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
+                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
+              fi
+              chmod -R 755 /usr/src/app/data
+          volumeMounts:
+            - name: bot-data
+              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-2nd
           image: alecjp02/aivis-chan-bot-2:latest
@@ -80,6 +138,21 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
+            - name: config-files
+              mountPath: /usr/src/app/data/config.json
+              subPath: config.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-secrets.json
+              subPath: config-secrets.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-safe.json
+              subPath: config-safe.json
+            - name: config-files
+              mountPath: /usr/src/app/data/guild_dictionaries.json
+              subPath: guild_dictionaries.json
+            - name: config-files
+              mountPath: /usr/src/app/data/custom_responses.json
+              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
@@ -97,6 +170,9 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-2nd-data
             type: DirectoryOrCreate
+        - name: config-files
+          configMap:
+            name: aivis-chan-bot-config
       imagePullSecrets:
         - name: alec
 ---
@@ -129,6 +205,26 @@ spec:
       labels:
         app: aivis-chan-bot-3rd
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /usr/src/app/data
+              if [ ! -f /usr/src/app/data/config.json ]; then
+                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
+              fi
+              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
+                echo '{}' > /usr/src/app/data/guild_dictionaries.json
+              fi
+              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
+                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
+              fi
+              chmod -R 755 /usr/src/app/data
+          volumeMounts:
+            - name: bot-data
+              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-3rd
           image: alecjp02/aivis-chan-bot-3:latest
@@ -137,6 +233,21 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
+            - name: config-files
+              mountPath: /usr/src/app/data/config.json
+              subPath: config.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-secrets.json
+              subPath: config-secrets.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-safe.json
+              subPath: config-safe.json
+            - name: config-files
+              mountPath: /usr/src/app/data/guild_dictionaries.json
+              subPath: guild_dictionaries.json
+            - name: config-files
+              mountPath: /usr/src/app/data/custom_responses.json
+              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
@@ -154,6 +265,9 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-3rd-data
             type: DirectoryOrCreate
+        - name: config-files
+          configMap:
+            name: aivis-chan-bot-config
       imagePullSecrets:
         - name: alec
 ---
@@ -186,6 +300,26 @@ spec:
       labels:
         app: aivis-chan-bot-4th
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /usr/src/app/data
+              if [ ! -f /usr/src/app/data/config.json ]; then
+                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
+              fi
+              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
+                echo '{}' > /usr/src/app/data/guild_dictionaries.json
+              fi
+              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
+                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
+              fi
+              chmod -R 755 /usr/src/app/data
+          volumeMounts:
+            - name: bot-data
+              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-4th
           image: alecjp02/aivis-chan-bot-4:latest
@@ -194,6 +328,21 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
+            - name: config-files
+              mountPath: /usr/src/app/data/config.json
+              subPath: config.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-secrets.json
+              subPath: config-secrets.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-safe.json
+              subPath: config-safe.json
+            - name: config-files
+              mountPath: /usr/src/app/data/guild_dictionaries.json
+              subPath: guild_dictionaries.json
+            - name: config-files
+              mountPath: /usr/src/app/data/custom_responses.json
+              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
@@ -211,6 +360,9 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-4th-data
             type: DirectoryOrCreate
+        - name: config-files
+          configMap:
+            name: aivis-chan-bot-config
       imagePullSecrets:
         - name: alec
 ---
@@ -243,6 +395,26 @@ spec:
       labels:
         app: aivis-chan-bot-5th
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /usr/src/app/data
+              if [ ! -f /usr/src/app/data/config.json ]; then
+                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
+              fi
+              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
+                echo '{}' > /usr/src/app/data/guild_dictionaries.json
+              fi
+              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
+                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
+              fi
+              chmod -R 755 /usr/src/app/data
+          volumeMounts:
+            - name: bot-data
+              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-5th
           image: alecjp02/aivis-chan-bot-5:latest
@@ -251,6 +423,21 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
+            - name: config-files
+              mountPath: /usr/src/app/data/config.json
+              subPath: config.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-secrets.json
+              subPath: config-secrets.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-safe.json
+              subPath: config-safe.json
+            - name: config-files
+              mountPath: /usr/src/app/data/guild_dictionaries.json
+              subPath: guild_dictionaries.json
+            - name: config-files
+              mountPath: /usr/src/app/data/custom_responses.json
+              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
@@ -268,6 +455,9 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-5th-data
             type: DirectoryOrCreate
+        - name: config-files
+          configMap:
+            name: aivis-chan-bot-config
       imagePullSecrets:
         - name: alec
 ---
@@ -300,6 +490,26 @@ spec:
       labels:
         app: aivis-chan-bot-6th
     spec:
+      initContainers:
+        - name: setup-config
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /usr/src/app/data
+              if [ ! -f /usr/src/app/data/config.json ]; then
+                echo '{"token":"","clientId":"","guildId":"","ttsServiceUrl":"http://aivisspeech-engine:10101","defaultSpeaker":"1","maxMessageLength":200,"voiceChannelTimeout":300000,"enableLogging":true,"logLevel":"info"}' > /usr/src/app/data/config.json
+              fi
+              if [ ! -f /usr/src/app/data/guild_dictionaries.json ]; then
+                echo '{}' > /usr/src/app/data/guild_dictionaries.json
+              fi
+              if [ ! -f /usr/src/app/data/custom_responses.json ]; then
+                echo '{"responses":[]}' > /usr/src/app/data/custom_responses.json
+              fi
+              chmod -R 755 /usr/src/app/data
+          volumeMounts:
+            - name: bot-data
+              mountPath: /usr/src/app/data
       containers:
         - name: aivis-chan-bot-6th
           image: alecjp02/aivis-chan-bot-6:latest
@@ -308,6 +518,21 @@ spec:
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
+            - name: config-files
+              mountPath: /usr/src/app/data/config.json
+              subPath: config.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-secrets.json
+              subPath: config-secrets.json
+            - name: config-files
+              mountPath: /usr/src/app/data/config-safe.json
+              subPath: config-safe.json
+            - name: config-files
+              mountPath: /usr/src/app/data/guild_dictionaries.json
+              subPath: guild_dictionaries.json
+            - name: config-files
+              mountPath: /usr/src/app/data/custom_responses.json
+              subPath: custom_responses.json
           resources:
             requests:
               memory: "256Mi"
@@ -325,6 +550,9 @@ spec:
           hostPath:
             path: /home/user/aivis-chan-bot-6th-data
             type: DirectoryOrCreate
+        - name: config-files
+          configMap:
+            name: aivis-chan-bot-config
       imagePullSecrets:
         - name: alec
 ---
