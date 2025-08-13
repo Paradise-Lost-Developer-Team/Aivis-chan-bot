@@ -5,6 +5,8 @@ metadata:
   name: aivis-chan-bot-1st
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: aivis-chan-bot-1st
@@ -60,6 +62,8 @@ metadata:
   name: aivis-chan-bot-2nd
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: aivis-chan-bot-2nd
@@ -115,6 +119,8 @@ metadata:
   name: aivis-chan-bot-3rd
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: aivis-chan-bot-3rd
@@ -170,6 +176,8 @@ metadata:
   name: aivis-chan-bot-4th
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: aivis-chan-bot-4th
@@ -185,7 +193,7 @@ spec:
             - containerPort: 3000
           volumeMounts:
             - name: bot-data
-              mountPath: /app/data
+              mountPath: /usr/src/app/data
           resources:
             requests:
               memory: "256Mi"
@@ -196,6 +204,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+            - name: TTS_SERVICE_URL
+              value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
           hostPath:
@@ -223,6 +233,8 @@ metadata:
   name: aivis-chan-bot-5th
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: aivis-chan-bot-5th
@@ -238,7 +250,7 @@ spec:
             - containerPort: 3000
           volumeMounts:
             - name: bot-data
-              mountPath: /app/data
+              mountPath: /usr/src/app/data
           resources:
             requests:
               memory: "256Mi"
@@ -249,6 +261,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+            - name: TTS_SERVICE_URL
+              value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
           hostPath:
@@ -276,6 +290,8 @@ metadata:
   name: aivis-chan-bot-6th
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: aivis-chan-bot-6th
@@ -291,7 +307,7 @@ spec:
             - containerPort: 3000
           volumeMounts:
             - name: bot-data
-              mountPath: /app/data
+              mountPath: /usr/src/app/data
           resources:
             requests:
               memory: "256Mi"
@@ -302,6 +318,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+            - name: TTS_SERVICE_URL
+              value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
           hostPath:
