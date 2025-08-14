@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Client, Guild, VoiceChannel, ChannelType, TextChannel } from 'discord.js';
 import { joinVoiceChannel, VoiceConnection, getVoiceConnection } from '@discordjs/voice';
-import { speakVoice, voiceClients, currentSpeaker, cleanupAudioResources, getOrCreateAudioPlayer } from './TTS-Engine'; // play_audioもインポート
+import { speakVoice, speakAnnounce, voiceClients, currentSpeaker, cleanupAudioResources, getOrCreateAudioPlayer, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine'; // play_audioもインポート
 
 // プロジェクトルートディレクトリへのパスを取得する関数
 function getProjectRoot(): string {
@@ -190,14 +190,10 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
 
             // 再接続アナウンスを流す
             console.log(`${guild.name}のチャンネルに再接続アナウンスを送信します...`);
-            const speakerId = currentSpeaker[guildId] || 888753760;
-            let audioPath: string | undefined;
             try {
-              audioPath = (await speakVoice(
-                '再起動後の再接続が完了しました',
-                speakerId,
-                guildId
-              )) as unknown as string | undefined;
+              await speakAnnounce('再起動後の再接続が完了しました', guildId);
+              updateLastSpeechTime(); // 発話時刻を更新
+              console.log(`${guild.name}のチャンネルに再接続アナウンスを送信しました`);
               connection.on('stateChange', (oldState, newState) => {
                 if (newState.status === 'ready') {
                   console.log("✅ VoiceConnection Ready");
@@ -207,11 +203,6 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
               console.warn(
                 `再接続アナウンス生成中に非致命的エラー（再生失敗の可能性）: ${audioError}`
               );
-            }
-            if (audioPath) {
-              // 音声ファイル生成成功
-              console.log(`再接続アナウンス音声ファイル生成成功: ${audioPath}`);
-              console.log(`${guild.name}のチャンネルに再接続アナウンスを送信しました`);
             }
             
             resolve();
@@ -292,15 +283,9 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
               // リトライ後も再接続アナウンスを流す
               try {
                 console.log(`${guild.name}のチャンネルにリトライ後の再接続アナウンスを送信します...`);
-                const speakerId = currentSpeaker[guildId] || 888753760;
-                const audioPath = (await speakVoice('再起動後の再接続が完了しました', speakerId, guildId)) as unknown as string | undefined;
-                if (audioPath) {
-                  // 音声ファイル生成成功
-                  console.log(`リトライ後の再接続アナウンス音声ファイル生成成功: ${audioPath}`);
-                  console.log(`${guild.name}のチャンネルにリトライ後の再接続アナウンスを送信しました`);
-                } else {
-                  console.error(`リトライ後の再接続アナウンス音声ファイル生成失敗`);
-                }
+                await speakAnnounce('再起動後の再接続が完了しました', guildId);
+                updateLastSpeechTime(); // 発話時刻を更新
+                console.log(`${guild.name}のチャンネルにリトライ後の再接続アナウンスを送信しました`);
               } catch (audioError) {
                 console.error(`リトライ後の再接続アナウンス送信エラー: ${audioError}`);
               }
@@ -341,4 +326,7 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
     await wait(3000); // 安定するまで待機
     saveVoiceState(client);
   }
+  
+  // メモリ使用状況をチェック
+  monitorMemoryUsage();
 };
