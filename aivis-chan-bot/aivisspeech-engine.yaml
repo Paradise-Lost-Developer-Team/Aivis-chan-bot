@@ -37,20 +37,21 @@ spec:
           image: ghcr.io/aivis-project/aivisspeech-engine:nvidia-latest
           ports:
             - containerPort: 10101
+              resources:
+              requests:
+                memory: "4Gi"
+                cpu: "2000m"
+                nvidia.com/gpu: 1
+              limits:
+                memory: "16Gi"
+                cpu: "12000m"
+                nvidia.com/gpu: 1
+              nvidia.com/gpu: 1
           volumeMounts:
             - name: aivisspeech-data
               mountPath: /home/user/.local/share/AivisSpeech-Engine-Dev
             - name: models-data
               mountPath: /models
-          resources:
-            requests:
-              nvidia.com/gpu: "1"
-              memory: "4Gi"
-              cpu: "2000m"
-            limits:
-              nvidia.com/gpu: "1"
-              memory: "8Gi"
-              cpu: "4000m"
           env:
             - name: NVIDIA_VISIBLE_DEVICES
               value: "all"

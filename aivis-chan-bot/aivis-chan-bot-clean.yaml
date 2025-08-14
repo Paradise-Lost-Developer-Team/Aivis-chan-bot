@@ -22,7 +22,7 @@ spec:
       containers:
         - name: aivis-chan-bot-1st
           image: docker.io/alecjp02/aivis-chan-bot-1st:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -88,7 +88,7 @@ spec:
       containers:
         - name: aivis-chan-bot-2nd
           image: docker.io/alecjp02/aivis-chan-bot-2nd:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -154,7 +154,7 @@ spec:
       containers:
         - name: aivis-chan-bot-3rd
           image: docker.io/alecjp02/aivis-chan-bot-3rd:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -220,7 +220,7 @@ spec:
       containers:
         - name: aivis-chan-bot-4th
           image: docker.io/alecjp02/aivis-chan-bot-4th:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -286,7 +286,7 @@ spec:
       containers:
         - name: aivis-chan-bot-5th
           image: docker.io/alecjp02/aivis-chan-bot-5th:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -352,7 +352,7 @@ spec:
       containers:
         - name: aivis-chan-bot-6th
           image: docker.io/alecjp02/aivis-chan-bot-6th:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           volumeMounts:
