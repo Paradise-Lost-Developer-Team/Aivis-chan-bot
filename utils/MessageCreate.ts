@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, currentSpeaker, getPlayer, createFFmpegAudioSource, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { enqueueText, Priority } from './VoiceQueue';
 import { logError } from './errorLogger';
@@ -205,11 +205,16 @@ export function MessageCreate(client: ExtendedClient) {
                 // 優先度の決定
                 let priority = Priority.NORMAL;
                 
-                // システム通知やコマンド応答などは優先度高
+                // システム通知やコマンド応答などは優先度高 & speakAnnounce使用
                 if (messageContent.includes('接続しました') || 
                     messageContent.includes('入室しました') || 
                     messageContent.includes('退室しました')) {
                     priority = Priority.HIGH;
+                    // システム通知はspeakAnnounceで処理
+                    speakAnnounce(messageContent, guildId);
+                    updateLastSpeechTime();
+                    console.log(`システム通知をspeakAnnounceで処理: "${messageContent.substring(0, 30)}..."`);
+                    return; // 通常のキュー処理はスキップ
                 }
                 
                 // 長いメッセージやURLが多いメッセージは優先度低
@@ -220,6 +225,7 @@ export function MessageCreate(client: ExtendedClient) {
                 // キューにメッセージを追加
                 if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                     enqueueText(guildId, messageContent, priority, message);
+                    updateLastSpeechTime(); // 発話時刻を更新
                     console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
                 } else {
                     console.log(`ボイスクライアントが接続されていません。メッセージを無視します。ギルドID: ${guildId}`);
@@ -240,12 +246,13 @@ export function MessageCreate(client: ExtendedClient) {
                 // ボイスチャンネルに接続中ならTTSを試みる
                 if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                     try {
-                        let audioPath: string;
                         if (isProFeatureAvailable(guildId, 'smart-tts')) {
-                            audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
+                            const audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
-                            await speakVoice(replyText, 888753760, guildId);
+                            // カスタム応答はアナウンス形式で読み上げ
+                            await speakAnnounce(replyText, guildId);
                         }
+                        updateLastSpeechTime();
                     } catch (error) {
                         console.error('カスタム応答TTSエラー:', error);
                     }
@@ -254,6 +261,9 @@ export function MessageCreate(client: ExtendedClient) {
         } catch (error) {
             console.error(`メッセージの処理中にエラーが発生しました: ${error}`);
             logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
+        } finally {
+            // メモリ使用状況をチェック
+            monitorMemoryUsage();
         }
     });
 }

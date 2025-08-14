@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
-import { speakVoice, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
+import { speakVoice, speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine'; // Adjust the import path as needed
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 import { isJoinLeaveEnabled } from './joinLeaveManager';
 import { getTextChannelForGuild } from './voiceStateManager';
@@ -19,7 +19,8 @@ export function VoiceStateUpdate(client: Client) {
                 // ユーザーがボイスチャンネルに参加したとき
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
-                    await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                    await speakAnnounce(`${nickname} さんが入室しました。`, guildId);
+                    updateLastSpeechTime(); // 発話時刻を更新
                     // join/leave embed通知
                     if (isJoinLeaveEnabled(guildId)) {
                         const textChannelId = getTextChannelForGuild(guildId);
@@ -50,7 +51,8 @@ export function VoiceStateUpdate(client: Client) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
-                    await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                    await speakAnnounce(`${nickname} さんが退室しました。`, guildId);
+                    updateLastSpeechTime(); // 発話時刻を更新
                     // join/leave embed通知
                     if (isJoinLeaveEnabled(guildId)) {
                         const textChannelId = getTextChannelForGuild(guildId);
@@ -151,9 +153,9 @@ export function VoiceStateUpdate(client: Client) {
 
                             // ボイスチャンネル参加アナウンス
                             try {
-                                const speakerId = currentSpeaker[guildId] || 888753760;
                                 console.log(`自動接続アナウンス生成開始: ${guildId}`);
-                                await speakVoice("自動接続しました。", speakerId, guildId);
+                                await speakAnnounce("自動接続しました。", guildId);
+                                updateLastSpeechTime(); // 発話時刻を更新
                             } catch (audioError) {
                                 console.error(`自動接続アナウンス再生エラー: ${audioError}`);
                             }
@@ -179,6 +181,9 @@ export function VoiceStateUpdate(client: Client) {
             }
         } catch (error) {
             console.error(`Error in on_voice_state_update: ${error}`);
+        } finally {
+            // メモリ使用状況をチェック
+            monitorMemoryUsage();
         }
     });
 
