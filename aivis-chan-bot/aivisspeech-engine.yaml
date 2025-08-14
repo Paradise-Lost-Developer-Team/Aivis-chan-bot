@@ -45,17 +45,23 @@ spec:
           resources:
             requests:
               nvidia.com/gpu: "1"
-              memory: "2Gi"
-              cpu: "1000m"
-            limits:
-              nvidia.com/gpu: "1"
               memory: "4Gi"
               cpu: "2000m"
+            limits:
+              nvidia.com/gpu: "1"
+              memory: "8Gi"
+              cpu: "4000m"
           env:
             - name: NVIDIA_VISIBLE_DEVICES
               value: "all"
             - name: NVIDIA_DRIVER_CAPABILITIES
               value: "compute,utility"
+            - name: CUDA_VISIBLE_DEVICES
+              value: "0"
+            - name: OMP_NUM_THREADS
+              value: "4"
+            - name: PYTORCH_CUDA_ALLOC_CONF
+              value: "max_split_size_mb:128"
       volumes:
         - name: aivisspeech-data
           hostPath:
