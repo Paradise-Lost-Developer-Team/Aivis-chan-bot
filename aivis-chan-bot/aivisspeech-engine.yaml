@@ -62,6 +62,10 @@ spec:
               value: "4"
             - name: PYTORCH_CUDA_ALLOC_CONF
               value: "max_split_size_mb:128"
+            - name: DEFAULT_PRE_SILENCE
+              value: "0.1"
+            - name: DEFAULT_POST_SILENCE
+              value: "0.1"
       volumes:
         - name: aivisspeech-data
           hostPath:
