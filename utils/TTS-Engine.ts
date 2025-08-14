@@ -359,39 +359,69 @@ const ffmpegFactory = {
             'pipe:1'
         ], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
 
+        // プロセス状態管理
+        let processDestroyed = false;
+        
         // メモリリーク防止：stderr処理を軽量化
         ffmpeg.stderr?.on('data', chunk => {
-            // FFmpegのエラーログは必要最小限のみ出力
+            if (processDestroyed) return;
             const message = chunk.toString();
             if (message.includes('error') || message.includes('fatal')) {
-                console.error('[ffmpeg error]', message.slice(0, 200)); // 200文字に制限
+                console.error('[ffmpeg error]', message.slice(0, 200));
             }
         });
         
-        // エラーハンドリング強化
+        // エラーハンドリング強化 - EPIPE対策
         ffmpeg.stdin?.on('error', err => {
+            if (processDestroyed) return;
             console.warn('FFmpeg stdin error:', err.message);
-            ffmpeg.kill('SIGKILL'); // 強制終了
+            if (err.message.includes('EPIPE') || err.message.includes('ECONNRESET')) {
+                console.warn('FFmpeg stdin broken pipe detected, marking for cleanup');
+                processDestroyed = true;
+            }
         });
+        
         ffmpeg.stdout?.on('error', err => {
+            if (processDestroyed) return;
             console.warn('FFmpeg stdout error:', err.message);
-            ffmpeg.kill('SIGKILL'); // 強制終了
+            processDestroyed = true;
         });
+        
         ffmpeg.on('exit', (code, signal) => {
-            console.log(`FFmpeg exit code=${code} signal=${signal}`);
+            processDestroyed = true;
+            if (code !== 0) {
+                console.warn(`FFmpeg exit code=${code} signal=${signal}`);
+            }
         });
+        
+        ffmpeg.on('error', (err) => {
+            console.error('FFmpeg process error:', err);
+            processDestroyed = true;
+        });
+        
+        // カスタムプロパティでプロセス状態を追跡
+        (ffmpeg as any).isDestroyed = () => processDestroyed;
         
         // リスナー上限を制限（メモリリーク防止）
         ffmpeg.setMaxListeners(20);
         return ffmpeg;
     },
     destroy: async (cp: ChildProcess) => {
-        if (cp.killed) return;
+        if (cp.killed || (cp as any).isDestroyed?.()) return;
+        
+        // プロセス状態をマーク
+        if ((cp as any).isDestroyed) {
+            (cp as any).isDestroyed = () => true;
+        }
         
         // 段階的な終了処理
         try {
-            cp.stdin?.end();
-            cp.stdin?.destroy();
+            // stdinを安全に閉じる
+            if (cp.stdin && cp.stdin.writable) {
+                cp.stdin.end();
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待機
+                cp.stdin.destroy();
+            }
             cp.stdout?.destroy();
             cp.stderr?.destroy();
         } catch (e) {
@@ -399,17 +429,27 @@ const ffmpegFactory = {
         }
         
         // プロセス終了
-        cp.kill('SIGTERM');
-        
-        // 1秒後に強制終了
-        setTimeout(() => {
-            if (!cp.killed) {
-                cp.kill('SIGKILL');
-            }
-        }, 1000);
+        if (!cp.killed) {
+            cp.kill('SIGTERM');
+            
+            // 1秒後に強制終了
+            setTimeout(() => {
+                if (!cp.killed) {
+                    cp.kill('SIGKILL');
+                }
+            }, 1000);
+        }
     },
     validate: async (cp: ChildProcess) => {
-        return !!(cp.stdin && cp.stdin.writable && cp.stdout && cp.stdout.readable && !cp.killed);
+        const isValid = !!(
+            cp.stdin && 
+            cp.stdin.writable && 
+            cp.stdout && 
+            cp.stdout.readable && 
+            !cp.killed &&
+            !(cp as any).isDestroyed?.()
+        );
+        return isValid;
     }
 };
 
@@ -422,22 +462,61 @@ const ffmpegPool = genericPool.createPool(ffmpegFactory, {
     testOnReturn: true              // 返却時の検証有効
 });
 
-// FFmpegプールを使って音声変換を行う（メモリ効率化版）
+// FFmpegプールを使って音声変換を行う（EPIPE対策強化版）
 export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Promise<{ resource: AudioResource, ffmpeg: ChildProcess }> {
-    const ffmpeg = await ffmpegPool.acquire();
+    let ffmpeg: ChildProcess | null = null;
     const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
 
-    // プロセスが死んでいたら再取得
-    if (ffmpeg.killed || ffmpeg.exitCode !== null) {
-        await ffmpegPool.destroy(ffmpeg);
-        return createFFmpegAudioSource(buffer);
-    }
-
     try {
-        // 全バッファを一度だけ書き込んで end()（メモリ効率化）
-        ffmpeg.stdin?.write(buf);
-        ffmpeg.stdin?.end();
+        ffmpeg = await ffmpegPool.acquire();
         
+        // プロセス状態を詳細にチェック
+        if (ffmpeg.killed || ffmpeg.exitCode !== null || (ffmpeg as any).isDestroyed?.()) {
+            console.warn('FFmpeg process is dead, destroying and retrying...');
+            await ffmpegPool.destroy(ffmpeg);
+            return createFFmpegAudioSource(buffer);
+        }
+
+        // stdin の書き込み可能性を事前チェック
+        if (!ffmpeg.stdin || !ffmpeg.stdin.writable) {
+            console.warn('FFmpeg stdin not writable, destroying and retrying...');
+            await ffmpegPool.destroy(ffmpeg);
+            return createFFmpegAudioSource(buffer);
+        }
+
+        // 安全なバッファ書き込み（EPIPE対策）
+        let writeSuccess = false;
+        try {
+            writeSuccess = ffmpeg.stdin.write(buf);
+            ffmpeg.stdin.end();
+            
+            // 書き込みが失敗した場合は待機
+            if (!writeSuccess) {
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('FFmpeg stdin drain timeout'));
+                    }, 5000);
+                    
+                    ffmpeg!.stdin!.once('drain', () => {
+                        clearTimeout(timeout);
+                        resolve(void 0);
+                    });
+                    
+                    ffmpeg!.stdin!.once('error', (err) => {
+                        clearTimeout(timeout);
+                        reject(err);
+                    });
+                });
+            }
+        } catch (writeError: any) {
+            console.error('FFmpeg stdin write error:', writeError.message);
+            if (writeError.message.includes('EPIPE') || writeError.message.includes('ECONNRESET')) {
+                await ffmpegPool.destroy(ffmpeg);
+                throw new Error(`FFmpeg stdin broken pipe: ${writeError.message}`);
+            }
+            throw writeError;
+        }
+
         // Discord用リソース作成
         const resource = createAudioResource(ffmpeg.stdout!, {
             inputType: StreamType.OggOpus,
@@ -449,20 +528,23 @@ export async function createFFmpegAudioSource(buffer: Buffer | Uint8Array): Prom
         resource.playStream.on('error', (error) => {
             console.error('Audio resource stream error:', error);
             try {
-                ffmpegPool.release(ffmpeg).catch(() => {});
+                ffmpegPool.release(ffmpeg!).catch(() => {});
             } catch (e) {
                 console.warn('FFmpeg pool release error during stream error:', e);
             }
         });
 
         return { resource, ffmpeg };
+        
     } catch (error) {
         // エラー時はプロセスを即座に破棄
         console.error('createFFmpegAudioSource error:', error);
-        try {
-            await ffmpegPool.destroy(ffmpeg);
-        } catch (e) {
-            console.warn('FFmpeg destroy error:', e);
+        if (ffmpeg) {
+            try {
+                await ffmpegPool.destroy(ffmpeg);
+            } catch (e) {
+                console.warn('FFmpeg destroy error:', e);
+            }
         }
         throw error;
     }
