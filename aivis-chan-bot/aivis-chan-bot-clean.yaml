@@ -17,8 +17,6 @@ spec:
     spec:
       imagePullSecrets:
         - name: docker-hub-secret
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-1st
           image: docker.io/alecjp02/aivis-chan-bot-1st:latest
@@ -83,8 +81,6 @@ spec:
     spec:
       imagePullSecrets:
         - name: docker-hub-secret
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-2nd
           image: docker.io/alecjp02/aivis-chan-bot-2nd:latest
@@ -149,8 +145,6 @@ spec:
     spec:
       imagePullSecrets:
         - name: docker-hub-secret
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-3rd
           image: docker.io/alecjp02/aivis-chan-bot-3rd:latest
@@ -215,8 +209,6 @@ spec:
     spec:
       imagePullSecrets:
         - name: docker-hub-secret
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-4th
           image: docker.io/alecjp02/aivis-chan-bot-4th:latest
@@ -281,8 +273,6 @@ spec:
     spec:
       imagePullSecrets:
         - name: docker-hub-secret
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-5th
           image: docker.io/alecjp02/aivis-chan-bot-5th:latest
@@ -347,8 +337,6 @@ spec:
     spec:
       imagePullSecrets:
         - name: docker-hub-secret
-      nodeSelector:
-        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-6th
           image: docker.io/alecjp02/aivis-chan-bot-6th:latest
