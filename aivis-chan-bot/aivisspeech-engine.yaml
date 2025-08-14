@@ -14,13 +14,14 @@ spec:
       labels:
         app: aivisspeech-engine
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       nodeSelector:
         nvidia.com/gpu.present: "true"
       initContainers:
         - name: copy-models
-          image: busybox:latest
+          image: public.ecr.aws/docker/library/busybox:latest
           command: ['/bin/sh', '-c']
           args:
             - |

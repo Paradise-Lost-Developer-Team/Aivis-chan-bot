@@ -15,11 +15,12 @@ spec:
       labels:
         app: aivis-chan-bot-1st
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       containers:
         - name: aivis-chan-bot-1st
-          image: docker.io/alecjp02/aivis-chan-bot-1st:latest
+          image: ghcr.io/alexandergg-0520/aivis-chan-bot-1st:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -79,11 +80,12 @@ spec:
       labels:
         app: aivis-chan-bot-2nd
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       containers:
         - name: aivis-chan-bot-2nd
-          image: docker.io/alecjp02/aivis-chan-bot-2nd:latest
+          image: ghcr.io/alexandergg-0520/aivis-chan-bot-2nd:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -143,11 +145,12 @@ spec:
       labels:
         app: aivis-chan-bot-3rd
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       containers:
         - name: aivis-chan-bot-3rd
-          image: docker.io/alecjp02/aivis-chan-bot-3rd:latest
+          image: ghcr.io/alexandergg-0520/aivis-chan-bot-3rd:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -207,11 +210,12 @@ spec:
       labels:
         app: aivis-chan-bot-4th
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       containers:
         - name: aivis-chan-bot-4th
-          image: docker.io/alecjp02/aivis-chan-bot-4th:latest
+          image: ghcr.io/alexandergg-0520/aivis-chan-bot-4th:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -271,11 +275,12 @@ spec:
       labels:
         app: aivis-chan-bot-5th
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       containers:
         - name: aivis-chan-bot-5th
-          image: docker.io/alecjp02/aivis-chan-bot-5th:latest
+          image: ghcr.io/alexandergg-0520/aivis-chan-bot-5th:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -335,11 +340,12 @@ spec:
       labels:
         app: aivis-chan-bot-6th
     spec:
+      serviceAccountName: default
       imagePullSecrets:
-        - name: docker-hub-secret
+        - name: dockerhub-creds
       containers:
         - name: aivis-chan-bot-6th
-          image: docker.io/alecjp02/aivis-chan-bot-6th:latest
+          image: ghcr.io/alexandergg-0520/aivis-chan-bot-6th:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
