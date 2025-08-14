@@ -29,7 +29,8 @@ export async function processAivmxUpload(serverId: string, file: { name: string,
     }
     
     // POST /aivm_models/install をサーバーに送信してレスポンスを得る方式に変更
-    const response = await fetch("http://localhost:10101/aivm_models/install", {
+    const engineUrl = process.env.TTS_SERVICE_URL || process.env.SPEECH_ENGINE_URL || "http://aivisspeech-engine:10101";
+    const response = await fetch(`${engineUrl}/aivm_models/install`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
