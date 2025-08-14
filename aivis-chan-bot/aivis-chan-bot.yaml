@@ -15,6 +15,8 @@ spec:
       labels:
         app: aivis-chan-bot-1st
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-1st
           image: alecjp02/aivis-chan-bot-1:latest
@@ -76,6 +78,8 @@ spec:
       labels:
         app: aivis-chan-bot-2nd
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-2nd
           image: alecjp02/aivis-chan-bot-2:latest
@@ -137,6 +141,8 @@ spec:
       labels:
         app: aivis-chan-bot-3rd
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-3rd
           image: alecjp02/aivis-chan-bot-3:latest
@@ -210,6 +216,8 @@ spec:
       labels:
         app: aivis-chan-bot-4th
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-4th
           image: alecjp02/aivis-chan-bot-4:latest
@@ -283,6 +291,8 @@ spec:
       labels:
         app: aivis-chan-bot-5th
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-5th
           image: alecjp02/aivis-chan-bot-5:latest
@@ -356,6 +366,8 @@ spec:
       labels:
         app: aivis-chan-bot-6th
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-6th
           image: alecjp02/aivis-chan-bot-6:latest

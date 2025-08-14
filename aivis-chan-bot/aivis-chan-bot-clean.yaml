@@ -15,9 +15,14 @@ spec:
       labels:
         app: aivis-chan-bot-1st
     spec:
+      imagePullSecrets:
+        - name: docker-hub-secret
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-1st
-          image: docker.io/alecjp02/aivis-chan-bot-1:latest
+          image: docker.io/alecjp02/aivis-chan-bot-1st:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -76,9 +81,14 @@ spec:
       labels:
         app: aivis-chan-bot-2nd
     spec:
+      imagePullSecrets:
+        - name: docker-hub-secret
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-2nd
-          image: docker.io/alecjp02/aivis-chan-bot-2:latest
+          image: docker.io/alecjp02/aivis-chan-bot-2nd:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -137,9 +147,14 @@ spec:
       labels:
         app: aivis-chan-bot-3rd
     spec:
+      imagePullSecrets:
+        - name: docker-hub-secret
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-3rd
-          image: docker.io/alecjp02/aivis-chan-bot-3:latest
+          image: docker.io/alecjp02/aivis-chan-bot-3rd:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -198,9 +213,14 @@ spec:
       labels:
         app: aivis-chan-bot-4th
     spec:
+      imagePullSecrets:
+        - name: docker-hub-secret
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-4th
-          image: docker.io/alecjp02/aivis-chan-bot-4:latest
+          image: docker.io/alecjp02/aivis-chan-bot-4th:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -259,9 +279,14 @@ spec:
       labels:
         app: aivis-chan-bot-5th
     spec:
+      imagePullSecrets:
+        - name: docker-hub-secret
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-5th
-          image: docker.io/alecjp02/aivis-chan-bot-5:latest
+          image: docker.io/alecjp02/aivis-chan-bot-5th:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -320,9 +345,14 @@ spec:
       labels:
         app: aivis-chan-bot-6th
     spec:
+      imagePullSecrets:
+        - name: docker-hub-secret
+      nodeSelector:
+        kubernetes.io/hostname: k8s-worker01-node
       containers:
         - name: aivis-chan-bot-6th
-          image: docker.io/alecjp02/aivis-chan-bot-6:latest
+          image: docker.io/alecjp02/aivis-chan-bot-6th:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           volumeMounts:
