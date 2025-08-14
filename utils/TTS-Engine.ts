@@ -13,7 +13,7 @@ import PQueue from 'p-queue';
 import fetch from 'node-fetch';
 // config.jsonは使わず、環境変数のみ参照
 
-export const TTS_BASE_URL = config.speechEngineUrl || process.env.TTS_BASE_URL || "http://127.0.0.1:10101";
+export const TTS_BASE_URL = config.speechEngineUrl || process.env.TTS_SERVICE_URL || process.env.SPEECH_ENGINE_URL || process.env.TTS_BASE_URL || "http://aivisspeech-engine:10101";
 
 // 以下の固定値は不要になるので削除またはコメントアウトします
 // const TTS_HOST = "127.0.0.1";
