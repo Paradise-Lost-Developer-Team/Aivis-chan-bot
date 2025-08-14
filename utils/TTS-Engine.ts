@@ -348,7 +348,7 @@ const ffmpegFactory = {
             '-ac', '1',           // モノラル
             '-i', 'pipe:0',
             // 48kHz にリサンプル＆ノイズ除去・フェード
-            '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
+            '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.05,afade=t=out:st=-0.05:d=0.05',
             // Opus エンコード設定
             '-c:a', 'libopus',
             '-ar', '48000',        // 出力は Opus のサポートする 48 kHz
@@ -547,8 +547,8 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
     audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
     audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
     audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
-    audioQuery["prePhonemeLength"]  = 0.0;
-    audioQuery["postPhonemeLength"] = 0.0;
+    audioQuery["prePhonemeLength"]  = 0.1;  // 音声開始前に0.1秒の無音を追加
+    audioQuery["postPhonemeLength"] = 0.1; // 音声終了後に0.1秒の無音を追加
 
     return audioQuery;
 }
