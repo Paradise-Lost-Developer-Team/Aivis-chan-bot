@@ -11,16 +11,12 @@ import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
-// config.jsonは使わず、環境変数のみ参照
+// config.jsonを使う
 
-export const TTS_BASE_URL = config.speechEngineUrl || process.env.TTS_SERVICE_URL || process.env.SPEECH_ENGINE_URL || process.env.TTS_BASE_URL || "http://aivisspeech-engine:10101";
-
-// 以下の固定値は不要になるので削除またはコメントアウトします
-// const TTS_HOST = "127.0.0.1";
-// const TTS_PORT = 10101;
-const TTS_TIMEOUT = 15000; // 15秒
-const TTS_MAX_RETRIES = 3;
-const TTS_RETRY_DELAY = 1000;
+export const TTS_BASE_URL = config.speechEngineUrl;
+const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
+const TTS_MAX_RETRIES = config.TTS_MAX_RETRIES || 3;
+const TTS_RETRY_DELAY = config.TTS_RETRY_DELAY || 1000;
 
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
@@ -348,7 +344,7 @@ const ffmpegFactory = {
             '-ac', '1',           // モノラル
             '-i', 'pipe:0',
             // 48kHz にリサンプル＆ノイズ除去・フェード
-            '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.05,afade=t=out:st=-0.05:d=0.05',
+            '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
             // Opus エンコード設定
             '-c:a', 'libopus',
             '-ar', '48000',        // 出力は Opus のサポートする 48 kHz
@@ -547,8 +543,8 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
     audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
     audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
     audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
-    audioQuery["prePhonemeLength"]  = 0.1;  // 音声開始前に0.1秒の無音を追加
-    audioQuery["postPhonemeLength"] = 0.1; // 音声終了後に0.1秒の無音を追加
+    audioQuery["prePhonemeLength"]  = 0.0;
+    audioQuery["postPhonemeLength"] = 0.0;
 
     return audioQuery;
 }
