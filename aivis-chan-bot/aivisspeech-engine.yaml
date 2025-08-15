@@ -18,7 +18,7 @@ spec:
       imagePullSecrets:
         - name: dockerhub-creds
       nodeSelector:
-        nvidia.com/gpu.present: "true"
+        kubernetes.io/hostname: "k8s-worker01-node"
       initContainers:
         - name: copy-models
           image: public.ecr.aws/docker/library/busybox:latest
@@ -42,12 +42,12 @@ spec:
             - containerPort: 10101
           resources:
             requests:
-              memory: "4Gi"
-              cpu: "2000m"
+              memory: "2Gi"
+              cpu: "1000m"
               nvidia.com/gpu: "1"
             limits:
-              memory: "16Gi"
-              cpu: "12000m"
+              memory: "4Gi"
+              cpu: "2000m"
               nvidia.com/gpu: "1"
           volumeMounts:
             - name: aivisspeech-data
