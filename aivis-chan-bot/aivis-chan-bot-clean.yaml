@@ -18,6 +18,15 @@ spec:
       serviceAccountName: default
       imagePullSecrets:
         - name: dockerhub-creds
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
       containers:
         - name: aivis-chan-bot-1st
           image: ghcr.io/alexandergg-0520/aivis-chan-bot-1st:latest
@@ -32,8 +41,8 @@ spec:
               subPath: config.json
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "512Mi"
+              cpu: "500m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -42,6 +51,20 @@ spec:
               value: "production"
             - name: TTS_SERVICE_URL
               value: "http://aivisspeech-engine:10101"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: bot-data
           hostPath:
@@ -83,6 +106,15 @@ spec:
       serviceAccountName: default
       imagePullSecrets:
         - name: dockerhub-creds
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
       containers:
         - name: aivis-chan-bot-2nd
           image: ghcr.io/alexandergg-0520/aivis-chan-bot-2nd:latest
@@ -97,8 +129,8 @@ spec:
               subPath: config.json
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "512Mi"
+              cpu: "500m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -107,6 +139,20 @@ spec:
               value: "production"
             - name: TTS_SERVICE_URL
               value: "http://aivisspeech-engine:10101"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: bot-data
           hostPath:
@@ -148,6 +194,15 @@ spec:
       serviceAccountName: default
       imagePullSecrets:
         - name: dockerhub-creds
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
       containers:
         - name: aivis-chan-bot-3rd
           image: ghcr.io/alexandergg-0520/aivis-chan-bot-3rd:latest
@@ -162,8 +217,8 @@ spec:
               subPath: config.json
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "512Mi"
+              cpu: "500m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -172,6 +227,20 @@ spec:
               value: "production"
             - name: TTS_SERVICE_URL
               value: "http://aivisspeech-engine:10101"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: bot-data
           hostPath:
@@ -213,6 +282,15 @@ spec:
       serviceAccountName: default
       imagePullSecrets:
         - name: dockerhub-creds
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
       containers:
         - name: aivis-chan-bot-4th
           image: ghcr.io/alexandergg-0520/aivis-chan-bot-4th:latest
@@ -227,8 +305,8 @@ spec:
               subPath: config.json
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "512Mi"
+              cpu: "500m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -237,6 +315,20 @@ spec:
               value: "production"
             - name: TTS_SERVICE_URL
               value: "http://aivisspeech-engine:10101"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: bot-data
           hostPath:
@@ -278,6 +370,15 @@ spec:
       serviceAccountName: default
       imagePullSecrets:
         - name: dockerhub-creds
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
       containers:
         - name: aivis-chan-bot-5th
           image: ghcr.io/alexandergg-0520/aivis-chan-bot-5th:latest
@@ -292,8 +393,8 @@ spec:
               subPath: config.json
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "512Mi"
+              cpu: "500m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -302,6 +403,20 @@ spec:
               value: "production"
             - name: TTS_SERVICE_URL
               value: "http://aivisspeech-engine:10101"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: bot-data
           hostPath:
@@ -343,6 +458,15 @@ spec:
       serviceAccountName: default
       imagePullSecrets:
         - name: dockerhub-creds
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
       containers:
         - name: aivis-chan-bot-6th
           image: ghcr.io/alexandergg-0520/aivis-chan-bot-6th:latest
@@ -357,8 +481,8 @@ spec:
               subPath: config.json
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "512Mi"
+              cpu: "500m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -367,6 +491,20 @@ spec:
               value: "production"
             - name: TTS_SERVICE_URL
               value: "http://aivisspeech-engine:10101"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
       volumes:
         - name: bot-data
           hostPath:
