@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { speakVoice, currentSpeaker, voiceClients, updateLastSpeechTime } from './TTS-Engine';
+import { speakVoice, currentSpeaker, voiceClients, updateLastSpeechTime, chunkText } from './TTS-Engine';
 import { VoiceHistoryItem, saveVoiceHistoryItem } from './voiceHistory';
 import { isProFeatureAvailable } from './subscription';
 import { logError } from './errorLogger';
@@ -44,30 +44,31 @@ export function enqueueText(
         // 話者IDの取得（デフォルトはAnneliのノーマル）
         const speakerId = currentSpeaker[guildId] || 888753760;
 
-        // キューアイテムの作成
-        const item: QueueItem = {
-            guildId,
-            text,
-            speakerId,
-            priority,
-            timestamp: Date.now(),
-            originalMessage
-        };
-
-        // 優先度に基づいてキューに挿入
+        // テキストをchunkTextで分割し、各チャンクを個別にキューへ追加
+        const chunks = chunkText(text);
+        if (chunks.length === 0) return false;
         const queue = queues[guildId];
-        let inserted = false;
-
-        for (let i = 0; i < queue.length; i++) {
-            if (item.priority < queue[i].priority) {
-                queue.splice(i, 0, item);
-                inserted = true;
-                break;
+        for (const chunk of chunks) {
+            const item: QueueItem = {
+                guildId,
+                text: chunk,
+                speakerId,
+                priority,
+                timestamp: Date.now(),
+                originalMessage
+            };
+            // 優先度に基づいてキューに挿入
+            let inserted = false;
+            for (let i = 0; i < queue.length; i++) {
+                if (item.priority < queue[i].priority) {
+                    queue.splice(i, 0, item);
+                    inserted = true;
+                    break;
+                }
             }
-        }
-
-        if (!inserted) {
-            queue.push(item);
+            if (!inserted) {
+                queue.push(item);
+            }
         }
 
         // キューが追加されたら処理を開始

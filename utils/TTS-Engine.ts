@@ -560,7 +560,7 @@ export function getMaxTextLength(guildId: string): number {
 // チャンク分割：句点(。)、読点(、)、カンマ(,)、ピリオド(. )、半角クエスチョンマーク(?)、改行(\n)
 // ただしこれらの文字が連続している場合は分割しない
 // 追加：単独記号のみのチャンクを除外
-function chunkText(text: string): string[] {
+export function chunkText(text: string): string[] {
     return text
         .split(/(?<=[。、,\.?\n])(?![。、,\.?\n])/)
         .map(c => c.trim())
