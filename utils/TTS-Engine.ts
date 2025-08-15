@@ -574,104 +574,121 @@ function chunkText(text: string): string[] {
 
 
 // 追加：並列チャンク合成＆順次再生（プロファイリング＆maxConcurrency設定対応）
+// --- Kubernetes安定化: TTSストリーム先読みバッファ・VC切断遅延・パイプライン化 ---
+import { PassThrough } from "stream";
+const VC_DISCONNECT_DELAY_MS = 40000; // VC切断遅延（40秒）
+let vcDisconnectTimers: { [guildId: string]: NodeJS.Timeout } = {};
+
+// (重複宣言削除済み)
+
+// デフォルト話者ID（Anneli ノーマル）
+// export const DEFAULT_SPEAKER_ID = 888753760; // ← 既に上部で宣言済みのため削除
+
 async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency?: number, userId?: string) {
-    // maxConcurrencyをconfigまたは環境変数から取得（なければ2）
-    if (typeof maxConcurrency !== 'number' || isNaN(maxConcurrency)) {
-        maxConcurrency = (process.env.TTS_MAX_CONCURRENCY && !isNaN(Number(process.env.TTS_MAX_CONCURRENCY)))
-            ? Number(process.env.TTS_MAX_CONCURRENCY)
-            : 2;
-    }
     const limit = getMaxTextLength(guildId);
     if (text.length > limit) {
         text = text.slice(0, limit) + "以下省略";
     }
     const chunks = chunkText(text);
-    console.log("チャンク分割結果:", chunks); // デバッグ用
+    if (chunks.length === 0) return;
 
-    const results: Buffer[] = new Array(chunks.length);
-    let currentIndex = 0;
-    const chunkTimes: number[] = new Array(chunks.length);
-    const startAll = Date.now();
-    await Promise.all(
-        Array.from({ length: Number(maxConcurrency) }, async () => {
-            while (true) {
-                const idx = currentIndex++;
-                if (idx >= chunks.length) break;
-                const t0 = Date.now();
-                try {
-                    let audioQuery = await postAudioQuery(chunks[idx], speakerId);
-                    if (!audioQuery) {
-                        results[idx] = Buffer.alloc(0);
-                        continue;
-                    }
-                    audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
-                    let buf = await postSynthesis(audioQuery, speakerId);
-                    buf = trimSilence(buf);
-                    results[idx] = buf;
-                    audioQuery = null;
-                } catch (e) {
-                    console.error(`チャンク ${idx} 合成失敗`, e);
-                    results[idx] = Buffer.alloc(0);
-                } finally {
-                    chunkTimes[idx] = Date.now() - t0;
-                }
-            }
-        })
-    );
-    const totalChunkTime = Date.now() - startAll;
-    console.log(`[TTS計測] チャンク合成全体: ${totalChunkTime}ms, 各チャンク:`, chunkTimes);
-
-    const nonEmpty = results.filter(buf => buf.length > 100);
-    if (nonEmpty.length === 0) {
-        results.length = 0;
-        return;
+    // 1つのTTSストリームとして順次パイプライン化
+    // VC切断遅延: 新たな再生要求ごとに既存タイマーをクリア（VCはdestroyせずvoiceClientsに保持）
+    if (vcDisconnectTimers[guildId]) {
+        clearTimeout(vcDisconnectTimers[guildId]);
+        delete vcDisconnectTimers[guildId];
     }
-
-    const fullBuffer = Buffer.concat(nonEmpty);
-    results.length = 0;
-    nonEmpty.length = 0;
-
-    // 再生・FFmpeg変換の計測
-    const startFfmpeg = Date.now();
     const player = getOrCreateAudioPlayer(guildId);
     const vc = voiceClients[guildId];
     if (vc) vc.subscribe(player);
 
-    let ffmpeg: ChildProcess | null = null;
-    let resource: AudioResource | null = null;
+    // 先読みバッファ（0.7秒分, 48kHz, 16bit, mono = 48000*2*0.7 ≒ 67KB）
+    const PREBUFFER_MS = 700;
+    const PCM_BYTES_PER_MS = 48 * 2; // 48kHz, 16bit, mono
+    const PREBUFFER_SIZE = PCM_BYTES_PER_MS * PREBUFFER_MS;
+
+    // TTSストリームを順次取得し、ffmpegにパイプ（WAV/PCM自動判別）
+    const ttsStream = new PassThrough();
+    let ended = false;
+    let ttsContentType: string | undefined = undefined;
+    (async () => {
+        for (const chunk of chunks) {
+            let audioQuery = await postAudioQuery(chunk, speakerId);
+            if (!audioQuery) continue;
+            audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
+            // TTSエンジンからストリームを取得
+            const params = new URLSearchParams({ speaker: speakerId.toString() });
+            const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(audioQuery)
+            });
+            if (!response.ok || !response.body) continue;
+            if (!ttsContentType) {
+                const ct = response.headers.get('content-type');
+                ttsContentType = ct === null ? undefined : ct;
+            }
+            const nodeStream = response.body as unknown as import('stream').Readable;
+            await new Promise<void>((resolve, reject) => {
+                if (!nodeStream) return resolve();
+                nodeStream.on('data', (chunk: Buffer) => {
+                    ttsStream.write(chunk);
+                });
+                nodeStream.on('end', () => resolve());
+                nodeStream.on('error', (err: any) => reject(err));
+            });
+        }
+        ended = true;
+        ttsStream.end();
+    })();
+
+    // 先読みバッファを貯めてから再生開始
+    let prebuffer = Buffer.alloc(0);
+    while (prebuffer.length < PREBUFFER_SIZE && !ended) {
+        const chunk = ttsStream.read(PREBUFFER_SIZE - prebuffer.length) as Buffer;
+        if (chunk) {
+            prebuffer = Buffer.concat([prebuffer, chunk]);
+        } else {
+            await new Promise(r => setTimeout(r, 10));
+        }
+    }
+
+    // AivisSpeech EngineはWAV出力なので、ffmpeg入力は常にWAV
+    const ffmpegArgs = [
+        '-loglevel', 'error',
+        '-nostats',
+        '-f', 'wav',
+        '-i', 'pipe:0',
+        '-af', 'aresample=48000,silenceremove=start_periods=1:start_duration=0.02:start_threshold=-60dB,afade=t=in:st=0:d=0.03',
+        '-c:a', 'libopus',
+        '-ar', '48000',
+        '-b:a', '96k',
+        '-vbr', 'on',
+        '-application', 'audio',
+        '-f', 'ogg',
+        'pipe:1'
+    ];
+    const ffmpeg = spawn('ffmpeg', ffmpegArgs, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    ffmpeg.stdin?.write(prebuffer);
+    ttsStream.pipe(ffmpeg.stdin!, { end: true });
+    const resource = createAudioResource(ffmpeg.stdout!, {
+        inputType: StreamType.OggOpus,
+        inlineVolume: true,
+    });
+    resource.volume?.setVolume(1.0);
 
     try {
-        const result = await createFFmpegAudioSource(fullBuffer);
-        ffmpeg = result.ffmpeg;
-        resource = result.resource;
-
         player.play(resource);
         await entersState(player, AudioPlayerStatus.Playing, 5000);
         await entersState(player, AudioPlayerStatus.Idle, 60000);
-        const ffmpegTime = Date.now() - startFfmpeg;
-        console.log(`[TTS計測] FFmpeg変換＋再生: ${ffmpegTime}ms`);
     } catch (err) {
         console.error("再生中にエラー:", err);
     } finally {
-        if (resource) {
-            try {
-                resource.audioPlayer?.stop();
-                (resource as any) = null;
-            } catch (e) {
-                console.warn("リソース破棄エラー:", e);
-            }
-        }
-        if (ffmpeg) {
-            try {
-                await ffmpegPool.release(ffmpeg);
-            } catch (e) {
-                console.warn("FFmpegプール解放エラー:", e);
-            }
-        }
-        if (global.gc) {
-            global.gc();
-        }
+        try { ffmpeg.kill('SIGKILL'); } catch {}
+        if (global.gc) global.gc();
     }
+
+    // VC自動切断を無効化（タイマーを設置しない）
 }
 
 // ギルドごとにVoiceConnectionを確保・再利用する関数
@@ -691,17 +708,37 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     return connection;
 }
 async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string): Promise<void> {
-    const vc = voiceClients[guildId];
-    if (!vc) {
-        console.warn(`VoiceConnection が存在しません`);
-        return Promise.resolve();
+    let vc = voiceClients[guildId];
+    // VoiceConnectionがない or Readyでなければ再接続
+    if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
+        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsやjoinChannelsから取得
+        const auto = autoJoinChannels[guildId];
+        const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
+        const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+        const guild = require('discord.js').getGuild ? require('discord.js').getGuild(guildId) : undefined;
+        let voiceChannel = null;
+        if (guild && voiceChannelId) {
+            voiceChannel = guild.channels.cache.get(voiceChannelId);
+        }
+        if (voiceChannel) {
+            console.log(`[VC DEBUG] ensureVoiceConnection: guildId=${guildId}, channelId=${voiceChannelId}`);
+            vc = ensureVoiceConnection(guildId, voiceChannel);
+            try {
+                console.log(`[VC DEBUG] entersState before: status=${vc.state.status}`);
+                await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
+                console.log(`[VC DEBUG] entersState after: status=${vc.state.status}`);
+            } catch (e) {
+                console.warn(`VoiceConnection Ready になりませんでした: status=${vc.state.status}, error=${e}`);
+                return;
+            }
+        } else {
+            console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${voiceChannelId}, guild=${!!guild}`);
+            return;
+        }
     }
-    try {
-        await entersState(vc, VoiceConnectionStatus.Ready, 5_000);
-    } catch {
-        console.warn(`VoiceConnection Ready になりませんでした`);
-        return;
-    }
+    // AudioPlayerを新規作成し、必ずsubscribe
+    const player = getOrCreateAudioPlayer(guildId);
+    vc.subscribe(player);
     await speakBufferedChunks(text, speaker, guildId, 2, userId);
     return;
 }
@@ -1082,54 +1119,19 @@ function getAllVoices() {
         if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
             for (const style of speaker.styles) {
                 if (style && style.name && style.id !== undefined) {
-                    // 声優のティア（無料、Pro、Premium）を決定
-                    // NSFWを含む名前はPremium、他は基本無料として例示
-                    const tier = speaker.name.includes('NSFW') ? 'premium' : 'free';
-                    
+                    // 全ての声優は無料
                     voices.push({
                         name: `${speaker.name} - ${style.name}`,
                         id: style.id,
                         speakerName: speaker.name,
                         styleName: style.name,
-                        tier: tier
+                        tier: 'free'
                     });
                 }
             }
         }
     }
-    
     return voices;
-}
-
-// 利用可能な声優数の確認
-export function getAvailableVoices(guildId: string): string[] {
-    const subscriptionType = getSubscription(guildId);
-    const allVoices = getAllVoices();
-    
-    // 基本的な声優リスト
-    const freeVoices = allVoices.filter(voice => voice.tier === 'free');
-    
-    // Proプラン用の声優
-    if (subscriptionType === SubscriptionType.PRO) {
-        const proVoices = allVoices.filter(voice => 
-            voice.tier === 'free' || voice.tier === 'pro'
-        );
-        return proVoices
-            .slice(0, getSubscriptionLimit(guildId, 'maxVoices'))
-            .map(voice => voice.name);
-    }
-    
-    // Premiumプラン用の声優
-    if (subscriptionType === SubscriptionType.PREMIUM) {
-        return allVoices
-            .slice(0, getSubscriptionLimit(guildId, 'maxVoices'))
-            .map(voice => voice.name);
-    }
-    
-    // 無料プラン
-    return freeVoices
-        .slice(0, getSubscriptionLimit(guildId, 'maxVoices'))
-        .map(voice => voice.name);
 }
 
 // メッセージ長の確認
