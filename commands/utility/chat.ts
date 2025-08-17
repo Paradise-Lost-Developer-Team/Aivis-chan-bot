@@ -22,7 +22,7 @@ const ai = new GoogleGenAI({
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('chat')
-        .setDescription('Google Gemini 1.5 Proで動作するAIチャットボット')
+        .setDescription('Google Gemini 2.5 Proで動作するAIチャットボット')
         .addStringOption(option =>
             option
                 .setName('prompt')
@@ -43,7 +43,18 @@ module.exports = {
 
             // 応答テキストを抽出
             const aiReply = response.text ?? '（応答がありませんでした）';
-            await interaction.editReply(aiReply);
+            await interaction.editReply({
+                embeds: [
+                    {
+                        title: 'AIチャット応答',
+                        description: aiReply,
+                        color: 0x00bfff,
+                        fields: [
+                            { name: 'プロンプト', value: prompt }
+                        ]
+                    }
+                ]
+            });
 
             // TTS読み上げ（ボイスチャンネル接続中のみ）
             const guildId = interaction.guildId!;
@@ -54,7 +65,15 @@ module.exports = {
             }
         } catch (error) {
             console.error('チャットコマンド実行エラー：', error);
-            await interaction.editReply('AIチャットの実行中にエラーが発生しました。');
+            await interaction.editReply({
+                embeds: [
+                    {
+                        title: 'エラー',
+                        description: 'AIチャットの実行中にエラーが発生しました。',
+                        color: 0xff0000
+                    }
+                ]
+            });
         }
     },
 };

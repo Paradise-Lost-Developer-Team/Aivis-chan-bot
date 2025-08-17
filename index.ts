@@ -149,11 +149,8 @@ client.once("ready", async () => {
         setInterval(async () => {
             try {
                 const joinServerCount = client.guilds.cache.size;
-                client.user!.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
-                await new Promise(resolve => setTimeout(resolve, 15000));
                 const joinVCCount = client.voice.adapters.size;
-                client.user!.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
-                await new Promise(resolve => setTimeout(resolve, 15000));
+                client.user!.setActivity(`/help | VC接続中: ${joinVCCount} | サーバー数: ${joinServerCount} | Ping: ${client.ws.ping}ms | 内部: ${client.voice.adapters.size}`, { type: ActivityType.Custom });
             } catch (error) {
                 console.error("ステータス更新エラー:", error);
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));

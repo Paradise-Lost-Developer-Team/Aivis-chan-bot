@@ -22,7 +22,7 @@ export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // ユーザーごとの話者設定
-export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string } } = {};
+export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 
 // デフォルトのスピーカー設定
@@ -707,7 +707,7 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     }
     return connection;
 }
-async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string): Promise<void> {
+async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
     let vc = voiceClients[guildId];
     // VoiceConnectionがない or Readyでなければ再接続
     if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
@@ -715,7 +715,7 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
         const auto = autoJoinChannels[guildId];
         const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
         const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
-        const guild = require('discord.js').getGuild ? require('discord.js').getGuild(guildId) : undefined;
+        const guild = client?.guilds?.cache?.get(guildId);
         let voiceChannel = null;
         if (guild && voiceChannelId) {
             voiceChannel = guild.channels.cache.get(voiceChannelId);
@@ -746,18 +746,18 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
 /**
  * メッセージ読み上げ: ユーザーごとの話者設定を参照
  */
-export function speakVoice(text: string, userId: string | number, guildId: string): Promise<void> {
+export function speakVoice(text: string, userId: string | number, guildId: string, client?: any): Promise<void> {
     const speaker = currentSpeaker[String(userId)] ?? DEFAULT_SPEAKER_ID;
     const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, speaker, guildId, String(userId)));
+    return queue.add(() => speakVoiceImpl(text, speaker, guildId, String(userId), client));
 }
 
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-export function speakAnnounce(text: string, guildId: string): Promise<void> {
+export function speakAnnounce(text: string, guildId: string, client?: any): Promise<void> {
     const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId));
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理
@@ -853,25 +853,19 @@ export function saveAutoJoinChannels() {
             }
         }
 
-        // autoJoinChannelsの内容を既存データとマージ
-        const mergedData = { ...existingData, ...autoJoinChannels };
-        
-        // マージしたデータを保存
-        ensureDirectoryExists(AUTO_JOIN_FILE);
-        fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(mergedData, null, 4), "utf-8");
-        console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
-        
-        // グローバル変数も更新
-        Object.assign(autoJoinChannels, mergedData);
+    // autoJoinChannelsの内容のみで上書き保存
+    ensureDirectoryExists(AUTO_JOIN_FILE);
+    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+    console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
     } catch (error) {
         console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
     }
 }
 
 // 新規：特定のギルドの自動参加設定を更新/追加する関数
-export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string) {
+export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string, tempVoice?: boolean) {
     // 既存の設定を保持したまま特定のギルドの設定だけを更新
-    autoJoinChannels[guildId] = { voiceChannelId, textChannelId };
+    autoJoinChannels[guildId] = { voiceChannelId, textChannelId, tempVoice };
     saveAutoJoinChannels();
 }
 

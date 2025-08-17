@@ -122,7 +122,7 @@ export class ServerStatus {
             projectRoot = process.cwd();
         }
         
-        this.GUILD_ID_FILE = path.join(projectRoot, "guild_id.txt");
+        this.GUILD_ID_FILE = path.join(projectRoot, "data", "guild_id.txt");
         this.saveTask();
     }
 

@@ -35,7 +35,8 @@ export function MessageCreate(client: ExtendedClient) {
                     return;
                 }
             } else if (autoJoinChannelsData[guildId]?.textChannelId) {
-                if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
+                // tempVoiceフラグが有効な場合はtextChannelIdチェックをスキップ
+                if (!autoJoinChannelsData[guildId].tempVoice && message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
                     console.log(`Message is not in the autoJoinChannelsData text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
                     return;
                 }
