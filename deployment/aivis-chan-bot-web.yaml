@@ -19,9 +19,16 @@ spec:
         image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest # ここをビルドしたイメージ名に変更してください
         ports:
         - containerPort: 3000 # server.jsがリッスンしているポートに合わせてください
-    envFrom:
-    - configMapRef:
-      name: aivis-chan-bot-web-env
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        envFrom:
+        - configMapRef:
+            name: aivis-chan-bot-web-env
 ---
 apiVersion: v1
 kind: Service
