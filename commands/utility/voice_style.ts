@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, MessageFlags } from 'discord.js';
+import { ChatInputCommandInteraction, MessageFlags, EmbedBuilder } from 'discord.js';
 import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/subscription';
 import {
     getGuildStyles,
@@ -11,6 +11,7 @@ import {
     getCurrentStyle
 } from '../../utils/voiceStyles';
 import { addSpeaker } from '../../utils/speakerManager';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -48,7 +49,16 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction) {
         const guildId = interaction.guildId || '';
         if (!isProFeatureAvailable(guildId, 'voice-style')) {
-            await interaction.reply({ content: 'このコマンドはPro版限定です', flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('Pro版限定')
+                        .setDescription('このコマンドはPro版限定です')
+                        .setColor(0xffa500)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
+            });
             return;
         }
         const subcommand = interaction.options.getSubcommand();
@@ -71,7 +81,6 @@ module.exports = {
 };
 
 async function handleCreate(interaction: ChatInputCommandInteraction, guildId: string) {
-    // ...existing code...
     const name = interaction.options.getString('name', true);
     const volume = interaction.options.getNumber('volume') || 0.2;
     const pitch = interaction.options.getNumber('pitch') || 0.0;
@@ -79,89 +88,225 @@ async function handleCreate(interaction: ChatInputCommandInteraction, guildId: s
     const description = interaction.options.getString('description') || '';
     const styles = getGuildStyles(guildId);
     if (styles.find(s => s.name.toLowerCase() === name.toLowerCase())) {
-        await interaction.reply({ content: '同名スタイルが存在します', flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('重複エラー')
+                    .setDescription('同名スタイルが存在します')
+                    .setColor(0xff0000)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     const max = getMaxStylesCount(guildId);
     if (styles.length >= max) {
-        await interaction.reply({ content: `スタイル数が上限(${max})に達しています`, flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('上限エラー')
+                    .setDescription(`スタイル数が上限(${max})に達しています`)
+                    .setColor(0xff0000)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     const created = createStyle(guildId, name, { volume, pitch, speed, description, createdBy: interaction.user.id });
     if (!created) {
-        await interaction.reply({ content: '作成失敗', flags: MessageFlags.Ephemeral });
-        return;
-    }
-    await interaction.reply({ content: `スタイル「${name}」を作成しました`, flags: MessageFlags.Ephemeral });
-}
-
-async function handleList(interaction: ChatInputCommandInteraction, guildId: string) {
-    // ...existing code...
-    const styles = getGuildStyles(guildId);
-    if (!styles.length) {
-        await interaction.reply({ content: 'スタイルがありません', flags: MessageFlags.Ephemeral });
-        return;
-    }
-    const info = styles.map(s => `${s.name}${s.isDefault ? '(デフォルト)' : ''}`).join(', ');
-    await interaction.reply({ content: `登録スタイル: ${info}`, flags: MessageFlags.Ephemeral });
-}
-
-async function handleApply(interaction: ChatInputCommandInteraction, guildId: string) {
-    // ...existing code...
-    const name = interaction.options.getString('name', true);
-    const style = findStyleByName(guildId, name);
-    if (!style) {
-        await interaction.reply({ content: 'スタイルが見つかりません', flags: MessageFlags.Ephemeral });
-        return;
-    }
-    applyStyle(guildId, style.id);
-    await interaction.reply({ content: `「${style.name}」を適用しました`, flags: MessageFlags.Ephemeral });
-}
-
-async function handleDelete(interaction: ChatInputCommandInteraction, guildId: string) {
-    // ...existing code...
-    const name = interaction.options.getString('name', true);
-    const style = findStyleByName(guildId, name);
-    if (!style) {
-        await interaction.reply({ content: 'スタイルが見つかりません', flags: MessageFlags.Ephemeral });
-        return;
-    }
-    if (!deleteStyle(guildId, style.id)) {
-        await interaction.reply({ content: '削除失敗', flags: MessageFlags.Ephemeral });
-        return;
-    }
-    await interaction.reply({ content: `「${name}」を削除しました`, flags: MessageFlags.Ephemeral });
-}
-
-async function handleInfo(interaction: ChatInputCommandInteraction, guildId: string) {
-    // ...existing code...
-    const style = getCurrentStyle(guildId);
-    if (!style) {
-        await interaction.reply({ content: '現在のスタイルがありません', flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('作成失敗')
+                    .setDescription('作成失敗')
+                    .setColor(0xff0000)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     await interaction.reply({
-        content: `現在のスタイル: ${style.name}\nvolume:${style.volume} / pitch:${style.pitch} / speed:${style.speed}`,
-        ephemeral: true
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('作成完了')
+                .setDescription(`スタイル「${name}」を作成しました`)
+                .setColor(0x00bfff)
+        )],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
+    });
+}
+
+async function handleList(interaction: ChatInputCommandInteraction, guildId: string) {
+    const styles = getGuildStyles(guildId);
+    if (!styles.length) {
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('スタイルなし')
+                    .setDescription('スタイルがありません')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
+        return;
+    }
+    const info = styles.map(s => `${s.name}${s.isDefault ? '(デフォルト)' : ''}`).join(', ');
+    await interaction.reply({
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('スタイル一覧')
+                .setDescription(`登録スタイル: ${info}`)
+                .setColor(0x00bfff)
+        )],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
+    });
+}
+
+async function handleApply(interaction: ChatInputCommandInteraction, guildId: string) {
+    const name = interaction.options.getString('name', true);
+    const style = findStyleByName(guildId, name);
+    if (!style) {
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('未発見')
+                    .setDescription('スタイルが見つかりません')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
+        return;
+    }
+    applyStyle(guildId, style.id);
+    await interaction.reply({
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('適用完了')
+                .setDescription(`「${style.name}」を適用しました`)
+                .setColor(0x00bfff)
+        )],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
+    });
+}
+
+async function handleDelete(interaction: ChatInputCommandInteraction, guildId: string) {
+    const name = interaction.options.getString('name', true);
+    const style = findStyleByName(guildId, name);
+    if (!style) {
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('未発見')
+                    .setDescription('スタイルが見つかりません')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
+        return;
+    }
+    if (!deleteStyle(guildId, style.id)) {
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('削除失敗')
+                    .setDescription('削除失敗')
+                    .setColor(0xff0000)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
+        return;
+    }
+    await interaction.reply({
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('削除完了')
+                .setDescription(`「${name}」を削除しました`)
+                .setColor(0x00bfff)
+        )],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
+    });
+}
+
+async function handleInfo(interaction: ChatInputCommandInteraction, guildId: string) {
+    const style = getCurrentStyle(guildId);
+    if (!style) {
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('未設定')
+                    .setDescription('現在のスタイルがありません')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
+        return;
+    }
+    await interaction.reply({
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('現在のスタイル')
+                .setDescription(`現在のスタイル: ${style.name}\nvolume:${style.volume} / pitch:${style.pitch} / speed:${style.speed}`)
+                .setColor(0x00bfff)
+        )],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
     });
 }
 
 async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId: string) {
-    // ...existing code...
     if (!isPremiumFeatureAvailable(guildId, 'voice-style-advanced')) {
-        await interaction.reply({ content: 'Premium版のみ利用できます', flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('Premium限定')
+                    .setDescription('Premium版のみ利用できます')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     const style = getCurrentStyle(guildId);
     if (!style) {
-        await interaction.reply({ content: 'スタイルがありません', flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('未設定')
+                    .setDescription('スタイルがありません')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     const intonation = interaction.options.getNumber('intonation');
     const emphasis = interaction.options.getNumber('emphasis');
     const formant = interaction.options.getNumber('formant');
     if (intonation === null && emphasis === null && formant === null) {
-        await interaction.reply({ content: 'パラメータを指定してください', flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('パラメータ不足')
+                    .setDescription('パラメータを指定してください')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     const newName = `${style.name}_adv_${Date.now()}`;
@@ -176,9 +321,27 @@ async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId:
         createdBy: interaction.user.id
     });
     if (!newStyle) {
-        await interaction.reply({ content: '高度設定スタイル作成失敗', flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('作成失敗')
+                    .setDescription('高度設定スタイル作成失敗')
+                    .setColor(0xff0000)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
         return;
     }
     applyStyle(guildId, newStyle.id);
-    await interaction.reply({ content: `高度設定スタイル「${newName}」を作成・適用しました`, flags: MessageFlags.Ephemeral });
+    await interaction.reply({
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('高度設定適用')
+                .setDescription(`高度設定スタイル「${newName}」を作成・適用しました`)
+                .setColor(0x00bfff)
+        )],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
+    });
 }

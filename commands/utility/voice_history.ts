@@ -17,6 +17,7 @@ import {
     clearVoiceHistory,
     getVoiceHistoryByTimeRange 
 } from '../../utils/voiceHistory';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -55,8 +56,14 @@ module.exports = {
         // Pro版以上か確認
         if (!isProFeatureAvailable(guildId, 'voice-history')) {
             await interaction.reply({
-                content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('Pro版限定')
+                        .setDescription('このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。')
+                        .setColor(0xffa500)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
             return;
         }
@@ -76,8 +83,14 @@ module.exports = {
         } catch (error) {
             console.error('履歴コマンド実行エラー:', error);
             await interaction.reply({
-                content: '履歴の取得中にエラーが発生しました。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription('履歴の取得中にエラーが発生しました。')
+                        .setColor(0xff0000)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
         }
     },
@@ -91,8 +104,14 @@ async function handleListCommand(interaction: ChatInputCommandInteraction) {
     const history = getVoiceHistory(guildId);
     if (history.length === 0) {
         await interaction.reply({
-            content: '読み上げ履歴がありません。',
-            flags: MessageFlags.Ephemeral
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('履歴なし')
+                    .setDescription('読み上げ履歴がありません。')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -122,7 +141,7 @@ async function handleListCommand(interaction: ChatInputCommandInteraction) {
     }
     
     await interaction.reply({
-        embeds: [embed],
+        embeds: [addCommonFooter(embed)],
         components,
         flags: MessageFlags.Ephemeral
     });
@@ -137,8 +156,14 @@ async function handleSearchCommand(interaction: ChatInputCommandInteraction) {
     
     if (searchResults.length === 0) {
         await interaction.reply({
-            content: `「${query}」に一致する履歴が見つかりませんでした。`,
-            flags: MessageFlags.Ephemeral
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('検索結果なし')
+                    .setDescription(`「${query}」に一致する履歴が見つかりませんでした。`)
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -148,8 +173,9 @@ async function handleSearchCommand(interaction: ChatInputCommandInteraction) {
     const embed = createHistoryEmbed(`「${query}」の検索結果 (${searchResults.length}件中${displayResults.length}件表示)`, displayResults);
     
     await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral
+        embeds: [addCommonFooter(embed)],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
     });
 }
 
@@ -162,8 +188,14 @@ async function handleUserCommand(interaction: ChatInputCommandInteraction) {
     
     if (userHistory.length === 0) {
         await interaction.reply({
-            content: `${targetUser.username} さんの読み上げ履歴はありません。`,
-            ephemeral: true
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('履歴なし')
+                    .setDescription(`${targetUser.username} さんの読み上げ履歴はありません。`)
+                    .setColor(0xffa500)
+            )],
+            ephemeral: true,
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -176,8 +208,9 @@ async function handleUserCommand(interaction: ChatInputCommandInteraction) {
     );
     
     await interaction.reply({
-        embeds: [embed],
-        flags: MessageFlags.Ephemeral
+        embeds: [addCommonFooter(embed)],
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
     });
 }
 
@@ -186,8 +219,14 @@ async function handleClearCommand(interaction: ChatInputCommandInteraction, guil
     // Premium版限定機能
     if (!isPremiumFeatureAvailable(guildId, 'voice-history')) {
         await interaction.reply({
-            content: '履歴のクリアはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。',
-            flags: MessageFlags.Ephemeral
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('Premium限定')
+                    .setDescription('履歴のクリアはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -219,25 +258,45 @@ async function handleClearCommand(interaction: ChatInputCommandInteraction, guil
             
             if (success) {
                 await confirmation.update({
-                    content: '✅ 履歴を削除しました。',
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('削除完了')
+                            .setDescription('✅ 履歴を削除しました。')
+                            .setColor(0x00bfff)
+                    )],
                     components: []
                 });
             } else {
                 await confirmation.update({
-                    content: '❌ 履歴の削除中にエラーが発生しました。',
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('削除失敗')
+                            .setDescription('❌ 履歴の削除中にエラーが発生しました。')
+                            .setColor(0xff0000)
+                    )],
                     components: []
                 });
             }
         } else {
             await confirmation.update({
-                content: '操作をキャンセルしました。',
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('キャンセル')
+                        .setDescription('操作をキャンセルしました。')
+                        .setColor(0xffa500)
+                )],
                 components: []
             });
         }
     } catch (error) {
         // タイムアウト
         await interaction.editReply({
-            content: '操作がタイムアウトしました。',
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('タイムアウト')
+                    .setDescription('操作がタイムアウトしました。')
+                    .setColor(0xffa500)
+            )],
             components: []
         });
     }
