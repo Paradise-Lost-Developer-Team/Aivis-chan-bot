@@ -96,3 +96,4 @@ dist/
 ssl/
 
 deployment/aivis-chan-bot-web-configmap.yaml
+deployment/cloudflared-credentials-secret.yaml

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  labels:
+    app: cloudflared
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+      - name: cloudflared
+        image: cloudflare/cloudflared:latest
+        args:
+          - tunnel
+          - --no-autoupdate
+          - run
+          - ac3cee7c-547d-4827-b2df-1b669881c69e
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: cloudflared-config
+          mountPath: /etc/cloudflared/
+      volumes:
+      - name: cloudflared-config
+        configMap:
+          name: cloudflared
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared
+  labels:
+    app: cloudflared
+data:
+  config.yaml: |
+    tunnel: ac3cee7c-547d-4827-b2df-1b669881c69e
+    credentials-file: /etc/cloudflared/ac3cee7c-547d-4827-b2df-1b669881c69e.json
+    ingress:
+      - hostname: mc.aivis-chan-bot.com
+        service: tcp://192.168.50.120:31865
+      - hostname: nyafu.aivis-chan-bot.com
+        service: tcp://192.168.50.120:31604
+      - hostname: raftblock.aivis-chan-bot.com
+        service: tcp://192.168.50.120:31867
+      - hostname: www.aivis-chan-bot.com
+        service: http://aivis-chan-bot-web:3001
+      - service: http_status:500
