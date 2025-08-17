@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bot-stats-server
+  labels:
+    app: bot-stats-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: bot-stats-server
+  template:
+    metadata:
+      labels:
+        app: bot-stats-server
+    spec:
+      containers:
+      - name: bot-stats-server
+        image: ghcr.io/alexandergg-0520/bot-stats-server:latest
+        ports:
+        - containerPort: 3001
+        envFrom:
+        - configMapRef:
+            name: aivis-chan-bot-web-env
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bot-stats-server
+spec:
+  type: ClusterIP
+  selector:
+    app: bot-stats-server
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 3001
