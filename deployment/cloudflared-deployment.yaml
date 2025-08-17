@@ -1,3 +1,4 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,10 +29,12 @@ spec:
         - tunnel
         - --config
         - /etc/cloudflared/config/config.yaml
+        - --protocol
+        - http2
         - run
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /ready
             port: 2000
           failureThreshold: 1
           initialDelaySeconds: 10
@@ -56,6 +59,7 @@ spec:
           items:
           - key: credentials.json
             path: credentials.json
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -63,10 +67,8 @@ metadata:
   name: cloudflared
 data:
   config.yaml: |
-    tunnel: minecraft-tunnel
+    tunnel: k8s-tunnel
     credentials-file: /etc/cloudflared/creds/credentials.json
-    metrics: 0.0.0.0:2000
-    no-autoupdate: true
     ingress:
       - hostname: mc.aivis-chan-bot.com
         service: tcp://192.168.50.122:31865
