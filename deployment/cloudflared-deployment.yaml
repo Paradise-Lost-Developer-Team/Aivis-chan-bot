@@ -63,7 +63,17 @@ metadata:
   name: cloudflared
 data:
   config.yaml: |
-    tunnel: k8s-tunnel
+    tunnel: minecraft-tunnel
     credentials-file: /etc/cloudflared/creds/credentials.json
     metrics: 0.0.0.0:2000
     no-autoupdate: true
+    ingress:
+      - hostname: mc.aivis-chan-bot.com
+        service: tcp://192.168.50.122:31865
+      - hostname: nyafu.aivis-chan-bot.com
+        service: tcp://192.168.50.122:31604
+      - hostname: raftblock.aivis-chan-bot.com
+        service: tcp://192.168.50.122:31867
+      - hostname: www.aivis-chan-bot.com
+        service: http://aivis-chan-bot-web:80
+      - service: http_status:500
