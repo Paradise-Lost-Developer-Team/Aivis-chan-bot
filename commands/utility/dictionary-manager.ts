@@ -13,6 +13,7 @@ import { getMaxDictionaryEntries } from '../../utils/pro-features';
 import * as fs from 'fs';
 import * as path from 'path';
 import { guildDictionary, updateGuildDictionary, saveToDictionaryFile, wordTypeChoices } from '../../utils/dictionaries';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -38,8 +39,14 @@ module.exports = {
         // Pro版以上か確認
         if (!isProFeatureAvailable(guildId, 'dictionary-manager')) {
             await interaction.reply({
-                content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('Pro版限定')
+                        .setDescription('このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。')
+                        .setColor(0xffa500)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
             return;
         }
@@ -57,8 +64,14 @@ module.exports = {
         } catch (error) {
             console.error('辞書管理コマンド実行エラー:', error);
             await interaction.reply({
-                content: '辞書操作中にエラーが発生しました。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription('辞書操作中にエラーが発生しました。')
+                        .setColor(0xff0000)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
         }
     },
@@ -74,7 +87,13 @@ async function handleExportCommand(interaction: ChatInputCommandInteraction, gui
     
     if (entries.length === 0) {
         await interaction.editReply({
-            content: 'このサーバーには登録された辞書がありません。',
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('辞書なし')
+                    .setDescription('このサーバーには登録された辞書がありません。')
+                    .setColor(0xffa500)
+            )],
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -102,8 +121,14 @@ async function handleExportCommand(interaction: ChatInputCommandInteraction, gui
     const attachment = new AttachmentBuilder(tempFile, { name: `dictionary_${interaction.guild?.name}.csv` });
     
     await interaction.editReply({
-        content: `辞書をエクスポートしました (${entries.length}件)`,
-        files: [attachment]
+        embeds: [addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('エクスポート完了')
+                .setDescription(`辞書をエクスポートしました (${entries.length}件)`)
+                .setColor(0x00bfff)
+        )],
+        files: [attachment],
+        components: [getCommonLinksRow()]
     });
     
     // 一時ファイルを削除
@@ -119,8 +144,14 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
     // Premium版限定機能
     if (!isPremiumFeatureAvailable(guildId, 'dictionary-manager')) {
         await interaction.reply({
-            content: '辞書インポートはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。',
-            flags: MessageFlags.Ephemeral
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('Premium限定')
+                    .setDescription('辞書インポートはPremium版限定機能です。Premium版へのアップグレードについては `/subscription purchase` で確認できます。')
+                    .setColor(0xffa500)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -130,7 +161,13 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
     const file = interaction.options.getAttachment('file');
     if (!file || !file.url || !file.name.endsWith('.csv')) {
         await interaction.editReply({
-            content: '有効なCSVファイルを添付してください。'
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('ファイルエラー')
+                    .setDescription('有効なCSVファイルを添付してください。')
+                    .setColor(0xff0000)
+            )],
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -154,7 +191,13 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
         
         if (currentEntries + entries.length > maxEntries) {
             await interaction.editReply({
-                content: `辞書エントリが最大数を超えています。現在: ${currentEntries}, 追加: ${entries.length}, 最大: ${maxEntries}`
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エントリ数超過')
+                        .setDescription(`辞書エントリが最大数を超えています。現在: ${currentEntries}, 追加: ${entries.length}, 最大: ${maxEntries}`)
+                        .setColor(0xff0000)
+                )],
+                components: [getCommonLinksRow()]
             });
             return;
         }
@@ -194,13 +237,25 @@ async function handleImportCommand(interaction: ChatInputCommandInteraction, gui
         saveToDictionaryFile();
         
         await interaction.editReply({
-            content: `辞書をインポートしました。成功: ${successCount}件, 失敗: ${errorCount}件`
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('インポート完了')
+                    .setDescription(`辞書をインポートしました。成功: ${successCount}件, 失敗: ${errorCount}件`)
+                    .setColor(0x00bfff)
+            )],
+            components: [getCommonLinksRow()]
         });
         
     } catch (error) {
         console.error('辞書インポートエラー:', error);
         await interaction.editReply({
-            content: 'CSVファイルの読み込み中にエラーが発生しました。ファイル形式を確認してください。'
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('インポート失敗')
+                    .setDescription('CSVファイルの読み込み中にエラーが発生しました。ファイル形式を確認してください。')
+                    .setColor(0xff0000)
+            )],
+            components: [getCommonLinksRow()]
         });
     }
 }
@@ -210,41 +265,35 @@ async function handleStatsCommand(interaction: ChatInputCommandInteraction, guil
     // このサーバーの辞書エントリを取得
     const dictionary = guildDictionary[guildId] || {};
     const entries = Object.entries(dictionary);
-    
     // 最大エントリー数を取得
     const maxEntries = getMaxDictionaryEntries(guildId);
-    
     // 単語タイプごとの集計
     const typeCounts: Record<string, number> = {};
-    
     for (const [_, details] of entries) {
         const wordType = details.wordType || 'COMMON_NOUN';
         typeCounts[wordType] = (typeCounts[wordType] || 0) + 1;
     }
-    
     // 単語タイプの日本語名を取得
     const typeNames: Record<string, string> = {};
     wordTypeChoices.forEach(choice => {
         typeNames[choice.value] = choice.name;
     });
-    
     // 単語タイプごとの集計結果を整形
     const typeStats = Object.entries(typeCounts)
         .map(([type, count]) => `${typeNames[type] || type}: ${count}件`)
         .join('\n');
-    
-    const embed = new EmbedBuilder()
-        .setTitle('辞書統計情報')
-        .setColor('#00AAFF')
-        .addFields(
-            { name: '登録単語数', value: `${entries.length} / ${maxEntries === Infinity ? '無制限' : maxEntries}` },
-            { name: '単語タイプ別', value: typeStats || 'データなし' }
-        )
-        .setFooter({ text: `サブスクリプションタイプ: ${isPremiumFeatureAvailable(guildId, 'dictionary-manager') ? 'Premium' : isProFeatureAvailable(guildId, 'dictionary-manager') ? 'Pro' : '無料'}` })
-        .setTimestamp();
-    
+    const embed = addCommonFooter(
+        new EmbedBuilder()
+            .setTitle('辞書統計情報')
+            .setColor('#00AAFF')
+            .addFields(
+                { name: '登録単語数', value: `${entries.length} / ${maxEntries === Infinity ? '無制限' : maxEntries}` },
+                { name: '単語タイプ別', value: typeStats || 'データなし' }
+            )
+    );
     await interaction.reply({
         embeds: [embed],
-        flags: MessageFlags.Ephemeral
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
     });
 }

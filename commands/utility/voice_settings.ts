@@ -2,6 +2,7 @@ import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction,
 import { getSpeakerOptions, currentSpeaker, saveUserSpeakers } from '../../utils/TTS-Engine';
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags, EmbedBuilder } from 'discord.js';
 import { voiceSettings } from '../../utils/TTS-Engine';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -58,12 +59,13 @@ module.exports = {
             try {
                 if (!interaction.guild) {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('エラー')
                                 .setDescription('このコマンドはサーバー内でのみ使用できます。')
                                 .setColor(0xff0000)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                     return;
                 }
@@ -71,12 +73,13 @@ module.exports = {
                 const speakerOptions = getSpeakerOptions();
                 if (!speakerOptions || speakerOptions.length === 0) {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('エラー')
                                 .setDescription('話者情報が読み込まれていません。設定ファイルを確認してください。')
                                 .setColor(0xff0000)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                     return;
                 }
@@ -127,12 +130,12 @@ module.exports = {
                         currentSpeaker[selectInteraction.user.id] = speakerIdNumber;
                         saveUserSpeakers();
                         await selectInteraction.update({
-                            embeds: [
+                            embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('話者 設定完了')
                                     .setDescription(`あなたの話者を「${speakerName} - ${styleName}」に設定しました。`)
                                     .setColor(0x00bfff)
-                            ],
+                            )],
                             components: []
                         });
                     });
@@ -146,23 +149,23 @@ module.exports = {
                     });
                 } catch (error) {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('エラー')
                                 .setDescription('話者選択中にエラーが発生しました。')
                                 .setColor(0xff0000)
-                        ],
+                        )],
                         components: []
                     });
                 }
             } catch (error) {
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('話者設定中にエラーが発生しました。')
                             .setColor(0xff0000)
-                    ]
+                    )]
                 });
             }
         } else if (sub === 'intonation') {
@@ -171,21 +174,21 @@ module.exports = {
         if (value >= 0.0 && value <= 2.0) {
             voiceSettings.intonation[interaction.user.id] = value;
             await interaction.editReply({
-                embeds: [
+                embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('感情表現強度 設定完了')
                         .setDescription(`感情表現強度を ${value} に設定しました。`)
                         .setColor(0x00bfff)
-                ]
+                )]
             });
         } else {
             await interaction.editReply({
-                embeds: [
+                embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('エラー')
                         .setDescription('感情表現強度は 0.0 から 2.0 の間でなければなりません。')
                         .setColor(0xff0000)
-                ]
+                )]
             });
         }
         } else if (sub === 'pitch') {
@@ -194,21 +197,21 @@ module.exports = {
             if (value >= -0.15 && value <= 0.15) {
                 voiceSettings.pitch[interaction.user.id] = value;
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('音高 設定完了')
                             .setDescription(`音高を ${value} に設定しました。`)
                             .setColor(0x00bfff)
-                    ]
+                    )]
                 });
             } else {
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('音高は -0.15 から 0.15 の間でなければなりません。')
                             .setColor(0xff0000)
-                    ]
+                    )]
                 });
             }
         } else if (sub === 'speed') {
@@ -218,21 +221,21 @@ module.exports = {
                 voiceSettings.speed = voiceSettings.speed || {};
                 voiceSettings.speed[interaction.user.id] = value;
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('話速 設定完了')
                             .setDescription(`話速を ${value} に設定しました。`)
                             .setColor(0x00bfff)
-                    ]
+                    )]
                 });
             } else {
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('話速は 0.5 から 2.0 の間でなければなりません。')
                             .setColor(0xff0000)
-                    ]
+                    )]
                 });
             }
         } else if (sub === 'tempo') {
@@ -242,21 +245,21 @@ module.exports = {
                 voiceSettings.tempo = voiceSettings.tempo || {};
                 voiceSettings.tempo[interaction.user.id] = value;
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('テンポ 設定完了')
                             .setDescription(`テンポを ${value} に設定しました。`)
                             .setColor(0x00bfff)
-                    ]
+                    )]
                 });
             } else {
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('テンポは 0.5 から 2.0 の間でなければなりません。')
                             .setColor(0xff0000)
-                    ]
+                    )]
                 });
             }
         } else if (sub === 'volume') {
@@ -266,21 +269,21 @@ module.exports = {
                 voiceSettings.volume = voiceSettings.volume || {};
                 voiceSettings.volume[interaction.user.id] = value;
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('音量 設定完了')
                             .setDescription(`音量を ${value} に設定しました。`)
                             .setColor(0x00bfff)
-                    ]
+                    )]
                 });
             } else {
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('音量は 0.0 から 2.0 の間でなければなりません。')
                             .setColor(0xff0000)
-                    ]
+                    )]
                 });
             }
         }

@@ -1,6 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
+import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
 
 module.exports = {
@@ -27,7 +30,15 @@ module.exports = {
             if (member?.voice.channel) {
                 voiceChannel = member.voice.channel as VoiceChannel;
             } else {
-                await interaction.reply("ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。");
+                await interaction.reply({
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('エラー')
+                            .setDescription('ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。')
+                            .setColor(0xff0000)
+                    )],
+                    components: [getCommonLinksRow()]
+                });
                 return;
             }
         }
@@ -51,14 +62,28 @@ module.exports = {
                 // 既に接続しているチャンネルと指定されたチャンネルが異なる場合
                 if (currentVoiceChannel.id !== voiceChannel.id) {
                     await interaction.reply({
-                        content: `❌ 既に別のボイスチャンネル「${currentVoiceChannel.name}」に接続しています。\n他のチャンネルに移動させるには、まず \`/leave\` コマンドで退出させてから再度呼んでください。`,
-                        flags: MessageFlags.Ephemeral
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('既に接続中')
+                                .setDescription(`❌ 既に別のボイスチャンネル「${currentVoiceChannel.name}」に接続しています。\n他のチャンネルに移動させるには、まず \/leave コマンドで退出させてから再度呼んでください。`)
+                                .setColor(0xffa500)
+                        )],
+                        flags: MessageFlags.Ephemeral,
+                        components: [getCommonLinksRow()]
                     });
                     return;
                 } else {
                     // 同じチャンネルの場合
                     textChannels[guildId] = textChannel; // テキストチャンネルの更新のみ
-                    await interaction.reply(`✅ 既に「${currentVoiceChannel.name}」に接続しています。テキストチャンネルを「${textChannel.name}」に設定しました。`);
+                    await interaction.reply({
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('既に接続中')
+                                .setDescription(`✅ 既に「${currentVoiceChannel.name}」に接続しています。テキストチャンネルを「${textChannel.name}」に設定しました。`)
+                                .setColor(0x00bfff)
+                        )],
+                        components: [getCommonLinksRow()]
+                    });
                     return;
                 }
             }
@@ -79,7 +104,21 @@ module.exports = {
             // 新規：取得したチャネル情報を join_channels.json に保存
             updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
 
-            await interaction.reply(`${voiceChannel.name} に接続しました。`);
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('接続完了')
+                        .setDescription(`✅ ${voiceChannel.name} に接続しました。`)
+                        .setColor(0x00bfff)
+                        .addFields(
+                            { name: '接続先', value: voiceChannel.name, inline: true },
+                            { name: 'テキストチャンネル', value: textChannel.name, inline: true },
+                            { name: '実行者', value: `${interaction.user.username} (${interaction.user.tag})`, inline: true }
+                        )
+                        .setThumbnail(interaction.client.user?.displayAvatarURL() ?? null)
+                )],
+                components: [getCommonLinksRow()]
+            });
             loadJoinChannels();
 
             // 追加: Ready になるまで待機
@@ -102,7 +141,15 @@ module.exports = {
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
-                await interaction.reply("ボイスチャンネルへの接続に失敗しました。");
+                await interaction.reply({
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('エラー')
+                            .setDescription('ボイスチャンネルへの接続に失敗しました。')
+                            .setColor(0xff0000)
+                    )],
+                    components: [getCommonLinksRow()]
+                });
             }
         }
     }

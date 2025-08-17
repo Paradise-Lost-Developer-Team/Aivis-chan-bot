@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from 'discord.js';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { DICTIONARY_FILE, TTS_BASE_URL } from '../../utils/TTS-Engine';
 import fs from 'fs';
 
@@ -123,7 +124,7 @@ module.exports = {
                     const dictionaryResult = saveToDictionaryFile(dictionaryData);
                     if (dictionaryResult) {
                         await interaction.editReply({
-                            embeds: [
+                            embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('単語追加')
                                     .setDescription(`単語 '${word}' を辞書に登録しました。`)
@@ -133,37 +134,41 @@ module.exports = {
                                         { name: '品詞', value: wordType, inline: true }
                                     )
                                     .setColor(0x00bfff)
-                            ]
+                            )],
+                            components: [getCommonLinksRow()]
                         });
                     } else {
                         await interaction.editReply({
-                            embeds: [
+                            embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('保存失敗')
                                     .setDescription('VOICEVOXへの登録は成功しましたが、辞書ファイルへの保存に失敗しました。')
                                     .setColor(0xffa500)
-                            ]
+                            )],
+                            components: [getCommonLinksRow()]
                         });
                     }
                 } else {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('追加失敗')
                                 .setDescription(`単語 '${word}' の登録に失敗しました。サーバーの応答を確認してください。`)
                                 .setColor(0xff0000)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                 }
             } catch (error) {
                 console.error('Command execution error:', error);
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('単語の登録中にエラーが発生しました。')
                             .setColor(0xff0000)
-                    ]
+                    )],
+                    components: [getCommonLinksRow()]
                 });
             }
         } else if (sub === 'edit') {
@@ -179,12 +184,13 @@ module.exports = {
                 const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
                 if (!uuid) {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('編集失敗')
                                 .setDescription(`単語 '${word}' のUUIDが見つかりませんでした。まずは追加してください。`)
                                 .setColor(0xffa500)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                     return;
                 }
@@ -202,7 +208,7 @@ module.exports = {
                     const dictionaryResult = saveToDictionaryFile(dictionaryData);
                     if (dictionaryResult) {
                         await interaction.editReply({
-                            embeds: [
+                            embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('単語編集')
                                     .setDescription(`単語 '${word}' を編集しました。`)
@@ -212,37 +218,41 @@ module.exports = {
                                         { name: '品詞', value: wordType, inline: true }
                                     )
                                     .setColor(0x00bfff)
-                            ]
+                            )],
+                            components: [getCommonLinksRow()]
                         });
                     } else {
                         await interaction.editReply({
-                            embeds: [
+                            embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('保存失敗')
                                     .setDescription('VOICEVOXへの編集は成功しましたが、辞書ファイルへの保存に失敗しました。')
                                     .setColor(0xffa500)
-                            ]
+                            )],
+                            components: [getCommonLinksRow()]
                         });
                     }
                 } else {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('編集失敗')
                                 .setDescription(`単語 '${word}' の編集に失敗しました。サーバーの応答: ${response.status}`)
                                 .setColor(0xff0000)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                 }
             } catch (error) {
                 console.error('Command execution error:', error);
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('単語の編集中にエラーが発生しました。')
                             .setColor(0xff0000)
-                    ]
+                    )],
+                    components: [getCommonLinksRow()]
                 });
             }
         } else if (sub === 'remove') {
@@ -255,12 +265,13 @@ module.exports = {
                 const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
                 if (!uuid) {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('削除失敗')
                                 .setDescription(`単語 '${word}' のUUIDが見つかりませんでした。`)
                                 .setColor(0xffa500)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                     return;
                 }
@@ -275,32 +286,35 @@ module.exports = {
                         saveToDictionaryFile(dictionaryData);
                     }
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('単語削除')
                                 .setDescription(`単語 '${word}' を辞書から削除しました。`)
                                 .setColor(0x00bfff)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                 } else {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('削除失敗')
                                 .setDescription(`単語 '${word}' の削除に失敗しました。サーバーの応答: ${response.status}`)
                                 .setColor(0xff0000)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                 }
             } catch (error) {
                 console.error('Command execution error:', error);
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('単語の削除中にエラーが発生しました。')
                             .setColor(0xff0000)
-                    ]
+                    )],
+                    components: [getCommonLinksRow()]
                 });
             }
         } else if (sub === 'list') {
@@ -311,12 +325,13 @@ module.exports = {
                 const words = dictionaryData[guildId] || {};
                 if (Object.keys(words).length === 0) {
                     await interaction.editReply({
-                        embeds: [
+                        embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('単語一覧')
                                 .setDescription('辞書に単語が登録されていません。')
                                 .setColor(0x00bfff)
-                        ]
+                        )],
+                        components: [getCommonLinksRow()]
                     });
                     return;
                 }
@@ -348,15 +363,19 @@ module.exports = {
                     .setTitle('辞書の単語一覧')
                     .setDescription(description || '単語データの表示中にエラーが発生しました。')
                     .setFooter({ text: `合計: ${Object.keys(words).length}単語` });
-                await interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({
+                    embeds: [addCommonFooter(embed)],
+                    components: [getCommonLinksRow()]
+                });
             } catch (error) {
                 await interaction.editReply({
-                    embeds: [
+                    embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('単語一覧の取得中にエラーが発生しました。')
                             .setColor(0xff0000)
-                    ]
+                    )],
+                    components: [getCommonLinksRow()]
                 });
             }
         }
