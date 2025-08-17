@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
-import { speakVoice, speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine'; // Adjust the import path as needed
+import { speakVoice, speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine'; // autoJoinChannelsを追加
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 import { isJoinLeaveEnabled } from './joinLeaveManager';
 import { getTextChannelForGuild } from './voiceStateManager';
@@ -13,6 +13,36 @@ export function VoiceStateUpdate(client: Client) {
         const voiceClient = voiceClients[guildId];
     
         if (member.user.bot) return;
+
+        // --- 一時VC(TempVoice/PartyBeast)からの移動を検知しBotも追従 ---
+        // 一時VC判定: チャンネル名に"TempVoice"や"PartyBeast"が含まれる
+        const isTempVC = (ch: any) => ch && ch.name && (ch.name.includes('TempVoice') || ch.name.includes('PartyBeast'));
+        if (oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
+            if (isTempVC(oldState.channel)) {
+                // Botが同じ一時VCにいる場合のみ追従
+                if (voiceClient && voiceClient.joinConfig.channelId === oldState.channel.id) {
+                    // 新しいVCへBotを移動
+                    try {
+                        const connection = joinVoiceChannel({
+                            channelId: newState.channel.id,
+                            guildId: guildId,
+                            adapterCreator: newState.guild.voiceAdapterCreator,
+                            selfDeaf: false,
+                        });
+                        voiceClients[guildId] = connection;
+                        // autoJoinChannelsも更新（必要なら）
+                        if (autoJoinChannels[guildId]) {
+                            autoJoinChannels[guildId].voiceChannelId = newState.channel.id;
+                        }
+                        // 状態保存
+                        if (typeof saveVoiceState === 'function') saveVoiceState(client);
+                        console.log(`[TempVC移動] Botも${oldState.channel.name}→${newState.channel.name}へ移動`);
+                    } catch (err) {
+                        console.error('[TempVC移動] Botの移動失敗:', err);
+                    }
+                }
+            }
+        }
     
         if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
             if (!oldState.channel && newState.channel) {
