@@ -2,10 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cloudflared
-  labels:
-    app: cloudflared
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: cloudflared
@@ -17,11 +17,6 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:latest
-        args:
-          - tunnel
-          - --no-autoupdate
-          - run
-          - ac3cee7c-547d-4827-b2df-1b669881c69e
         resources:
           requests:
             cpu: "100m"
@@ -29,31 +24,46 @@ spec:
           limits:
             cpu: "250m"
             memory: "256Mi"
+        args:
+        - tunnel
+        - --config
+        - /etc/cloudflared/config/config.yaml
+        - run
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 2000
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
         volumeMounts:
         - name: cloudflared-config
-          mountPath: /etc/cloudflared/
+          mountPath: /etc/cloudflared/config
+          readOnly: true
+        - name: cloudflared-credentials
+          mountPath: /etc/cloudflared/creds
+          readOnly: true
       volumes:
       - name: cloudflared-config
         configMap:
           name: cloudflared
+          items:
+          - key: config.yaml
+            path: config.yaml
+      - name: cloudflared-credentials
+        secret:
+          secretName: cloudflared-credentials
+          items:
+          - key: credentials.json
+            path: credentials.json
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cloudflared
-  labels:
-    app: cloudflared
 data:
   config.yaml: |
-    tunnel: ac3cee7c-547d-4827-b2df-1b669881c69e
-    credentials-file: /etc/cloudflared/ac3cee7c-547d-4827-b2df-1b669881c69e.json
-    ingress:
-      - hostname: mc.aivis-chan-bot.com
-        service: tcp://192.168.50.120:31865
-      - hostname: nyafu.aivis-chan-bot.com
-        service: tcp://192.168.50.120:31604
-      - hostname: raftblock.aivis-chan-bot.com
-        service: tcp://192.168.50.120:31867
-      - hostname: www.aivis-chan-bot.com
-        service: http://aivis-chan-bot-web:3001
-      - service: http_status:500
+    tunnel: k8s-tunnel
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    metrics: 0.0.0.0:2000
+    no-autoupdate: true
