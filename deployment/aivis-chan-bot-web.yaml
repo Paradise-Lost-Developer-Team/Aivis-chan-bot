@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivis-chan-bot-web
+  labels:
+    app: aivis-chan-bot-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aivis-chan-bot-web
+  template:
+    metadata:
+      labels:
+        app: aivis-chan-bot-web
+    spec:
+      containers:
+      - name: aivis-chan-bot-web
+        image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest # ここをビルドしたイメージ名に変更してください
+        ports:
+        - containerPort: 3000 # server.jsがリッスンしているポートに合わせてください
+    envFrom:
+    - configMapRef:
+      name: aivis-chan-bot-web-env
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivis-chan-bot-web
+spec:
+  type: ClusterIP
+  selector:
+    app: aivis-chan-bot-web
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 3000
