@@ -80,11 +80,12 @@ module.exports = {
                 embeds: [addCommonFooter(
                     {
                         title: '自動入室チャンネル設定',
-                        description: `サーバー **${interaction.guild!.name}** の自動入室チャンネルを **${voiceChannel.name}** に設定しました。`,
+                        description: `サーバー **${interaction.guild!.name}** の自動入室チャンネルを <#${voiceChannel.id}> に設定しました。`,
                         color: 0x00bfff,
                         fields: [
-                            { name: 'ボイスチャンネル', value: voiceChannel.name, inline: true },
+                            { name: 'ボイスチャンネル', value: `<#${voiceChannel.id}>`, inline: true },
                             { name: 'テキストチャンネル', value: textChannel ? `<#${textChannel.id}>` : `<#${voiceChannel.id}>`, inline: true },
+                            { name: '実行者', value: `<@${interaction.user.id}>`, inline: true },
                             { name: '一時VC追従', value: tempVoice ? '有効' : '無効', inline: true }
                         ]
                     } as any
