@@ -948,6 +948,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🔍 Auto-testing bot status after 5 seconds...');
         window.website.updateMultipleBotStatus();
     }, 5000);
+
+    // 声一覧ドロップダウン切替
+    document.querySelectorAll('.voice-style-select').forEach(function(select) {
+        select.addEventListener('change', function() {
+            const audio = this.parentElement.querySelector('.voice-audio');
+            audio.src = '/voice lines/' + this.value;
+            // ラベルも切り替えたい場合はここで対応
+        });
+    });
 });
 
 // リサイズイベント

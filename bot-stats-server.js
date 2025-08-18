@@ -208,12 +208,12 @@ async function fetchBotStatistics(botId) {
     try {
         const axios = require('axios');
         const botApiMap = {
-            '1333819940645638154': 'http://localhost:3002/api/stats',
-            '1334732369831268352': 'http://localhost:3003/api/stats',
-            '1334734681656262770': 'http://localhost:3004/api/stats',
-            '1365633502988472352': 'http://localhost:3005/api/stats',
-            '1365633586123771934': 'http://localhost:3006/api/stats',
-            '1365633656173101086': 'http://localhost:3007/api/stats'
+            '1333819940645638154': 'http://aivis-chan-bot-1st:3002/api/stats',
+            '1334732369831268352': 'http://aivis-chan-bot-2nd:3003/api/stats',
+            '1334734681656262770': 'http://aivis-chan-bot-3rd:3004/api/stats',
+            '1365633502988472352': 'http://aivis-chan-bot-4th:3005/api/stats',
+            '1365633586123771934': 'http://aivis-chan-bot-5th:3006/api/stats',
+            '1365633656173101086': 'http://aivis-chan-bot-6th:3007/api/stats'
         };
         const apiUrl = botApiMap[botId];
         if (!apiUrl) {

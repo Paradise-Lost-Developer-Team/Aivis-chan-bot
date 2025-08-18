@@ -18,9 +18,9 @@ spec:
     spec:
       containers:
       - name: aivis-chan-bot-web
-        image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest # ここをビルドしたイメージ名に変更してください
+        image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest
         ports:
-        - containerPort: 3001 # server.jsがリッスンしているポートに合わせてください
+        - containerPort: 80 # 静的Web/nginxなら80
         resources:
           requests:
             memory: "128Mi"
@@ -43,4 +43,4 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 3001
+      targetPort: 80

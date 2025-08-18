@@ -1,19 +1,15 @@
-FROM node:22-alpine
+FROM nginx:alpine
 
-WORKDIR /app
+# すべてのhtmlファイルをnginx公開ディレクトリにコピー
+COPY ./*.html /usr/share/nginx/html/
 
-# 依存関係をインストール
-COPY package*.json ./
-RUN npm install
+COPY ./css /usr/share/nginx/html/css
+COPY ./js /usr/share/nginx/html/js
+COPY ./images /usr/share/nginx/html/images
+COPY ./voice_lines /usr/share/nginx/html/voice_lines
 
-# アプリのソースと静的ファイルをコピー
-COPY . .
-
-# ポートを公開（HTTPS: 443）
-EXPOSE 443
-
-# 証明書と秘密鍵はcertsディレクトリにマウントして利用
-# 例: docker run -v /path/to/certs:/app/certs ...
-
-# アプリ起動（例: server.jsでHTTPSサーバを起動）
-CMD ["node", "server.js"]
+EXPOSE 80
+COPY ./faq /usr/share/nginx/html/faq
+COPY ./terms /usr/share/nginx/html/terms
+COPY ./privacy /usr/share/nginx/html/privacy
+COPY ./docs /usr/share/nginx/html/docs

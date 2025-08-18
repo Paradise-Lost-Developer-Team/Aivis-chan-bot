@@ -32,13 +32,14 @@ spec:
           - --protocol
           - http2
           - run
-        livenessProbe:
-          httpGet:
-            path: /ready
-            port: 2000
-          failureThreshold: 3
-          initialDelaySeconds: 10
-          periodSeconds: 10
+  # livenessProbeを一時的に無効化
+  # livenessProbe:
+  #   httpGet:
+  #     path: /ready
+  #     port: 2000
+  #   failureThreshold: 3
+  #   initialDelaySeconds: 10
+  #   periodSeconds: 10
         volumeMounts:
           - name: cloudflared-config
             mountPath: /etc/cloudflared/config
@@ -69,13 +70,5 @@ data:
   config.yaml: |
     tunnel: k8s-tunnel
     credentials-file: /etc/cloudflared/creds/credentials.json
-    ingress:
-      - hostname: mc.aivis-chan-bot.com
-        service: tcp://192.168.50.122:31865
-      - hostname: nyafu.aivis-chan-bot.com
-        service: tcp://192.168.50.122:31604
-      - hostname: raftblock.aivis-chan-bot.com
-        service: tcp://192.168.50.122:31867
-      - hostname: www.aivis-chan-bot.com
-        service: http://aivis-chan-bot-web:80
-      - service: http_status:500
+    metrics: 0.0.0.0:2000
+    no-autoupdate: true
