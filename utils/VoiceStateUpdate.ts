@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus, joinVoiceChannel } from '@discordjs/voice';
-import { speakVoice, loadAutoJoinChannels, voiceClients, currentSpeaker } from './TTS-Engine'; // Adjust the import path as needed
+import { speakVoice, speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine'; // autoJoinChannelsを追加
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 import { isJoinLeaveEnabled } from './joinLeaveManager';
 import { getTextChannelForGuild } from './voiceStateManager';
@@ -13,34 +13,140 @@ export function VoiceStateUpdate(client: Client) {
         const voiceClient = voiceClients[guildId];
     
         if (member.user.bot) return;
+
+        // --- 一時VC(TempVoice/PartyBeast)やtempVoiceフラグ付きVCからの移動を検知しBotも追従 ---
+        // tempVoiceフラグが有効な場合は、作成チャンネルにはBotは入らず、ユーザーが新しいVCに移動した時のみBotが追従
+        const isTempCreateChannel = (ch: any) => {
+            if (!ch) return false;
+            // autoJoinChannelsのvoiceChannelIdが作成チャンネルID
+            return autoJoinChannels[guildId]?.tempVoice && autoJoinChannels[guildId]?.voiceChannelId === ch.id;
+        };
+        if (oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
+            // ユーザーが一時VC作成チャンネルから新しいVCに移動した場合のみBotが追従
+            if (isTempCreateChannel(oldState.channel)) {
+                // Botがまだ新しいVCにいない場合のみ追従
+                if (!voiceClient || voiceClient.joinConfig.channelId !== newState.channel.id) {
+                    try {
+                        const connection = joinVoiceChannel({
+                            channelId: newState.channel.id,
+                            guildId: guildId,
+                            adapterCreator: newState.guild.voiceAdapterCreator,
+                            selfDeaf: false,
+                        });
+                        voiceClients[guildId] = connection;
+                        // autoJoinChannelsも更新（必要なら）
+                        if (autoJoinChannels[guildId]) {
+                            autoJoinChannels[guildId].voiceChannelId = newState.channel.id;
+                        }
+                        // 状態保存
+                        if (typeof saveVoiceState === 'function') saveVoiceState(client);
+                        // 一時VC自動接続アナウンス
+                        await speakAnnounce('一時VCに自動接続しました。', guildId, client);
+                        updateLastSpeechTime();
+                        // 一時VC自動接続Embed送信
+                        const autoJoinData = autoJoinChannels[guildId];
+                        if (autoJoinData?.textChannelId) {
+                            const textChannel = member.guild.channels.cache.get(autoJoinData.textChannelId);
+                            if (textChannel?.isTextBased()) {
+                                const botUser = client.user;
+                                const embed = new EmbedBuilder()
+                                    .setTitle('自動接続通知')
+                                    .setDescription(`Botが一時VC「${newState.channel.name}」に自動接続しました。`)
+                                    .addFields(
+                                        { name: '接続先', value: newState.channel.name, inline: true },
+                                        { name: '接続した人', value: `${member.displayName} (${member.user.tag})`, inline: true },
+                                    )
+                                    .addFields(
+                                        { name: '使用Bot', value: botUser ? `${botUser.username} (${botUser.tag ?? ''})` : '不明', inline: true }
+                                    )
+                                    .setThumbnail(botUser?.displayAvatarURL() ?? null)
+                                    .setFooter({
+                                        text: '利用規約 | プライバシーポリシー | サポートサーバー | ホームページ | ソースコード',
+                                        iconURL: undefined
+                                    })
+                                    .setTimestamp();
+                                await textChannel.send({
+                                    embeds: [embed],
+                                    components: [
+                                        {
+                                            type: 1, // ActionRow
+                                            components: [
+                                                {
+                                                    type: 2, // Button
+                                                    style: 5, // Link
+                                                    label: '利用規約',
+                                                    url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/Term-of-Service/'
+                                                },
+                                                {
+                                                    type: 2,
+                                                    style: 5,
+                                                    label: 'プライバシーポリシー',
+                                                    url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/Privacy-Policy/'
+                                                },
+                                                {
+                                                    type: 2,
+                                                    style: 5,
+                                                    label: 'サポートサーバー',
+                                                    url: 'https://discord.gg/8n2q2r2y2d'
+                                                },
+                                                {
+                                                    type: 2,
+                                                    style: 5,
+                                                    label: 'ホームページ',
+                                                    url: 'https://www.aivis-chan-bot.com'
+                                                },
+                                                {
+                                                    type: 2,
+                                                    style: 5,
+                                                    label: 'ソースコード',
+                                                    url: 'https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot'
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                });
+                            }
+                        }
+                        console.log(`[TempVC作成] Botが${oldState.channel.name}→${newState.channel.name}へ追従`);
+                    } catch (err) {
+                        console.error('[TempVC作成] Botの移動失敗:', err);
+                    }
+                }
+            }
+        }
     
         if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
             if (!oldState.channel && newState.channel) {
                 // ユーザーがボイスチャンネルに参加したとき
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
-                    await speakVoice(`${nickname} さんが入室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                    await speakAnnounce(`${nickname} さんが入室しました。`, guildId, client);
+                    updateLastSpeechTime(); // 発話時刻を更新
                     // join/leave embed通知
                     if (isJoinLeaveEnabled(guildId)) {
                         const textChannelId = getTextChannelForGuild(guildId);
                         if (textChannelId) {
                             const textChannel = member.guild.channels.cache.get(textChannelId);
                             if (textChannel?.isTextBased()) {
-                                const embed = new EmbedBuilder()
-                                    .setTitle('入室通知')
-                                    .setDescription(`${nickname} さんが入室しました`)
-                                    .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
-                                    .setThumbnail(member.user.displayAvatarURL())
-                                    .addFields(
-                                        { name: 'ユーザー名', value: member.user.tag, inline: true },
-                                        { name: '代名詞', value: '未設定', inline: true },
-                                        { name: '自己紹介', value: '未設定' },
-                                        { name: 'サーバー参加日', value: member.joinedAt ? member.joinedAt.toLocaleDateString() : '不明', inline: true },
-                                        { name: 'Discord参加日', value: member.user.createdAt.toLocaleDateString(), inline: true },
-                                        { name: '役職', value: member.roles.highest.name, inline: true },
-                                        { name: 'ボイスチャンネル', value: newState.channel.name, inline: true }
-                                    )
-                                    .setTimestamp();
+                                    const embed = new EmbedBuilder()
+                                        .setTitle('入室通知')
+                                        .setDescription(`${nickname} さんが入室しました`)
+                                        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+                                        .setThumbnail(member.user.displayAvatarURL())
+                                        .addFields(
+                                            { name: 'ユーザー名', value: member.user.tag, inline: true },
+                                            { name: '代名詞', value: '未設定', inline: true },
+                                            { name: '自己紹介', value: '未設定' },
+                                            { name: 'サーバー参加日', value: member.joinedAt ? member.joinedAt.toLocaleDateString() : '不明', inline: true },
+                                            { name: 'Discord参加日', value: member.user.createdAt.toLocaleDateString(), inline: true },
+                                            { name: '役職', value: member.roles.highest.name, inline: true },
+                                            { name: 'ボイスチャンネル', value: newState.channel.name, inline: true }
+                                        )
+                                        .setFooter({
+                                            text: '利用規約 | プライバシーポリシー | サポートサーバー | ホームページ | ソースコード',
+                                            iconURL: undefined
+                                        })
+                                        .setTimestamp();
                                 await textChannel.send({ embeds: [embed] });
                             }
                         }
@@ -50,7 +156,8 @@ export function VoiceStateUpdate(client: Client) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
-                    await speakVoice(`${nickname} さんが退室しました。`, currentSpeaker[guildId] || 888753760, guildId);
+                    await speakAnnounce(`${nickname} さんが退室しました。`, guildId, client);
+                    updateLastSpeechTime(); // 発話時刻を更新
                     // join/leave embed通知
                     if (isJoinLeaveEnabled(guildId)) {
                         const textChannelId = getTextChannelForGuild(guildId);
@@ -97,7 +204,8 @@ export function VoiceStateUpdate(client: Client) {
             const textChannelId = guildData.textChannelId;
     
             if (!oldState.channel && newState.channel) {
-                if (voiceChannelId === newState.channel.id) {
+                // tempVoiceフラグが有効な場合はこの自動接続処理をスキップ（Bot二重入室防止）
+                if (guildData.tempVoice !== true && voiceChannelId === newState.channel.id) {
                     if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                         try {
                             // 接続インスタンスを作成
@@ -151,9 +259,68 @@ export function VoiceStateUpdate(client: Client) {
 
                             // ボイスチャンネル参加アナウンス
                             try {
-                                const speakerId = currentSpeaker[guildId] || 888753760;
                                 console.log(`自動接続アナウンス生成開始: ${guildId}`);
-                                await speakVoice("自動接続しました。", speakerId, guildId);
+                                await speakAnnounce("自動接続しました。", guildId, client);
+                                updateLastSpeechTime(); // 発話時刻を更新
+                                // 通常VC自動接続Embed送信
+                                if (textChannelId) {
+                                    const textChannel = newState.guild.channels.cache.get(textChannelId);
+                                    if (textChannel?.isTextBased()) {
+                                        const botUser = client.user;
+                                        const embed = new EmbedBuilder()
+                                            .setTitle('自動接続通知')
+                                            .setDescription(`BotがVC「${newState.channel.name}」に自動接続しました。`)
+                                            .addFields(
+                                                { name: '接続先', value: newState.channel.name, inline: true },
+                                                { name: '接続した人', value: `${member.displayName} (${member.user.tag})`, inline: true },
+                                            )
+                                            .addFields(
+                                                { name: '使用Bot', value: botUser ? `${botUser.username} (${botUser.tag ?? ''})` : '不明', inline: true }
+                                            )
+                                            .setThumbnail(botUser?.displayAvatarURL() ?? null)
+                                            .setTimestamp();
+                                        await textChannel.send({
+                                            embeds: [embed],
+                                            components: [
+                                                {
+                                                    type: 1,
+                                                    components: [
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: '利用規約',
+                                                            url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/Term-of-Service/'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'プライバシーポリシー',
+                                                            url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/Privacy-Policy/'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'サポートサーバー',
+                                                            url: 'https://discord.gg/8n2q2r2y2d'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'ホームページ',
+                                                            url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'ソースコード',
+                                                            url: 'https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot'
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        });
+                                    }
+                                }
                             } catch (audioError) {
                                 console.error(`自動接続アナウンス再生エラー: ${audioError}`);
                             }
@@ -168,6 +335,64 @@ export function VoiceStateUpdate(client: Client) {
                         if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {
                             try {
                                 console.log(`${voiceClients[guildId].joinConfig.guildId}: Only BOT is left in the channel, disconnecting.`);
+                                // 切断Embed送信
+                                if (textChannelId) {
+                                    const textChannel = oldState.guild.channels.cache.get(textChannelId);
+                                    if (textChannel?.isTextBased()) {
+                                        const botUser = client.user;
+                                        const embed = new EmbedBuilder()
+                                            .setTitle('自動切断通知')
+                                            .setDescription(`ボイスチャンネル「${oldState.channel.name}」から自動切断しました。`)
+                                            .addFields(
+                                                { name: '切断元', value: oldState.channel.name, inline: true },
+                                            )
+                                            .addFields(
+                                                { name: '使用Bot', value: botUser ? `${botUser.username} (${botUser.tag ?? ''})` : '不明', inline: true }
+                                            )
+                                            .setThumbnail(botUser?.displayAvatarURL() ?? null)
+                                            .setTimestamp();
+                                        await textChannel.send({
+                                            embeds: [embed],
+                                            components: [
+                                                {
+                                                    type: 1,
+                                                    components: [
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: '利用規約',
+                                                            url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/Term-of-Service/'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'プライバシーポリシー',
+                                                            url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/Privacy-Policy/'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'サポートサーバー',
+                                                            url: 'https://discord.gg/8n2q2r2y2d'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'ホームページ',
+                                                            url: 'https://paradise-lost-developer-team.github.io/Aivis-chan-bot-docs/'
+                                                        },
+                                                        {
+                                                            type: 2,
+                                                            style: 5,
+                                                            label: 'ソースコード',
+                                                            url: 'https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot'
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        });
+                                    }
+                                }
                                 voiceClients[guildId].disconnect();
                                 delete voiceClients[guildId];
                             } catch (error) {
@@ -179,6 +404,9 @@ export function VoiceStateUpdate(client: Client) {
             }
         } catch (error) {
             console.error(`Error in on_voice_state_update: ${error}`);
+        } finally {
+            // メモリ使用状況をチェック
+            monitorMemoryUsage();
         }
     });
 

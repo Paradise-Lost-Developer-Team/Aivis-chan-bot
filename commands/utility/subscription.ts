@@ -1,7 +1,8 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags, CommandInteraction, CommandInteractionOptionResolver, CacheType } from 'discord.js';
 import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits, getGuildSubscriptionTier } from '../../utils/subscription';
 import path from 'path';
 import fs from 'fs';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 // データディレクトリの確認と作成
 function ensureDataDirectoryExists() {
@@ -32,40 +33,48 @@ export const data = new SlashCommandBuilder()
             .setDescription('サブスクリプションをアップグレードします')
     );
 
-export async function execute(interaction: { 
-    options: { getSubcommand: () => any; getString: (arg0: string) => SubscriptionType; getInteger: (arg0: string) => any; }; 
-    guildId: any; 
-    reply: (arg0: { embeds?: EmbedBuilder[]; /* replaced ephemeral with flags */ flags?: MessageFlags; content?: string; }) => any; 
-    memberPermissions: { has: (arg0: bigint) => any; }; 
-}) {
-    const subcommand = interaction.options.getSubcommand();
-
+// 型をCommandInteractionに変更
+export async function execute(interaction: CommandInteraction) {
+    const options = interaction.options as CommandInteractionOptionResolver<CacheType>;
+    const subcommand = options.getSubcommand();
+    const guildId = interaction.guildId;
+    if (!guildId) {
+        await interaction.reply({
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('エラー')
+                    .setDescription('このコマンドはサーバー内でのみ使用できます。')
+                    .setColor(0xff0000)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
+        });
+        return;
+    }
     if (subcommand === 'info') {
-        const guildId = interaction.guildId;
         let subscriptionType = getGuildSubscriptionTier(guildId) || getSubscription(guildId);
+        if (!subscriptionType) subscriptionType = SubscriptionType.FREE;
         const benefits = SubscriptionBenefits[subscriptionType];
-        
         const subscriptionNames = {
             [SubscriptionType.FREE]: '無料プラン',
             [SubscriptionType.PRO]: 'Proプラン',
             [SubscriptionType.PREMIUM]: 'Premiumプラン'
         };
-        
-        const embed = new EmbedBuilder()
-            .setTitle('サブスクリプション情報')
-            .setDescription(`現在のプラン: **${subscriptionNames[subscriptionType]}**`)
-            .setColor(
-                subscriptionType === SubscriptionType.FREE ? 0x808080 :
-                subscriptionType === SubscriptionType.PRO ? 0x00AAFF :
-                0xFFD700
-            )
-            .addFields(
-                { name: '利用可能な声優数', value: `${benefits.maxVoices}`, inline: true },
-                { name: '辞書登録上限', value: `${benefits.maxDictionaries === 999999 ? '無制限' : benefits.maxDictionaries}`, inline: true },
-                { name: 'メッセージ最大長', value: `${benefits.maxMessageLength}文字`, inline: true }
-            );
-            
-        // 特典詳細の追加
+        const embed = addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('サブスクリプション情報')
+                .setDescription(`現在のプラン: **${subscriptionNames[subscriptionType]}**`)
+                .setColor(
+                    subscriptionType === SubscriptionType.FREE ? 0x808080 :
+                    subscriptionType === SubscriptionType.PRO ? 0x00AAFF :
+                    0xFFD700
+                )
+                .addFields(
+                    { name: '利用可能な声優数', value: `${benefits.maxVoices}`, inline: true },
+                    { name: '辞書登録上限', value: `${benefits.maxDictionaries === 999999 ? '無制限' : benefits.maxDictionaries}`, inline: true },
+                    { name: 'メッセージ最大長', value: `${benefits.maxMessageLength}文字`, inline: true }
+                )
+        );
         if (subscriptionType === SubscriptionType.PRO) {
             embed.addFields({ 
                 name: 'Pro特典',
@@ -77,33 +86,37 @@ export async function execute(interaction: {
                 value: '• 高品質音声\n• 追加エフェクト\n• 独占声優\n• 優先キュー\n• 優先サポート\n• テキスト変換エフェクト\n• 読み上げ中の声優切り替え' 
             });
         }
-        
-        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-        
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral, components: [getCommonLinksRow()] });
     } else if (subcommand === 'set') {
-        // 管理者権限確認
-        if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+        if (!interaction.memberPermissions || !interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
             return interaction.reply({ 
-                content: 'このコマンドは管理者のみ使用できます。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('権限エラー')
+                        .setDescription('このコマンドは管理者のみ使用できます。')
+                        .setColor(0xff0000)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
         }
-        
-        const type = interaction.options.getString('type') as SubscriptionType;
-        const days = interaction.options.getInteger('days');
-        const guildId = interaction.guildId;
-        
+        const type = options.getString('type') as SubscriptionType || SubscriptionType.FREE;
+        const days = options.getInteger('days') || 0;
         setSubscription(guildId, type, days);
-        
         const planNames = {
             [SubscriptionType.FREE]: '無料プラン',
             [SubscriptionType.PRO]: 'Proプラン', 
             [SubscriptionType.PREMIUM]: 'Premiumプラン'
         };
-        
         await interaction.reply({ 
-            content: `サブスクリプションを **${planNames[type]}** に設定しました。期間: ${days}日間`,
-            flags: MessageFlags.Ephemeral
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('サブスクリプション設定')
+                    .setDescription(`サブスクリプションを **${planNames[type]}** に設定しました。期間: ${days}日間`)
+                    .setColor(0x00bfff)
+            )],
+            flags: MessageFlags.Ephemeral,
+            components: [getCommonLinksRow()]
         });
     }
 }
