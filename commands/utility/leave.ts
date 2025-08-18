@@ -38,7 +38,11 @@ module.exports = {
                         .setDescription('ボイスチャンネルから切断しました。')
                         .setColor(0x00bfff)
                         .addFields(
-                            { name: '実行者', value: `${interaction.user.username} (${interaction.user.tag})`, inline: true }
+                            { name: '切断元', value: (() => {
+                                const member = interaction.member as import('discord.js').GuildMember | null;
+                                return member && member.voice && member.voice.channelId ? `<#${member.voice.channelId}>` : '不明';
+                            })(), inline: true },
+                            { name: '実行者', value: `<@${interaction.user.id}>`, inline: true }
                         )
                         .setThumbnail(interaction.client.user?.displayAvatarURL() ?? null)
                 )],

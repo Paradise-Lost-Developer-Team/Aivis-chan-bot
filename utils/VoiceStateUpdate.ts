@@ -51,13 +51,14 @@ export function VoiceStateUpdate(client: Client) {
                                 const botUser = client.user;
                                 const embed = new EmbedBuilder()
                                     .setTitle('自動接続通知')
-                                    .setDescription(`Botが一時VC「${newState.channel.name}」に自動接続しました。`)
+                                    .setDescription(`Botが一時VC <#${newState.channel.id}> に自動接続しました。`)
                                     .addFields(
-                                        { name: '接続先', value: newState.channel.name, inline: true },
-                                        { name: '接続した人', value: `${member.displayName} (${member.user.tag})`, inline: true },
+                                        { name: '接続先', value: `<#${newState.channel.id}>`, inline: true },
+                                        { name: 'テキストチャンネル', value: autoJoinData?.textChannelId ? `<#${autoJoinData.textChannelId}>` : '不明', inline: true },
+                                        { name: '接続した人', value: `<@${member.user.id}>`, inline: true },
                                     )
                                     .addFields(
-                                        { name: '使用Bot', value: botUser ? `${botUser.username} (${botUser.tag ?? ''})` : '不明', inline: true }
+                                        { name: '使用Bot', value: botUser ? `<@${botUser.id}>` : '不明', inline: true }
                                     )
                                     .setThumbnail(botUser?.displayAvatarURL() ?? null)
                                     .setFooter({
@@ -269,13 +270,14 @@ export function VoiceStateUpdate(client: Client) {
                                         const botUser = client.user;
                                         const embed = new EmbedBuilder()
                                             .setTitle('自動接続通知')
-                                            .setDescription(`BotがVC「${newState.channel.name}」に自動接続しました。`)
+                                            .setDescription(`BotがVC <#${newState.channel.id}> に自動接続しました。`)
                                             .addFields(
-                                                { name: '接続先', value: newState.channel.name, inline: true },
-                                                { name: '接続した人', value: `${member.displayName} (${member.user.tag})`, inline: true },
+                                                { name: '接続先', value: `<#${newState.channel.id}>`, inline: true },
+                                                { name: 'テキストチャンネル', value: textChannelId ? `<#${textChannelId}>` : '不明', inline: true },
+                                                { name: '接続した人', value: `<@${member.user.id}>`, inline: true },
                                             )
                                             .addFields(
-                                                { name: '使用Bot', value: botUser ? `${botUser.username} (${botUser.tag ?? ''})` : '不明', inline: true }
+                                                { name: '使用Bot', value: botUser ? `<@${botUser.id}>` : '不明', inline: true }
                                             )
                                             .setThumbnail(botUser?.displayAvatarURL() ?? null)
                                             .setTimestamp();
@@ -342,12 +344,13 @@ export function VoiceStateUpdate(client: Client) {
                                         const botUser = client.user;
                                         const embed = new EmbedBuilder()
                                             .setTitle('自動切断通知')
-                                            .setDescription(`ボイスチャンネル「${oldState.channel.name}」から自動切断しました。`)
+                                            .setDescription(`ボイスチャンネル <#${oldState.channel.id}> から自動切断しました。`)
                                             .addFields(
-                                                { name: '切断元', value: oldState.channel.name, inline: true },
+                                                { name: '切断元', value: `<#${oldState.channel.id}>`, inline: true },
+                                                { name: 'テキストチャンネル', value: textChannelId ? `<#${textChannelId}>` : '不明', inline: true },
                                             )
                                             .addFields(
-                                                { name: '使用Bot', value: botUser ? `${botUser.username} (${botUser.tag ?? ''})` : '不明', inline: true }
+                                                { name: '使用Bot', value: botUser ? `<@${botUser.id}>` : '不明', inline: true }
                                             )
                                             .setThumbnail(botUser?.displayAvatarURL() ?? null)
                                             .setTimestamp();
