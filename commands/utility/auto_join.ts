@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, ChatInputCommandInteraction, VoiceChannel, TextChannel, ChannelType, MessageFlags } from 'discord.js';
+import { CommandInteraction, ChatInputCommandInteraction, VoiceChannel, TextChannel, ChannelType, MessageFlags, EmbedBuilder } from 'discord.js';
 import { autoJoinChannels, loadAutoJoinChannels, saveAutoJoinChannels } from '../../utils/TTS-Engine';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
@@ -33,11 +33,10 @@ module.exports = {
         if (!interaction.guildId) {
             await interaction.reply({
                 embeds: [addCommonFooter(
-                    {
-                        title: 'エラー',
-                        description: 'サーバー内でのみ使用できるコマンドです。',
-                        color: 0xff0000
-                    } as any
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription('サーバー内でのみ使用できるコマンドです。')
+                        .setColor(0xff0000)
                 )],
                 flags: MessageFlags.Ephemeral,
                 components: [getCommonLinksRow()]
@@ -57,11 +56,10 @@ module.exports = {
             if (!voiceChannel) {
                 await interaction.reply({
                     embeds: [addCommonFooter(
-                        {
-                            title: 'エラー',
-                            description: 'ボイスチャンネルが指定されていません。',
-                            color: 0xff0000
-                        } as any
+                        new EmbedBuilder()
+                            .setTitle('エラー')
+                            .setDescription('ボイスチャンネルが指定されていません。')
+                            .setColor(0xff0000)
                     )],
                     components: [getCommonLinksRow()]
                 });
@@ -78,17 +76,16 @@ module.exports = {
             saveAutoJoinChannels();  // ここで保存
             await interaction.reply({
                 embeds: [addCommonFooter(
-                    {
-                        title: '自動入室チャンネル設定',
-                        description: `サーバー **${interaction.guild!.name}** の自動入室チャンネルを <#${voiceChannel.id}> に設定しました。`,
-                        color: 0x00bfff,
-                        fields: [
+                    new EmbedBuilder()
+                        .setTitle('自動入室チャンネル設定')
+                        .setDescription(`サーバー **${interaction.guild!.name}** の自動入室チャンネルを <#${voiceChannel.id}> に設定しました。`)
+                        .setColor(0x00bfff)
+                        .addFields(
                             { name: 'ボイスチャンネル', value: `<#${voiceChannel.id}>`, inline: true },
                             { name: 'テキストチャンネル', value: textChannel ? `<#${textChannel.id}>` : `<#${voiceChannel.id}>`, inline: true },
                             { name: '実行者', value: `<@${interaction.user.id}>`, inline: true },
                             { name: '一時VC追従', value: tempVoice ? '有効' : '無効', inline: true }
-                        ]
-                    } as any
+                        )
                 )],
                 components: [getCommonLinksRow()]
             });
@@ -101,22 +98,20 @@ module.exports = {
                 saveAutoJoinChannels();  // ここで保存
                 await interaction.reply({
                     embeds: [addCommonFooter(
-                        {
-                            title: '自動接続設定解除',
-                            description: '自動接続設定（temp_voice含む）を解除しました。',
-                            color: 0x00bfff
-                        } as any
+                        new EmbedBuilder()
+                            .setTitle('自動接続設定解除')
+                            .setDescription('自動接続設定（temp_voice含む）を解除しました。')
+                            .setColor(0x00bfff)
                     )],
                     components: [getCommonLinksRow()]
                 });
             } else {
                 await interaction.reply({
                     embeds: [addCommonFooter(
-                        {
-                            title: '自動接続設定なし',
-                            description: 'このサーバーには登録された自動接続設定がありません。',
-                            color: 0xffa500
-                        } as any
+                        new EmbedBuilder()
+                            .setTitle('自動接続設定なし')
+                            .setDescription('このサーバーには登録された自動接続設定がありません。')
+                            .setColor(0xffa500)
                     )],
                     flags: MessageFlags.Ephemeral,
                     components: [getCommonLinksRow()]
