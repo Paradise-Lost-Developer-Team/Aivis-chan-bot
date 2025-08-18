@@ -1,23 +1,16 @@
 # ----- ビルドステージ -----
-FROM node:22 AS builder
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    python3 \
-    make \
-    g++ \
-    --no-install-recommends
+FROM node:current-alpine3.22 AS builder
+# Use the latest slim image for security updates
+RUN apk add --no-cache ffmpeg python3 make g++
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run compile
+FROM node:current-alpine3.22
+# Use the latest slim image for security updates
 
-# ----- 実行ステージ -----
-FROM node:22-slim
-RUN apt-get update && apt-get install -y ffmpeg --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ffmpeg
 WORKDIR /usr/src/app
-
 # node_modulesをそのままコピー
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package*.json ./
