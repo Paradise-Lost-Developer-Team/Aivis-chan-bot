@@ -22,7 +22,7 @@ export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // ユーザーごとの話者設定
-export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
 
 // デフォルトのスピーカー設定
