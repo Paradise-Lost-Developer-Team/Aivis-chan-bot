@@ -1,5 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageFlags } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
+import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine'; // Adjust the path as necessary
 
 module.exports = {
@@ -11,7 +14,16 @@ module.exports = {
         const voiceClient = voiceClients[guildId];
 
         if (!voiceClient) {
-            await interaction.reply({ content: "現在、ボイスチャンネルに接続していません。", flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('未接続')
+                        .setDescription('現在、ボイスチャンネルに接続していません。')
+                        .setColor(0xffa500)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
+            });
             return;
         }
 
@@ -19,11 +31,32 @@ module.exports = {
             await voiceClient.disconnect();
             delete voiceClients[guildId];
             deleteJoinChannelsConfig(guildId);
-            await interaction.reply("ボイスチャンネルから切断しました。");
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('切断完了')
+                        .setDescription('ボイスチャンネルから切断しました。')
+                        .setColor(0x00bfff)
+                        .addFields(
+                            { name: '実行者', value: `${interaction.user.username} (${interaction.user.tag})`, inline: true }
+                        )
+                        .setThumbnail(interaction.client.user?.displayAvatarURL() ?? null)
+                )],
+                components: [getCommonLinksRow()]
+            });
             loadJoinChannels();
         } catch (error) {
             console.error(error);
-            await interaction.reply({ content: "ボイスチャンネルからの切断に失敗しました。", flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription('ボイスチャンネルからの切断に失敗しました。')
+                        .setColor(0xff0000)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
+            });
         }
     }
     }

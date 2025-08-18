@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ButtonInteraction, Interaction, MessageFlags } from "discord.js";
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 // アクティブなヘルプメニューを追跡するためのMap
 const activeHelpMenus = new Map<string, HelpMenu>();
@@ -184,7 +185,7 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction) {
         try {
             const helpMenu = new HelpMenu();
-            const helpEmbed = helpMenu.getCurrentPage();
+            const helpEmbed = addCommonFooter(helpMenu.getCurrentPage());
             const pageInfo = `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()}`;
             
             // 一意なIDを生成
@@ -208,7 +209,7 @@ module.exports = {
             await interaction.reply({
                 content: pageInfo,
                 embeds: [helpEmbed],
-                components: [actionRow]
+                components: [actionRow, getCommonLinksRow()]
             });
             
             // 10分後にヘルプメニューをMapから削除
@@ -219,8 +220,14 @@ module.exports = {
             console.error("helpコマンド実行エラー:", error);
             if (!interaction.replied && !interaction.deferred) {
                 await interaction.reply({ 
-                    content: "ヘルプメニューの表示中にエラーが発生しました。", 
-                    flags: MessageFlags.Ephemeral 
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('エラー')
+                            .setDescription('ヘルプメニューの表示中にエラーが発生しました。')
+                            .setColor(0xff0000)
+                    )],
+                    flags: MessageFlags.Ephemeral,
+                    components: [getCommonLinksRow()]
                 });
             }
         }
@@ -250,8 +257,14 @@ module.exports = {
             const helpMenu = activeHelpMenus.get(messageKey);
             if (!helpMenu) {
                 return await interaction.reply({
-                    content: 'このヘルプメニューは期限切れです。もう一度 /help コマンドを実行してください。',
-                    flags: MessageFlags.Ephemeral
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('期限切れ')
+                            .setDescription('このヘルプメニューは期限切れです。もう一度 /help コマンドを実行してください。')
+                            .setColor(0xffa500)
+                    )],
+                    flags: MessageFlags.Ephemeral,
+                    components: [getCommonLinksRow()]
                 });
             }
             
@@ -262,7 +275,7 @@ module.exports = {
                 helpMenu.nextPage();
             }
             
-            const helpEmbed = helpMenu.getCurrentPage();
+            const helpEmbed = addCommonFooter(helpMenu.getCurrentPage());
             const pageInfo = `ページ ${helpMenu.getCurrentPageNumber() + 1}/${helpMenu.getTotalPages()}`;
             
             const actionRow = new ActionRowBuilder<ButtonBuilder>()
@@ -283,7 +296,7 @@ module.exports = {
             await interaction.update({
                 content: pageInfo,
                 embeds: [helpEmbed],
-                components: [actionRow]
+                components: [actionRow, getCommonLinksRow()]
             });
         } catch (error) {
             console.error("ボタンハンドラーエラー:", error);
@@ -291,8 +304,14 @@ module.exports = {
             if (!interaction.replied && !interaction.deferred) {
                 try {
                     await interaction.reply({
-                        content: "ページ切り替え中にエラーが発生しました。",
-                        flags: MessageFlags.Ephemeral
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('エラー')
+                                .setDescription('ページ切り替え中にエラーが発生しました。')
+                                .setColor(0xff0000)
+                        )],
+                        flags: MessageFlags.Ephemeral,
+                        components: [getCommonLinksRow()]
                     });
                 } catch (e) {
                     console.error("エラー応答中にさらにエラー:", e);

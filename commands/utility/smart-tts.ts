@@ -4,6 +4,7 @@ import { isProFeatureAvailable, isPremiumFeatureAvailable } from '../../utils/su
 import { getSmartTTSSettings, updateSmartTTSSettings, SmartTTSSettings } from '../../utils/smart-tts';
 import { speakVoice, currentSpeaker, voiceClients } from '../../utils/TTS-Engine';
 import fs from 'fs';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -49,8 +50,14 @@ module.exports = {
             const guildId = interaction.guildId!;
             if (!isProFeatureAvailable(guildId, 'smart-tts')) {
                 await interaction.reply({
-                    content: 'このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。',
-                    ephemeral: true
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('Pro版限定')
+                            .setDescription('このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。')
+                            .setColor(0xffa500)
+                    )],
+                    ephemeral: true,
+                    components: [getCommonLinksRow()]
                 });
                 return;
             }
@@ -65,8 +72,14 @@ module.exports = {
         } catch (error) {
             console.error('smart-ttsコマンド実行エラー:', error);
             await interaction.reply({
-                content: 'コマンド実行中にエラーが発生しました。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription('コマンド実行中にエラーが発生しました。')
+                        .setColor(0xff0000)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
         }
     },
@@ -97,8 +110,14 @@ async function handleSettingsSubcommand(interaction: ChatInputCommandInteraction
             newSettings.autoEmotionDetection = emotionDetection;
         } else {
             await interaction.reply({
-                content: '感情検出機能はPremium版限定機能です。Premium版へのアップグレードをご検討ください。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('Premium限定')
+                        .setDescription('感情検出機能はPremium版限定機能です。Premium版へのアップグレードをご検討ください。')
+                        .setColor(0xffa500)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
             return;
         }
@@ -109,8 +128,14 @@ async function handleSettingsSubcommand(interaction: ChatInputCommandInteraction
             newSettings.characterVoiceMode = characterVoice;
         } else {
             await interaction.reply({
-                content: 'カスタムキャラクター声モードはPremium版限定機能です。Premium版へのアップグレードをご検討ください。',
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('Premium限定')
+                        .setDescription('カスタムキャラクター声モードはPremium版限定機能です。Premium版へのアップグレードをご検討ください。')
+                        .setColor(0xffa500)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
             return;
         }
@@ -123,21 +148,22 @@ async function handleSettingsSubcommand(interaction: ChatInputCommandInteraction
     const updatedSettings = getSmartTTSSettings(guildId);
     
     // 返信用のEmbedを作成
-    const embed = new EmbedBuilder()
-        .setTitle('AIスマート読み上げ設定')
-        .setDescription('スマート読み上げの設定が更新されました')
-        .setColor('#00AA00')
-        .addFields(
-            { name: '自動息継ぎ', value: updatedSettings.autoBreathing ? '✅ オン' : '❌ オフ', inline: true },
-            { name: '文章最適化', value: updatedSettings.sentenceOptimization ? '✅ オン' : '❌ オフ', inline: true },
-            { name: '感情検出', value: updatedSettings.autoEmotionDetection ? '✅ オン' : '❌ オフ', inline: true },
-            { name: '声モード', value: getVoiceModeDisplay(updatedSettings.characterVoiceMode), inline: true }
-        )
-        .setFooter({ text: isPremium ? 'Premium版特典: すべての機能が利用可能です' : 'Pro版: 一部の機能はPremium版限定です' });
-    
+    const embed = addCommonFooter(
+        new EmbedBuilder()
+            .setTitle('AIスマート読み上げ設定')
+            .setDescription('スマート読み上げの設定が更新されました')
+            .setColor('#00AA00')
+            .addFields(
+                { name: '自動息継ぎ', value: updatedSettings.autoBreathing ? '✅ オン' : '❌ オフ', inline: true },
+                { name: '文章最適化', value: updatedSettings.sentenceOptimization ? '✅ オン' : '❌ オフ', inline: true },
+                { name: '感情検出', value: updatedSettings.autoEmotionDetection ? '✅ オン' : '❌ オフ', inline: true },
+                { name: '声モード', value: getVoiceModeDisplay(updatedSettings.characterVoiceMode), inline: true }
+            )
+    );
     await interaction.reply({
         embeds: [embed],
-        flags: MessageFlags.Ephemeral
+        flags: MessageFlags.Ephemeral,
+        components: [getCommonLinksRow()]
     });
 }
 
@@ -151,7 +177,13 @@ async function handleTestSubcommand(interaction: ChatInputCommandInteraction) {
     const voiceClient = voiceClients[guildId];
     if (!voiceClient) {
         await interaction.editReply({
-            content: 'テストにはボイスチャンネルに接続している必要があります。`/join` コマンドで接続してください。'
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('エラー')
+                    .setDescription('テストにはボイスチャンネルに接続している必要があります。`/join` コマンドで接続してください。')
+                    .setColor(0xff0000)
+            )],
+            components: [getCommonLinksRow()]
         });
         return;
     }
@@ -175,7 +207,14 @@ async function handleTestSubcommand(interaction: ChatInputCommandInteraction) {
             ].join('\n');
             
             await interaction.editReply({
-                content: `テスト再生が完了しました。\n\n**現在の設定**\n${settingsInfo}`
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('テスト完了')
+                        .setDescription('テスト再生が完了しました。')
+                        .setColor(0x00bfff)
+                        .addFields({ name: '現在の設定', value: settingsInfo })
+                )],
+                components: [getCommonLinksRow()]
             });
         } else {
             throw new Error('音声ファイルが生成できませんでした');
@@ -183,7 +222,13 @@ async function handleTestSubcommand(interaction: ChatInputCommandInteraction) {
     } catch (error) {
         console.error('テスト再生エラー:', error);
         await interaction.editReply({
-            content: `テスト再生中にエラーが発生しました: ${error}`
+            embeds: [addCommonFooter(
+                new EmbedBuilder()
+                    .setTitle('エラー')
+                    .setDescription(`テスト再生中にエラーが発生しました: ${error}`)
+                    .setColor(0xff0000)
+            )],
+            components: [getCommonLinksRow()]
         });
     }
 }

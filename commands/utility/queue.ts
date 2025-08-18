@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
+import { CommandInteraction, ChatInputCommandInteraction, MessageFlags, EmbedBuilder } from 'discord.js';
 import { getQueueStatus, clearQueue } from '../../utils/VoiceQueue';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,7 +18,16 @@ module.exports = {
     
     async execute(interaction: ChatInputCommandInteraction) {
         if (!interaction.guildId) {
-            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', flags: MessageFlags.Ephemeral });
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription('このコマンドはサーバー内でのみ使用できます。')
+                        .setColor(0xff0000)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
+            });
             return;
         }
         
@@ -26,15 +36,27 @@ module.exports = {
         if (subcommand === 'status') {
             const status = getQueueStatus(interaction.guildId);
             await interaction.reply({
-                content: `現在のキュー状態:\n▶️ 待機中メッセージ数: ${status.length}\n▶️ 処理中: ${status.processing ? 'はい' : 'いいえ'}`,
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('キュー状態')
+                        .setDescription(`▶️ 待機中メッセージ数: ${status.length}\n▶️ 処理中: ${status.processing ? 'はい' : 'いいえ'}`)
+                        .setColor(0x00bfff)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
         }
         else if (subcommand === 'clear') {
             const clearedCount = clearQueue(interaction.guildId);
             await interaction.reply({
-                content: `読み上げキューをクリアしました。${clearedCount}件のメッセージが削除されました。`,
-                flags: MessageFlags.Ephemeral
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('キュークリア')
+                        .setDescription(`読み上げキューをクリアしました。${clearedCount}件のメッセージが削除されました。`)
+                        .setColor(0x00bfff)
+                )],
+                flags: MessageFlags.Ephemeral,
+                components: [getCommonLinksRow()]
             });
         }
     }

@@ -1,6 +1,7 @@
 import { Message, EmbedBuilder, ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
 import { VoiceReminder } from '../../utils/voice-reminder';
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 // --- 追加: モジュールレベルの data プロパティ ---
 export const data = new SlashCommandBuilder()
@@ -90,11 +91,26 @@ export class ReminderCommand {
           useVoice
         );
         
-        await interaction.reply({ content: response, ephemeral: false });
+        await interaction.reply({
+          embeds: [addCommonFooter(
+            new EmbedBuilder()
+              .setTitle('リマインダー設定')
+              .setDescription(response)
+              .setColor('#00BFFF')
+          )],
+          ephemeral: false,
+          components: [getCommonLinksRow()]
+        });
       } catch (error) {
         await interaction.reply({ 
-          content: `リマインダーの設定に失敗しました: ${(error as Error).message}`, 
-          ephemeral: true 
+          embeds: [addCommonFooter(
+            new EmbedBuilder()
+              .setTitle('エラー')
+              .setDescription(`リマインダーの設定に失敗しました: ${(error as Error).message}`)
+              .setColor(0xff0000)
+          )],
+          ephemeral: true,
+          components: [getCommonLinksRow()]
         });
       }
     } 
@@ -103,30 +119,45 @@ export class ReminderCommand {
       
       if (reminders.length === 0) {
         await interaction.reply({ 
-          content: '設定されているリマインダーはありません。', 
-          ephemeral: true 
+          embeds: [addCommonFooter(
+            new EmbedBuilder()
+              .setTitle('リマインダーなし')
+              .setDescription('設定されているリマインダーはありません。')
+              .setColor(0xffa500)
+          )],
+          ephemeral: true,
+          components: [getCommonLinksRow()]
         });
         return;
       }
       
-      const embed = new EmbedBuilder()
-        .setTitle('リマインダー一覧')
-        .setDescription('設定済みのリマインダー')
-        .setColor('#00BFFF');
-      
+      const embed = addCommonFooter(
+        new EmbedBuilder()
+          .setTitle('リマインダー一覧')
+          .setDescription('設定済みのリマインダー')
+          .setColor('#00BFFF')
+      );
       reminders.forEach(reminder => {
         embed.addFields({
           name: `ID: ${reminder.id}`,
           value: `⏰ ${this.formatTime(reminder.time)}\n📝 ${reminder.message}\n🔊 音声: ${reminder.voiceEnabled ? 'あり' : 'なし'}`
         });
       });
-      
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], ephemeral: true, components: [getCommonLinksRow()] });
     }
     else if (subcommand === 'キャンセル') {
       const reminderId = interaction.options.getString('id', true);
       const response = this.voiceReminder.cancelReminder(interaction.user.id, reminderId);
-      await interaction.reply({ content: response, ephemeral: true });
+      await interaction.reply({
+        embeds: [addCommonFooter(
+          new EmbedBuilder()
+            .setTitle('リマインダーキャンセル')
+            .setDescription(response)
+            .setColor('#00BFFF')
+        )],
+        ephemeral: true,
+        components: [getCommonLinksRow()]
+      });
     }
   }
 
@@ -202,18 +233,19 @@ export class ReminderCommand {
   }
 
   private showHelp(message: Message): void {
-    const embed = new EmbedBuilder()
-      .setTitle('リマインダーコマンドのヘルプ')
-      .setDescription('リマインダー機能の使い方')
-      .setColor('#00BFFF')
-      .addFields(
-        { name: '!リマインダー 設定 [時間] [メッセージ]', value: '指定した時間にリマインダーを設定します' },
-        { name: '!リマインダー 設定 [時間] [メッセージ] --音声', value: '音声付きリマインダーを設定します（有料プラン限定）' },
-        { name: '!リマインダー 一覧', value: '設定したリマインダーの一覧を表示します' },
-        { name: '!リマインダー キャンセル [ID]', value: '指定したIDのリマインダーをキャンセルします' },
-        { name: '時間の指定例', value: '30m (30分後), 1h30m (1時間30分後), 17:30 (17時30分)' }
-      );
-    
+    const embed = addCommonFooter(
+      new EmbedBuilder()
+        .setTitle('リマインダーコマンドのヘルプ')
+        .setDescription('リマインダー機能の使い方')
+        .setColor('#00BFFF')
+        .addFields(
+          { name: '!リマインダー 設定 [時間] [メッセージ]', value: '指定した時間にリマインダーを設定します' },
+          { name: '!リマインダー 設定 [時間] [メッセージ] --音声', value: '音声付きリマインダーを設定します（有料プラン限定）' },
+          { name: '!リマインダー 一覧', value: '設定したリマインダーの一覧を表示します' },
+          { name: '!リマインダー キャンセル [ID]', value: '指定したIDのリマインダーをキャンセルします' },
+          { name: '時間の指定例', value: '30m (30分後), 1h30m (1時間30分後), 17:30 (17時30分)' }
+        )
+    );
     message.reply({ embeds: [embed] });
   }
 
