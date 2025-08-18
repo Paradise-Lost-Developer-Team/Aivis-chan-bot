@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { EmbedBuilder, CommandInteraction } from 'discord.js';
+import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 // AivisSpeech関連のモジュールをインポートする必要があれば追加してください
 // import { AivisSpeechEngine } from '../../services/aivisSpeech';
 
@@ -37,15 +38,16 @@ module.exports = {
         // AivisSpeech Engineのレイテンシーを測定
         const aivisLatency = await measureAivisSpeechLatency();
         
-        const embed = new EmbedBuilder()
-            .setTitle("Latency")
-            .setColor("#00dd00")
-            .addFields(
-                { name: "Bot Latency", value: `${botLatency}ms`, inline: true },
-                { name: "AivisSpeech Engine Latency", value: `${aivisLatency}ms`, inline: true }
-            )
-            .setDescription(`Pong！レイテンシー測定結果です。`);
-            
-        await interaction.editReply({ embeds: [embed] });
+        const embed = addCommonFooter(
+            new EmbedBuilder()
+                .setTitle("Latency")
+                .setColor("#00dd00")
+                .addFields(
+                    { name: "Bot Latency", value: `${botLatency}ms`, inline: true },
+                    { name: "AivisSpeech Engine Latency", value: `${aivisLatency}ms`, inline: true }
+                )
+                .setDescription(`Pong！レイテンシー測定結果です。`)
+        );
+        await interaction.editReply({ embeds: [embed], components: [getCommonLinksRow()] });
     }
 };
