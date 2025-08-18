@@ -5,6 +5,7 @@ RUN apk add --no-cache ffmpeg python3 make g++ pkgconfig pixman-dev cairo-dev pa
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
+RUN npm run compile
 COPY . .
 FROM node:current-alpine3.22
 # Use the latest slim image for security updates
