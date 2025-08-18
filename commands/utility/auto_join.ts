@@ -69,8 +69,9 @@ module.exports = {
             loadAutoJoinChannels();
             autoJoinChannels[guildId] = {
                 voiceChannelId: voiceChannel.id,
-                textChannelId: textChannel ? textChannel.id : voiceChannel.id,
-                tempVoice: tempVoice === true // undefinedならfalse扱い
+                textChannelId: textChannel ? textChannel.id : undefined,
+                tempVoice: tempVoice === true, // undefinedならfalse扱い
+                isManualTextChannelId: !!textChannel
             };
 
             saveAutoJoinChannels();  // ここで保存
@@ -82,7 +83,7 @@ module.exports = {
                         .setColor(0x00bfff)
                         .addFields(
                             { name: 'ボイスチャンネル', value: `<#${voiceChannel.id}>`, inline: true },
-                            { name: 'テキストチャンネル', value: textChannel ? `<#${textChannel.id}>` : `<#${voiceChannel.id}>`, inline: true },
+                            { name: 'テキストチャンネル', value: textChannel ? `<#${textChannel.id}>` : '自動判定', inline: true },
                             { name: '実行者', value: `<@${interaction.user.id}>`, inline: true },
                             { name: '一時VC追従', value: tempVoice ? '有効' : '無効', inline: true }
                         )
