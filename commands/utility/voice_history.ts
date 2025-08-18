@@ -21,7 +21,7 @@ import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('voice-history')
+        .setName('voice history')
         .setDescription('Pro版限定: 読み上げ履歴を表示します')
         .addSubcommand(subcommand =>
             subcommand.setName('list')
