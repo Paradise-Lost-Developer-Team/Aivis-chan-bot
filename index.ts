@@ -149,11 +149,8 @@ client.once("ready", async () => {
         setInterval(async () => {
             try {
                 const joinServerCount = client.guilds.cache.size;
-                client.user!.setActivity(`サーバー数: ${joinServerCount}`, { type: ActivityType.Custom });
-                await new Promise(resolve => setTimeout(resolve, 15000));
                 const joinVCCount = client.voice.adapters.size;
-                client.user!.setActivity(`VC: ${joinVCCount}`, { type: ActivityType.Custom });
-                await new Promise(resolve => setTimeout(resolve, 15000));
+                client.user!.setActivity(`/help | VC接続中: ${joinVCCount} | サーバー数: ${joinServerCount} | Ping: ${client.ws.ping}ms | 内部: ${client.voice.adapters.size}`, { type: ActivityType.Custom });
             } catch (error) {
                 console.error("ステータス更新エラー:", error);
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));
@@ -272,15 +269,15 @@ import { Request, Response } from 'express';
 apiApp.get('/api/stats', (req: Request, res: Response) => {
     const serverCount = client.guilds.cache.size;
     const vcCount = client.voice.adapters.size;
-        const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+    const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
 
     // 稼働率: ボイスチャンネル接続数 ÷ サーバー数（%表示）
     const uptimeRate = serverCount > 0 ? Math.round((vcCount / serverCount) * 100) : 0;
 
     res.json({ serverCount, vcCount, userCount, uptimeRate });
 });
-apiApp.listen(3003, () => {
-    console.log('Stats APIサーバーがポート3003で起動しました');
+apiApp.listen(3002, () => {
+    console.log('Stats APIサーバーがポート3002で起動しました');
 });
 // --- ここまで追加 ---
 
