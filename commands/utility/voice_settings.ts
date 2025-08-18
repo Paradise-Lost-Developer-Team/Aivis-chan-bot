@@ -6,7 +6,7 @@ import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('voice_settings')
+        .setName('voice settings')
         .setDescription('TTSエンジンの音声設定をまとめて管理')
         .addSubcommand((sub: any) =>
             sub.setName('intonation')
