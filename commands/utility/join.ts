@@ -108,12 +108,12 @@ module.exports = {
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('接続完了')
-                        .setDescription(`✅ ${voiceChannel.name} に接続しました。`)
+                        .setDescription(`✅ <#${voiceChannel.id}> に接続しました。`)
                         .setColor(0x00bfff)
                         .addFields(
-                            { name: '接続先', value: voiceChannel.name, inline: true },
-                            { name: 'テキストチャンネル', value: textChannel.name, inline: true },
-                            { name: '実行者', value: `${interaction.user.username} (${interaction.user.tag})`, inline: true }
+                            { name: '接続先', value: `<#${voiceChannel.id}>`, inline: true },
+                            { name: 'テキストチャンネル', value: `<#${textChannel.id}>`, inline: true },
+                            { name: '実行者', value: `<@${interaction.user.id}>`, inline: true }
                         )
                         .setThumbnail(interaction.client.user?.displayAvatarURL() ?? null)
                 )],
