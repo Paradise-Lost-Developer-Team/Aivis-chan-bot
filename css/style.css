@@ -1,6 +1,13 @@
+.api-badge, .status-badge, .bot-status-badge {
+    background: #e0e4ea !important;
+    color: #555 !important;
+    border-radius: 0.5em;
+    font-weight: 600;
+}
 /* Bot詳細ステータスの上部余白調整 */
 .bot-status-section {
     padding-top: var(--spacing-3xl);
+}
 @media (max-width: 600px) {
     body {
         padding-left: 0;
@@ -351,7 +358,6 @@ section {
 .discord-btn:hover, .btn-discord:hover {
     background: #4046a0 !important;
     color: #fff !important;
-}
 }
 
 /* ヘッダー */
@@ -1318,20 +1324,20 @@ section {
 }
 
 .bot-detail-card.online {
-    border-left: 4px solid var(--success-color);
-    background: rgba(46, 213, 115, 0.05);
+    border-left: none;
+    background: #fff;
 }
 
 .bot-detail-card.offline {
-    border-left: 4px solid var(--text-muted);
-    opacity: 0.8;
-    background: rgba(114, 118, 125, 0.05);
+    border-left: none;
+    opacity: 1;
+    background: #fff;
 }
 
 .bot-detail-card.loading {
-    border-left: 4px solid var(--warning-color);
-    animation: loadingPulse 1.5s infinite ease-in-out;
-    background: rgba(255, 217, 61, 0.05);
+    border-left: none;
+    animation: none;
+    background: #fff;
 }
 
 @keyframes loadingPulse {
@@ -1344,8 +1350,8 @@ section {
 }
 
 .bot-status-badge.loading {
-    background: rgba(255, 217, 61, 0.2);
-    color: var(--warning-color);
+    background: #f4fafd !important;
+    color: #555 !important;
 }
 
 .bot-status-section {
