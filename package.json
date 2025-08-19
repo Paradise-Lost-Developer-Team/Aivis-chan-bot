@@ -2,13 +2,12 @@
   "name": "aivis-chan-bot-api",
   "version": "1.0.0",
   "description": "Discord Bot Statistics API Server for Aivis-chan Bot",
-  "main": "bot-stats-server.js",
   "scripts": {
-    "start": "node bot-stats-server.js",
-    "dev": "nodemon bot-stats-server.js",
+    "dev": "pnpm --filter ./far-field dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "astro": "^5.13.2",
     "axios": "^1.11.0",
     "cors": "^2.8.5",
     "discord.js": "^14.21.0",

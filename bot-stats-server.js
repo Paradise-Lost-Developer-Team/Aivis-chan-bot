@@ -19,7 +19,16 @@ const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+// 6台分のポートをBotごとに設定
+const BOT_PORTS = {
+    '1333819940645638154': 32001,
+    '1334732369831268352': 32002,
+    '1334734681656262770': 32003,
+    '1365633502988472352': 32004,
+    '1365633586123771934': 32005,
+    '1365633656173101086': 32006
+};
+const PORT = process.env.PORT || 32001;
 const MOCK_MODE = process.env.MOCK_MODE === 'true' || !process.env.BOT_TOKEN_1; // トークンが設定されていない場合はモックモード
 
 // CORS設定
@@ -134,28 +143,6 @@ async function initializeBotClients() {
             console.error(`❌ Failed to initialize bot ${botId}:`, error.message);
         }
     }
-}
-
-// Botのステータス更新機能（Bot本体から取得するように変更）
-function startStatusUpdates(client, botId) {
-    setInterval(async () => {
-        try {
-            // サーバー数（ギルド数）をBot本体から取得
-            const joinServerCount = await client.guilds.fetch().then(guilds => guilds.size);
-
-            // VC接続数をBot本体から取得
-            let joinVCCount = 0;
-            if (client.guilds.cache.size > 0) {
-                joinVCCount = client.guilds.cache.reduce((acc, guild) => {
-                    return acc + guild.channels.cache.filter(
-                        ch => ch.type === 2 && ch.members.size > 0 // type 2: GUILD_VOICE
-                    ).reduce((sum, ch) => sum + ch.members.size, 0);
-                }, 0);
-            }
-        } catch (error) {
-            console.error(`ステータス更新エラー (Bot ${botId}):`, error);
-        }
-    }, 30000);
 }
 
 // Botクライアント初期化後にステータス更新関数を呼び出す
@@ -328,7 +315,7 @@ app.get('/health', (req, res) => {
 app.listen(PORT, async () => {
     console.log(`🤖 Discord Bot Stats API Server running on port ${PORT}`);
     console.log(`📊 Configured bots: ${Object.keys(BOT_TOKENS).length}`);
-    console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+    console.log(`🌐 Health check: http://bot-stats-server:${PORT}/health`);
     
     // Botクライアントの初期化・起動を無効化
     console.log('⚠️ Botクライアントの起動は無効化されています。APIサーバーのみ稼働します。');
