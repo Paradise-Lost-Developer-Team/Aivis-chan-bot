@@ -54,9 +54,9 @@ module.exports = {
                 .addStringOption((option: any) =>
                     option.setName('pronunciation').setDescription('単語の発音（カタカナ）').setRequired(true))
                 .addIntegerOption((option: any) =>
-                    option.setName('accent_type').setDescription('アクセント型（0から始まる整数）').setRequired(false).setDefault(0))
+                    option.setName('accent_type').setDescription('アクセント型（0から始まる整数）').setRequired(false))
                 .addStringOption((option: any) =>
-                    option.setName('word_type').setDescription('単語の品詞').setRequired(false).setDefault('COMMON_NOUN')
+                    option.setName('word_type').setDescription('単語の品詞').setRequired(false)
                         .addChoices(
                             { name: '固有名詞', value: 'PROPER_NOUN' },
                             { name: '地名', value: 'PLACE_NAME' },
