@@ -343,8 +343,8 @@ section {
     top: 0;
     left: 0;
     right: 0;
-    background: #181c2a;
-    backdrop-filter: blur(12px);
+    background: #10131b;
+    backdrop-filter: blur(14px);
     border-bottom: 2px solid #00bcd4;
     z-index: var(--z-fixed);
 }
@@ -368,6 +368,8 @@ section {
 .nav-title {
     font-size: var(--font-size-xl);
     font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
 
 .nav-menu {
@@ -377,14 +379,16 @@ section {
 }
 
 .nav-link {
-    color: var(--text-secondary);
+    color: #f4fafd;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
 
 .nav-link:hover {
-    color: var(--text-primary);
+    color: #00eaff;
+    text-shadow: 0 1px 8px #00bcd4, 0 1px 6px rgba(0,0,0,0.7);
 }
 
 .nav-actions {
