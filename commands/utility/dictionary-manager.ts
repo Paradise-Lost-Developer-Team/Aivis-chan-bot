@@ -17,7 +17,7 @@ import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('dictionary-manager')
+        .setName('dictionarymanager')
         .setDescription('Pro版限定: 辞書管理の高度な機能')
         .addSubcommand(subcommand =>
             subcommand.setName('export')
