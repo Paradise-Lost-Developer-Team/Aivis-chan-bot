@@ -93,7 +93,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-            - containerPort: 3002
+            - containerPort: 3003
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
@@ -131,7 +131,7 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
-      nodePort: 32001
+      nodePort: 32002
   selector:
     app: aivis-chan-bot-2nd
 ---
@@ -161,7 +161,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-            - containerPort: 3002
+            - containerPort: 3004
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
@@ -229,7 +229,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-            - containerPort: 3002
+            - containerPort: 3005
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
@@ -267,7 +267,7 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
-      nodePort: 32005
+      nodePort: 32004
   selector:
     app: aivis-chan-bot-4th
 ---
@@ -297,7 +297,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-            - containerPort: 3002
+            - containerPort: 3006
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
@@ -335,7 +335,7 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
-      nodePort: 32007
+      nodePort: 32005
   selector:
     app: aivis-chan-bot-5th
 ---
@@ -365,7 +365,7 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-            - containerPort: 3002
+            - containerPort: 3007
           volumeMounts:
             - name: bot-data
               mountPath: /usr/src/app/data
@@ -403,6 +403,6 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
-      nodePort: 32009
+      nodePort: 32006
   selector:
     app: aivis-chan-bot-6th
