@@ -8,7 +8,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY far-field/package.json ./far-field/
 COPY far-field/pnpm-lock.yaml ./far-field/
-RUN npm install && cd far-field && npm install && npm run build
+RUN npm install -g pnpm \
+	&& pnpm install \
+	&& cd far-field \
+	&& pnpm install \
+	&& pnpm build
 COPY . .
 
 FROM nginx:alpine AS nginx
