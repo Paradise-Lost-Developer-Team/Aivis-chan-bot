@@ -3,7 +3,7 @@ import { processAivmxUpload } from "../../utils/proUpload";
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 export const data = new SlashCommandBuilder()
-	.setName("upload aivmx")
+	.setName("uploadaivmx")
 	.setDescription("aivmxファイルをアップロードして音声合成モデルとして保存します")
 	.addAttachmentOption(option =>
 		option.setName("file")

@@ -15,7 +15,7 @@ import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('voice style')
+        .setName('voicestyle')
         .setDescription('Pro版限定: 読み上げ音声のカスタムスタイル設定')
         .addSubcommand(sub => sub
             .setName('create')

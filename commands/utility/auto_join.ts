@@ -5,7 +5,7 @@ import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('auto join')
+        .setName('autojoin')
         .setDescription('TTSエンジンの自動参加チャンネル管理')
         .addSubcommand(sub =>
             sub.setName('add')
