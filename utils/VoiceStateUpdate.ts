@@ -119,6 +119,11 @@ export function VoiceStateUpdate(client: Client) {
                         autoJoinChannels[guildId].isManualTextChannelId = false;
                         console.warn(`[TempVC作成] auto_join_channels.jsonに設定がありません: guildId=${guildId}`);
                     }
+                    // TTSの再生先を新しいVCに確実に追従させるため、currentSpeakerの状態をリセット
+                    if (currentSpeaker[guildId] !== undefined) {
+                        delete currentSpeaker[guildId];
+                    }
+                    // 必要ならここでテスト発話も可能（例: await speakAnnounce('TTS追従テスト', guildId, client);）
                 }
                 // 状態保存
                 if (typeof saveVoiceState === 'function') saveVoiceState(client);
@@ -353,16 +358,39 @@ async function sendAutoJoinEmbed(member: any, channel: any, client: any, autoJoi
     // テキストチャンネルからのメッセージを受信したときに、関連ボイスチャンネルが存在すれば、そのテキストチャンネルを記録
     client.on('messageCreate', message => {
         if (message.author.bot) return;
-        
-        // メッセージを受け取ったギルドでボットがボイスチャンネルに接続している場合
         const guild = message.guild;
         if (!guild) return;
-        
+        const guildId = guild.id;
         const me = guild.members.cache.get(client.user?.id || '');
-        if (me?.voice.channel) {
-            // このテキストチャンネルをボイスチャンネルに関連付け
+        // 優先順位: autoJoinChannels > joinChannelsData
+        let allow = false;
+        const autoJoinData = autoJoinChannels[guildId];
+        if (autoJoinData) {
+            // 一時VCかつtextChannelId未指定時は、Botが接続中VCのカテゴリ内テキストチャンネル or 最後に発言があったチャンネルも許可
+            if (autoJoinData.tempVoice && !autoJoinData.textChannelId) {
+                if (me?.voice.channel && me.voice.channel.parent) {
+                    const categoryId = me.voice.channel.parent.id;
+                    const allowedTextChannels = guild.channels.cache.filter(c => c.type === 0 && c.parentId === categoryId);
+                    if (allowedTextChannels.has(message.channel.id)) {
+                        allow = true;
+                    }
+                }
+                // さらに「Botが最後に発言を受け取ったチャンネル」も許可（ここでは即時）
+                if (me?.voice.channel && message.channel) {
+                    allow = allow || true;
+                }
+            } else if (autoJoinData.textChannelId) {
+                if (message.channel.id === autoJoinData.textChannelId) {
+                    allow = true;
+                }
+            }
+        } else {
+            // autoJoinChannelsがなければjoinChannelsData（従来型）
+            // ここでjoinChannelsDataの参照・判定を追加（例: joinChannels[guildId]?.textChannelId など）
+            // ...既存のjoinChannelsData判定ロジック...
+        }
+        if (allow) {
             setTextChannelForGuild(guild.id, message.channel.id);
-            // 状態を保存
             saveVoiceState(client);
         }
     });
