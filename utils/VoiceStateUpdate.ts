@@ -94,44 +94,59 @@ export function VoiceStateUpdate(client: Client) {
         }
         // ユーザーが一時VC作成チャンネルから新しいVCに移動した場合のみBotが追従
         if (oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
-            if (isTempCreateChannel(oldState.channel)) {
-            // Botがまだ新しいVCにいない場合のみ追従
-            if (!voiceClient || voiceClient.joinConfig.channelId !== newState.channel.id) {
-                try {
-                const connection = joinVoiceChannel({
-                    channelId: newState.channel.id,
-                    guildId: guildId,
-                    adapterCreator: newState.guild.voiceAdapterCreator,
-                    selfDeaf: false,
-                });
-                voiceClients[guildId] = connection;
-                // autoJoinChannelsも更新
-                if (autoJoinChannels[guildId]) {
-                    autoJoinChannels[guildId].voiceChannelId = newState.channel.id;
-                    // 新しいVCと同じカテゴリ内のテキストチャンネルがなければ、auto_join_channels.jsonの設定を使う
-                    const autoJoinData = loadAutoJoinChannels()[guildId];
-                    if (autoJoinData) {
-                        autoJoinChannels[guildId].textChannelId = autoJoinData.textChannelId;
-                        autoJoinChannels[guildId].isManualTextChannelId = !!autoJoinData.textChannelId;
-                        console.log(`[TempVC作成] auto_join_channels.jsonのテキストチャンネルを設定: ${autoJoinData.textChannelId}`);
-                    } else {
-                        autoJoinChannels[guildId].textChannelId = undefined;
-                        autoJoinChannels[guildId].isManualTextChannelId = false;
-                        console.warn(`[TempVC作成] auto_join_channels.jsonに設定がありません: guildId=${guildId}`);
-                    }
-                    // TTSの再生先を新しいVCに確実に追従させるため、currentSpeakerの状態をリセット
-                    if (currentSpeaker[guildId] !== undefined) {
-                        delete currentSpeaker[guildId];
-                    }
-                    // 必要ならここでテスト発話も可能（例: await speakAnnounce('TTS追従テスト', guildId, client);）
+            // --- 追加: 移動元VCが空になった場合Botも切断 ---
+            const oldChannel = oldState.channel;
+            if (oldChannel && oldChannel.members.filter(m => !m.user.bot).size === 0) {
+                // BotがそのVCにいる場合のみ切断
+                if (voiceClient && voiceClient.joinConfig.channelId === oldChannel.id) {
+                    voiceClient.disconnect();
+                    delete voiceClients[guildId];
                 }
-                // 状態保存
-                if (typeof saveVoiceState === 'function') saveVoiceState(client);
-                // 一時VC自動接続アナウンス
-                await speakAnnounce('一時VCに自動接続しました。', guildId, client);
-                updateLastSpeechTime();
-                // 一時VCかどうかに関係なく自動接続Embedを送信
-                await sendAutoJoinEmbed(member, newState.channel, client, autoJoinChannels[guildId]);
+            }
+            if (isTempCreateChannel(oldState.channel)) {
+                // --- 追加: Botがすでに他のVCに接続していたらスキップ ---
+                if (voiceClient && voiceClient.joinConfig.channelId !== newState.channel.id) {
+                    // すでに別のVCに接続中なので何もしない
+                    console.log(`[TempVC作成] Botは既に別のVC(${voiceClient.joinConfig.channelId})に接続中のため追従をスキップ`);
+                    return;
+                }
+                // Botがまだ新しいVCにいない場合のみ追従
+                if (!voiceClient || voiceClient.joinConfig.channelId !== newState.channel.id) {
+                    try {
+                        const connection = joinVoiceChannel({
+                            channelId: newState.channel.id,
+                            guildId: guildId,
+                            adapterCreator: newState.guild.voiceAdapterCreator,
+                            selfDeaf: false,
+                        });
+                        voiceClients[guildId] = connection;
+                        // autoJoinChannelsも更新
+                        if (autoJoinChannels[guildId]) {
+                            autoJoinChannels[guildId].voiceChannelId = newState.channel.id;
+                            // 新しいVCと同じカテゴリ内のテキストチャンネルがなければ、auto_join_channels.jsonの設定を使う
+                            const autoJoinData = loadAutoJoinChannels()[guildId];
+                            if (autoJoinData) {
+                                autoJoinChannels[guildId].textChannelId = autoJoinData.textChannelId;
+                                autoJoinChannels[guildId].isManualTextChannelId = !!autoJoinData.textChannelId;
+                                console.log(`[TempVC作成] auto_join_channels.jsonのテキストチャンネルを設定: ${autoJoinData.textChannelId}`);
+                            } else {
+                                autoJoinChannels[guildId].textChannelId = undefined;
+                                autoJoinChannels[guildId].isManualTextChannelId = false;
+                                console.warn(`[TempVC作成] auto_join_channels.jsonに設定がありません: guildId=${guildId}`);
+                            }
+                            // TTSの再生先を新しいVCに確実に追従させるため、currentSpeakerの状態をリセット
+                            if (currentSpeaker[guildId] !== undefined) {
+                                delete currentSpeaker[guildId];
+                            }
+                            // 必要ならここでテスト発話も可能（例: await speakAnnounce('TTS追従テスト', guildId, client);）
+                        }
+                        // 状態保存
+                        if (typeof saveVoiceState === 'function') saveVoiceState(client);
+                        // 一時VC自動接続アナウンス
+                        await speakAnnounce('一時VCに自動接続しました。', guildId, client);
+                        updateLastSpeechTime();
+                        // 一時VCかどうかに関係なく自動接続Embedを送信
+                        await sendAutoJoinEmbed(member, newState.channel, client, autoJoinChannels[guildId]);
 // 自動接続Embed送信を共通化
 async function sendAutoJoinEmbed(member: any, channel: any, client: any, autoJoinData: any) {
     try {
