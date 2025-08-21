@@ -1,7 +1,9 @@
 FROM nginx:alpine
 
+COPY ./*.html /usr/share/nginx/html/
+
 # Astroビルド成果物をnginx公開ディレクトリにコピー
-COPY ./far-field/dist/ /usr/share/nginx/html/
+COPY ./far-field/dist/ /usr/share/nginx/html/far-field/dist/
 
 # 静的リソースも必要に応じてコピー
 COPY ./images /usr/share/nginx/html/images
