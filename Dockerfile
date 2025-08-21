@@ -5,7 +5,7 @@ COPY ./far-field/dist/ /usr/share/nginx/html/
 
 # 静的リソースも必要に応じてコピー
 COPY ./images /usr/share/nginx/html/images
-COPY ./voice_lines /usr/share/nginx/html/voice_lines
+COPY ./voicelines /usr/share/nginx/html/voicelines
 COPY ./css /usr/share/nginx/html/css
 COPY ./faq /usr/share/nginx/html/faq
 COPY ./terms /usr/share/nginx/html/terms
