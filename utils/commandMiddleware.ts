@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { CommandInteraction, TextChannel, Interaction, ChannelType } from "discord.js";
 
 /**
@@ -52,7 +53,7 @@ export async function executeCommand(
     if (!interaction.replied) {
       await interaction.reply({
         content: "内部エラーが発生しました。管理者に通知しました。",
-        ephemeral: true,
+  flags: MessageFlags.Ephemeral,
       });
     }
     console.error(`executeCommand error in ${def.name}:`, err);

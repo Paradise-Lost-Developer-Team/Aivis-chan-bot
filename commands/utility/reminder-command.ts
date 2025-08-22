@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { Message, EmbedBuilder, ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
 import { VoiceReminder } from '../../utils/voice-reminder';
 import { SlashCommandBuilder } from '@discordjs/builders';
@@ -109,7 +110,7 @@ export class ReminderCommand {
               .setDescription(`リマインダーの設定に失敗しました: ${(error as Error).message}`)
               .setColor(0xff0000)
           )],
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
           components: [getCommonLinksRow()]
         });
       }
@@ -125,7 +126,7 @@ export class ReminderCommand {
               .setDescription('設定されているリマインダーはありません。')
               .setColor(0xffa500)
           )],
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
           components: [getCommonLinksRow()]
         });
         return;
@@ -143,7 +144,7 @@ export class ReminderCommand {
           value: `⏰ ${this.formatTime(reminder.time)}\n📝 ${reminder.message}\n🔊 音声: ${reminder.voiceEnabled ? 'あり' : 'なし'}`
         });
       });
-      await interaction.reply({ embeds: [embed], ephemeral: true, components: [getCommonLinksRow()] });
+  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral, components: [getCommonLinksRow()] });
     }
     else if (subcommand === 'キャンセル') {
       const reminderId = interaction.options.getString('id', true);
@@ -155,7 +156,7 @@ export class ReminderCommand {
             .setDescription(response)
             .setColor('#00BFFF')
         )],
-        ephemeral: true,
+  flags: MessageFlags.Ephemeral,
         components: [getCommonLinksRow()]
       });
     }

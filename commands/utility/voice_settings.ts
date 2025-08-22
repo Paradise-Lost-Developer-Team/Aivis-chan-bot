@@ -1,5 +1,5 @@
 import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
-import { getSpeakerOptions, currentSpeaker, saveUserSpeakers } from '../../utils/TTS-Engine';
+import { getSpeakerOptions, currentSpeaker, saveUserVoiceSettings } from '../../utils/TTS-Engine';
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags, EmbedBuilder } from 'discord.js';
 import { voiceSettings } from '../../utils/TTS-Engine';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
@@ -55,7 +55,7 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction) {
         const sub = interaction.options.getSubcommand();
         if (sub === 'speaker') {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             try {
                 if (!interaction.guild) {
                     await interaction.editReply({
@@ -128,7 +128,12 @@ module.exports = {
                             return;
                         }
                         currentSpeaker[selectInteraction.user.id] = speakerIdNumber;
-                        saveUserSpeakers();
+                        // voiceSettingsにも保存
+                        if (typeof voiceSettings === 'object') {
+                            voiceSettings.speaker = voiceSettings.speaker || {};
+                            voiceSettings.speaker[selectInteraction.user.id] = speakerIdNumber;
+                        }
+                        saveUserVoiceSettings();
                         await selectInteraction.update({
                             embeds: [addCommonFooter(
                                 new EmbedBuilder()
@@ -169,10 +174,11 @@ module.exports = {
                 });
             }
         } else if (sub === 'intonation') {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const value = interaction.options.getNumber('value', true);
         if (value >= 0.0 && value <= 2.0) {
             voiceSettings.intonation[interaction.user.id] = value;
+            saveUserVoiceSettings();
             await interaction.editReply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
@@ -192,10 +198,11 @@ module.exports = {
             });
         }
         } else if (sub === 'pitch') {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const value = interaction.options.getNumber('value', true);
             if (value >= -0.15 && value <= 0.15) {
                 voiceSettings.pitch[interaction.user.id] = value;
+                saveUserVoiceSettings();
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
@@ -215,11 +222,12 @@ module.exports = {
                 });
             }
         } else if (sub === 'speed') {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const value = interaction.options.getNumber('value', true);
             if (value >= 0.5 && value <= 2.0) {
                 voiceSettings.speed = voiceSettings.speed || {};
                 voiceSettings.speed[interaction.user.id] = value;
+                saveUserVoiceSettings();
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
@@ -239,11 +247,12 @@ module.exports = {
                 });
             }
         } else if (sub === 'tempo') {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const value = interaction.options.getNumber('value', true);
             if (value >= 0.5 && value <= 2.0) {
                 voiceSettings.tempo = voiceSettings.tempo || {};
                 voiceSettings.tempo[interaction.user.id] = value;
+                saveUserVoiceSettings();
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
@@ -263,11 +272,12 @@ module.exports = {
                 });
             }
         } else if (sub === 'volume') {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const value = interaction.options.getNumber('value', true);
             if (value >= 0.0 && value <= 2.0) {
                 voiceSettings.volume = voiceSettings.volume || {};
                 voiceSettings.volume[interaction.user.id] = value;
+                saveUserVoiceSettings();
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
