@@ -28,7 +28,7 @@ COPY --from=builder /app/far-field/node_modules ./node_modules
 COPY --from=builder /app/far-field/dist ./dist
 COPY --from=builder /app/far-field/public ./public
 COPY --from=builder /app/far-field/package.json ./
-# EXPOSE 4321 (Astro SSR)
-EXPOSE 4321
+# EXPOSE 3001 (Astro SSR)
+EXPOSE 3001
 # 本番起動
 CMD ["node", "dist/server/entry.mjs"]
