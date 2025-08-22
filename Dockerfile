@@ -33,4 +33,4 @@ COPY --from=builder /app/far-field/package.json ./
 # EXPOSE 3001 (Astro SSR)
 EXPOSE 3001
 # 本番起動
-CMD ["node", "dist/server/entry.mjs"]
+CMD ["node", "dist/server/entry.mjs", "--host", "0.0.0.0"]
