@@ -23,6 +23,10 @@ export interface UserConversationStats {
   reactionCount: number; // 受け取ったリアクション数
   reactionGiven: number; // 送信したリアクション数
   commandUsage: Map<string, number>; // コマンド使用回数
+  /**
+   * AIチャット用の会話履歴（role: 'user'|'assistant', content: string）
+   */
+  history?: { role: string, content: string }[];
 }
 
 // サーバー単位の会話統計
