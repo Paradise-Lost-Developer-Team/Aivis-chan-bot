@@ -17,6 +17,8 @@ COPY ./faq ./public/faq
 COPY ./terms ./public/terms
 COPY ./privacy ./public/privacy
 COPY ./docs ./public/docs
+COPY ./contact ./public/contact
+COPY ./blog ./public/blog
 # Astroビルド
 RUN npm run build
 
