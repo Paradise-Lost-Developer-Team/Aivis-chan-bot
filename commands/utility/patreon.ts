@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, EmbedBuilder } from 'discord.js';
 import * as fs from 'fs';
@@ -58,7 +59,7 @@ export async function execute(interaction: CommandInteraction) {
               .setDescription('不明なサブコマンドです。')
               .setColor(0xff0000)
           )],
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
           components: [getCommonLinksRow()]
         });
     }
@@ -71,7 +72,7 @@ export async function execute(interaction: CommandInteraction) {
           .setDescription('コマンド実行中にエラーが発生しました。しばらく経ってから再度お試しください。')
           .setColor(0xff0000)
       )],
-      ephemeral: true,
+  flags: MessageFlags.Ephemeral,
       components: [getCommonLinksRow()]
     });
   }
@@ -92,7 +93,7 @@ async function handleInfoSubcommand(interaction: CommandInteraction) {
   );
   await interaction.reply({
     embeds: [embed],
-    ephemeral: true,
+  flags: MessageFlags.Ephemeral,
     components: [getCommonLinksRow()]
   });
 }
@@ -108,7 +109,7 @@ async function handleLinkSubcommand(interaction: CommandInteraction) {
         .setColor(0xFF5500)
         .addFields({ name: '認証リンク', value: `[Patreonで認証する](${authUrl})` })
     )],
-    ephemeral: true,
+  flags: MessageFlags.Ephemeral,
     components: [getCommonLinksRow()]
   });
 }
@@ -143,7 +144,7 @@ async function handleStatusSubcommand(interaction: CommandInteraction) {
   }
   await interaction.reply({
     embeds: [embed],
-    ephemeral: true,
+  flags: MessageFlags.Ephemeral,
     components: [getCommonLinksRow()]
   });
 }

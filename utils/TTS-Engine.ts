@@ -112,32 +112,37 @@ export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "data", "guild_dictionari
 export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "data", "auto_join_channels.json");
 export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels.json");
 
-// ユーザーごとの話者設定を永続化するファイル
-const USER_SPEAKERS_FILE = path.join(PROJECT_ROOT, 'data', 'user_speakers.json');
+// ユーザーごとの音声設定を永続化するファイル
+const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings.json');
 
 /**
  * ユーザーごとの話者設定を保存
  */
-export function saveUserSpeakers() {
+
+// ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を保存
+export function saveUserVoiceSettings() {
     try {
-        fs.writeFileSync(USER_SPEAKERS_FILE, JSON.stringify(currentSpeaker, null, 2), 'utf-8');
+        fs.writeFileSync(USER_VOICE_SETTINGS_FILE, JSON.stringify(voiceSettings, null, 2), 'utf-8');
     } catch (e) {
-        console.error('ユーザー話者設定の保存エラー:', e);
+        console.error('ユーザー音声設定の保存エラー:', e);
     }
 }
+
 
 /**
  * ユーザーごとの話者設定を読み込み
  */
-export function loadUserSpeakers() {
+
+// ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を読み込み
+export function loadUserVoiceSettings() {
     try {
-        if (fs.existsSync(USER_SPEAKERS_FILE)) {
-            const data = fs.readFileSync(USER_SPEAKERS_FILE, 'utf-8');
+        if (fs.existsSync(USER_VOICE_SETTINGS_FILE)) {
+            const data = fs.readFileSync(USER_VOICE_SETTINGS_FILE, 'utf-8');
             const obj = JSON.parse(data);
-            Object.assign(currentSpeaker, obj);
+            Object.assign(voiceSettings, obj);
         }
     } catch (e) {
-        console.error('ユーザー話者設定の読み込みエラー:', e);
+        console.error('ユーザー音声設定の読み込みエラー:', e);
     }
 }
 
@@ -193,7 +198,8 @@ export const voiceSettings: { [key: string]: any } = {
     pitch: {},
     speed: {},
     intonation: {},
-    tempo: {}
+    tempo: {},
+    speaker: {} // 追加: ユーザーごとの話者ID
 };
 
 export function AivisAdapter() {
@@ -747,7 +753,8 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
  * メッセージ読み上げ: ユーザーごとの話者設定を参照
  */
 export function speakVoice(text: string, userId: string | number, guildId: string, client?: any): Promise<void> {
-    const speaker = currentSpeaker[String(userId)] ?? DEFAULT_SPEAKER_ID;
+    // voiceSettings.speaker優先、なければcurrentSpeaker
+    const speaker = (voiceSettings.speaker?.[String(userId)] ?? currentSpeaker[String(userId)]) ?? DEFAULT_SPEAKER_ID;
     const queue = getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, speaker, guildId, String(userId), client));
 }
