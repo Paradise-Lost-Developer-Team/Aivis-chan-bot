@@ -194,7 +194,7 @@ async function handleUserCommand(interaction: ChatInputCommandInteraction) {
                     .setDescription(`${targetUser.username} さんの読み上げ履歴はありません。`)
                     .setColor(0xffa500)
             )],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
             components: [getCommonLinksRow()]
         });
         return;

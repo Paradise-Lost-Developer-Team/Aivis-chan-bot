@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { voiceClients, currentSpeaker } from '../../utils/TTS-Engine';
@@ -18,7 +19,7 @@ module.exports = {
                     .setRequired(false)),
     
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         
         try {
             const guildId = interaction.guildId;

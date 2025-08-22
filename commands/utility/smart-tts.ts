@@ -56,7 +56,7 @@ module.exports = {
                             .setDescription('このコマンドはPro版限定機能です。Pro版へのアップグレードについては `/subscription purchase` で確認できます。')
                             .setColor(0xffa500)
                     )],
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                     components: [getCommonLinksRow()]
                 });
                 return;
@@ -171,7 +171,7 @@ async function handleTestSubcommand(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId!;
     const text = interaction.options.getString('text', true);
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     
     // ボイスチャンネルに接続しているか確認
     const voiceClient = voiceClients[guildId];
