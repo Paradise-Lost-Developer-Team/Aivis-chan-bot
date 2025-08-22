@@ -98,5 +98,4 @@ ssl/
 deployment/aivis-chan-bot-web-configmap.yaml
 deployment/cloudflared-credentials-secret.yaml
 
-far-field/src/pages/
-far-field
+far-field/
