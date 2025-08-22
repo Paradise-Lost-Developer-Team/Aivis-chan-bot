@@ -1,17 +1,29 @@
-FROM nginx:alpine
+FROM node:20-alpine
 
-COPY ./*.html /usr/share/nginx/html/
+WORKDIR /app
 
-# Astroビルド成果物をnginx公開ディレクトリにコピー
-COPY ./far-field/dist/ /usr/share/nginx/html/far-field/dist/
+# 依存ファイルを先にコピーしてキャッシュ活用
+COPY ./far-field/package.json ./far-field/pnpm-lock.yaml* ./far-field/
+WORKDIR /app/far-field
+RUN npm install -g pnpm && pnpm install
 
-# 静的リソースも必要に応じてコピー
-COPY ./images /usr/share/nginx/html/images
-COPY ./voicelines /usr/share/nginx/html/voicelines
-COPY ./css /usr/share/nginx/html/css
-COPY ./faq /usr/share/nginx/html/faq
-COPY ./terms /usr/share/nginx/html/terms
-COPY ./privacy /usr/share/nginx/html/privacy
-COPY ./docs /usr/share/nginx/html/docs
+# アプリ本体をコピー
+COPY ./far-field .
 
-EXPOSE 80
+# 静的リソース・htmlもSSRサーバーのpublic配下にコピー
+WORKDIR /app/far-field
+RUN mkdir -p public
+COPY ../index.html ../index.html ./public/
+COPY ../images ./public/images
+COPY ../voicelines ./public/voicelines
+COPY ../css ./public/css
+COPY ../faq ./public/faq
+COPY ../terms ./public/terms
+COPY ../privacy ./public/privacy
+COPY ../docs ./public/docs
+
+# Astroビルド
+RUN pnpm build
+
+EXPOSE 3000
+CMD ["pnpm", "preview"]

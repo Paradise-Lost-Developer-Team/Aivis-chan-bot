@@ -18,19 +18,19 @@ spec:
     spec:
       containers:
       - name: aivis-chan-bot-web
-        image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest
-        ports:
-        - containerPort: 80 # 静的Web/nginxなら80
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
-        envFrom:
-        - configMapRef:
-            name: aivis-chan-bot-web-env
+  image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest
+  ports:
+  - containerPort: 3000 # Astro SSRサーバーなら3000
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  envFrom:
+  - configMapRef:
+      name: aivis-chan-bot-web-env
 ---
 apiVersion: v1
 kind: Service
@@ -43,4 +43,4 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 3000
