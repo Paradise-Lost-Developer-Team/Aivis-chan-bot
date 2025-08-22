@@ -3,9 +3,9 @@
 FROM node:current-alpine3.22 AS builder
 WORKDIR /app
 # 依存ファイルを先にコピーしてキャッシュ活用
-COPY ./far-field/package.json ./far-field/package-lock.json ./far-field/
+COPY ./far-field/package*.json ./far-field/
 WORKDIR /app/far-field
-RUN npm ci
+RUN npm install
 # アプリ本体をコピー
 COPY ./far-field .
 # 静的リソースをpublic配下にコピー
@@ -31,4 +31,4 @@ COPY --from=builder /app/far-field/package.json ./
 # EXPOSE 4321 (Astro SSR)
 EXPOSE 4321
 # 本番起動
-CMD ["npx", "astro", "preview", "--host", "0.0.0.0", "--port", "4321"]
+CMD ["node", "dist/server/entry.mjs"]
