@@ -26,4 +26,4 @@ COPY ../docs ./public/docs
 RUN pnpm build
 
 EXPOSE 3000
-CMD ["pnpm", "preview", "--", "--port", "3000", "--host", "0.0.0.0"]
+CMD ["npx", "astro", "preview", "--host", "0.0.0.0", "--port", "4321"]
