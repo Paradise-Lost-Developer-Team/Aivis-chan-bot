@@ -115,6 +115,12 @@ export class ConversationTrackingService {
       const serverStat = this.serverStats.get(serverId)!;
       const userStat = serverUserStats.get(userId)!;
 
+      // AIチャット用の会話履歴を保存（最大20件）
+      if (userStat.history) {
+        userStat.history.push({ role: 'user', content });
+        if (userStat.history.length > 20) userStat.history = userStat.history.slice(-20);
+      }
+
       // チャンネル統計の初期化
       if (!serverStat.channelStats.has(channelId)) {
         const channelName = 'name' in message.channel && message.channel.name !== null ? message.channel.name : 'unknown';
@@ -449,7 +455,8 @@ export class ConversationTrackingService {
       responseTime: 0,
       reactionCount: 0,
       reactionGiven: 0,
-      commandUsage: new Map()
+      commandUsage: new Map(),
+      history: []
     };
   }
 
