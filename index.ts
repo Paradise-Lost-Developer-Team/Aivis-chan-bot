@@ -278,8 +278,8 @@ apiApp.get('/api/stats', (req: Request, res: Response) => {
 
     res.json({ serverCount, userCount, shardCount, vcCount, uptimeRate });
 });
-apiApp.listen(3002, () => {
-    console.log('Stats APIサーバーがポート3002で起動しました');
+apiApp.listen(3007, () => {
+    console.log('Stats APIサーバーがポート3007で起動しました');
 });
 // --- ここまで追加 ---
 
