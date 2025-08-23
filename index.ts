@@ -269,12 +269,14 @@ import { Request, Response } from 'express';
 apiApp.get('/api/stats', (req: Request, res: Response) => {
     const serverCount = client.guilds.cache.size;
     const vcCount = client.voice.adapters.size;
-    const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
-
+    // 全サーバーのメンバー数合計
+    const userCount = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount ?? 0), 0);
+    // シャード数（shard情報があれば）
+    const shardCount = client.shard?.count ?? 1;
     // 稼働率: ボイスチャンネル接続数 ÷ サーバー数（%表示）
     const uptimeRate = serverCount > 0 ? Math.round((vcCount / serverCount) * 100) : 0;
 
-    res.json({ serverCount, vcCount, userCount, uptimeRate });
+    res.json({ serverCount, userCount, shardCount, vcCount, uptimeRate });
 });
 apiApp.listen(3002, () => {
     console.log('Stats APIサーバーがポート3002で起動しました');
