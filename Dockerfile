@@ -1,36 +1,23 @@
 
-# ----- ビルドステージ -----
-FROM node:current-alpine3.22 AS builder
-WORKDIR /app
-# 依存ファイルを先にコピーしてキャッシュ活用
-COPY ./far-field/package*.json ./far-field/
-WORKDIR /app/far-field
-RUN npm install
-# アプリ本体をコピー
-COPY ./far-field .
-# 静的リソースをpublic配下にコピー
-COPY ./index.html ./public/
-COPY ./images ./public/images
-COPY ./voicelines ./public/voicelines
-COPY ./css ./public/css
-COPY ./faq ./public/faq
-COPY ./terms ./public/terms
-COPY ./privacy ./public/privacy
-COPY ./docs ./public/docs
-COPY ./contact ./public/contact
-COPY ./blog ./public/blog
-# Astroビルド
-RUN npm run build
-
-# ----- 本番ステージ -----
+# ----- Expressサーバー用シンプルDockerfile -----
 FROM node:current-alpine3.22 AS runner
-WORKDIR /app/far-field
-# node_modulesとビルド成果物のみコピー
-COPY --from=builder /app/far-field/node_modules ./node_modules
-COPY --from=builder /app/far-field/dist ./dist
-COPY --from=builder /app/far-field/public ./public
-COPY --from=builder /app/far-field/package.json ./
-# EXPOSE 3001 (Astro SSR)
+WORKDIR /app
+# 依存ファイルをコピー
+COPY package*.json ./
+RUN npm install --production
+# アプリ本体と静的ファイルをコピー
+COPY server.js ./
+COPY index.html ./
+COPY images ./images
+COPY voicelines ./voicelines
+COPY css ./css
+COPY faq ./faq
+COPY terms ./terms
+COPY privacy ./privacy
+COPY docs ./docs
+COPY contact ./contact
+COPY blog ./blog
+# EXPOSE 3001 (Express)
 EXPOSE 3001
 # 本番起動
-CMD ["node", "dist/server/entry.mjs", "--host", "0.0.0.0"]
+CMD ["node", "server.js"]
