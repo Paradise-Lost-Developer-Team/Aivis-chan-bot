@@ -20,7 +20,7 @@ spec:
       - name: aivis-chan-bot-web
         image: ghcr.io/alexandergg-0520/aivis-chan-bot-web:latest
         ports:
-        - containerPort: 3001 # Astro SSRサーバーが3001番でリッスン
+        - containerPort: 3001 # Expressサーバーが3001番でリッスン
         resources:
           requests:
             memory: "128Mi"
