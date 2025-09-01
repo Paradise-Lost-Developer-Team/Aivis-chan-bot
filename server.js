@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
+const { google } = require('googleapis');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -127,17 +128,67 @@ app.get('/sitemap.xml', (req, res) => {
 
 // Google に sitemap 更新を通知する簡易エンドポイント（実行ログを返す）
 app.get('/notify-google', async (req, res) => {
+  // Google の sitemaps ping は廃止されています。
+  // 自動で sitemap を登録するには Search Console API を利用してください。
+  // 手順:
+  // 1. GCP プロジェクトでサービスアカウント作成
+  // 2. Search Console のサイト所有権を確認し、サービスアカウントを Search Console に追加
+  // 3. Search Console API の sites.sitemaps.submit を呼ぶ
+  res.json({
+    ok: false,
+    message: 'Google sitemaps ping is deprecated. Use Search Console (manual) or Search Console API (sites.sitemaps.submit). See https://developers.google.com/search/docs/crawling-indexing/sitemaps/submit-sitemap',
+    manual_steps: [
+      'Search Console -> サイトを選択 -> サイトマップ -> https://aivis-chan-bot.com/sitemap.xml を追加',
+      'または Search Console API を利用してプログラム的に登録'
+    ]
+  });
+});
+
+// サイト／認証設定（環境変数で指定）
+const GSC_SITE_URL = process.env.GSC_SITE_URL || 'https://aivis-chan-bot.com'; // Search Console に登録されている正確なプロパティ URL
+const GSC_SA_KEY_JSON = process.env.GSC_SA_KEY_JSON; // JSON文字列（推奨）またはパスを使う場合は次のロジックを変更する
+
+async function getGscClient() {
+  if (!GSC_SA_KEY_JSON) throw new Error('GSC_SA_KEY_JSON not set');
+  const key = JSON.parse(GSC_SA_KEY_JSON);
+  const auth = new google.auth.GoogleAuth({
+    credentials: key,
+    scopes: ['https://www.googleapis.com/auth/webmasters'],
+  });
+  return google.webmasters({ version: 'v3', auth });
+}
+
+async function submitSitemap() {
+  const client = await getGscClient();
+  const sitemapUrl = `${GSC_SITE_URL.replace(/\/$/, '')}/sitemap.xml`;
+  // siteUrl must exactly match property in Search Console (including https://)
+  await client.sitemaps.submit({ siteUrl: GSC_SITE_URL, feedpath: sitemapUrl });
+}
+
+// エンドポイント：即時送信（手動トリガー用）
+app.post('/submit-sitemap', async (req, res) => {
   try {
-    const sitemapUrl = encodeURIComponent(`${BASE_URL}/sitemap.xml`);
-    const googlePing = `https://www.google.com/ping?sitemap=${sitemapUrl}`;
-    const r = await axios.get(googlePing, { timeout: 10000, validateStatus: null });
-    // validateStatus: null により非2xxでも例外にならず r.status/r.data が取得可能
-    res.json({ ok: r.status >= 200 && r.status < 300, status: r.status, data: typeof r.data === 'string' ? r.data.slice(0,1000) : r.data });
+    await submitSitemap();
+    res.json({ ok: true, message: 'sitemap submitted' });
   } catch (err) {
-    // ネットワークエラー等の詳細を返す
-    res.status(500).json({ ok: false, error: err.message, stack: err.stack ? String(err.stack).slice(0,1000) : undefined });
+    console.error('submit-sitemap error', err);
+    res.status(500).json({ ok: false, error: String(err.message) });
   }
 });
+
+// 任意：定期自動送信（cron式を環境変数で指定）
+if (process.env.SITEMAP_SUBMIT_CRON) {
+  const cron = require('node-cron');
+  cron.schedule(process.env.SITEMAP_SUBMIT_CRON, async () => {
+    try {
+      console.log('scheduled submit-sitemap running');
+      await submitSitemap();
+      console.log('scheduled submit-sitemap done');
+    } catch (e) {
+      console.error('scheduled submit-sitemap failed', e);
+    }
+  }, { timezone: process.env.SITEMAP_CRON_TZ || 'UTC' });
+}
 
 app.listen(PORT, HOST, () => {
   console.log(`Server is running at http://${HOST}:${PORT}`);
