@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://aivis-chan-bot.com/sitemap.xml
