@@ -1,16 +1,21 @@
 const express = require('express');
 const path = require('path');
+const axios = require('axios');
 
 const app = express();
-const PORT = 3001;
-
+const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // 静的ファイル配信（Dockerfileでコピーした全ディレクトリを対象に）
 app.use(express.static(__dirname));
 
+// 追加：簡易リクエストロガー（デバッグ用）
+app.use((req, res, next) => {
+  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.url} Host:${req.headers.host} UA:${req.headers['user-agent']}`);
+  next();
+});
 
 // Bot APIから統計データを取得して返すエンドポイント
-const axios = require('axios');
 // K8sクラスタ内ならService名でアクセス、ローカルならlocalhost等に変更可
 const BOT_API_URLS = {
     main: process.env.BOT_API_URL || 'http://aivis-chan-bot-1st:3002/api/stats',
@@ -75,6 +80,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server is running at http://${HOST}:${PORT}`);
 });
