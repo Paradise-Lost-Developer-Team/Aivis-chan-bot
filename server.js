@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -78,6 +79,62 @@ app.get('/bot-stats-6th', async (req, res) => {
 // ルートはindex.htmlを返す
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 追加: sitemap / robots / Google ping（末尾に追記）
+
+const BASE_URL = process.env.BASE_URL || 'https://aivis-chan-bot.com';
+
+// robots.txt を返す（ファイルがあればファイルを、その場で無ければデフォルトを返す）
+app.get('/robots.txt', (req, res) => {
+  const p = path.join(__dirname, 'robots.txt');
+  if (fs.existsSync(p)) return res.sendFile(p);
+  res.type('text/plain').send(
+`User-agent: *
+Allow: /
+Sitemap: ${BASE_URL}/sitemap.xml
+`
+  );
+});
+
+// sitemap.xml を動的生成して返す（必要に応じて拡張）
+app.get('/sitemap.xml', (req, res) => {
+  const urls = [
+    { loc: `${BASE_URL}/`, priority: 1.0 },
+    { loc: `${BASE_URL}/bot-stats`, priority: 0.6 },
+    { loc: `${BASE_URL}/bot-stats-2nd`, priority: 0.6 },
+    { loc: `${BASE_URL}/bot-stats-3rd`, priority: 0.6 },
+    { loc: `${BASE_URL}/bot-stats-4th`, priority: 0.6 },
+    { loc: `${BASE_URL}/bot-stats-5th`, priority: 0.6 },
+    { loc: `${BASE_URL}/bot-stats-6th`, priority: 0.6 },
+    // 必要なら他の静的ページを追加
+  ];
+
+  const now = new Date().toISOString();
+  const xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    .concat(urls.map(u => `
+  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${now}</lastmod>
+    <priority>${u.priority}</priority>
+  </url>`))
+    .concat(['</urlset>'])
+    .join('\n');
+
+  res.type('application/xml').send(xml);
+});
+
+// Google に sitemap 更新を通知する簡易エンドポイント（実行ログを返す）
+app.get('/notify-google', async (req, res) => {
+  try {
+    const sitemapUrl = encodeURIComponent(`${BASE_URL}/sitemap.xml`);
+    const googlePing = `https://www.google.com/ping?sitemap=${sitemapUrl}`;
+    const r = await axios.get(googlePing, { timeout: 5000 });
+    res.json({ ok: true, status: r.status, data: r.data });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 app.listen(PORT, HOST, () => {
