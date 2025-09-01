@@ -31,6 +31,12 @@ spec:
         envFrom:
         - configMapRef:
             name: aivis-chan-bot-web-env
+        env:
+        - name: GSC_SA_KEY_JSON
+          valueFrom:
+            secretKeyRef:
+              name: gsc-key
+              key: GSC_SA_KEY_JSON
 ---
 apiVersion: v1
 kind: Service
