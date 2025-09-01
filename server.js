@@ -130,10 +130,12 @@ app.get('/notify-google', async (req, res) => {
   try {
     const sitemapUrl = encodeURIComponent(`${BASE_URL}/sitemap.xml`);
     const googlePing = `https://www.google.com/ping?sitemap=${sitemapUrl}`;
-    const r = await axios.get(googlePing, { timeout: 5000 });
-    res.json({ ok: true, status: r.status, data: r.data });
+    const r = await axios.get(googlePing, { timeout: 10000, validateStatus: null });
+    // validateStatus: null により非2xxでも例外にならず r.status/r.data が取得可能
+    res.json({ ok: r.status >= 200 && r.status < 300, status: r.status, data: typeof r.data === 'string' ? r.data.slice(0,1000) : r.data });
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    // ネットワークエラー等の詳細を返す
+    res.status(500).json({ ok: false, error: err.message, stack: err.stack ? String(err.stack).slice(0,1000) : undefined });
   }
 });
 
