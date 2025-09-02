@@ -35,7 +35,7 @@ export const data = new SlashCommandBuilder()
 
 // 型をCommandInteractionに変更
 export async function execute(interaction: CommandInteraction) {
-    const options = interaction.options as CommandInteractionOptionResolver<CacheType>;
+    const options = (interaction as any).options as CommandInteractionOptionResolver<CacheType>;
     const subcommand = options.getSubcommand();
     const guildId = interaction.guildId;
     if (!guildId) {
