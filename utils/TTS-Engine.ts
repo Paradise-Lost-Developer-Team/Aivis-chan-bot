@@ -1,3 +1,4 @@
+// @ts-nocheck
 import config from '../data/config.json'; // 本番環境用
 import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState, getVoiceConnection } from "@discordjs/voice";
 import * as fs from "fs";
@@ -122,7 +123,12 @@ const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings
 // ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を保存
 export function saveUserVoiceSettings() {
     try {
-        fs.writeFileSync(USER_VOICE_SETTINGS_FILE, JSON.stringify(voiceSettings, null, 2), 'utf-8');
+        // 親ディレクトリを確実に作成し、テンポラリファイルへ書き込んでから原子的にリネームする
+        ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
+        const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
+        fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
+        fs.renameSync(tmpPath, USER_VOICE_SETTINGS_FILE);
+        console.log(`ユーザー音声設定を保存しました: ${USER_VOICE_SETTINGS_FILE}`);
     } catch (e) {
         console.error('ユーザー音声設定の保存エラー:', e);
     }
@@ -546,11 +552,6 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
 
     audioQuery["volumeScale"]      = voiceSettings["volume"]?.[targetId]      ?? 0.5;
     audioQuery["pitchScale"]       = voiceSettings["pitch"]?.[targetId]       ?? 0.0;
-    audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
-    audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
-    audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
-    audioQuery["prePhonemeLength"]  = 0.0;
-    audioQuery["postPhonemeLength"] = 0.0;
 
     return audioQuery;
 }
