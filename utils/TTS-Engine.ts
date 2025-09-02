@@ -325,21 +325,22 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout:
 // リトライ機能付きfetch関数
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries: number = TTS_MAX_RETRIES): Promise<Response> {
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             if (attempt > 0) {
                 console.log(`TTSリクエストリトライ (${attempt}/${retries}): ${url}`);
                 await new Promise(resolve => setTimeout(resolve, TTS_RETRY_DELAY));
             }
-            
-            return await fetchWithTimeout(url, options);
+
+            const effectiveTimeout = (options as any)?.timeout ?? (url.includes('/synthesis') ? 60000 : TTS_TIMEOUT);
+            return await fetchWithTimeout(url, options, effectiveTimeout);
         } catch (error) {
             lastError = error instanceof Error ? error : new Error(String(error));
             console.error(`TTSリクエスト失敗 (${attempt}/${retries}): ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-    
+
     throw lastError || new Error('リトライ回数を超過しました');
 }
 
@@ -496,6 +497,7 @@ export async function postAudioQuery(text: string, speaker: number): Promise<any
 
 export async function postSynthesis(audioQuery: any, speaker: number): Promise<Buffer> {
     try {
+    const synthRequestStart = Date.now();
         const params = new URLSearchParams({ speaker: speaker.toString() });
         const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
             method: 'POST',
@@ -510,8 +512,10 @@ export async function postSynthesis(audioQuery: any, speaker: number): Promise<B
         if (!response.ok) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-        const arrayBuffer = await response.arrayBuffer();
-        return Buffer.from(arrayBuffer);
+    const arrayBuffer = await response.arrayBuffer();
+    const synthRequestEnd = Date.now();
+    console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart}`);
+    return Buffer.from(arrayBuffer);
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
@@ -623,17 +627,22 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     let ended = false;
     let ttsContentType: string | undefined = undefined;
     (async () => {
+        let chunkIndex = 0;
         for (const chunk of chunks) {
             let audioQuery = await postAudioQuery(chunk, speakerId);
             if (!audioQuery) continue;
             audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
             // TTSエンジンからストリームを取得
             const params = new URLSearchParams({ speaker: speakerId.toString() });
-            const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
+                const synthFetchStart = Date.now();
+                let firstByteRecorded = false;
+                const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(audioQuery)
             });
+                const synthFetchEnd = Date.now();
+                console.log(`[TTS] synthesis request: guild=${guildId} chunk=${chunkIndex} fetchMs=${synthFetchEnd - synthFetchStart} status=${response.status}`);
             if (!response.ok || !response.body) continue;
             if (!ttsContentType) {
                 const ct = response.headers.get('content-type');
@@ -643,11 +652,17 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
             await new Promise<void>((resolve, reject) => {
                 if (!nodeStream) return resolve();
                 nodeStream.on('data', (chunk: Buffer) => {
+                        if (!firstByteRecorded) {
+                            firstByteRecorded = true;
+                            const firstByteTime = Date.now();
+                            console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
+                        }
                     ttsStream.write(chunk);
                 });
                 nodeStream.on('end', () => resolve());
                 nodeStream.on('error', (err: any) => reject(err));
             });
+                chunkIndex++;
         }
         ended = true;
         ttsStream.end();
@@ -688,13 +703,48 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     });
     resource.volume?.setVolume(1.0);
 
+    // 再生時のタイムアウトを緩和し、エラーハンドリングを強化
+    const PLAYING_TIMEOUT = 15000; // 再生開始待ちタイムアウトを15秒に
+    const IDLE_TIMEOUT = 120000;   // 完了待ちタイムアウトを120秒に
+
+    // プレイヤー単位の一時エラーハンドラを設置
+    const onPlayerError = (error: Error) => {
+        console.error(`[player error] guild=${guildId}`, error);
+    };
+    player.once('error', onPlayerError);
+
+    // ストリームクローズもログ出力
+    resource.playStream.on('close', () => {
+        console.debug(`[resource closed] guild=${guildId}`);
+    });
+
+    let playedOnce = false;
     try {
         player.play(resource);
-        await entersState(player, AudioPlayerStatus.Playing, 5000);
-        await entersState(player, AudioPlayerStatus.Idle, 60000);
-    } catch (err) {
-        console.error("再生中にエラー:", err);
+        try {
+            await entersState(player, AudioPlayerStatus.Playing, PLAYING_TIMEOUT);
+            playedOnce = true;
+            await entersState(player, AudioPlayerStatus.Idle, IDLE_TIMEOUT);
+        } catch (err) {
+            // entersState のタイムアウトや AbortError を受けた場合は詳細ログを残す
+            console.error("再生監視でエラー:", err);
+
+            // 再生開始できていない場合のみ一度だけ再試行を行う（ネットワークや ffmpeg の瞬断向け）
+            if (!playedOnce) {
+                console.log(`再試行: guild=${guildId} - player.play を再実行します`);
+                try { player.stop(true); } catch (e) { /* ignore */ }
+                await new Promise(r => setTimeout(r, 200));
+                try {
+                    player.play(resource);
+                    await entersState(player, AudioPlayerStatus.Playing, PLAYING_TIMEOUT * 2);
+                    await entersState(player, AudioPlayerStatus.Idle, IDLE_TIMEOUT);
+                } catch (err2) {
+                    console.error("再試行時の再生エラー:", err2);
+                }
+            }
+        }
     } finally {
+        player.off('error', onPlayerError);
         try { ffmpeg.kill('SIGKILL'); } catch {}
         if (global.gc) global.gc();
     }
