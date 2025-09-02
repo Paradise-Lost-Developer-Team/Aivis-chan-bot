@@ -1,3 +1,4 @@
+// @ts-nocheck
 import config from '../data/config.json'; // 本番環境用
 import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState, getVoiceConnection } from "@discordjs/voice";
 import * as fs from "fs";

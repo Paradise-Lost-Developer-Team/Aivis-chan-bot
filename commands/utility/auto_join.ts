@@ -49,9 +49,9 @@ module.exports = {
     const sub = chatInput.options.getSubcommand();
         if (sub === 'add') {
             // register_auto_join.tsと同じ処理
-            const voiceChannel = interaction.options.get("voice_channel")?.channel as VoiceChannel;
-            const textChannel = interaction.options.get("text_channel")?.channel as TextChannel;
-            const tempVoice = interaction.options.get("temp_voice")?.value as boolean | undefined;
+            const voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
+            const textChannel = (interaction as any).options.get("text_channel")?.channel as TextChannel;
+            const tempVoice = (interaction as any).options.get("temp_voice")?.value as boolean | undefined;
 
             if (!voiceChannel) {
                 await interaction.reply({
