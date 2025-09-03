@@ -46,9 +46,8 @@ spec:
               value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
-          hostPath:
-            path: /home/user/aivis-chan-bot-1st-data
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: aivis-chan-bot-1st-pvc
         - name: config-files
           configMap:
             name: aivis-chan-bot-1st-config
@@ -114,9 +113,8 @@ spec:
               value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
-          hostPath:
-            path: /home/user/aivis-chan-bot-2nd-data
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: aivis-chan-bot-2nd-pvc
         - name: config-files
           configMap:
             name: aivis-chan-bot-2nd-config
@@ -182,9 +180,8 @@ spec:
               value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
-          hostPath:
-            path: /home/user/aivis-chan-bot-3rd-data
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: aivis-chan-bot-3rd-pvc
         - name: config-files
           configMap:
             name: aivis-chan-bot-3rd-config
@@ -250,9 +247,8 @@ spec:
               value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
-          hostPath:
-            path: /home/user/aivis-chan-bot-4th-data
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: aivis-chan-bot-4th-pvc
         - name: config-files
           configMap:
             name: aivis-chan-bot-4th-config
@@ -318,9 +314,8 @@ spec:
               value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
-          hostPath:
-            path: /home/user/aivis-chan-bot-5th-data
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: aivis-chan-bot-5th-pvc
         - name: config-files
           configMap:
             name: aivis-chan-bot-5th-config
@@ -386,23 +381,9 @@ spec:
               value: "http://aivisspeech-engine:10101"
       volumes:
         - name: bot-data
-          hostPath:
-            path: /home/user/aivis-chan-bot-6th-data
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: aivis-chan-bot-6th-pvc
         - name: config-files
           configMap:
             name: aivis-chan-bot-6th-config
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: aivis-chan-bot-6th
-spec:
-  type: NodePort
-  ports:
-    - name: http
-      port: 3000
-      targetPort: 3000
-      nodePort: 32006
-  selector:
-    app: aivis-chan-bot-6th
