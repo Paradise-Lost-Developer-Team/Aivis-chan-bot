@@ -177,36 +177,36 @@
                 <h2>音声設定</h2>
                 
                 <div class="command-example">
-                    <div class="command-title">/set_speaker</div>
+                    <div class="command-title">/voicesettings speaker</div>
                     <div class="command-desc">話者を変更します</div>
-                    <div class="command-usage">/set_speaker speaker:話者名</div>
+                    <div class="command-usage">/voicesettings speaker speaker:話者名</div>
                 </div>
                 
                 <h3>利用可能な話者</h3>
                 <p>AivisSpeech Engineを使用した高品質な日本語音声合成で、複数の話者をサポートしています。利用可能な話者は /set_speaker コマンドで確認できます。</p>
                 
                 <div class="command-example">
-                    <div class="command-title">/set_speed</div>
+                    <div class="command-title">/voicesettings speed</div>
                     <div class="command-desc">読み上げ速度を調整します（0.5～2.0）</div>
-                    <div class="command-usage">/set_speed speed:1.2</div>
+                    <div class="command-usage">/voicesettings speed speed:1.2</div>
                 </div>
                 
                 <div class="command-example">
-                    <div class="command-title">/set_volume</div>
-                    <div class="command-desc">読み上げ音量を調整します（0.1～1.0）</div>
-                    <div class="command-usage">/set_volume volume:0.8</div>
+                    <div class="command-title">/voicesettings volume</div>
+                    <div class="command-desc">読み上げ音量を調整します（0.0～2.0）</div>
+                    <div class="command-usage">/voicesettings volume volume:0.8</div>
                 </div>
                 
                 <div class="command-example">
-                    <div class="command-title">/set_pitch</div>
-                    <div class="command-desc">音声のピッチを調整します</div>
-                    <div class="command-usage">/set_pitch pitch:0.0</div>
+                    <div class="command-title">/voicesettings pitch</div>
+                    <div class="command-desc">音声のピッチを調整します（-0.15～0.15）</div>
+                    <div class="command-usage">/voicesettings pitch pitch:0.0</div>
                 </div>
                 
                 <div class="command-example">
-                    <div class="command-title">/set_intonation</div>
-                    <div class="command-desc">音声のイントネーションを調整します</div>
-                    <div class="command-usage">/set_intonation intonation:1.0</div>
+                    <div class="command-title">/voicesettings intonation</div>
+                    <div class="command-desc">音声のイントネーションを調整します（0.0～2.0）</div>
+                    <div class="command-usage">/voicesettings intonation intonation:1.0</div>
                 </div>
             </section>
 
@@ -215,34 +215,34 @@
                 
                 <h3>辞書機能</h3>
                 <div class="command-example">
-                    <div class="command-title">/add_word</div>
+                    <div class="command-title">/dictionaries add</div>
                     <div class="command-desc">読み方辞書に単語を追加します</div>
-                    <div class="command-usage">/add_word word:GitHub reading:ギットハブ</div>
+                    <div class="command-usage">/dictionaries add word:GitHub reading:ギットハブ</div>
                 </div>
                 
                 <div class="command-example">
-                    <div class="command-title">/list_words</div>
+                    <div class="command-title">/dictionaries list</div>
                     <div class="command-desc">登録された辞書の単語一覧を表示します</div>
-                    <div class="command-usage">/list_words</div>
+                    <div class="command-usage">/dictionaries list</div>
                 </div>
                 
                 <div class="command-example">
-                    <div class="command-title">/remove_word</div>
+                    <div class="command-title">/dictionaries remove</div>
                     <div class="command-desc">辞書から単語を削除します</div>
-                    <div class="command-usage">/remove_word word:GitHub</div>
+                    <div class="command-usage">/dictionaries remove word:GitHub</div>
                 </div>
                 
                 <h3>自動参加機能</h3>
                 <div class="command-example">
-                    <div class="command-title">/register_auto_join</div>
+                    <div class="command-title">/autojoin add</div>
                     <div class="command-desc">特定のボイスチャンネルへの自動参加を設定します</div>
-                    <div class="command-usage">/register_auto_join</div>
+                    <div class="command-usage">/autojoin add voicechannel:ボイスチャンネル名 textchannel:テキストチャンネル名(任意)</div>
                 </div>
                 
                 <div class="command-example">
-                    <div class="command-title">/unregister_auto_join</div>
+                    <div class="command-title">/autojoin remove</div>
                     <div class="command-desc">自動参加設定を解除します</div>
-                    <div class="command-usage">/unregister_auto_join</div>
+                    <div class="command-usage">/autojoin remove</div>
                 </div>
                 
                 <h3>その他の機能</h3>
