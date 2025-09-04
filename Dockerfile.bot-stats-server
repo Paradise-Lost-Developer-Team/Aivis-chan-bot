@@ -1,29 +1,16 @@
 
-# NginxでAstroの静的ファイルを配信し、Node.jsでAPIサーバーを起動する複合構成
-# 1. Astro静的ビルド成果物をNginxで公開
-# 2. APIサーバーはNode.jsで起動
+# Node-only image for bot-stats-server (Astro/nginx removed)
+FROM node:current-alpine3.22
 
-FROM node:current-alpine3.22 AS builder
 WORKDIR /app
+
+# API-only image: copy package files and install production deps
 COPY package*.json ./
-COPY far-field/package.json ./far-field/
-COPY far-field/pnpm-lock.yaml ./far-field/
-RUN npm install -g pnpm \
-	&& pnpm install \
-	&& cd far-field \
-	&& pnpm install \
-	&& pnpm build
-COPY . .
+RUN npm install --production --no-audit --no-fund
 
-FROM nginx:alpine AS nginx
-COPY --from=builder /app/far-field/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy only the API server entry
+COPY bot-stats-server.js ./bot-stats-server.js
 
-FROM node:current-alpine3.22 AS api
-WORKDIR /app
-COPY --from=builder /app .
-COPY --from=builder /app/node_modules ./node_modules
-EXPOSE 32001
+ENV PORT=3001
+EXPOSE 3001
 CMD ["node", "bot-stats-server.js"]
-
-# 最終イメージ: Nginx+APIサーバーを同時起動する場合はdocker-compose等でサービス分離を推奨

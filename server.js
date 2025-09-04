@@ -28,6 +28,52 @@ const BOT_API_URLS = {
     sixth: process.env.BOT_API_URL_6TH || 'http://aivis-chan-bot-6th:3007/api/stats',
 };
 
+// Map known bot IDs (used by frontend) to the internal BOT_API_URLS entries
+const BOT_ID_MAP = {
+  '1333819940645638154': BOT_API_URLS.main,
+  '1334732369831268352': BOT_API_URLS.second,
+  '1334734681656262770': BOT_API_URLS.third,
+  '1365633502988472352': BOT_API_URLS.fourth,
+  '1365633586123771934': BOT_API_URLS.fifth,
+  '1365633656173101086': BOT_API_URLS.sixth
+};
+
+// API: aggregated bot stats expected by front-end
+app.get('/api/bot-stats', async (req, res) => {
+  const botEntries = Object.entries(BOT_ID_MAP);
+  const axiosTimeout = 7000;
+
+  const results = await Promise.all(botEntries.map(async ([botId, url]) => {
+    try {
+      const r = await axios.get(url, { timeout: axiosTimeout });
+      // ensure returned shape includes bot_id for frontend
+      return Object.assign({ bot_id: botId, success: true }, r.data);
+    } catch (err) {
+      console.warn(`Failed to fetch stats for ${botId} from ${url}:`, err.message);
+      return { bot_id: botId, success: false, error: err.message };
+    }
+  }));
+
+  const total_bots = results.length;
+  const online_bots = results.filter(r => r.success && r.online).length;
+
+  return res.json({ bots: results, total_bots, online_bots, timestamp: new Date().toISOString() });
+});
+
+// API: single bot stats by botId
+app.get('/api/bot-stats/:botId', async (req, res) => {
+  const botId = req.params.botId;
+  const url = BOT_ID_MAP[botId];
+  if (!url) return res.status(404).json({ error: 'unknown bot id' });
+  try {
+    const r = await axios.get(url, { timeout: 7000 });
+    return res.json(Object.assign({ bot_id: botId, success: true }, r.data));
+  } catch (err) {
+    console.warn(`Failed to fetch stats for ${botId} from ${url}:`, err.message);
+    return res.status(502).json({ bot_id: botId, success: false, error: err.message });
+  }
+});
+
 app.get('/bot-stats', async (req, res) => {
     try {
         const response = await axios.get(BOT_API_URLS.main);
@@ -192,4 +238,28 @@ if (process.env.SITEMAP_SUBMIT_CRON) {
 
 app.listen(PORT, HOST, () => {
   console.log(`Server is running at http://${HOST}:${PORT}`);
+});
+
+// Webhook receiver for bot-stats-server
+app.post('/api/receive', express.json(), async (req, res) => {
+  try {
+    const body = req.body;
+    console.log('[WEBHOOK] Received:', JSON.stringify(body).slice(0, 1000));
+
+    // Basic validation
+    if (!body || !body.type) {
+      return res.status(400).json({ ok: false, error: 'invalid payload' });
+    }
+
+    // Store or process payload as needed. For now, write to logs and a rolling file.
+  const logLine = `${new Date().toISOString()} ${req.ip} ${body.type} ${JSON.stringify(body.payload).slice(0,1000)}\n`;
+  // Use writable location by default; allow override via WEBHOOK_LOG_PATH
+  const logPath = process.env.WEBHOOK_LOG_PATH || '/tmp/webhook-receive.log';
+  fs.appendFile(logPath, logLine, (err) => { if (err) console.error('Failed to write webhook log', err); });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Webhook handler error', err);
+    return res.status(500).json({ ok: false, error: String(err.message) });
+  }
 });

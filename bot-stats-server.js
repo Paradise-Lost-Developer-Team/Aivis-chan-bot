@@ -15,7 +15,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, ActivityType, ChannelType } = require('discord.js');
 require('dotenv').config();
 
 const app = express();
@@ -92,11 +92,10 @@ async function generateMockData(botId) {
 }
 
 // Discord Bot クライアントを初期化
-// Discord Bot クライアントを初期化
 async function initializeBotClients() {
     for (const [botId, token] of Object.entries(BOT_TOKENS)) {
         if (!token || MOCK_MODE) continue;
-        
+
         try {
             const client = new Client({
                 intents: [
@@ -105,90 +104,73 @@ async function initializeBotClients() {
                 ]
             });
             client.once('ready', async () => {
-                try {
-                    // サーバー数（ギルド数）取得
-                    const guilds = await client.guilds.fetch();
-                    let vcCount = 0;
-                    for (const [_, guild] of guilds) {
-                        await guild.channels.fetch();
-                        vcCount += guild.channels.cache
-                            .filter(ch => ch.type === 2) // ChannelType.GuildVoice
-                            .reduce((sum, ch) => sum + ch.members.size, 0);
-                    }
-                    // オンライン履歴に追加
-                    const now = Date.now();
-                    if (!ONLINE_HISTORY.has(botId)) ONLINE_HISTORY.set(botId, []);
-                    ONLINE_HISTORY.get(botId).push({ start: now, end: null });
-                    // 必要ならここで stats を保存・利用
-                    console.log(`✅ Bot ${botId} ready. Guilds: ${guilds.size}, VC Users: ${vcCount}`);
+                    console.log(`🔔 ready handler invoked for bot ${botId}. client present=${!!client}, guilds=${typeof (client && client.guilds)} isFetch=${client && client.guilds && typeof client.guilds.fetch === 'function'}`);
+                    try {
+                        // Prefer using the client's cache to avoid heavy fetches and missing fetch implementations.
+                        let guildsCollection = null;
+                        if (client && client.guilds && client.guilds.cache) {
+                            guildsCollection = client.guilds.cache;
+                        } else if (client && client.guilds && typeof client.guilds.fetch === 'function') {
+                            try {
+                                guildsCollection = await client.guilds.fetch();
+                            } catch (fetchErr) {
+                                console.error(`❌ client.guilds.fetch() threw for bot ${botId}:`, fetchErr && (fetchErr.stack || fetchErr.message || fetchErr));
+                            }
+                        }
+
+                        let vcCount = 0;
+                        if (guildsCollection && typeof guildsCollection.size === 'number') {
+                            // Iterate over cached guilds safely
+                            for (const guild of guildsCollection.values ? guildsCollection.values() : guildsCollection) {
+                                try {
+                                    // Avoid calling guild.channels.fetch(); rely on cached channels if present
+                                    if (guild && guild.channels && guild.channels.cache) {
+                                        vcCount += guild.channels.cache.reduce
+                                            ? guild.channels.cache.reduce((sum, ch) => {
+                                                try {
+                                                    return sum + ((ch.type === ChannelType.GuildVoice) ? (ch.members ? ch.members.size : 0) : 0);
+                                                } catch (e) {
+                                                    return sum;
+                                                }
+                                            }, 0)
+                                            : 0;
+                                    } else {
+                                        // channels manager missing — skip
+                                        console.warn(`⚠️ guild.channels.cache not available for bot ${botId}, guild ${guild && guild.id}`);
+                                    }
+                                } catch (innerErr) {
+                                    console.error(`❌ Error while processing guild for bot ${botId}:`, innerErr && innerErr.message ? innerErr.message : innerErr);
+                                }
+                            }
+                        } else {
+                            console.warn(`⚠️ No guild collection available for bot ${botId}`);
+                        }
+
+                        // オンライン履歴に追加
+                        const now = Date.now();
+                        if (!ONLINE_HISTORY.has(botId)) ONLINE_HISTORY.set(botId, []);
+                        ONLINE_HISTORY.get(botId).push({ start: now, end: null });
+                        // 必要ならここで stats を保存・利用
+                        console.log(`✅ Bot ${botId} ready. Guilds: ${guildsCollection && guildsCollection.size ? guildsCollection.size : 'unknown'}, VC Users: ${vcCount}`);
                 } catch (err) {
-                    console.error(`❌ Error fetching stats for bot ${botId}:`, err.message);
+                    console.error(`❌ Error fetching stats for bot ${botId}:`, err && err.message ? err.message : err);
                 }
             });
 
             client.on('error', (error) => {
-                console.error(`❌ Bot ${botId} connection error:`, error.message);
-                // オンライン履歴のendを記録
-                const now = Date.now();
-                const history = ONLINE_HISTORY.get(botId);
-                if (history && history.length > 0 && !history[history.length - 1].end) {
-                    history[history.length - 1].end = now;
-                }
+                console.error(`❌ Bot ${botId} connection error:`, error && error.message ? error.message : error);
             });
 
             await client.login(token);
             botClients.set(botId, client);
-            
+
         } catch (error) {
-            console.error(`❌ Failed to initialize bot ${botId}:`, error.message);
+            console.error(`❌ Failed to initialize bot ${botId}:`, error && error.message ? error.message : error);
         }
     }
 }
 
-// Botクライアント初期化後にステータス更新関数を呼び出す
-async function initializeBotClients() {
-    for (const [botId, token] of Object.entries(BOT_TOKENS)) {
-        if (!token || MOCK_MODE) continue;
-        
-        try {
-            const client = new Client({
-                intents: [
-                    GatewayIntentBits.Guilds,
-                    GatewayIntentBits.GuildVoiceStates
-                ]
-            });
-            client.once('ready', async () => {
-                try {
-                    // サーバー数（ギルド数）取得
-                    const guilds = await client.guilds.fetch();
-                    let vcCount = 0;
-                    for (const [_, guild] of guilds) {
-                        await guild.channels.fetch();
-                        vcCount += guild.channels.cache
-                            .filter(ch => ch.type === 2) // ChannelType.GuildVoice
-                            .reduce((sum, ch) => sum + ch.members.size, 0);
-                    }
-                    // 必要ならここで stats を保存・利用
-                    console.log(`✅ Bot ${botId} ready. Guilds: ${guilds.size}, VC Users: ${vcCount}`);
-                    // ステータス更新関数を呼び出す
-                    startStatusUpdates(client, botId);
-                } catch (err) {
-                    console.error(`❌ Error fetching stats for bot ${botId}:`, err.message);
-                }
-            });
-
-            client.on('error', (error) => {
-                console.error(`❌ Bot ${botId} connection error:`, error.message);
-            });
-
-            await client.login(token);
-            botClients.set(botId, client);
-            
-        } catch (error) {
-            console.error(`❌ Failed to initialize bot ${botId}:`, error.message);
-        }
-    }
-}
+// (Duplicate removed) The defensive initializeBotClients implementation above is used.
 
 // Discord API統計情報取得関数
 async function fetchBotStatistics(botId) {
@@ -207,7 +189,14 @@ async function fetchBotStatistics(botId) {
             return await generateMockData(botId);
         }
         try {
-            const res = await axios.get(apiUrl, { timeout: 3000 });
+            // If a runtime client exists but isn't ready yet, avoid calling Discord API paths that require readiness.
+            const runtimeClient = botClients.get(botId);
+            if (!runtimeClient || !runtimeClient.readyAt) {
+                console.warn(`⚠️ Client for bot ${botId} not ready - returning mock fallback`);
+                return await generateMockData(botId);
+            }
+
+            const res = await axios.get(apiUrl, { timeout: 7000 });
             const data = res.data;
             // シャード数を取得
             let shard_count = null;
@@ -245,6 +234,28 @@ async function fetchBotStatistics(botId) {
     }
 }
 
+// Debug endpoint: show minimal client state (safe to expose internally)
+app.get('/debug/clients', (req, res) => {
+    try {
+        const out = [];
+        for (const botId of Object.keys(BOT_TOKENS)) {
+            const runtimeClient = botClients.get(botId);
+            out.push({
+                bot_id: botId,
+                hasClient: !!runtimeClient,
+                readyAt: runtimeClient && runtimeClient.readyAt ? runtimeClient.readyAt : null,
+                userTag: runtimeClient && runtimeClient.user ? `${runtimeClient.user.username}#${runtimeClient.user.discriminator || ''}` : null,
+                guildsCacheSize: runtimeClient && runtimeClient.guilds && runtimeClient.guilds.cache ? runtimeClient.guilds.cache.size : null,
+                shardCount: runtimeClient && runtimeClient.shard && typeof runtimeClient.shard.count === 'number' ? runtimeClient.shard.count : null
+            });
+        }
+        res.json({ ok: true, clients: out });
+    } catch (e) {
+        console.error('Debug /debug/clients error', e && (e.stack || e.message || e));
+        res.status(500).json({ ok: false, error: String(e && (e.message || e)) });
+    }
+});
+
 // API エンドポイント: 特定のBot統計情報を取得
 app.get('/api/bot-stats/:botId', async (req, res) => {
     const { botId } = req.params;
@@ -263,6 +274,12 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
 
     try {
         const stats = await fetchBotStatistics(botId, token);
+        // 取得した個別 stats を webhook に送信（非同期）
+        if (process.env.WEBHOOK_URL) {
+            sendToWebhook({ type: 'bot_stats', payload: stats }).catch(err => {
+                console.error('Webhook send error (individual):', err.message);
+            });
+        }
         res.json(stats);
     } catch (error) {
         console.error(`API error for bot ${botId}:`, error);
@@ -287,6 +304,12 @@ app.get('/api/bot-stats', async (req, res) => {
         });
 
         const allStats = await Promise.all(statsPromises);
+        // 全体 stats を webhook に送信（非同期）
+        if (process.env.WEBHOOK_URL) {
+            sendToWebhook({ type: 'all_bot_stats', payload: { bots: allStats, total: allStats.length } }).catch(err => {
+                console.error('Webhook send error (all):', err.message);
+            });
+        }
         res.json({
             bots: allStats,
             total_bots: allStats.length,
@@ -321,6 +344,36 @@ app.listen(PORT, async () => {
     console.log('⚠️ Botクライアントの起動は無効化されています。APIサーバーのみ稼働します。');
     // Botクライアントの初期化関数を呼び出し
     initializeBotClients();
+    // 起動時に全体 stats を一度送信
+    if (process.env.WEBHOOK_URL) {
+        try {
+            const statsPromises = Object.keys(BOT_TOKENS).map(async (botId) => {
+                return await fetchBotStatistics(botId);
+            });
+            const allStats = await Promise.all(statsPromises);
+            await sendToWebhook({ type: 'startup_all_bot_stats', payload: { bots: allStats, total: allStats.length } });
+            console.log('✅ Startup stats sent to webhook');
+        } catch (err) {
+            console.error('Failed sending startup stats:', err.message);
+        }
+    }
 });
+
+// --- Webhook sender helper ---
+async function sendToWebhook(body, retries = 2) {
+    const url = process.env.WEBHOOK_URL;
+    if (!url) throw new Error('WEBHOOK_URL is not configured');
+
+    try {
+        await axios.post(url, body, { timeout: 5000 });
+    } catch (err) {
+        if (retries > 0) {
+            console.warn('Webhook send failed, retrying...', retries, err.message);
+            await new Promise(r => setTimeout(r, 1000));
+            return sendToWebhook(body, retries - 1);
+        }
+        throw err;
+    }
+}
 
 module.exports = app;
