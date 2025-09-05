@@ -553,9 +553,10 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
         targetId = String(userId);
     }
 
-    audioQuery["volumeScale"]      = voiceSettings["volume"]?.[targetId]      ?? 0.5;
+    audioQuery["volumeScale"]      = voiceSettings["volume"]?.[targetId]      ?? 1.0;
     audioQuery["pitchScale"]       = voiceSettings["pitch"]?.[targetId]       ?? 0.0;
-    audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]       ?? 1.0;
+    audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]      ?? voiceSettings["tempo"]?.[targetId] ?? 1.0;
+    audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId] ?? 1.0;
     audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId]  ?? 1.0;
     audioQuery["tempoDynamicsScale"] = voiceSettings["tempo"]?.[targetId]     ?? 1.0;
     audioQuery["prePhonemeLength"]  = 0.0;
