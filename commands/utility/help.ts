@@ -32,33 +32,34 @@ class HelpMenu {
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
-                .setTitle("ヘルプ - 自動入室コマンド")
-                .setDescription("自動入室に関するコマンドの一覧です。")
+                .setTitle("ヘルプ - 自動入室／自動化 (autojoin)")
+                .setDescription("自動入室や自動読み上げの設定コマンドです。`/autojoin` サブコマンドを使用してください。")
                 .addFields(
-                    { name: "/register_auto_join", value: "BOTの自動入室機能を登録します。" },
-                    { name: "/unregister_auto_join", value: "自動接続の設定を解除します。" }
+                    { name: "/autojoin add", value: "ボイスチャンネルと任意のテキストチャンネルを指定して自動入室を登録します。" },
+                    { name: "/autojoin remove", value: "登録済みの自動入室設定を削除します。" },
+                    { name: "/autojoin list", value: "登録済みの自動入室設定を一覧表示します。" }
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
-                .setTitle("ヘルプ - 音声設定コマンド")
-                .setDescription("音声設定に関するコマンドの一覧です。")
+                .setTitle("ヘルプ - 音声設定 (voicesettings)")
+                .setDescription("音声設定は `/voicesettings` コマンドで管理します。サブコマンドで各種パラメータを設定してください。")
                 .addFields(
-                    { name: "/set_speaker", value: "話者を選択メニューから切り替えます。" },
-                    { name: "/set_volume", value: "音量を設定します (0.0 - 2.0)。" },
-                    { name: "/set_pitch", value: "音高を設定します (-1.0 - 1.0)。" },
-                    { name: "/set_speed", value: "話速を設定します (0.5 - 2.0)。" },
-                    { name: "/set_intonation", value: "感情表現の強さを設定します (0.0 - 2.0)。" },
-                    { name: "/set_tempo", value: "テンポの緩急を設定します (0.5 - 2.0)。" }
+                    { name: "/voicesettings speaker <name>", value: "話者（音声）を選択します。利用可能な話者はリストから選択。" },
+                    { name: "/voicesettings volume <0.0-2.0>", value: "再生音量を設定します。" },
+                    { name: "/voicesettings pitch <-0.15-0.15>", value: "音の高さを調整します。" },
+                    { name: "/voicesettings speed <0.5-2.0>", value: "再生速度を調整します。" },
+                    { name: "/voicesettings intonation <0.0-2.0>", value: "イントネーション（感情表現）の強さを設定します。" },
+                    { name: "/voicesettings tempo <0.5-2.0>", value: "話す速さの緩急の強弱を調整します。" }
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
-                .setTitle("ヘルプ - 辞書コマンド")
-                .setDescription("辞書に関するコマンドの一覧です。")
+                .setTitle("ヘルプ - 辞書 / テキスト整形 (dictionaries)")
+                .setDescription("サーバー辞書は `/dictionaries` コマンドで操作します。サブコマンドを指定してください。")
                 .addFields(
-                    { name: "/add_word", value: "辞書に単語を登録します。" },
-                    { name: "/edit_word", value: "辞書の単語を編集します。" },
-                    { name: "/remove_word", value: "辞書から単語を削除します。" },
-                    { name: "/list_words", value: "辞書の単語一覧を表示します。" }
+                    { name: "/dictionaries add", value: "辞書に単語を追加します。例: /dictionaries add word:GitHub pronounce:ギットハブ" },
+                    { name: "/dictionaries remove", value: "辞書から単語を削除します。例: /dictionaries remove word:GitHub" },
+                    { name: "/dictionaries list", value: "サーバー辞書を一覧表示します。" },
+                    { name: "/dictionaries edit", value: "既存の辞書エントリを編集します。" }
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
