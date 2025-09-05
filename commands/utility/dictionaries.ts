@@ -27,19 +27,124 @@ function saveToDictionaryFile(dictionaryData: any) {
     }
 }
 
-// VOICEVOXサーバーへのリクエスト
-async function sendToVoicevox(word: string, pronunciation: string, accentType: number, wordType: string) {
+// AivisSpeech サーバーへのリクエスト
+async function sendToAivisSpeech(word: string, pronunciation: string, accentType: number, wordType: string): Promise<{ ok: boolean; uuid?: string }> {
     try {
         const encodedWord = encodeURIComponent(word);
         const encodedPronunciation = encodeURIComponent(pronunciation);
         const encodedWordType = encodeURIComponent(wordType);
         const url = `${TTS_BASE_URL}/user_dict_word?surface=${encodedWord}&pronunciation=${encodedPronunciation}&accent_type=${accentType}&word_type=${encodedWordType}`;
         const response = await fetch(url, { method: 'POST' });
-        return response.status === 200;
+        if (!response.ok) return { ok: false };
+        try {
+            const body = await response.json();
+            if (body && typeof body === 'object') {
+                if (typeof (body as any).uuid === 'string') return { ok: true, uuid: (body as any).uuid };
+                const keys = Object.keys(body);
+                if (keys.length === 1) {
+                    const k = keys[0];
+                    if (/^[0-9a-fA-F\-]{36}$/.test(k)) return { ok: true, uuid: k };
+                }
+            }
+        } catch (e) {}
+        return { ok: true };
     } catch (error) {
-        console.error('Error sending to VOICEVOX:', error);
-        return false;
+        console.error('Error sending to AivisSpeech:', error);
+        return { ok: false };
     }
+}
+
+async function findUuidForWord(word: string, pronunciation?: string, accentType?: number, guildId?: string) {
+    try {
+        if (guildId) {
+            try {
+                const local = loadDictionaryFile();
+                if (local && local[guildId] && local[guildId][word]) {
+                    const entry: any = local[guildId][word];
+                    if (entry.uuid) return entry.uuid as string;
+                    const localPron = entry.pronunciation;
+                    const localAccent = typeof entry.accentType !== 'undefined' ? entry.accentType : undefined;
+                    try {
+                        const res = await fetch(`${TTS_BASE_URL}/user_dict`);
+                        if (res.ok) {
+                            const uuidDict = await res.json();
+                            for (const [key, apiEntry] of Object.entries(uuidDict as any)) {
+                                try {
+                                    const e: any = apiEntry;
+                                    if (e.surface === word) {
+                                        if (typeof localPron !== 'undefined' && typeof e.pronunciation !== 'undefined') {
+                                            if (e.pronunciation === localPron && (typeof localAccent === 'undefined' || e.accent_type === localAccent)) {
+                                                local[guildId][word].uuid = key;
+                                                saveToDictionaryFile(local);
+                                                return key;
+                                            }
+                                        }
+                                    }
+                                } catch (e) {}
+                            }
+                            for (const [key, apiEntry] of Object.entries(uuidDict as any)) {
+                                try {
+                                    const e: any = apiEntry;
+                                    if (e.surface === word) {
+                                        local[guildId][word].uuid = key;
+                                        saveToDictionaryFile(local);
+                                        return key;
+                                    }
+                                } catch (e) {}
+                            }
+                            if (typeof localPron !== 'undefined') {
+                                for (const [key, apiEntry] of Object.entries(uuidDict as any)) {
+                                    try {
+                                        const e: any = apiEntry;
+                                        if (e.pronunciation === localPron) {
+                                            local[guildId][word].uuid = key;
+                                            saveToDictionaryFile(local);
+                                            return key;
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                }
+            } catch (e) {}
+        }
+        const retries = 5;
+        const delayMs = 1000;
+        const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+        for (let attempt = 0; attempt < retries; attempt++) {
+            try {
+                const res = await fetch(`${TTS_BASE_URL}/user_dict`);
+                if (!res.ok) {
+                    if (attempt < retries - 1) await sleep(delayMs);
+                    continue;
+                }
+                const uuidDict = await res.json();
+                for (const [key, entry] of Object.entries(uuidDict as any)) {
+                    try {
+                        const e: any = entry;
+                        if (e.surface === word) {
+                            if (typeof pronunciation !== 'undefined' && typeof e.pronunciation !== 'undefined') {
+                                if (e.pronunciation === pronunciation && (typeof accentType === 'undefined' || e.accent_type === accentType)) {
+                                    return key;
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                }
+                for (const [key, entry] of Object.entries(uuidDict as any)) {
+                    try {
+                        const e: any = entry;
+                        if (e.surface === word) return key;
+                    } catch (e) {}
+                }
+            } catch (e) {}
+            if (attempt < retries - 1) await sleep(delayMs);
+        }
+    } catch (e) {
+        console.warn('findUuidForWord: failed to fetch user_dict', e);
+    }
+    return undefined;
 }
 
 module.exports = {
@@ -114,9 +219,9 @@ module.exports = {
                 const accentType = interaction.options.getInteger('accent_type') ?? 0;
                 const wordType = interaction.options.getString('word_type') ?? 'COMMON_NOUN';
                 const guildId = interaction.guildId!;
-                // VOICEVOXサーバーに送信
-                const voicevoxResult = await sendToVoicevox(word, pronunciation, accentType, wordType);
-                if (voicevoxResult) {
+                // AivisSpeech サーバーに送信
+                const aivisspeechResult = await sendToAivisSpeech(word, pronunciation, accentType, wordType);
+                if (aivisspeechResult.ok) {
                     // 辞書に追加
                     const dictionaryData = loadDictionaryFile();
                     if (!dictionaryData[guildId]) dictionaryData[guildId] = {};
@@ -179,9 +284,8 @@ module.exports = {
                 const accentType = interaction.options.getInteger('accent_type') ?? 0;
                 const wordType = interaction.options.getString('word_type') ?? 'COMMON_NOUN';
                 const guildId = interaction.guildId!;
-                // VOICEVOX UUID取得
-                const uuidDict = await (await fetch(`${TTS_BASE_URL}/user_dict`)).json();
-                const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
+                // API から UUID を取得（ローカル辞書の uuid を優先）
+                let uuid: string | undefined = await findUuidForWord(word, pronunciation, accentType, guildId);
                 if (!uuid) {
                     await interaction.editReply({
                         embeds: [addCommonFooter(
@@ -260,9 +364,8 @@ module.exports = {
             try {
                 const word = interaction.options.getString('word', true);
                 const guildId = interaction.guildId!;
-                // VOICEVOX UUID取得
-                const uuidDict = await (await fetch(`${TTS_BASE_URL}/user_dict`)).json();
-                const uuid = Object.keys(uuidDict).find(key => uuidDict[key].surface === word);
+                // API から UUID を取得（ローカル辞書の uuid を優先）
+                let uuid: string | undefined = await findUuidForWord(word, undefined, undefined, guildId);
                 if (!uuid) {
                     await interaction.editReply({
                         embeds: [addCommonFooter(
