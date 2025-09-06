@@ -357,6 +357,8 @@ app.get('/auth/patreon/start', (req, res) => {
     state
   });
   const authUrl = `https://www.patreon.com/oauth2/authorize?${params.toString()}`;
+  // Debug: log the generated Patreon authorization URL so we can verify the redirect_uri being used
+  console.log('[PATREON] authUrl=', authUrl);
   return res.redirect(authUrl);
 });
 
