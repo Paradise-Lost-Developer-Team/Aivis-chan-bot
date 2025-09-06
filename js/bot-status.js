@@ -2,29 +2,44 @@
 
 async function fetchDiscordBotStats(botId) {
     try {
-        // まず Discord ウィジェット経由で簡易ステータスを取得（フロントから直接API叩けないためサーバ経由でプロキシ）
-        const widgetResp = await fetch(`/api/discord-widget/${botId}`);
-        if (widgetResp.ok) {
-            const widget = await widgetResp.json();
-            // widget.presence_count がオンライン推定、widget.members が接続中メンバー一覧
-            return {
-                online: true,
-                serverCount: widget?.presence_count ?? 0,
-                userCount: widget?.members?.length ?? 0,
-                vcCount: widget?.presence_count ?? 0,
-                uptime: null,
-                lastUpdate: new Date().toISOString()
-            };
+        // バックエンドはページを配信している同一オリジンの相対パスで呼び出す（K8s内部DNSはサーバー側で使用）
+        try {
+            const response = await fetch(`/api/bot-stats/${botId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+            if (response.ok) {
+                const statsData = await response.json();
+                return {
+                    online: statsData.online || false,
+                    serverCount: statsData.server_count || 0,
+                    userCount: statsData.user_count || 0,
+                    vcCount: statsData.vc_count || 0,
+                    uptime: statsData.uptime || 0,
+                    lastUpdate: new Date().toISOString()
+                };
+            }
+        } catch (e) {
+            console.warn('backend api fetch failed, falling back to discord widget', e?.message || e);
         }
 
-        // フォールバック: 独自のバックエンド API を使う
-        const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3001'
-            : window.location.protocol + '//' + window.location.hostname;
+        // フォールバック: Discord ウィジェット経由で簡易ステータスを取得
+        try {
+            const widgetResp = await fetch(`/api/discord-widget/${botId}`);
+            if (widgetResp.ok) {
+                const widget = await widgetResp.json();
+                return {
+                    online: true,
+                    serverCount: widget?.presence_count ?? 0,
+                    userCount: widget?.members?.length ?? 0,
+                    vcCount: widget?.presence_count ?? 0,
+                    uptime: null,
+                    lastUpdate: new Date().toISOString()
+                };
+            }
+        } catch (we) {
+            console.warn('discord widget fetch failed', we?.message || we);
+        }
 
-        const response = await fetch(`${apiBaseUrl}/api/bot-stats/${botId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const statsData = await response.json();
+        // 両方失敗した場合は error を投げる
+        throw new Error('both backend and widget fetch failed');
         
         return {
             online: statsData.online || false,

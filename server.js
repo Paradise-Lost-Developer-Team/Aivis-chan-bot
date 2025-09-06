@@ -18,14 +18,24 @@ app.use((req, res, next) => {
 });
 
 // Bot APIから統計データを取得して返すエンドポイント
-// K8sクラスタ内ならService名でアクセス、ローカルならlocalhost等に変更可
+// デフォルトではクラスタ内部DNS（FQDN）を使うようにする。
+// 必要であれば環境変数で個別に上書き可能。
+const BOT_NAMESPACE = process.env.BOT_NAMESPACE || 'default';
+const CLUSTER_DOMAIN = process.env.CLUSTER_DOMAIN || 'svc.cluster.local';
+
+function clusterUrl(svcName, port) {
+  // 例: http://aivis-chan-bot-1st.default.svc.cluster.local:3002/api/stats
+  return `http://${svcName}.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:${port}/api/stats`;
+}
+
+const SERVICE_PORT = parseInt(process.env.BOT_SERVICE_PORT || '3000', 10);
 const BOT_API_URLS = {
-    main: process.env.BOT_API_URL || 'http://aivis-chan-bot-1st:3002/api/stats',
-    second: process.env.BOT_API_URL_2ND || 'http://aivis-chan-bot-2nd:3003/api/stats',
-    third: process.env.BOT_API_URL_3RD || 'http://aivis-chan-bot-3rd:3004/api/stats',
-    fourth: process.env.BOT_API_URL_4TH || 'http://aivis-chan-bot-4th:3005/api/stats',
-    fifth: process.env.BOT_API_URL_5TH || 'http://aivis-chan-bot-5th:3006/api/stats',
-    sixth: process.env.BOT_API_URL_6TH || 'http://aivis-chan-bot-6th:3007/api/stats',
+  main: process.env.BOT_API_URL || clusterUrl('aivis-chan-bot-1st', SERVICE_PORT),
+  second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd', SERVICE_PORT),
+  third: process.env.BOT_API_URL_3RD || clusterUrl('aivis-chan-bot-3rd', SERVICE_PORT),
+  fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th', SERVICE_PORT),
+  fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th', SERVICE_PORT),
+  sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th', SERVICE_PORT),
 };
 
 // Map known bot IDs (used by frontend) to the internal BOT_API_URLS entries
