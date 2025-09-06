@@ -28,7 +28,7 @@ function clusterUrl(svcName, port) {
   return `http://${svcName}.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:${port}/api/stats`;
 }
 
-const SERVICE_PORT = parseInt(process.env.BOT_SERVICE_PORT || '3000', 10);
+const SERVICE_PORT = parseInt('3000', 10);
 const BOT_API_URLS = {
   main: process.env.BOT_API_URL || clusterUrl('aivis-chan-bot-1st', SERVICE_PORT),
   second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd', SERVICE_PORT),
