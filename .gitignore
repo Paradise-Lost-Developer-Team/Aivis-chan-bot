@@ -100,3 +100,4 @@ deployment/cloudflared-credentials-secret.yaml
 
 far-field/
 aerobic-rampart-449222-s6-1272ed72588e.json
+data/patreon_links.json
