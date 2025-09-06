@@ -55,9 +55,18 @@ app.get('/api/bot-stats', async (req, res) => {
 
   const results = await Promise.all(botEntries.map(async ([botId, url]) => {
     try {
-      const r = await axios.get(url, { timeout: axiosTimeout });
-      // ensure returned shape includes bot_id for frontend
-      return Object.assign({ bot_id: botId, success: true }, r.data);
+  const r = await axios.get(url, { timeout: axiosTimeout });
+  // Normalize upstream bot fields (accept camelCase and snake_case)
+  const d = r.data || {};
+  const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
+  const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
+  const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
+  const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
+  const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
+  const online = d.online ?? d.is_online ?? (server_count > 0);
+
+  // ensure returned shape includes bot_id for frontend (use snake_case keys)
+  return Object.assign({ bot_id: botId, success: true }, { server_count, user_count, vc_count, uptime, shard_count, online });
     } catch (err) {
       const status = err?.response?.status;
       const respBody = err?.response?.data;
@@ -84,8 +93,15 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
   const url = BOT_ID_MAP[botId];
   if (!url) return res.status(404).json({ error: 'unknown bot id' });
   try {
-    const r = await axios.get(url, { timeout: 7000 });
-    return res.json(Object.assign({ bot_id: botId, success: true }, r.data));
+  const r = await axios.get(url, { timeout: 7000 });
+  const d = r.data || {};
+  const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
+  const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
+  const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
+  const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
+  const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
+  const online = d.online ?? d.is_online ?? (server_count > 0);
+  return res.json(Object.assign({ bot_id: botId, success: true }, { server_count, user_count, vc_count, uptime, shard_count, online }));
   } catch (err) {
     const status = err?.response?.status;
     const respBody = err?.response?.data;
