@@ -59,8 +59,16 @@ app.get('/api/bot-stats', async (req, res) => {
       // ensure returned shape includes bot_id for frontend
       return Object.assign({ bot_id: botId, success: true }, r.data);
     } catch (err) {
-      console.warn(`Failed to fetch stats for ${botId} from ${url}:`, err.message);
-      return { bot_id: botId, success: false, error: err.message };
+      const status = err?.response?.status;
+      const respBody = err?.response?.data;
+      let briefBody = '';
+      try {
+        briefBody = typeof respBody === 'string' ? respBody.slice(0, 500) : JSON.stringify(respBody).slice(0, 500);
+      } catch (e) {
+        briefBody = String(respBody).slice(0, 500);
+      }
+      console.warn(`Failed to fetch stats for ${botId} from ${url}: ${err.message} status=${status} body=${briefBody}`);
+      return { bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody };
     }
   }));
 
@@ -79,8 +87,16 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
     const r = await axios.get(url, { timeout: 7000 });
     return res.json(Object.assign({ bot_id: botId, success: true }, r.data));
   } catch (err) {
-    console.warn(`Failed to fetch stats for ${botId} from ${url}:`, err.message);
-    return res.status(502).json({ bot_id: botId, success: false, error: err.message });
+    const status = err?.response?.status;
+    const respBody = err?.response?.data;
+    let briefBody = '';
+    try {
+      briefBody = typeof respBody === 'string' ? respBody.slice(0, 1000) : JSON.stringify(respBody).slice(0, 1000);
+    } catch (e) {
+      briefBody = String(respBody).slice(0, 1000);
+    }
+    console.warn(`Failed to fetch stats for ${botId} from ${url}: ${err.message} status=${status} body=${briefBody}`);
+    return res.status(502).json({ bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody });
   }
 });
 
