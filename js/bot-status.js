@@ -2,24 +2,28 @@
 
 async function fetchDiscordBotStats(botId) {
     try {
-        // セキュリティ上の理由で、直接Discord APIにアクセスするのではなく
-        // 独自のバックエンドAPI経由でBot統計を取得
-        // 開発環境とproduction環境でAPIエンドポイントを切り替え
-        const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3001'  // 開発環境
-            : window.location.protocol + '//' + window.location.hostname;  // 本番環境（同じドメイン）
-            
-        const response = await fetch(`${apiBaseUrl}/api/bot-stats/${botId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // まず Discord ウィジェット経由で簡易ステータスを取得（フロントから直接API叩けないためサーバ経由でプロキシ）
+        const widgetResp = await fetch(`/api/discord-widget/${botId}`);
+        if (widgetResp.ok) {
+            const widget = await widgetResp.json();
+            // widget.presence_count がオンライン推定、widget.members が接続中メンバー一覧
+            return {
+                online: true,
+                serverCount: widget?.presence_count ?? 0,
+                userCount: widget?.members?.length ?? 0,
+                vcCount: widget?.presence_count ?? 0,
+                uptime: null,
+                lastUpdate: new Date().toISOString()
+            };
         }
 
+        // フォールバック: 独自のバックエンド API を使う
+        const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3001'
+            : window.location.protocol + '//' + window.location.hostname;
+
+        const response = await fetch(`${apiBaseUrl}/api/bot-stats/${botId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const statsData = await response.json();
         
         return {

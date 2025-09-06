@@ -222,6 +222,19 @@ app.post('/submit-sitemap', async (req, res) => {
   }
 });
 
+// Proxy endpoint to fetch Discord guild widget JSON (avoids CORS / iframe parsing)
+app.get('/api/discord-widget/:guildId', async (req, res) => {
+  const guildId = req.params.guildId;
+  try {
+    const r = await axios.get(`https://discord.com/api/guilds/${guildId}/widget.json`, { timeout: 5000 });
+    return res.json(r.data);
+  } catch (err) {
+    console.error('discord-widget proxy error', err?.response?.data || err.message || err);
+    return res.status(502).json({ error: 'failed to fetch widget', details: err?.response?.data || err.message });
+  }
+});
+
+
 // 任意：定期自動送信（cron式を環境変数で指定）
 if (process.env.SITEMAP_SUBMIT_CRON) {
   const cron = require('node-cron');
@@ -261,5 +274,78 @@ app.post('/api/receive', express.json(), async (req, res) => {
   } catch (err) {
     console.error('Webhook handler error', err);
     return res.status(500).json({ ok: false, error: String(err.message) });
+  }
+});
+
+// --- Patreon OAuth endpoints
+const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
+const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
+const PATREON_REDIRECT_PATH = '/auth/patreon/callback';
+const PATREON_REDIRECT_URI = `${BASE_URL.replace(/\/$/, '')}${PATREON_REDIRECT_PATH}`;
+const PATREON_LINKS_FILE = path.join(__dirname, '..', 'data', 'patreon_links.json');
+
+function ensurePatreonLinksFile() {
+  try {
+    if (!fs.existsSync(PATREON_LINKS_FILE)) {
+      fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify([]));
+    }
+  } catch (e) { console.error('ensurePatreonLinksFile error', e); }
+}
+
+function savePatreonLink(link) {
+  try {
+    ensurePatreonLinksFile();
+    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
+    const arr = JSON.parse(raw || '[]');
+    arr.push(link);
+    fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(arr, null, 2));
+  } catch (e) { console.error('savePatreonLink error', e); }
+}
+
+app.get('/auth/patreon/start', (req, res) => {
+  const discordId = req.query.discordId;
+  if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) return res.status(500).send('Patreon client not configured');
+  if (!discordId) return res.status(400).send('discordId is required as query param');
+  const state = `${discordId}:${Math.random().toString(36).slice(2,10)}`;
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: PATREON_CLIENT_ID,
+    redirect_uri: PATREON_REDIRECT_URI,
+    scope: 'identity',
+    state
+  });
+  const authUrl = `https://www.patreon.com/oauth2/authorize?${params.toString()}`;
+  return res.redirect(authUrl);
+});
+
+app.get(PATREON_REDIRECT_PATH, async (req, res) => {
+  const { code, state } = req.query;
+  if (!code || !state) return res.status(400).send('missing code or state');
+  if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) return res.status(500).send('Patreon client not configured');
+
+  try {
+    // exchange code for token
+    const tokenResp = await axios.post('https://www.patreon.com/api/oauth2/token', new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: String(code),
+      client_id: PATREON_CLIENT_ID,
+      client_secret: PATREON_CLIENT_SECRET,
+      redirect_uri: PATREON_REDIRECT_URI
+    }).toString(), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+
+    const tokenData = tokenResp.data;
+    // get patreon identity
+    const meResp = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', { headers: { Authorization: `Bearer ${tokenData.access_token}` } });
+    const patreonId = meResp.data?.data?.id || null;
+
+    // save link: state contains discordId
+    const discordId = String(state).split(':')[0];
+    savePatreonLink({ discordId, patreonId, tokenData, createdAt: new Date().toISOString() });
+
+    // Optionally notify Discord user via bot API - not implemented here
+    return res.send('Patreon linked successfully. You can close this page.');
+  } catch (e) {
+    console.error('Patreon callback error', e?.response?.data || e.message || e);
+    return res.status(500).send('Failed to exchange token');
   }
 });
