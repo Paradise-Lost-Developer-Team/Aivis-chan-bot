@@ -123,6 +123,7 @@ const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings
 // ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を保存
 export function saveUserVoiceSettings() {
     try {
+        // 親ディレクトリを確実に作成し、テンポラリファイルへ書き込んでから原子的にリネームする
         ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
         const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
         fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
@@ -333,6 +334,7 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
                 await new Promise(resolve => setTimeout(resolve, TTS_RETRY_DELAY));
             }
 
+            // synthesis の場合はストリーミングが長くなり得るためタイムアウトを延長
             const effectiveTimeout = (options as any)?.timeout ?? (url.includes('/synthesis') ? 60000 : TTS_TIMEOUT);
             return await fetchWithTimeout(url, options, effectiveTimeout);
         } catch (error) {
@@ -553,7 +555,7 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
         targetId = String(userId);
     }
 
-    audioQuery["volumeScale"]      = voiceSettings["volume"]?.[targetId]      ?? 0.5;
+    audioQuery["volumeScale"]      = voiceSettings["volume"]?.[targetId]      ?? 1.0;
     audioQuery["pitchScale"]       = voiceSettings["pitch"]?.[targetId]       ?? 0.0;
     audioQuery["speedScale"]       = voiceSettings["speed"]?.[targetId]      ?? voiceSettings["tempo"]?.[targetId] ?? 1.0;
     audioQuery["intonationScale"]  = voiceSettings["intonation"]?.[targetId] ?? 1.0;
@@ -653,20 +655,20 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
             await new Promise<void>((resolve, reject) => {
                 if (!nodeStream) return resolve();
                 nodeStream.on('data', (chunk: Buffer) => {
-                        if (!firstByteRecorded) {
-                            firstByteRecorded = true;
-                            const firstByteTime = Date.now();
-                            console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
-                        }
+                    if (!firstByteRecorded) {
+                        firstByteRecorded = true;
+                        const firstByteTime = Date.now();
+                        console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
+                    }
                     ttsStream.write(chunk);
                 });
                 nodeStream.on('end', () => resolve());
                 nodeStream.on('error', (err: any) => reject(err));
             });
-                chunkIndex++;
         }
-        ended = true;
+    ended = true;
         ttsStream.end();
+    chunkIndex++;
     })();
 
     // 先読みバッファを貯めてから再生開始

@@ -37,17 +37,22 @@ async function sendToAivisSpeech(word: string, pronunciation: string, accentType
         const url = `${TTS_BASE_URL}/user_dict_word?surface=${encodedWord}&pronunciation=${encodedPronunciation}&accent_type=${accentType}&word_type=${encodedWordType}`;
         const response = await fetch(url, { method: 'POST' });
         if (!response.ok) return { ok: false };
+        // レスポンスに UUID を含む可能性があるので解析を試みる
         try {
             const body = await response.json();
             if (body && typeof body === 'object') {
+                // 直接 uuid プロパティがあれば使う
                 if (typeof (body as any).uuid === 'string') return { ok: true, uuid: (body as any).uuid };
+                // またはオブジェクトのキーが UUID の形式で1つだけ含まれている場合はそのキーを UUID とみなす
                 const keys = Object.keys(body);
                 if (keys.length === 1) {
                     const k = keys[0];
                     if (/^[0-9a-fA-F\-]{36}$/.test(k)) return { ok: true, uuid: k };
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            // JSON でなければ無視して成功のみ返す
+        }
         return { ok: true };
     } catch (error) {
         console.error('Error sending to AivisSpeech:', error);
@@ -59,24 +64,28 @@ async function sendToAivisSpeech(word: string, pronunciation: string, accentType
 // 可能なら先にローカル辞書ファイルの uuid を優先して返す（過去に登録した単語の編集/削除をサポートするため）
 async function findUuidForWord(word: string, pronunciation?: string, accentType?: number, guildId?: string) {
     try {
+        // ローカル辞書に uuid が保存されていれば優先して返す
         if (guildId) {
             try {
                 const local = loadDictionaryFile();
                 if (local && local[guildId] && local[guildId][word]) {
                     const entry: any = local[guildId][word];
                     if (entry.uuid) return entry.uuid as string;
+                    // ローカルにエントリはあるが uuid が未保存の場合、API 側の既存エントリと照合して補完を試みる
                     const localPron = entry.pronunciation;
                     const localAccent = typeof entry.accentType !== 'undefined' ? entry.accentType : undefined;
                     try {
                         const res = await fetch(`${TTS_BASE_URL}/user_dict`);
                         if (res.ok) {
                             const uuidDict = await res.json();
+                            // まずは surface + pronunciation + accentType で完全一致
                             for (const [key, apiEntry] of Object.entries(uuidDict as any)) {
                                 try {
                                     const e: any = apiEntry;
                                     if (e.surface === word) {
                                         if (typeof localPron !== 'undefined' && typeof e.pronunciation !== 'undefined') {
                                             if (e.pronunciation === localPron && (typeof localAccent === 'undefined' || e.accent_type === localAccent)) {
+                                                // 見つかった UUID をローカルに保存して返す
                                                 local[guildId][word].uuid = key;
                                                 saveToDictionaryFile(local);
                                                 return key;
@@ -85,6 +94,7 @@ async function findUuidForWord(word: string, pronunciation?: string, accentType?
                                     }
                                 } catch (e) {}
                             }
+                            // 次に surface のみで一致するものを採用
                             for (const [key, apiEntry] of Object.entries(uuidDict as any)) {
                                 try {
                                     const e: any = apiEntry;
@@ -95,6 +105,7 @@ async function findUuidForWord(word: string, pronunciation?: string, accentType?
                                     }
                                 } catch (e) {}
                             }
+                            // 発音のみでマッチする可能性も探す（surface が違うケースの救済）
                             if (typeof localPron !== 'undefined') {
                                 for (const [key, apiEntry] of Object.entries(uuidDict as any)) {
                                     try {
@@ -108,10 +119,15 @@ async function findUuidForWord(word: string, pronunciation?: string, accentType?
                                 }
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        // API 照合に失敗しても後続のリトライ/フェールバックを行う
+                    }
                 }
-            } catch (e) {}
+            } catch (e) {
+                // ローカル参照で問題があっても API フェールバックに移る
+            }
         }
+        // API 側に反映されるまで若干のタイムラグがあることを考慮してリトライ
         const retries = 5;
         const delayMs = 1000;
         const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -119,10 +135,12 @@ async function findUuidForWord(word: string, pronunciation?: string, accentType?
             try {
                 const res = await fetch(`${TTS_BASE_URL}/user_dict`);
                 if (!res.ok) {
+                    // 非200 は一時的な問題の可能性があるのでリトライ
                     if (attempt < retries - 1) await sleep(delayMs);
                     continue;
                 }
                 const uuidDict = await res.json();
+                // まずは surface + pronunciation + accentType の完全一致を探す
                 for (const [key, entry] of Object.entries(uuidDict as any)) {
                     try {
                         const e: any = entry;
@@ -133,15 +151,20 @@ async function findUuidForWord(word: string, pronunciation?: string, accentType?
                                 }
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        // ignore
+                    }
                 }
+                // 次に pronunciation を無視して surface のみで一致する最初のものを返す
                 for (const [key, entry] of Object.entries(uuidDict as any)) {
                     try {
                         const e: any = entry;
                         if (e.surface === word) return key;
                     } catch (e) {}
                 }
-            } catch (e) {}
+            } catch (e) {
+                // フェッチ失敗はリトライ対象
+            }
             if (attempt < retries - 1) await sleep(delayMs);
         }
     } catch (e) {
@@ -228,7 +251,14 @@ module.exports = {
                     // 辞書に追加
                     const dictionaryData = loadDictionaryFile();
                     if (!dictionaryData[guildId]) dictionaryData[guildId] = {};
-                    dictionaryData[guildId][word] = { pronunciation, accentType, wordType };
+                    // AivisSpeech 側で付与された UUID を取得してローカルに保存する（タイミングにより取得できない場合あり）
+                    // まずは POST の戻り値に UUID があれば即座に使う
+                    let uuid: string | undefined = aivisspeechResult.uuid;
+                    // 取得できなければ API をポーリングして取得を試みる
+                    if (!uuid) uuid = await findUuidForWord(word, pronunciation, accentType, guildId);
+                    dictionaryData[guildId][word] = uuid
+                        ? { pronunciation, accentType, wordType, uuid }
+                        : { pronunciation, accentType, wordType };
                     const dictionaryResult = saveToDictionaryFile(dictionaryData);
                     if (dictionaryResult) {
                         await interaction.editReply({
@@ -250,7 +280,7 @@ module.exports = {
                             embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('保存失敗')
-                                    .setDescription('VOICEVOXへの登録は成功しましたが、辞書ファイルへの保存に失敗しました。')
+                                    .setDescription('AivisSpeechへの登録は成功しましたが、辞書ファイルへの保存に失敗しました。')
                                     .setColor(0xffa500)
                             )],
                             components: [getCommonLinksRow()]
@@ -301,7 +331,7 @@ module.exports = {
                     });
                     return;
                 }
-                // VOICEVOXサーバーにPUT
+                // AivisSpeechサーバーにPUT
                 const encodedWord = encodeURIComponent(word);
                 const encodedPronunciation = encodeURIComponent(pronunciation);
                 const encodedWordType = encodeURIComponent(wordType);
@@ -311,7 +341,9 @@ module.exports = {
                     // 辞書ファイルも更新
                     const dictionaryData = loadDictionaryFile();
                     if (!dictionaryData[guildId]) dictionaryData[guildId] = {};
-                    dictionaryData[guildId][word] = { pronunciation, accentType, wordType };
+                    // UUID 情報が無ければ補完
+                    dictionaryData[guildId][word] = dictionaryData[guildId][word] || {} as any;
+                    dictionaryData[guildId][word] = { ...dictionaryData[guildId][word], pronunciation, accentType, wordType, uuid };
                     const dictionaryResult = saveToDictionaryFile(dictionaryData);
                     if (dictionaryResult) {
                         await interaction.editReply({
@@ -333,7 +365,7 @@ module.exports = {
                             embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('保存失敗')
-                                    .setDescription('VOICEVOXへの編集は成功しましたが、辞書ファイルへの保存に失敗しました。')
+                                    .setDescription('AivisSpeechへの編集は成功しましたが、辞書ファイルへの保存に失敗しました。')
                                     .setColor(0xffa500)
                             )],
                             components: [getCommonLinksRow()]
@@ -381,7 +413,7 @@ module.exports = {
                     });
                     return;
                 }
-                // VOICEVOXサーバーにDELETE
+                // AivisSpeechサーバーにDELETE
                 const url = `${TTS_BASE_URL}/user_dict_word/${uuid}`;
                 const response = await fetch(url, { method: 'DELETE' });
                 if (response.status === 204) {
