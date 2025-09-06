@@ -19,6 +19,54 @@ const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
 const TTS_MAX_RETRIES = config.TTS_MAX_RETRIES || 3;
 const TTS_RETRY_DELAY = config.TTS_RETRY_DELAY || 1000;
 
+// TTS自動復旧用フラグと設定
+export let ttsAvailable = true; // true = 利用可能、false = 利用不可（検知済み）
+let _ttsHealthProbeTimer: NodeJS.Timeout | null = null;
+const TTS_HEALTH_CHECK_INTERVAL = (config.TTS_HEALTH_CHECK_INTERVAL_MS as number) || 5000; // ms
+
+function startTTSHealthProbe() {
+    if (_ttsHealthProbeTimer) return; // 既に実行中
+    console.warn('TTSヘルスプローブを開始します。');
+    _ttsHealthProbeTimer = setInterval(async () => {
+        try {
+            // 簡易ヘルスチェックは /speakers を叩く
+            const res = await fetchWithTimeout(`${TTS_BASE_URL}/speakers`, { method: 'GET' }, 3000);
+            if (res && res.ok) {
+                console.log('TTSサービスが復旧しました。プローブを停止し再初期化を行います。');
+                stopTTSHealthProbe();
+                ttsAvailable = true;
+                try {
+                    // 再取得と内部リセット
+                    await fetchAndSaveSpeakers();
+                } catch (e) {
+                    console.warn('復旧時の fetchAndSaveSpeakers に失敗しました:', e);
+                }
+                try {
+                    resetTTSEngine();
+                } catch (e) {
+                    console.warn('復旧時の resetTTSEngine に失敗しました:', e);
+                }
+            }
+        } catch (e) {
+            // まだ復旧していない
+        }
+    }, TTS_HEALTH_CHECK_INTERVAL);
+}
+
+function stopTTSHealthProbe() {
+    if (_ttsHealthProbeTimer) {
+        clearInterval(_ttsHealthProbeTimer);
+        _ttsHealthProbeTimer = null;
+    }
+}
+
+function markTTSDown() {
+    if (!ttsAvailable) return;
+    ttsAvailable = false;
+    console.error('TTSサービスが利用不可と判断されました。ヘルスプローブを開始します。');
+    startTTSHealthProbe();
+}
+
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
@@ -327,6 +375,10 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout:
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries: number = TTS_MAX_RETRIES): Promise<Response> {
     let lastError: Error | null = null;
 
+    if (!ttsAvailable) {
+        throw new Error('TTSサービスは現在利用不可です（ヘルスプローブ実行中）');
+    }
+
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             if (attempt > 0) {
@@ -342,7 +394,8 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
             console.error(`TTSリクエスト失敗 (${attempt}/${retries}): ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-
+    // 最後に失敗した場合は TTS が落ちている可能性が高いのでフラグを立ててヘルスプローブを開始
+    markTTSDown();
     throw lastError || new Error('リトライ回数を超過しました');
 }
 
