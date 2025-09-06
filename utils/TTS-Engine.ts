@@ -123,6 +123,7 @@ const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings
 // ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を保存
 export function saveUserVoiceSettings() {
     try {
+        // 親ディレクトリを確実に作成し、テンポラリファイルへ書き込んでから原子的にリネームする
         ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
         const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
         fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
@@ -333,6 +334,7 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
                 await new Promise(resolve => setTimeout(resolve, TTS_RETRY_DELAY));
             }
 
+            // synthesis の場合はストリーミングが長くなり得るためタイムアウトを延長
             const effectiveTimeout = (options as any)?.timeout ?? (url.includes('/synthesis') ? 60000 : TTS_TIMEOUT);
             return await fetchWithTimeout(url, options, effectiveTimeout);
         } catch (error) {
@@ -653,20 +655,20 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
             await new Promise<void>((resolve, reject) => {
                 if (!nodeStream) return resolve();
                 nodeStream.on('data', (chunk: Buffer) => {
-                        if (!firstByteRecorded) {
-                            firstByteRecorded = true;
-                            const firstByteTime = Date.now();
-                            console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
-                        }
+                    if (!firstByteRecorded) {
+                        firstByteRecorded = true;
+                        const firstByteTime = Date.now();
+                        console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
+                    }
                     ttsStream.write(chunk);
                 });
                 nodeStream.on('end', () => resolve());
                 nodeStream.on('error', (err: any) => reject(err));
             });
-                chunkIndex++;
         }
-        ended = true;
+    ended = true;
         ttsStream.end();
+    chunkIndex++;
     })();
 
     // 先読みバッファを貯めてから再生開始
@@ -704,21 +706,15 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     });
     resource.volume?.setVolume(1.0);
 
-    // 再生時のタイムアウトを緩和し、エラーハンドリングを強化
-    const PLAYING_TIMEOUT = 15000; // 再生開始待ちタイムアウトを15秒に
-    const IDLE_TIMEOUT = 120000;   // 完了待ちタイムアウトを120秒に
-
-    // プレイヤー単位の一時エラーハンドラを設置
+    const PLAYING_TIMEOUT = 15000;
+    const IDLE_TIMEOUT = 120000;
     const onPlayerError = (error: Error) => {
         console.error(`[player error] guild=${guildId}`, error);
     };
     player.once('error', onPlayerError);
-
-    // ストリームクローズもログ出力
     resource.playStream.on('close', () => {
         console.debug(`[resource closed] guild=${guildId}`);
     });
-
     let playedOnce = false;
     try {
         player.play(resource);
@@ -727,13 +723,10 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
             playedOnce = true;
             await entersState(player, AudioPlayerStatus.Idle, IDLE_TIMEOUT);
         } catch (err) {
-            // entersState のタイムアウトや AbortError を受けた場合は詳細ログを残す
             console.error("再生監視でエラー:", err);
-
-            // 再生開始できていない場合のみ一度だけ再試行を行う（ネットワークや ffmpeg の瞬断向け）
             if (!playedOnce) {
                 console.log(`再試行: guild=${guildId} - player.play を再実行します`);
-                try { player.stop(true); } catch (e) { /* ignore */ }
+                try { player.stop(true); } catch (e) { }
                 await new Promise(r => setTimeout(r, 200));
                 try {
                     player.play(resource);

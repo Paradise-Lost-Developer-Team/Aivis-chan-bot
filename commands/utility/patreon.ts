@@ -40,8 +40,7 @@ export async function execute(interaction: CommandInteraction) {
   try {
     // コマンド実行前にデータディレクトリ存在確認
     ensureDataDirectoryExists();
-  const opts = (interaction as any).options as any;
-  const subcommand = opts.getSubcommand ? opts.getSubcommand() : (opts.getSubcommand?.() ?? undefined);
+  const subcommand = (interaction as any).options.getSubcommand();
     switch (subcommand) {
       case 'info':
         await handleInfoSubcommand(interaction);

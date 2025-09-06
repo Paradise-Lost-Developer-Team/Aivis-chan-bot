@@ -7,28 +7,32 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('autojoin')
         .setDescription('TTSエンジンの自動参加チャンネル管理')
-        .addSubcommand(sub =>
+    .addSubcommand((sub: any) =>
             sub.setName('add')
                 .setDescription('自動参加チャンネルを追加')
-                .addChannelOption(option =>
+                .addChannelOption((option: any) =>
                     option.setName('voice_channel')
                         .setDescription('自動参加するチャンネル')
                         .setRequired(true)
                         .addChannelTypes(ChannelType.GuildVoice))
-                .addChannelOption(option =>
+                .addChannelOption((option: any) =>
                     option.setName('text_channel')
                         .setDescription('自動参加するテキストチャンネル')
                         .setRequired(false)
                         .addChannelTypes(ChannelType.GuildText))
-                .addBooleanOption(option =>
+                .addBooleanOption((option: any) =>
                     option.setName('temp_voice')
                         .setDescription('TempVoice等の一時VCに追従する場合はTrue')
                         .setRequired(false))
         )
-        .addSubcommand(sub =>
+        .addSubcommand((sub: any) =>
             sub.setName('remove')
                 .setDescription('自動参加チャンネル設定を解除')
-        ),
+        )
+        .addSubcommand((sub: any) =>
+            sub.setName('list')
+                .setDescription('現在の自動参加設定を表示')
+        ) ,
     async execute(interaction: CommandInteraction) {
         if (!interaction.guildId) {
             await interaction.reply({
@@ -47,12 +51,11 @@ module.exports = {
     // ChatInputCommandInteraction型にキャストしてgetSubcommand()を利用
     const chatInput = interaction as ChatInputCommandInteraction;
     const sub = chatInput.options.getSubcommand();
-        if (sub === 'add') {
+    if (sub === 'add') {
             // register_auto_join.tsと同じ処理
-            const opts = (interaction as any).options as any;
-            const voiceChannel = opts.get("voice_channel")?.channel as VoiceChannel;
-            const textChannel = opts.get("text_channel")?.channel as TextChannel;
-            const tempVoice = opts.get("temp_voice")?.value as boolean | undefined;
+            const voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
+            const textChannel = (interaction as any).options.get("text_channel")?.channel as TextChannel;
+            const tempVoice = (interaction as any).options.get("temp_voice")?.value as boolean | undefined;
 
             if (!voiceChannel) {
                 await interaction.reply({
@@ -91,7 +94,7 @@ module.exports = {
                 )],
                 components: [getCommonLinksRow()]
             });
-        } else if (sub === 'remove') {
+    } else if (sub === 'remove') {
             // unregister_auto_join.tsと同じ処理
             loadAutoJoinChannels();
             if (autoJoinChannels[guildId]) {
@@ -119,6 +122,40 @@ module.exports = {
                     components: [getCommonLinksRow()]
                 });
             }
+        } else if (sub === 'list') {
+            // 現在のサーバーの自動入室設定を表示
+            loadAutoJoinChannels();
+            const cfg = autoJoinChannels[guildId];
+            if (!cfg) {
+                await interaction.reply({
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('自動接続設定なし')
+                            .setDescription('このサーバーには登録された自動接続設定がありません。')
+                            .setColor(0xffa500)
+                    )],
+                    flags: MessageFlags.Ephemeral,
+                    components: [getCommonLinksRow()]
+                });
+                return;
+            }
+
+            await interaction.reply({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('自動入室設定')
+                        .setDescription(`サーバー **${interaction.guild!.name}** の自動入室設定を表示します。`)
+                        .setColor(0x00bfff)
+                        .addFields(
+                            { name: 'ボイスチャンネル', value: `<#${cfg.voiceChannelId}>`, inline: true },
+                            { name: 'テキストチャンネル', value: cfg.textChannelId ? `<#${cfg.textChannelId}>` : '自動判定', inline: true },
+                            { name: '一時VC追従', value: cfg.tempVoice ? '有効' : '無効', inline: true },
+                            { name: 'テキストチャンネル指定', value: cfg.isManualTextChannelId ? '手動指定' : '自動', inline: true }
+                        )
+                )],
+                components: [getCommonLinksRow()]
+            });
+            return;
         }
     }
 };

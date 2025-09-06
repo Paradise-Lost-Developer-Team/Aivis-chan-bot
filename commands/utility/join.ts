@@ -21,9 +21,8 @@ module.exports = {
                 .setRequired(false)
                 .addChannelTypes(ChannelType.GuildText)),
     async execute(interaction: CommandInteraction) {
-    const opts = (interaction as any).options as any;
-    let voiceChannel = opts.get("voice_channel")?.channel as VoiceChannel;
-    let textChannel = opts.get("text_channel")?.channel as TextChannel;
+    let voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
+    let textChannel = (interaction as any).options.get("text_channel")?.channel as TextChannel;
 
         if (!voiceChannel) {
             // コマンド実行者が接続しているボイスチャンネルを取得

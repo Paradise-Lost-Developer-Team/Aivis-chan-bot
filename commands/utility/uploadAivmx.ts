@@ -40,7 +40,7 @@ export async function execute(interaction: CommandInteraction): Promise<void> {
 		return;
 	}
 
-	const fileOption = ((interaction as any).options as any).get("file", true);
+	const fileOption = (interaction as any).options.get("file", true);
 	const attachment = fileOption.attachment;
 	if (!attachment) {
 		await interaction.reply({
