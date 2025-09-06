@@ -375,13 +375,12 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout:
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries: number = TTS_MAX_RETRIES): Promise<Response> {
     let lastError: Error | null = null;
 
+    if (!ttsAvailable) {
+        throw new Error('TTSサービスは現在利用不可です（ヘルスプローブ実行中）');
+    }
+
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
-            // TTS が既にダウンしている場合は即時エラーにする
-            if (!ttsAvailable) {
-                throw new Error('TTSサービスは現在利用不可です（ヘルスプローブ実行中）');
-            }
-
             if (attempt > 0) {
                 console.log(`TTSリクエストリトライ (${attempt}/${retries}): ${url}`);
                 await new Promise(resolve => setTimeout(resolve, TTS_RETRY_DELAY));
@@ -395,9 +394,8 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries: n
             console.error(`TTSリクエスト失敗 (${attempt}/${retries}): ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-
-    // 永続的な失敗は TTS ダウンと見なしてヘルスプローブを開始する
-    try { markTTSDown(); } catch (e) { /* ignore */ }
+    // 最後に失敗した場合は TTS が落ちている可能性が高いのでフラグを立ててヘルスプローブを開始
+    markTTSDown();
     throw lastError || new Error('リトライ回数を超過しました');
 }
 
