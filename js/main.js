@@ -77,8 +77,8 @@ class AivisWebsite {
 
     // カウンターアニメーション
     setupCounters() {
-        // ヒーロー統計IDは除外
-        const heroStatIds = ['total-servers', 'total-users', 'total-uptime', 'total-vc-users'];
+    // ヒーロー統計IDは除外（total-uptime を total-shard に置換）
+    const heroStatIds = ['total-servers', 'total-users', 'total-shard', 'total-vc-users'];
         const counters = Array.from(document.querySelectorAll('.stat-number')).filter(counter => !heroStatIds.includes(counter.id));
 
         const animateCounter = (counter) => {
@@ -703,10 +703,10 @@ class AivisWebsite {
         });
 
         // さらにanimateHeroStatで0をセット
-        this.animateHeroStat('total-servers', 0);
-        this.animateHeroStat('total-users', 0);
-        this.animateHeroStat('total-vc-users', 0);
-        this.animateHeroStat('total-uptime', 0);
+    this.animateHeroStat('total-servers', 0);
+    this.animateHeroStat('total-users', 0);
+    this.animateHeroStat('total-shard', 0);
+    this.animateHeroStat('total-vc-users', 0);
 
         // APIから実際のデータを取得（初期化時は1秒遅延）
         setTimeout(() => {
@@ -730,20 +730,22 @@ class AivisWebsite {
                 console.warn("⚠️ botStatuses cache is empty, setting hero stats to 0");
                 this.animateHeroStat('total-servers', 0);
                 this.animateHeroStat('total-users', 0);
+                this.animateHeroStat('total-shard', 0);
                 this.animateHeroStat('total-vc-users', 0);
-                this.animateHeroStat('total-uptime', 0);
                 return;
             }
 
-            let servers = 0, users = 0, vcUsers = 0, uptimeSum = 0;
+            let servers = 0, users = 0, vcUsers = 0, shardSum = 0, uptimeSum = 0;
             botStatuses.forEach(bot => {
                 let s = Number.isFinite(Number(bot.serverCount)) ? Number(bot.serverCount) : 0;
                 let u = Number.isFinite(Number(bot.userCount)) ? Number(bot.userCount) : 0;
                 let v = Number.isFinite(Number(bot.vcCount)) ? Number(bot.vcCount) : 0;
+                let sh = Number.isFinite(Number(bot.shardCount)) ? Number(bot.shardCount) : 0;
                 let up = Number.isFinite(Number(bot.uptime)) ? Number(bot.uptime) : 0;
                 servers += s;
                 users += u;
                 vcUsers += v;
+                shardSum += sh;
                 uptimeSum += up;
             });
 
@@ -751,22 +753,25 @@ class AivisWebsite {
             const avgServers = count > 0 ? servers / count : 0;
             const avgUsers = count > 0 ? users / count : 0;
             const avgVcUsers = count > 0 ? vcUsers / count : 0;
+            const avgShards = count > 0 ? shardSum / count : 0;
             const avgUptime = count > 0 ? uptimeSum / count : 0;
 
             let dispServers = Number.isFinite(avgServers) ? Math.round(avgServers) : 0;
             let dispUsers = Number.isFinite(avgUsers) ? Math.round(avgUsers) : 0;
             let dispVcUsers = Number.isFinite(avgVcUsers) ? Math.round(avgVcUsers) : 0;
+            let dispShards = Number.isFinite(avgShards) ? Math.round(avgShards) : 0;
             let dispUptime = Number.isFinite(avgUptime) ? avgUptime.toFixed(1) : '0.0';
 
             // NaN補正
             dispServers = isNaN(dispServers) ? 0 : dispServers;
             dispUsers = isNaN(dispUsers) ? 0 : dispUsers;
             dispVcUsers = isNaN(dispVcUsers) ? 0 : dispVcUsers;
+            dispShards = isNaN(dispShards) ? 0 : dispShards;
             dispUptime = isNaN(Number(dispUptime)) ? 0 : Number(dispUptime);
 
             this.animateHeroStat('total-servers', dispServers);
             this.animateHeroStat('total-users', dispUsers);
-            this.animateHeroStat('total-uptime', dispUptime);
+            this.animateHeroStat('total-shard', dispShards);
             this.animateHeroStat('total-vc-users', dispVcUsers);
 
             console.log('📈 Hero stats updated (average, formatted):', {
