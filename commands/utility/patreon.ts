@@ -101,6 +101,7 @@ async function handleInfoSubcommand(interaction: CommandInteraction) {
 async function handleLinkSubcommand(interaction: CommandInteraction) {
   const { getPatreonAuthUrl } = await import('../../utils/patreonIntegration');
   const authUrl = getPatreonAuthUrl(interaction.user.id);
+  console.log('[patreon] authUrl=', authUrl);
   await interaction.reply({
     embeds: [addCommonFooter(
       new EmbedBuilder()
