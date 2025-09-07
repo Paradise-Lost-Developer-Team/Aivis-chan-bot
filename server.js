@@ -350,7 +350,34 @@ function savePatreonLink(link) {
     ensurePatreonLinksFile();
     const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
     const arr = JSON.parse(raw || '[]');
-    arr.push(link);
+    // Normalize incoming discordId: if the incoming value is a base64-encoded JSON
+    // like {"discordId":"12345"} decode it and store the plain id. Also
+    // ensure createdAt is set to server time to avoid trusting client timestamps.
+    const incoming = Object.assign({}, link);
+    const storedVal = String(incoming.discordId || '');
+    const decoded = tryDecodeBase64Json(storedVal);
+    if (decoded) {
+      // keep original encoded value for audit
+      incoming.originalState = incoming.originalState || storedVal;
+      incoming.discordId = decoded;
+    }
+
+    // Use server time for createdAt to avoid stale client timestamps
+    incoming.createdAt = new Date().toISOString();
+
+    // If an entry for this discordId already exists, update it instead of
+    // appending a duplicate. Preserve other fields where appropriate.
+    const idx = arr.findIndex(x => String(x.discordId) === String(incoming.discordId));
+    if (idx !== -1) {
+      // Merge: overwrite tokenData and patreonId, but preserve older originalState
+      const existing = arr[idx] || {};
+      const merged = Object.assign({}, existing, incoming);
+      if (!merged.originalState && existing.originalState) merged.originalState = existing.originalState;
+      arr[idx] = merged;
+    } else {
+      arr.push(incoming);
+    }
+
     fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(arr, null, 2));
   } catch (e) { console.error('savePatreonLink error', e); }
 }
