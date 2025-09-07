@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>連携完了 — Aivis Chan Bot</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="patreon-success">
+  <div class="container" role="main" aria-labelledby="title">
+    <h1 id="title">連携が完了しました</h1>
+    <p class="lead">Patreon アカウントとの連携が正常に完了しました。以下の情報は確認用です。</p>
+
+    <div class="meta" aria-live="polite">
+      <div class="meta-row"><div class="meta-key">Discord ID</div><div class="meta-val" id="discordId">—</div></div>
+      <div class="meta-row"><div class="meta-key">Patreon ID</div><div class="meta-val" id="patreonId">—</div></div>
+      <div class="meta-row"><div class="meta-key">日時</div><div class="meta-val" id="ts">—</div></div>
+    </div>
+
+    <div class="actions">
+      <a id="returnSite" class="link primary" href="#">サイトに戻る</a>
+      <button class="link" onclick="window.close();">ウィンドウを閉じる</button>
+    </div>
+
+    <div class="note">問題が続く場合は Discord 上で Bot に問い合わせてください。</div>
+  </div>
+
+  <script>
+    (function(){
+      const params = new URLSearchParams(location.search);
+      const discordId = params.get('discordId') || '-';
+      const patreonId = params.get('patreonId') || '-';
+      const ts = params.get('ts') ? new Date(Number(params.get('ts'))).toLocaleString() : new Date().toLocaleString();
+      document.getElementById('discordId').textContent = discordId;
+      document.getElementById('patreonId').textContent = patreonId || '-';
+      document.getElementById('ts').textContent = ts;
+      const base = (new URL('/', location.origin)).toString().replace(/\/$/, '');
+      document.getElementById('returnSite').href = base;
+    })();
+  </script>
+</body>
+</html>

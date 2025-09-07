@@ -386,8 +386,10 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
     const discordId = String(state).split(':')[0];
     savePatreonLink({ discordId, patreonId, tokenData, createdAt: new Date().toISOString() });
 
-    // Optionally notify Discord user via bot API - not implemented here
-    return res.send('Patreon linked successfully. You can close this page.');
+  // Optionally notify Discord user via bot API - not implemented here
+  // Redirect to a static success page (auth/patreon/success.html) and pass dynamic parts via query params
+  const successPath = `/auth/patreon/success.html?discordId=${encodeURIComponent(discordId)}&patreonId=${encodeURIComponent(patreonId || '')}&ts=${Date.now()}`;
+  return res.redirect(successPath);
   } catch (e) {
     console.error('Patreon callback error', e?.response?.data || e.message || e);
     return res.status(500).send('Failed to exchange token');

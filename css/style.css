@@ -1619,3 +1619,38 @@ section {
             position: static;
         }
     }
+
+/* === Patreon success page styles (scoped) === */
+/* Fully scoped to body.patreon-success to avoid affecting other pages */
+body.patreon-success{
+    min-height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+body.patreon-success .container{
+    width:min(760px,94%);
+    padding:28px;
+    border:1px solid #e6e9ee;
+    border-radius:8px;
+    background:var(--background-primary, #fff);
+}
+body.patreon-success h1{font-size:18px;margin:0 0 8px;color:#111827}
+body.patreon-success p.lead{margin:0 0 14px;color:#374151}
+body.patreon-success .meta{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+body.patreon-success .meta-row{display:flex;gap:12px}
+body.patreon-success .meta-key{width:120px;color:#6b7280;font-size:13px}
+body.patreon-success .meta-val{color:#111827;font-weight:600}
+body.patreon-success .actions{margin-top:18px;display:flex;gap:8px}
+body.patreon-success .link{display:inline-block;padding:8px 12px;border-radius:6px;text-decoration:none;color:#0f172a;background:#eef2ff;border:1px solid #e0e7ff}
+body.patreon-success .link.primary{background:#111827;color:#fff;border:none}
+body.patreon-success .note{margin-top:12px;color:#6b7280;font-size:13px}
+@media (prefers-color-scheme: dark){
+    body.patreon-success{background:#0b1220;color:#e6eef8}
+    body.patreon-success .container{border-color:#12202b}
+    body.patreon-success .meta-key{color:#9aa7b9}
+    body.patreon-success .meta-val{color:#e6eef8}
+    body.patreon-success .link{background:#0f172a;color:#e6eef8;border-color:#12202b}
+    body.patreon-success .link.primary{background:#0ea5a4}
+    body.patreon-success .note{color:#9aa7b9}
+}
