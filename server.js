@@ -324,14 +324,16 @@ const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
 const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
 const PATREON_REDIRECT_PATH = '/auth/patreon/callback';
 const PATREON_REDIRECT_URI = `${BASE_URL.replace(/\/$/, '')}${PATREON_REDIRECT_PATH}`;
-const PATREON_LINKS_FILE = path.join(__dirname, '..', 'data', 'patreon_links.json');
+const os = require('os');
+// store patreon links in a writable folder. Prefer explicit DATA_DIR env, otherwise use system tmpdir.
+const DATA_DIR = process.env.DATA_DIR || path.join(os.tmpdir(), 'aivis-data');
+const PATREON_LINKS_FILE = path.join(DATA_DIR, 'patreon_links.json');
 
 function ensurePatreonLinksFile() {
   try {
+    const dir = path.dirname(PATREON_LINKS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     if (!fs.existsSync(PATREON_LINKS_FILE)) {
-      // ensure parent directory exists (container may mount different workdir)
-      const dir = path.dirname(PATREON_LINKS_FILE);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify([]));
     }
   } catch (e) { console.error('ensurePatreonLinksFile error', e); }
@@ -354,7 +356,51 @@ app.get('/api/patreon/link/:discordId', (req, res) => {
     if (!fs.existsSync(PATREON_LINKS_FILE)) return res.status(404).json({ linked: false });
     const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
     const arr = JSON.parse(raw);
-    const found = arr.find(x => String(x.discordId) === String(discordId));
+    // direct match
+    let found = arr.find(x => String(x.discordId) === String(discordId));
+    // helper: try to decode base64-encoded JSON like {"discordId":"12345"}
+    const tryDecodeBase64Json = (s) => {
+      try {
+        const buf = Buffer.from(String(s), 'base64');
+        const txt = buf.toString('utf8');
+        if (!txt) return null;
+        const obj = JSON.parse(txt);
+        return obj && obj.discordId ? String(obj.discordId) : null;
+      } catch (e) {
+        return null;
+      }
+    };
+
+    if (!found) {
+      // if stored entries contain base64-encoded states, decode them and compare
+      for (const entry of arr) {
+        const stored = String(entry.discordId || '');
+        const decoded = tryDecodeBase64Json(stored);
+        if (decoded && decoded === String(discordId)) {
+          found = entry;
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      // also try if the requested discordId is itself base64-encoded JSON that refers to a numeric id
+      const reqDecoded = tryDecodeBase64Json(discordId);
+      if (reqDecoded) {
+        found = arr.find(x => String(x.discordId) === String(reqDecoded));
+        if (!found) {
+          for (const entry of arr) {
+            const stored = String(entry.discordId || '');
+            const decoded = tryDecodeBase64Json(stored);
+            if (decoded && decoded === reqDecoded) {
+              found = entry;
+              break;
+            }
+          }
+        }
+      }
+    }
+
     if (!found) return res.status(404).json({ linked: false });
     return res.json(Object.assign({ linked: true }, found));
   } catch (e) {
