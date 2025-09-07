@@ -1637,8 +1637,17 @@ body.patreon-success .container{
     border-radius:8px;
     background:var(--background-primary, #fff);
 }
-body.patreon-success h1{font-size:18px;margin:0 0 8px;color:#111827}
-body.patreon-success p.lead{margin:0 0 14px;color:#374151}
+/* Heading and lead copy: ensure high contrast in both light and dark modes */
+body.patreon-success h1{
+    font-size:18px;
+    margin:0 0 8px;
+    color: var(--text-primary, #111827) !important;
+    font-weight: 700;
+}
+body.patreon-success p.lead{
+    margin:0 0 14px;
+    color: var(--text-secondary, #374151) !important;
+}
 body.patreon-success .meta{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 body.patreon-success .meta-row{display:flex;gap:12px}
 body.patreon-success .meta-key{width:120px;color:#374151;font-size:13px}
@@ -1657,6 +1666,9 @@ body.patreon-success .note{margin-top:12px;color:#6b7280;font-size:13px}
     body.patreon-success .meta-key{color:#9aa7b9}
     /* ensure values remain bright enough */
     body.patreon-success .meta-val{color:inherit !important}
+    /* Dark-mode overrides for heading and lead to ensure readability */
+    body.patreon-success h1{color:#e6eef8 !important}
+    body.patreon-success p.lead{color:#cbd5e1 !important}
     /* links: dark background with readable text */
     body.patreon-success .link{background:#0f1720;color:#e6eef8;border-color:#111827 !important}
     body.patreon-success .link.primary{background:#0ea5a4}
