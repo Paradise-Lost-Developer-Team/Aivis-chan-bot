@@ -344,6 +344,22 @@ function savePatreonLink(link) {
   } catch (e) { console.error('savePatreonLink error', e); }
 }
 
+// API: return saved patreon link for a given discordId (used by bots to synchronize)
+app.get('/api/patreon/link/:discordId', (req, res) => {
+  try {
+    const discordId = req.params.discordId;
+    if (!fs.existsSync(PATREON_LINKS_FILE)) return res.status(404).json({ linked: false });
+    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
+    const arr = JSON.parse(raw);
+    const found = arr.find(x => String(x.discordId) === String(discordId));
+    if (!found) return res.status(404).json({ linked: false });
+    return res.json(Object.assign({ linked: true }, found));
+  } catch (e) {
+    console.error('get patreon link error', e);
+    return res.status(500).json({ linked: false, error: String(e?.message || e) });
+  }
+});
+
 app.get('/auth/patreon/start', (req, res) => {
   const discordId = req.query.discordId;
   if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) return res.status(500).send('Patreon client not configured');
