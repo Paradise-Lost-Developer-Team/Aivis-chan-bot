@@ -243,8 +243,8 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
   if (!accessToken) return null;
   try {
     console.log(`${LOG_PREFIX} fetching Patreon memberships (masked token present=${!!accessToken})`);
-    // Request membership-related fields explicitly. Use fields[member] which matches the membership object type.
-    const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start';
+  // Request membership-related fields explicitly and include currently_entitled_tiers so we can inspect tier objects.
+  const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,memberships.currently_entitled_tiers&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start&fields[tier]=amount_cents,title';
     const me = await axios.get(url, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
     console.log(`${LOG_PREFIX} Patreon memberships response status=${me.status}`);
     const included = (me.data && (me.data as any).included) || [];
@@ -264,12 +264,44 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
         }
       }
     }
+  // Defaults: Pro = $5 (500 cents), Premium = $10 (1000 cents). These can be overridden via env vars.
+  const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10); // default 1000 cents ($10)
+  const PRO_THRESHOLD = parseInt(process.env.PATREON_PRO_CENTS || '500', 10); // default 500 cents ($5)
+  const GIFT_DEFAULT = (process.env.PATREON_GIFT_DEFAULT || 'pro').toLowerCase(); // 'pro' or 'premium' fallback for gifts without amount
 
-    // Determine tier using thresholds.
-    // Defaults: Pro = $5 (500 cents), Premium = $10 (1000 cents). These can be overridden via env vars.
-    const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10); // default 1000 cents ($10)
-    const PRO_THRESHOLD = parseInt(process.env.PATREON_PRO_CENTS || '500', 10); // default 500 cents ($5)
-    const GIFT_DEFAULT = (process.env.PATREON_GIFT_DEFAULT || 'pro').toLowerCase(); // 'pro' or 'premium' fallback for gifts without amount
+  // Try to extract tier objects from included (currently_entitled_tiers). If present, use the highest amount_cents tier
+    const tiers: Array<{ id: string; amount: number; title?: string; type?: string }> = [];
+    for (const inc of included) {
+      try {
+        const ttype = (inc && (inc as any).type) || '';
+        const tattrs = (inc && (inc as any).attributes) || {};
+        // Patreon may call tier resources 'tier' or similar; look for amount fields
+        const amount = typeof tattrs.amount_cents === 'number' ? tattrs.amount_cents : (typeof tattrs.amount === 'number' ? tattrs.amount : 0);
+        if (amount > 0) {
+          tiers.push({ id: (inc as any).id, amount, title: tattrs.title, type: ttype });
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (tiers.length > 0) {
+      tiers.sort((a, b) => b.amount - a.amount);
+      const top = tiers[0];
+      console.log(`${LOG_PREFIX} found currently_entitled_tiers, top tier id=${top.id} title=${top.title || ''} amount=${top.amount}`);
+      if (top.amount >= PREMIUM_THRESHOLD) {
+        console.log(`${LOG_PREFIX} top tier amount ${top.amount} >= ${PREMIUM_THRESHOLD} -> premium`);
+        return 'premium';
+      }
+      if (top.amount >= PRO_THRESHOLD) {
+        console.log(`${LOG_PREFIX} top tier amount ${top.amount} >= ${PRO_THRESHOLD} -> pro`);
+        return 'pro';
+      }
+      console.log(`${LOG_PREFIX} top tier amount ${top.amount} < ${PRO_THRESHOLD} -> free`);
+      return 'free';
+    }
+
+  // Determine tier using thresholds (if no tiers found above).
 
     for (const item of included) {
       const attrs = (item && (item as any).attributes) || {};
