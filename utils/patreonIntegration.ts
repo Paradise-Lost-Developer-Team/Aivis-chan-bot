@@ -14,6 +14,9 @@ const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
 // 中央サーバ（web）のURL（フォールバック。デプロイ時は BASE_URL を設定してください）
 const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://localhost:3001';
 
+// ログプレフィックス
+const LOG_PREFIX = '[patreon]';
+
 // データディレクトリとユーザーデータファイルのパスを設定
 const DATA_DIR = path.join(__dirname, '../data');
 const PATREON_USERS_PATH = path.join(DATA_DIR, 'patreon-users.json');
@@ -116,13 +119,16 @@ export function storePatreonUser(discordId: string, patreonData: any): void {
 
 // ユーザーのティア情報を取得
 export async function getUserTier(discordId: string): Promise<string> {
+  console.log(`${LOG_PREFIX} getUserTier start for ${discordId}`);
   let user = patreonUsers[discordId];
 
   // ローカルに情報がなければ中央サーバを問い合わせて同期を試みる
   if (!user) {
+    console.log(`${LOG_PREFIX} no local user for ${discordId}, attempting remote fetch from ${FALLBACK_SERVER}`);
     try {
       const remote = await fetchRemoteLink(discordId);
       if (remote) {
+        console.log(`${LOG_PREFIX} remote link found for ${discordId}`);
         // remote contains { discordId, patreonId, tokenData }
         const tokenData = remote.tokenData || {};
         user = {
@@ -135,11 +141,13 @@ export async function getUserTier(discordId: string): Promise<string> {
         } as PatreonUser;
         patreonUsers[discordId] = user;
         savePatreonUsers();
+      } else {
+        console.log(`${LOG_PREFIX} no remote link for ${discordId}`);
       }
     } catch (err) {
-        const e: any = err;
-        console.warn('Failed to fetch remote patreon link', e?.message || e);
-      }
+      const e: any = err;
+      console.warn(`${LOG_PREFIX} Failed to fetch remote patreon link:`, e?.message || e);
+    }
   }
 
   if (!user) return 'free';
@@ -181,7 +189,7 @@ async function refreshTokens(discordId: string): Promise<void> {
   try {
     const user = patreonUsers[discordId];
     if (!user) throw new Error('User not found');
-    
+  console.log(`${LOG_PREFIX} refreshing tokens for ${discordId}`);
     const response = await axios.post<PatreonTokenResponse>('https://www.patreon.com/api/oauth2/token', {
       grant_type: 'refresh_token',
       refresh_token: user.refreshToken,
@@ -194,6 +202,7 @@ async function refreshTokens(discordId: string): Promise<void> {
     user.expiresAt = Date.now() + response.data.expires_in * 1000;
     
     savePatreonUsers();
+  console.log(`${LOG_PREFIX} token refresh successful for ${discordId}, expiresAt=${user.expiresAt}`);
   } catch (error) {
     console.error('トークンリフレッシュエラー:', error);
     throw error;
@@ -204,7 +213,9 @@ async function refreshTokens(discordId: string): Promise<void> {
 async function fetchRemoteLink(discordId: string): Promise<any | null> {
   try {
     const url = `${FALLBACK_SERVER.replace(/\/$/, '')}/api/patreon/link/${encodeURIComponent(discordId)}`;
+    console.log(`${LOG_PREFIX} fetching remote link from ${url}`);
     const r = await axios.get(url, { timeout: 5000 });
+    console.log(`${LOG_PREFIX} remote link response status=${r.status}`);
     if (r && r.status === 200 && r.data) {
       return r.data;
     }
@@ -220,7 +231,9 @@ async function fetchRemoteLink(discordId: string): Promise<any | null> {
 async function fetchPatreonMemberships(accessToken: string): Promise<string | null> {
   if (!accessToken) return null;
   try {
-    const me = await axios.get('https://www.patreon.com/api/oauth2/v2/identity?include=memberships', { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+  console.log(`${LOG_PREFIX} fetching Patreon memberships (masked token present=${!!accessToken})`);
+  const me = await axios.get('https://www.patreon.com/api/oauth2/v2/identity?include=memberships', { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+  console.log(`${LOG_PREFIX} Patreon memberships response status=${me.status}`);
     const included = (me.data && (me.data as any).included) || [];
     for (const item of included) {
       const attrs = (item && (item as any).attributes) || {};
