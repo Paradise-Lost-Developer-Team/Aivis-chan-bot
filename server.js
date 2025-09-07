@@ -339,6 +339,12 @@ function ensurePatreonLinksFile() {
   } catch (e) { console.error('ensurePatreonLinksFile error', e); }
 }
 
+// run migration once at startup
+try {
+  ensurePatreonLinksFile();
+  migratePatreonLinks();
+} catch (e) { console.error('[PATREON] startup migration error', e); }
+
 function savePatreonLink(link) {
   try {
     ensurePatreonLinksFile();
@@ -347,6 +353,67 @@ function savePatreonLink(link) {
     arr.push(link);
     fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(arr, null, 2));
   } catch (e) { console.error('savePatreonLink error', e); }
+}
+
+// Migration: ensure stored patreon links include plain discordId values
+function tryDecodeBase64Json(s) {
+  try {
+    const buf = Buffer.from(String(s), 'base64');
+    const txt = buf.toString('utf8');
+    if (!txt) return null;
+    const obj = JSON.parse(txt);
+    return obj && obj.discordId ? String(obj.discordId) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function migratePatreonLinks() {
+  try {
+    if (!fs.existsSync(PATREON_LINKS_FILE)) return;
+    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
+    const arr = JSON.parse(raw);
+    let changed = false;
+    const toRemove = new Set();
+
+    for (let i = 0; i < arr.length; i++) {
+      const entry = arr[i];
+      const stored = String(entry.discordId || '');
+      const decoded = tryDecodeBase64Json(stored);
+      if (decoded && stored !== decoded) {
+        // If there's already an entry with the plain id, mark this one for removal to avoid duplicates
+        const existsPlainIndex = arr.findIndex(x => String(x.discordId) === decoded);
+        if (existsPlainIndex === -1) {
+          // keep token data but set discordId to decoded plain id and store original state
+          entry.originalState = stored;
+          entry.discordId = decoded;
+          changed = true;
+        } else {
+          // prefer the existing plain entry; if not identical, preserve createdAt if earlier
+          toRemove.add(i);
+          changed = true;
+        }
+      }
+    }
+
+    if (toRemove.size > 0) {
+      // remove in reverse order
+      const indices = Array.from(toRemove).sort((a,b) => b - a);
+      for (const idx of indices) arr.splice(idx, 1);
+    }
+
+    if (changed) {
+      // backup original
+      const bak = PATREON_LINKS_FILE + '.bak.' + Date.now();
+      try { fs.copyFileSync(PATREON_LINKS_FILE, bak); console.log('[PATREON] backup saved to', bak); } catch (e) { console.warn('[PATREON] failed to save backup', e); }
+      fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(arr, null, 2));
+      console.log('[PATREON] migrated patreon_links.json - plain discordId fields ensured');
+    } else {
+      console.log('[PATREON] no migration needed for patreon_links.json');
+    }
+  } catch (e) {
+    console.error('[PATREON] migratePatreonLinks error', e);
+  }
 }
 
 // API: return saved patreon link for a given discordId (used by bots to synchronize)
