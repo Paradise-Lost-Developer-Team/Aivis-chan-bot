@@ -247,7 +247,7 @@ client.on("guildCreate", async (guild) => {
                 new ButtonBuilder()
                     .setLabel('Patreonで支援する')
                     .setStyle(ButtonStyle.Link)
-                    .setURL('https://www.patreon.com/c/AlcJP02'),
+                    .setURL('https://www.patreon.com/AlecJP02'),
                 new ButtonBuilder()
                     .setLabel('サポートサーバー')
                     .setStyle(ButtonStyle.Link)
