@@ -11,8 +11,9 @@ const { PATREON } = CONFIG;
 const CLIENT_ID = process.env.PATREON_CLIENT_ID || PATREON.CLIENT_ID;
 const CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || PATREON.CLIENT_SECRET;
 const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
-// 中央サーバ（web）のURL（フォールバック。デプロイ時は BASE_URL を設定してください）
-const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://localhost:3001';
+// 中央サーバ（web）のURL（フォールバック）。クラスタ内では web サービス名を既定にします。
+// デプロイ時は BASE_URL または config PATREON.FALLBACK_SERVER を設定してください
+const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web:3001';
 
 // ログプレフィックス
 const LOG_PREFIX = '[patreon]';
