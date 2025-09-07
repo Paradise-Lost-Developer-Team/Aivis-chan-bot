@@ -88,14 +88,17 @@ export function getPatreonAuthUrl(discordId: string): string {
 // アクセストークンを取得
 export async function getPatreonTokens(code: string): Promise<any> {
   try {
-    const response = await axios.post('https://www.patreon.com/api/oauth2/token', {
-      code,
-      grant_type: 'authorization_code',
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT_URI
+    const params = new URLSearchParams();
+    params.append('code', code);
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', CLIENT_ID);
+    params.append('client_secret', CLIENT_SECRET);
+    params.append('redirect_uri', REDIRECT_URI);
+
+    const response = await axios.post('https://www.patreon.com/api/oauth2/token', params.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('Patreonトークン取得エラー:', error);
@@ -104,16 +107,16 @@ export async function getPatreonTokens(code: string): Promise<any> {
 }
 
 // ユーザー情報を保存
-export function storePatreonUser(discordId: string, patreonData: any): void {
+export function storePatreonUser(discordId: string, tokenData: any, patreonId?: string): void {
+  const expires = tokenData?.expires_in ? Date.now() + tokenData.expires_in * 1000 : 0;
   patreonUsers[discordId] = {
     discordId,
-    patreonId: patreonData.patreonId,
-    accessToken: patreonData.access_token,
-    refreshToken: patreonData.refresh_token,
-    expiresAt: Date.now() + patreonData.expires_in * 1000,
-    tier: patreonData.tier || 'free'
-  };
-  
+    patreonId: patreonId || tokenData?.patreonId || '',
+    accessToken: tokenData?.access_token || '',
+    refreshToken: tokenData?.refresh_token || '',
+    expiresAt: expires,
+    tier: 'free'
+  } as PatreonUser;
   savePatreonUsers();
 }
 
@@ -193,20 +196,24 @@ async function refreshTokens(discordId: string): Promise<void> {
   try {
     const user = patreonUsers[discordId];
     if (!user) throw new Error('User not found');
-  console.log(`${LOG_PREFIX} refreshing tokens for ${discordId}`);
-    const response = await axios.post<PatreonTokenResponse>('https://www.patreon.com/api/oauth2/token', {
-      grant_type: 'refresh_token',
-      refresh_token: user.refreshToken,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET
+    console.log(`${LOG_PREFIX} refreshing tokens for ${discordId}`);
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'refresh_token');
+    params.append('refresh_token', user.refreshToken);
+    params.append('client_id', CLIENT_ID);
+    params.append('client_secret', CLIENT_SECRET);
+
+    const response = await axios.post<PatreonTokenResponse>('https://www.patreon.com/api/oauth2/token', params.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-    
+
     user.accessToken = response.data.access_token;
     user.refreshToken = response.data.refresh_token;
     user.expiresAt = Date.now() + response.data.expires_in * 1000;
-    
+
     savePatreonUsers();
-  console.log(`${LOG_PREFIX} token refresh successful for ${discordId}, expiresAt=${user.expiresAt}`);
+    console.log(`${LOG_PREFIX} token refresh successful for ${discordId}, expiresAt=${user.expiresAt}`);
   } catch (error) {
     console.error('トークンリフレッシュエラー:', error);
     throw error;
@@ -235,19 +242,50 @@ async function fetchRemoteLink(discordId: string): Promise<any | null> {
 async function fetchPatreonMemberships(accessToken: string): Promise<string | null> {
   if (!accessToken) return null;
   try {
-  console.log(`${LOG_PREFIX} fetching Patreon memberships (masked token present=${!!accessToken})`);
-  const me = await axios.get('https://www.patreon.com/api/oauth2/v2/identity?include=memberships', { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
-  console.log(`${LOG_PREFIX} Patreon memberships response status=${me.status}`);
+    console.log(`${LOG_PREFIX} fetching Patreon memberships (masked token present=${!!accessToken})`);
+    // Request membership-related fields explicitly. Use fields[member] which matches the membership object type.
+    const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start';
+    const me = await axios.get(url, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+    console.log(`${LOG_PREFIX} Patreon memberships response status=${me.status}`);
     const included = (me.data && (me.data as any).included) || [];
+
+    // Log included items to help debugging empty attributes (will be visible in pod logs)
+    if (!included || included.length === 0) {
+      console.log(`${LOG_PREFIX} no included membership objects returned by Patreon`);
+    } else {
+      for (const item of included) {
+        try {
+          const id = item && (item as any).id;
+          const type = item && (item as any).type;
+          const attrs = (item && (item as any).attributes) || {};
+          console.log(`${LOG_PREFIX} included item id=${id} type=${type} attributes=${JSON.stringify(attrs)}`);
+        } catch (e) {
+          console.log(`${LOG_PREFIX} included item (could not stringify)`, e);
+        }
+      }
+    }
+
     for (const item of included) {
       const attrs = (item && (item as any).attributes) || {};
       if (attrs.patron_status === 'active_patron') return 'pro';
-      if (attrs.currently_entitled_amount_cents && attrs.currently_entitled_amount_cents > 0) return 'pro';
+      if (typeof attrs.currently_entitled_amount_cents === 'number' && attrs.currently_entitled_amount_cents > 0) return 'pro';
+
+      // If this is a gifted membership / sub-account, Patreon may return pledge_relationship_start
+      // without an amount. Treating that as 'pro' is optional and controlled by env var.
+      if (attrs.pledge_relationship_start) {
+        if (process.env.PATREON_TREAT_GIFT_AS_PRO === '1') {
+          console.log(`${LOG_PREFIX} treating pledge_relationship_start as pro due to PATREON_TREAT_GIFT_AS_PRO=1`);
+          return 'pro';
+        } else {
+          console.log(`${LOG_PREFIX} found pledge_relationship_start but not treating as pro (set PATREON_TREAT_GIFT_AS_PRO=1 to change)`);
+        }
+      }
     }
+
     return 'free';
   } catch (err) {
     const e: any = err;
-    // 401ならトークン切れの可能性がある
+    // 401ならトークン切れの可能性があるため呼び出し元でリフレッシュ処理を試す
     if (e && e.response && e.response.status === 401) throw e;
     return null;
   }
