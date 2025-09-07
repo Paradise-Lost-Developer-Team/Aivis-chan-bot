@@ -329,6 +329,9 @@ const PATREON_LINKS_FILE = path.join(__dirname, '..', 'data', 'patreon_links.jso
 function ensurePatreonLinksFile() {
   try {
     if (!fs.existsSync(PATREON_LINKS_FILE)) {
+      // ensure parent directory exists (container may mount different workdir)
+      const dir = path.dirname(PATREON_LINKS_FILE);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify([]));
     }
   } catch (e) { console.error('ensurePatreonLinksFile error', e); }
