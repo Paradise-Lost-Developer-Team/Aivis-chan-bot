@@ -1627,6 +1627,8 @@ body.patreon-success{
     display:flex;
     align-items:center;
     justify-content:center;
+    /* Ensure readable default text color in light mode */
+    color: var(--text-primary, #111827);
 }
 body.patreon-success .container{
     width:min(760px,94%);
@@ -1639,7 +1641,7 @@ body.patreon-success h1{font-size:18px;margin:0 0 8px;color:#111827}
 body.patreon-success p.lead{margin:0 0 14px;color:#374151}
 body.patreon-success .meta{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 body.patreon-success .meta-row{display:flex;gap:12px}
-body.patreon-success .meta-key{width:120px;color:#6b7280;font-size:13px}
+body.patreon-success .meta-key{width:120px;color:#374151;font-size:13px}
 body.patreon-success .meta-val{color:#111827;font-weight:600}
 body.patreon-success .meta-val{color:inherit !important;font-weight:600}
 body.patreon-success .actions{margin-top:18px;display:flex;gap:8px}
