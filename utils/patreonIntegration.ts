@@ -328,11 +328,33 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
               // Try several shapes: detailRes.data.data.attributes or detailRes.data.attributes
               const d: any = detailRes.data;
               const detailAttrs = (d && d.data && d.data.attributes) || (d && d.attributes) || {};
-              if (typeof detailAttrs.currently_entitled_amount_cents === 'number') {
+              if (typeof detailAttrs.currently_entitled_amount_cents === 'number' && detailAttrs.currently_entitled_amount_cents > 0) {
                 possibleAmount = detailAttrs.currently_entitled_amount_cents;
                 console.log(`${LOG_PREFIX} member detail returned amount=${possibleAmount}`);
               } else {
-                console.log(`${LOG_PREFIX} member detail did not contain amount`);
+                console.log(`${LOG_PREFIX} member detail did not contain amount, attempting broader included scan`);
+                // Try broader identity include scan to find any amount-like fields
+                try {
+                  const extraUrl = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,pledges';
+                  const extraRes = await axios.get(extraUrl, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+                  const includedExtra = (extraRes.data && (extraRes.data as any).included) || [];
+                  for (const incItem of includedExtra) {
+                    const a: any = (incItem && (incItem as any).attributes) || {};
+                    // check common amount-like fields
+                    const candidates = ['currently_entitled_amount_cents','amount_cents','amount','pledge_amount_cents','pledged_amount_cents'];
+                    for (const key of candidates) {
+                      if (typeof a[key] === 'number' && a[key] > 0) {
+                        possibleAmount = a[key];
+                        console.log(`${LOG_PREFIX} found amount from includedExtra ${incItem.type}:${incItem.id} ${key}=${possibleAmount}`);
+                        break;
+                      }
+                    }
+                    if (possibleAmount > 0) break;
+                  }
+                } catch (ee) {
+                  const err: any = ee;
+                  console.log(`${LOG_PREFIX} extra included fetch failed: ${err?.message || err}`);
+                }
               }
             }
           } catch (e) {
