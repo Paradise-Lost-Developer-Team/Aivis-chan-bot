@@ -265,20 +265,55 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
       }
     }
 
+    // Determine tier. Support 'premium' (> threshold cents) and 'pro'.
+    const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10); // default 1000 cents
+    const GIFT_DEFAULT = (process.env.PATREON_GIFT_DEFAULT || 'pro').toLowerCase(); // 'pro' or 'premium'
+
     for (const item of included) {
       const attrs = (item && (item as any).attributes) || {};
-      if (attrs.patron_status === 'active_patron') return 'pro';
-      if (typeof attrs.currently_entitled_amount_cents === 'number' && attrs.currently_entitled_amount_cents > 0) return 'pro';
 
-      // If this is a gifted membership / sub-account, Patreon may return pledge_relationship_start
-      // without an amount. Treating that as 'pro' is optional and controlled by env var.
-      if (attrs.pledge_relationship_start) {
-        if (process.env.PATREON_TREAT_GIFT_AS_PRO === '1') {
-          console.log(`${LOG_PREFIX} treating pledge_relationship_start as pro due to PATREON_TREAT_GIFT_AS_PRO=1`);
-          return 'pro';
-        } else {
-          console.log(`${LOG_PREFIX} found pledge_relationship_start but not treating as pro (set PATREON_TREAT_GIFT_AS_PRO=1 to change)`);
+      // Active patron always considered at least pro. Use amount to decide premium.
+      if (attrs.patron_status === 'active_patron') {
+        const amount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+        if (amount >= PREMIUM_THRESHOLD) {
+          console.log(`${LOG_PREFIX} active_patron with amount=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
+          return 'premium';
         }
+        console.log(`${LOG_PREFIX} active_patron with amount=${amount} -> pro`);
+        return 'pro';
+      }
+
+      // If current entitled amount is present and >0, use threshold to split pro/premium
+      if (typeof attrs.currently_entitled_amount_cents === 'number' && attrs.currently_entitled_amount_cents > 0) {
+        const amount = attrs.currently_entitled_amount_cents;
+        if (amount >= PREMIUM_THRESHOLD) {
+          console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
+          return 'premium';
+        }
+        console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} -> pro`);
+        return 'pro';
+      }
+
+      // Gifted membership: pledge_relationship_start exists but amount may be 0 or missing.
+      if (attrs.pledge_relationship_start) {
+        // Try to detect any gift-related amount-like fields
+        const possibleAmount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+        if (possibleAmount > 0) {
+          if (possibleAmount >= PREMIUM_THRESHOLD) {
+            console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> premium`);
+            return 'premium';
+          }
+          console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> pro`);
+          return 'pro';
+        }
+
+        // No amount available. Fall back to configured default for gifts.
+        if (GIFT_DEFAULT === 'premium') {
+          console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - using configured default -> premium`);
+          return 'premium';
+        }
+        console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - using configured default -> pro`);
+        return 'pro';
       }
     }
 
