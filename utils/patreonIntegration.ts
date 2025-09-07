@@ -7,10 +7,11 @@ const CONFIG_PATH = path.join(__dirname, '../data/config.json');
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const { PATREON } = CONFIG;
 
-// Patreonの認証情報
+// Patreonの認証情報（環境変数優先）
 const CLIENT_ID = process.env.PATREON_CLIENT_ID || PATREON.CLIENT_ID;
 const CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || PATREON.CLIENT_SECRET;
 const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
+// 中央サーバ（web）のURL（フォールバック。デプロイ時は BASE_URL を設定してください）
 const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://localhost:3001';
 
 // データディレクトリとユーザーデータファイルのパスを設定
@@ -116,18 +117,21 @@ export function storePatreonUser(discordId: string, patreonData: any): void {
 // ユーザーのティア情報を取得
 export async function getUserTier(discordId: string): Promise<string> {
   let user = patreonUsers[discordId];
+
+  // ローカルに情報がなければ中央サーバを問い合わせて同期を試みる
   if (!user) {
     try {
       const remote = await fetchRemoteLink(discordId);
       if (remote) {
-        const tokenData = (remote as any).tokenData || {};
+        // remote contains { discordId, patreonId, tokenData }
+        const tokenData = remote.tokenData || {};
         user = {
           discordId,
           patreonId: remote.patreonId || '',
           accessToken: tokenData.access_token || '',
           refreshToken: tokenData.refresh_token || '',
           expiresAt: tokenData.expires_in ? Date.now() + tokenData.expires_in * 1000 : 0,
-          tier: (remote as any).tier || 'free'
+          tier: remote.tier || 'free'
         } as PatreonUser;
         patreonUsers[discordId] = user;
         savePatreonUsers();
@@ -137,14 +141,31 @@ export async function getUserTier(discordId: string): Promise<string> {
         console.warn('Failed to fetch remote patreon link', e?.message || e);
       }
   }
+
   if (!user) return 'free';
+
+  // トークンが期限切れならリフレッシュを試みる
   if (user.expiresAt < Date.now()) {
-    try { await refreshTokens(discordId); } catch (error) { console.error(`ユーザー ${discordId} のトークンリフレッシュエラー:`, error); return 'free'; }
+    try {
+      await refreshTokens(discordId);
+    } catch (error) {
+      console.error(`ユーザー ${discordId} のトークンリフレッシュエラー:`, error);
+      return 'free';
+    }
   }
+
+  // トークンを使ってPatreon APIからメンバーシップ情報を取得し、tier を更新する
   try {
     const fetchedTier = await fetchPatreonMemberships(user.accessToken);
-    if (fetchedTier && fetchedTier !== user.tier) { user.tier = fetchedTier; savePatreonUsers(); }
-  } catch (err) { const e: any = err; console.warn('Failed to fetch memberships from Patreon:', e?.message || e); }
+    if (fetchedTier && fetchedTier !== user.tier) {
+      user.tier = fetchedTier;
+      savePatreonUsers();
+    }
+  } catch (err) {
+    const e: any = err;
+    console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
+  }
+
   return user.tier;
 }
 
@@ -179,15 +200,23 @@ async function refreshTokens(discordId: string): Promise<void> {
   }
 }
 
+// 中央サーバに保存されたリンク情報を取得するフォールバック
 async function fetchRemoteLink(discordId: string): Promise<any | null> {
   try {
     const url = `${FALLBACK_SERVER.replace(/\/$/, '')}/api/patreon/link/${encodeURIComponent(discordId)}`;
     const r = await axios.get(url, { timeout: 5000 });
-    if (r && r.status === 200) return r.data;
+    if (r && r.status === 200 && r.data) {
+      return r.data;
+    }
     return null;
-  } catch (err) { const e: any = err; if (e && e.response && e.response.status === 404) return null; throw e; }
+  } catch (err) {
+    const e: any = err;
+    if (e && e.response && e.response.status === 404) return null;
+    throw e;
+  }
 }
 
+// Patreon API から memberships を取得して簡易的に tier を判定する
 async function fetchPatreonMemberships(accessToken: string): Promise<string | null> {
   if (!accessToken) return null;
   try {
@@ -199,7 +228,12 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
       if (attrs.currently_entitled_amount_cents && attrs.currently_entitled_amount_cents > 0) return 'pro';
     }
     return 'free';
-  } catch (err) { const e: any = err; if (e && e.response && e.response.status === 401) throw e; return null; }
+  } catch (err) {
+    const e: any = err;
+    // 401ならトークン切れの可能性がある
+    if (e && e.response && e.response.status === 401) throw e;
+    return null;
+  }
 }
 
 // 初期化
