@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags, CommandInteraction, CommandInteractionOptionResolver, CacheType } from 'discord.js';
-import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits, getGuildSubscriptionTier } from '../../utils/subscription';
+import { SubscriptionType, getSubscription, setSubscription, SubscriptionBenefits, getGuildSubscriptionTier, applySubscriptionFromPatreon } from '../../utils/subscription';
+import patreonIntegration from '../../utils/patreonIntegration';
 import path from 'path';
 import fs from 'fs';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
@@ -26,11 +27,6 @@ export const data = new SlashCommandBuilder()
         subcommand
             .setName('status')
             .setDescription('現在のサブスクリプションステータスを確認します')
-    )
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName('upgrade')
-            .setDescription('サブスクリプションをアップグレードします')
     );
 
 // 型をCommandInteractionに変更
@@ -118,5 +114,47 @@ export async function execute(interaction: CommandInteraction) {
             flags: MessageFlags.Ephemeral,
             components: [getCommonLinksRow()]
         });
+    } else if (subcommand === 'status') {
+        // show effective subscription for this guild; if patreon linked for bot user, apply it
+        const current = getGuildSubscriptionTier(guildId);
+        const subscriptionNames = {
+            [SubscriptionType.FREE]: '無料プラン',
+            [SubscriptionType.PRO]: 'Proプラン',
+            [SubscriptionType.PREMIUM]: 'Premiumプラン'
+        };
+
+        // Try to auto-apply Patreon if the guild owner is linked and has a Patreon
+        // We will check the guild owner and bot link: if owner has patreon linked and it's paid, apply
+        try {
+            const guild = (interaction.client as any).guilds.cache.get(guildId!);
+            const ownerId = guild?.ownerId;
+            if (ownerId) {
+                const tier = await patreonIntegration.getUserTier(ownerId);
+                if (tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM) {
+                    const applied = await applySubscriptionFromPatreon(ownerId, guildId!, 30);
+                    if (applied) {
+                        const embed = addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('サブスクリプション適用')
+                                .setDescription(`Patreon の連携を確認しました。ギルドに **${subscriptionNames[tier]}** を適用しました。`)
+                                .setColor(tier === SubscriptionType.PREMIUM ? 0xFFD700 : 0x00AAFF)
+                        );
+                        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral, components: [getCommonLinksRow()] });
+                        return;
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('subscription status patreon check failed:', e);
+        }
+
+        const embed = addCommonFooter(
+            new EmbedBuilder()
+                .setTitle('サブスクリプションステータス')
+                .setDescription(`現在のプラン: **${subscriptionNames[current]}**`)
+                .setColor(current === SubscriptionType.FREE ? 0x808080 : current === SubscriptionType.PRO ? 0x00AAFF : 0xFFD700)
+        );
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral, components: [getCommonLinksRow()] });
+        return;
     }
 }
