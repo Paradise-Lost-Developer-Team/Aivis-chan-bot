@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { client } from '../index';
 import { logError } from './errorLogger';
+import patreonIntegration from './patreonIntegration';
 
 // プロジェクトルートディレクトリを取得
 function getProjectRoot(): string {
@@ -208,13 +209,43 @@ export function getUserSubscription(userId: string): Subscription | null {
 
 // ギルドのサブスクリプション情報を取得する
 export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
-    // Bot製作者が管理するサーバーかどうかを確認
-    if (isOwnerGuild(guildId)) {
-        console.log(`Bot製作者が管理するサーバー ${guildId} にPremium特権を付与`);
-        return SubscriptionType.PREMIUM;
+    try {
+        // まず永続化されたサブスクリプションを確認
+        const subs = loadSubscriptions();
+        const guildSub = subs[guildId];
+        if (guildSub && typeof guildSub.expiresAt === 'number' && guildSub.expiresAt > Date.now()) {
+            return guildSub.type;
+        }
+        // 次に Bot 製作者が管理するサーバーかどうかを確認
+        if (isOwnerGuild(guildId)) {
+            console.log(`Bot製作者が管理するサーバー ${guildId} にPremium特権を付与`);
+            return SubscriptionType.PREMIUM;
+        }
+    } catch (err) {
+        console.error('getGuildSubscriptionTier error:', err);
     }
     // 該当するサブスクリプションがなければFREE
     return SubscriptionType.FREE;
+}
+
+// Patreon 連携を元にギルドへサブスクリプションを適用する (外部から呼べるようにする)
+export async function applySubscriptionFromPatreon(discordId: string, guildId: string, durationDays = 30): Promise<boolean> {
+    try {
+        const tier = await patreonIntegration.getUserTier(discordId);
+        if (!tier) return false;
+        if (tier === SubscriptionType.PRO) {
+            setSubscription(guildId, SubscriptionType.PRO, durationDays);
+            return true;
+        }
+        if (tier === SubscriptionType.PREMIUM) {
+            setSubscription(guildId, SubscriptionType.PREMIUM, durationDays);
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.error('applySubscriptionFromPatreon error:', err);
+        return false;
+    }
 }
 
 // 新しいサブスクリプションを追加する

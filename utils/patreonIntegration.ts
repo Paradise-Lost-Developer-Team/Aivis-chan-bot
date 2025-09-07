@@ -14,6 +14,9 @@ const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
 // 中央サーバ（web）のURL（フォールバック。デプロイ時は BASE_URL を設定してください）
 const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://localhost:3001';
 
+// ログプレフィックス
+const LOG_PREFIX = '[patreon]';
+
 // データディレクトリとユーザーデータファイルのパスを設定
 const DATA_DIR = path.join(__dirname, '../data');
 const PATREON_USERS_PATH = path.join(DATA_DIR, 'patreon-users.json');
@@ -85,14 +88,17 @@ export function getPatreonAuthUrl(discordId: string): string {
 // アクセストークンを取得
 export async function getPatreonTokens(code: string): Promise<any> {
   try {
-    const response = await axios.post('https://www.patreon.com/api/oauth2/token', {
-      code,
-      grant_type: 'authorization_code',
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT_URI
+    const params = new URLSearchParams();
+    params.append('code', code);
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', CLIENT_ID);
+    params.append('client_secret', CLIENT_SECRET);
+    params.append('redirect_uri', REDIRECT_URI);
+
+    const response = await axios.post('https://www.patreon.com/api/oauth2/token', params.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-    
+
     return response.data;
   } catch (error) {
     console.error('Patreonトークン取得エラー:', error);
@@ -101,28 +107,31 @@ export async function getPatreonTokens(code: string): Promise<any> {
 }
 
 // ユーザー情報を保存
-export function storePatreonUser(discordId: string, patreonData: any): void {
+export function storePatreonUser(discordId: string, tokenData: any, patreonId?: string): void {
+  const expires = tokenData?.expires_in ? Date.now() + tokenData.expires_in * 1000 : 0;
   patreonUsers[discordId] = {
     discordId,
-    patreonId: patreonData.patreonId,
-    accessToken: patreonData.access_token,
-    refreshToken: patreonData.refresh_token,
-    expiresAt: Date.now() + patreonData.expires_in * 1000,
-    tier: patreonData.tier || 'free'
-  };
-  
+    patreonId: patreonId || tokenData?.patreonId || '',
+    accessToken: tokenData?.access_token || '',
+    refreshToken: tokenData?.refresh_token || '',
+    expiresAt: expires,
+    tier: 'free'
+  } as PatreonUser;
   savePatreonUsers();
 }
 
 // ユーザーのティア情報を取得
 export async function getUserTier(discordId: string): Promise<string> {
+  console.log(`${LOG_PREFIX} getUserTier start for ${discordId}`);
   let user = patreonUsers[discordId];
 
   // ローカルに情報がなければ中央サーバを問い合わせて同期を試みる
   if (!user) {
+    console.log(`${LOG_PREFIX} no local user for ${discordId}, attempting remote fetch from ${FALLBACK_SERVER}`);
     try {
       const remote = await fetchRemoteLink(discordId);
       if (remote) {
+        console.log(`${LOG_PREFIX} remote link found for ${discordId}`);
         // remote contains { discordId, patreonId, tokenData }
         const tokenData = remote.tokenData || {};
         user = {
@@ -135,14 +144,19 @@ export async function getUserTier(discordId: string): Promise<string> {
         } as PatreonUser;
         patreonUsers[discordId] = user;
         savePatreonUsers();
+      } else {
+        console.log(`${LOG_PREFIX} no remote link for ${discordId}`);
       }
     } catch (err) {
-        const e: any = err;
-        console.warn('Failed to fetch remote patreon link', e?.message || e);
-      }
+      const e: any = err;
+      console.warn(`${LOG_PREFIX} Failed to fetch remote patreon link:`, e?.message || e);
+    }
   }
 
-  if (!user) return 'free';
+  if (!user) {
+    console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: free (no user)`);
+    return 'free';
+  }
 
   // トークンが期限切れならリフレッシュを試みる
   if (user.expiresAt < Date.now()) {
@@ -166,6 +180,7 @@ export async function getUserTier(discordId: string): Promise<string> {
     console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
   }
 
+  console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: ${user.tier}`);
   return user.tier;
 }
 
@@ -181,19 +196,24 @@ async function refreshTokens(discordId: string): Promise<void> {
   try {
     const user = patreonUsers[discordId];
     if (!user) throw new Error('User not found');
-    
-    const response = await axios.post<PatreonTokenResponse>('https://www.patreon.com/api/oauth2/token', {
-      grant_type: 'refresh_token',
-      refresh_token: user.refreshToken,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET
+    console.log(`${LOG_PREFIX} refreshing tokens for ${discordId}`);
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'refresh_token');
+    params.append('refresh_token', user.refreshToken);
+    params.append('client_id', CLIENT_ID);
+    params.append('client_secret', CLIENT_SECRET);
+
+    const response = await axios.post<PatreonTokenResponse>('https://www.patreon.com/api/oauth2/token', params.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-    
+
     user.accessToken = response.data.access_token;
     user.refreshToken = response.data.refresh_token;
     user.expiresAt = Date.now() + response.data.expires_in * 1000;
-    
+
     savePatreonUsers();
+    console.log(`${LOG_PREFIX} token refresh successful for ${discordId}, expiresAt=${user.expiresAt}`);
   } catch (error) {
     console.error('トークンリフレッシュエラー:', error);
     throw error;
@@ -204,7 +224,9 @@ async function refreshTokens(discordId: string): Promise<void> {
 async function fetchRemoteLink(discordId: string): Promise<any | null> {
   try {
     const url = `${FALLBACK_SERVER.replace(/\/$/, '')}/api/patreon/link/${encodeURIComponent(discordId)}`;
+    console.log(`${LOG_PREFIX} fetching remote link from ${url}`);
     const r = await axios.get(url, { timeout: 5000 });
+    console.log(`${LOG_PREFIX} remote link response status=${r.status}`);
     if (r && r.status === 200 && r.data) {
       return r.data;
     }
@@ -220,17 +242,186 @@ async function fetchRemoteLink(discordId: string): Promise<any | null> {
 async function fetchPatreonMemberships(accessToken: string): Promise<string | null> {
   if (!accessToken) return null;
   try {
-    const me = await axios.get('https://www.patreon.com/api/oauth2/v2/identity?include=memberships', { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+    console.log(`${LOG_PREFIX} fetching Patreon memberships (masked token present=${!!accessToken})`);
+  // Request membership-related fields explicitly and include currently_entitled_tiers so we can inspect tier objects.
+  const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,memberships.currently_entitled_tiers&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start&fields[tier]=amount_cents,title';
+    const me = await axios.get(url, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+    console.log(`${LOG_PREFIX} Patreon memberships response status=${me.status}`);
     const included = (me.data && (me.data as any).included) || [];
+
+    // Log included items to help debugging empty attributes (will be visible in pod logs)
+    if (!included || included.length === 0) {
+      console.log(`${LOG_PREFIX} no included membership objects returned by Patreon`);
+    } else {
+      for (const item of included) {
+        try {
+          const id = item && (item as any).id;
+          const type = item && (item as any).type;
+          const attrs = (item && (item as any).attributes) || {};
+          console.log(`${LOG_PREFIX} included item id=${id} type=${type} attributes=${JSON.stringify(attrs)}`);
+        } catch (e) {
+          console.log(`${LOG_PREFIX} included item (could not stringify)`, e);
+        }
+      }
+    }
+  // Defaults: Pro = $5 (500 cents), Premium = $10 (1000 cents). These can be overridden via env vars.
+  const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10); // default 1000 cents ($10)
+  const PRO_THRESHOLD = parseInt(process.env.PATREON_PRO_CENTS || '500', 10); // default 500 cents ($5)
+  const GIFT_DEFAULT = (process.env.PATREON_GIFT_DEFAULT || 'pro').toLowerCase(); // 'pro' or 'premium' fallback for gifts without amount
+
+  // Try to extract tier objects from included (currently_entitled_tiers). If present, use the highest amount_cents tier
+    const tiers: Array<{ id: string; amount: number; title?: string; type?: string }> = [];
+    for (const inc of included) {
+      try {
+        const ttype = (inc && (inc as any).type) || '';
+        const tattrs = (inc && (inc as any).attributes) || {};
+        // Patreon may call tier resources 'tier' or similar; look for amount fields
+        const amount = typeof tattrs.amount_cents === 'number' ? tattrs.amount_cents : (typeof tattrs.amount === 'number' ? tattrs.amount : 0);
+        if (amount > 0) {
+          tiers.push({ id: (inc as any).id, amount, title: tattrs.title, type: ttype });
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (tiers.length > 0) {
+      tiers.sort((a, b) => b.amount - a.amount);
+      const top = tiers[0];
+      console.log(`${LOG_PREFIX} found currently_entitled_tiers, top tier id=${top.id} title=${top.title || ''} amount=${top.amount}`);
+      if (top.amount >= PREMIUM_THRESHOLD) {
+        console.log(`${LOG_PREFIX} top tier amount ${top.amount} >= ${PREMIUM_THRESHOLD} -> premium`);
+        return 'premium';
+      }
+      if (top.amount >= PRO_THRESHOLD) {
+        console.log(`${LOG_PREFIX} top tier amount ${top.amount} >= ${PRO_THRESHOLD} -> pro`);
+        return 'pro';
+      }
+      console.log(`${LOG_PREFIX} top tier amount ${top.amount} < ${PRO_THRESHOLD} -> free`);
+      return 'free';
+    }
+
+  // Determine tier using thresholds (if no tiers found above).
+
     for (const item of included) {
       const attrs = (item && (item as any).attributes) || {};
-      if (attrs.patron_status === 'active_patron') return 'pro';
-      if (attrs.currently_entitled_amount_cents && attrs.currently_entitled_amount_cents > 0) return 'pro';
+
+      // Active patron: prefer amount thresholds if available
+      if (attrs.patron_status === 'active_patron') {
+        const amount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+        // If amount is zero but pledge_relationship_start is present, treat as gift and use gift default.
+        if (amount === 0 && attrs.pledge_relationship_start) {
+          if (GIFT_DEFAULT === 'premium') {
+            console.log(`${LOG_PREFIX} active_patron gift detected (amount=0) - using configured default -> premium`);
+            return 'premium';
+          }
+          console.log(`${LOG_PREFIX} active_patron gift detected (amount=0) - using configured default -> pro`);
+          return 'pro';
+        }
+        if (amount >= PREMIUM_THRESHOLD) {
+          console.log(`${LOG_PREFIX} active_patron with amount=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
+          return 'premium';
+        }
+        if (amount >= PRO_THRESHOLD) {
+          console.log(`${LOG_PREFIX} active_patron with amount=${amount} >= ${PRO_THRESHOLD} -> pro`);
+          return 'pro';
+        }
+        console.log(`${LOG_PREFIX} active_patron with amount=${amount} < ${PRO_THRESHOLD} -> free`);
+        return 'free';
+      }
+
+      // If current entitled amount is present, use thresholds to split pro/premium
+      if (typeof attrs.currently_entitled_amount_cents === 'number' && attrs.currently_entitled_amount_cents > 0) {
+        const amount = attrs.currently_entitled_amount_cents;
+        if (amount >= PREMIUM_THRESHOLD) {
+          console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
+          return 'premium';
+        }
+        if (amount >= PRO_THRESHOLD) {
+          console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} >= ${PRO_THRESHOLD} -> pro`);
+          return 'pro';
+        }
+        console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} < ${PRO_THRESHOLD} -> free`);
+        return 'free';
+      }
+
+      // Gifted membership: pledge_relationship_start exists but amount may be 0 or missing.
+      if (attrs.pledge_relationship_start) {
+        let possibleAmount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+
+        // If amount is zero, try to fetch the member resource by id for more details
+        if (possibleAmount === 0) {
+          try {
+            const memberId = (item && (item as any).id) || null;
+            if (memberId) {
+              const detailUrl = `https://www.patreon.com/api/oauth2/v2/members/${encodeURIComponent(memberId)}?fields[member]=currently_entitled_amount_cents`;
+              console.log(`${LOG_PREFIX} attempting member detail fetch for gift memberId=${memberId}`);
+              const detailRes = await axios.get(detailUrl, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+              // Try several shapes: detailRes.data.data.attributes or detailRes.data.attributes
+              const d: any = detailRes.data;
+              const detailAttrs = (d && d.data && d.data.attributes) || (d && d.attributes) || {};
+              if (typeof detailAttrs.currently_entitled_amount_cents === 'number' && detailAttrs.currently_entitled_amount_cents > 0) {
+                possibleAmount = detailAttrs.currently_entitled_amount_cents;
+                console.log(`${LOG_PREFIX} member detail returned amount=${possibleAmount}`);
+              } else {
+                console.log(`${LOG_PREFIX} member detail did not contain amount, attempting broader included scan`);
+                // Try broader identity include scan to find any amount-like fields
+                try {
+                  const extraUrl = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,pledges';
+                  const extraRes = await axios.get(extraUrl, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+                  const includedExtra = (extraRes.data && (extraRes.data as any).included) || [];
+                  for (const incItem of includedExtra) {
+                    const a: any = (incItem && (incItem as any).attributes) || {};
+                    // check common amount-like fields
+                    const candidates = ['currently_entitled_amount_cents','amount_cents','amount','pledge_amount_cents','pledged_amount_cents'];
+                    for (const key of candidates) {
+                      if (typeof a[key] === 'number' && a[key] > 0) {
+                        possibleAmount = a[key];
+                        console.log(`${LOG_PREFIX} found amount from includedExtra ${incItem.type}:${incItem.id} ${key}=${possibleAmount}`);
+                        break;
+                      }
+                    }
+                    if (possibleAmount > 0) break;
+                  }
+                } catch (ee) {
+                  const err: any = ee;
+                  console.log(`${LOG_PREFIX} extra included fetch failed: ${err?.message || err}`);
+                }
+              }
+            }
+          } catch (e) {
+            const ee: any = e;
+            console.log(`${LOG_PREFIX} member detail fetch failed: ${ee?.message || ee}`);
+          }
+        }
+
+        if (possibleAmount > 0) {
+          if (possibleAmount >= PREMIUM_THRESHOLD) {
+            console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> premium`);
+            return 'premium';
+          }
+          if (possibleAmount >= PRO_THRESHOLD) {
+            console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> pro`);
+            return 'pro';
+          }
+          console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} < ${PRO_THRESHOLD} -> free`);
+          return 'free';
+        }
+
+        // No amount available after extra fetch. Fall back to configured default for gifts.
+        if (GIFT_DEFAULT === 'premium') {
+          console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - no amount found, using configured default -> premium`);
+          return 'premium';
+        }
+        console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - no amount found, using configured default -> pro`);
+        return 'pro';
+      }
     }
+
     return 'free';
   } catch (err) {
     const e: any = err;
-    // 401ならトークン切れの可能性がある
+    // 401ならトークン切れの可能性があるため呼び出し元でリフレッシュ処理を試す
     if (e && e.response && e.response.status === 401) throw e;
     return null;
   }
