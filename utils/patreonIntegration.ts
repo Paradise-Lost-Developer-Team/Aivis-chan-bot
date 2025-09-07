@@ -265,46 +265,59 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
       }
     }
 
-    // Determine tier. Support 'premium' (> threshold cents) and 'pro'.
-    const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10); // default 1000 cents
-    const GIFT_DEFAULT = (process.env.PATREON_GIFT_DEFAULT || 'pro').toLowerCase(); // 'pro' or 'premium'
+    // Determine tier using thresholds.
+    // Defaults: Pro = $5 (500 cents), Premium = $10 (1000 cents). These can be overridden via env vars.
+    const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10); // default 1000 cents ($10)
+    const PRO_THRESHOLD = parseInt(process.env.PATREON_PRO_CENTS || '500', 10); // default 500 cents ($5)
+    const GIFT_DEFAULT = (process.env.PATREON_GIFT_DEFAULT || 'pro').toLowerCase(); // 'pro' or 'premium' fallback for gifts without amount
 
     for (const item of included) {
       const attrs = (item && (item as any).attributes) || {};
 
-      // Active patron always considered at least pro. Use amount to decide premium.
+      // Active patron: prefer amount thresholds if available
       if (attrs.patron_status === 'active_patron') {
         const amount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
         if (amount >= PREMIUM_THRESHOLD) {
           console.log(`${LOG_PREFIX} active_patron with amount=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
           return 'premium';
         }
-        console.log(`${LOG_PREFIX} active_patron with amount=${amount} -> pro`);
-        return 'pro';
+        if (amount >= PRO_THRESHOLD) {
+          console.log(`${LOG_PREFIX} active_patron with amount=${amount} >= ${PRO_THRESHOLD} -> pro`);
+          return 'pro';
+        }
+        console.log(`${LOG_PREFIX} active_patron with amount=${amount} < ${PRO_THRESHOLD} -> free`);
+        return 'free';
       }
 
-      // If current entitled amount is present and >0, use threshold to split pro/premium
+      // If current entitled amount is present, use thresholds to split pro/premium
       if (typeof attrs.currently_entitled_amount_cents === 'number' && attrs.currently_entitled_amount_cents > 0) {
         const amount = attrs.currently_entitled_amount_cents;
         if (amount >= PREMIUM_THRESHOLD) {
           console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
           return 'premium';
         }
-        console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} -> pro`);
-        return 'pro';
+        if (amount >= PRO_THRESHOLD) {
+          console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} >= ${PRO_THRESHOLD} -> pro`);
+          return 'pro';
+        }
+        console.log(`${LOG_PREFIX} currently_entitled_amount_cents=${amount} < ${PRO_THRESHOLD} -> free`);
+        return 'free';
       }
 
       // Gifted membership: pledge_relationship_start exists but amount may be 0 or missing.
       if (attrs.pledge_relationship_start) {
-        // Try to detect any gift-related amount-like fields
         const possibleAmount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
         if (possibleAmount > 0) {
           if (possibleAmount >= PREMIUM_THRESHOLD) {
             console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> premium`);
             return 'premium';
           }
-          console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> pro`);
-          return 'pro';
+          if (possibleAmount >= PRO_THRESHOLD) {
+            console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> pro`);
+            return 'pro';
+          }
+          console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} < ${PRO_THRESHOLD} -> free`);
+          return 'free';
         }
 
         // No amount available. Fall back to configured default for gifts.
