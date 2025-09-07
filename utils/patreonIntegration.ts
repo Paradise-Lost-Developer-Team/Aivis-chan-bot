@@ -277,6 +277,15 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
       // Active patron: prefer amount thresholds if available
       if (attrs.patron_status === 'active_patron') {
         const amount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+        // If amount is zero but pledge_relationship_start is present, treat as gift and use gift default.
+        if (amount === 0 && attrs.pledge_relationship_start) {
+          if (GIFT_DEFAULT === 'premium') {
+            console.log(`${LOG_PREFIX} active_patron gift detected (amount=0) - using configured default -> premium`);
+            return 'premium';
+          }
+          console.log(`${LOG_PREFIX} active_patron gift detected (amount=0) - using configured default -> pro`);
+          return 'pro';
+        }
         if (amount >= PREMIUM_THRESHOLD) {
           console.log(`${LOG_PREFIX} active_patron with amount=${amount} >= ${PREMIUM_THRESHOLD} -> premium`);
           return 'premium';
@@ -306,7 +315,32 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
 
       // Gifted membership: pledge_relationship_start exists but amount may be 0 or missing.
       if (attrs.pledge_relationship_start) {
-        const possibleAmount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+        let possibleAmount = typeof attrs.currently_entitled_amount_cents === 'number' ? attrs.currently_entitled_amount_cents : 0;
+
+        // If amount is zero, try to fetch the member resource by id for more details
+        if (possibleAmount === 0) {
+          try {
+            const memberId = (item && (item as any).id) || null;
+            if (memberId) {
+              const detailUrl = `https://www.patreon.com/api/oauth2/v2/members/${encodeURIComponent(memberId)}?fields[member]=currently_entitled_amount_cents`;
+              console.log(`${LOG_PREFIX} attempting member detail fetch for gift memberId=${memberId}`);
+              const detailRes = await axios.get(detailUrl, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
+              // Try several shapes: detailRes.data.data.attributes or detailRes.data.attributes
+              const d: any = detailRes.data;
+              const detailAttrs = (d && d.data && d.data.attributes) || (d && d.attributes) || {};
+              if (typeof detailAttrs.currently_entitled_amount_cents === 'number') {
+                possibleAmount = detailAttrs.currently_entitled_amount_cents;
+                console.log(`${LOG_PREFIX} member detail returned amount=${possibleAmount}`);
+              } else {
+                console.log(`${LOG_PREFIX} member detail did not contain amount`);
+              }
+            }
+          } catch (e) {
+            const ee: any = e;
+            console.log(`${LOG_PREFIX} member detail fetch failed: ${ee?.message || ee}`);
+          }
+        }
+
         if (possibleAmount > 0) {
           if (possibleAmount >= PREMIUM_THRESHOLD) {
             console.log(`${LOG_PREFIX} gift with amount=${possibleAmount} -> premium`);
@@ -320,12 +354,12 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
           return 'free';
         }
 
-        // No amount available. Fall back to configured default for gifts.
+        // No amount available after extra fetch. Fall back to configured default for gifts.
         if (GIFT_DEFAULT === 'premium') {
-          console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - using configured default -> premium`);
+          console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - no amount found, using configured default -> premium`);
           return 'premium';
         }
-        console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - using configured default -> pro`);
+        console.log(`${LOG_PREFIX} gift detected (pledge_relationship_start) - no amount found, using configured default -> pro`);
         return 'pro';
       }
     }
