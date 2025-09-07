@@ -150,7 +150,10 @@ export async function getUserTier(discordId: string): Promise<string> {
     }
   }
 
-  if (!user) return 'free';
+  if (!user) {
+    console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: free (no user)`);
+    return 'free';
+  }
 
   // トークンが期限切れならリフレッシュを試みる
   if (user.expiresAt < Date.now()) {
@@ -174,6 +177,7 @@ export async function getUserTier(discordId: string): Promise<string> {
     console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
   }
 
+  console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: ${user.tier}`);
   return user.tier;
 }
 
