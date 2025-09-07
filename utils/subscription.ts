@@ -78,7 +78,26 @@ export function loadSubscriptions(): SubscriptionData {
         }
         
         const data = fs.readFileSync(SUBSCRIPTION_FILE_PATH, 'utf8');
-        return JSON.parse(data);
+        const parsed: SubscriptionData = JSON.parse(data);
+        // 期限切れのサブスクリプションを自動で削除して永続化を整える
+        let changed = false;
+        const now = Date.now();
+        for (const gid of Object.keys(parsed)) {
+            const entry = parsed[gid];
+            if (!entry || typeof entry.expiresAt !== 'number' || entry.expiresAt <= now) {
+                // 期限切れ、または無効なエントリは削除
+                delete parsed[gid];
+                changed = true;
+            }
+        }
+        if (changed) {
+            try {
+                saveSubscriptions(parsed);
+            } catch (e) {
+                console.error('期限切れサブスクリプションの削除中に保存エラー:', e);
+            }
+        }
+        return parsed;
     } catch (error) {
         console.error('サブスクリプションデータ読み込みエラー:', error);
         logError('subscriptionLoadError', error instanceof Error ? error : new Error(String(error)));
