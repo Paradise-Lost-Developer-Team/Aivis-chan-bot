@@ -46,8 +46,8 @@ spec:
               cpu: "1000m"
               nvidia.com/gpu: "1"
             limits:
-              memory: "4Gi"
-              cpu: "2000m"
+              memory: "8Gi"
+              cpu: "4000m"
               nvidia.com/gpu: "1"
           volumeMounts:
             - name: aivisspeech-data
