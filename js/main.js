@@ -483,7 +483,7 @@ class AivisWebsite {
                 totalServers: 0,
                 totalUsers: 0,
                 totalVcUsers: 0,
-                averageUptime: 0,
+                totalshards: 0,
                 onlineBots: 0,
                 totalBots: Object.keys(botIdToName).length
             };
@@ -497,7 +497,7 @@ class AivisWebsite {
                 const serverCount = Number.isFinite(Number(botData.server_count)) ? Number(botData.server_count) : 0;
                 const userCount = Number.isFinite(Number(botData.user_count)) ? Number(botData.user_count) : 0;
                 const vcCount = Number.isFinite(Number(botData.vc_count)) ? Number(botData.vc_count) : 0;
-                const uptime = Number.isFinite(Number(botData.uptime)) ? Number(botData.uptime) : 0;
+                const shardCount = Number.isFinite(Number(botData.shard_count)) ? Number(botData.shard_count) : 0;
                 const status = {
                     botId,
                     name,
@@ -506,24 +506,17 @@ class AivisWebsite {
                     serverCount,
                     userCount,
                     vcCount,
-                    uptime
+                    shardCount
                 };
                 botStatuses.push(status);
                 if (isOnline) {
                     allStats.totalServers += serverCount;
                     allStats.totalUsers += userCount;
                     allStats.totalVcUsers += vcCount;
+                    allStats.totalshards += shardCount;
                     allStats.onlineBots++;
                 }
             });
-
-            // 平均稼働率を計算
-            if (allStats.onlineBots > 0) {
-                const uptimeSum = botStatuses
-                    .filter(bot => bot.online)
-                    .reduce((sum, bot) => sum + bot.uptime, 0);
-                allStats.averageUptime = uptimeSum / allStats.onlineBots;
-            }
 
             console.log('📈 Calculated stats:', allStats);
 
@@ -535,7 +528,7 @@ class AivisWebsite {
                 serverCount: allStats.totalServers,
                 userCount: allStats.totalUsers,
                 vcCount: allStats.totalVcUsers,
-                uptime: allStats.averageUptime,
+                shardCount: allStats.totalshards,
                 status: 'online'
             });
 
@@ -557,14 +550,14 @@ class AivisWebsite {
                 serverCount: 0,
                 userCount: 0,
                 vcCount: 0,
-                uptime: 0,
+                shardCount: 0,
                 status: 'offline'
             });
             this.updateDetailedBotStatus([], {
                 totalServers: 0,
                 totalUsers: 0,
                 totalVcUsers: 0,
-                averageUptime: 0,
+                totalshards: 0,
                 onlineBots: 0,
                 totalBots: 0
             });
@@ -607,7 +600,7 @@ class AivisWebsite {
                         statValues[3].textContent = (bot.vcCount || 0).toLocaleString();
                     }
                     
-                    console.log(`Stats updated: servers=${statValues[0].textContent}, users=${statValues[1].textContent}, uptime=${statValues[2].textContent}, vc=${statValues[3] ? statValues[3].textContent : 'N/A'}`);
+                    console.log(`Stats updated: servers=${statValues[0].textContent}, users=${statValues[1].textContent}, shards=${statValues[2].textContent}, vc=${statValues[3] ? statValues[3].textContent : 'N/A'}`);
                 }
                 
                 // 招待ボタンがあれば更新
@@ -692,13 +685,13 @@ class AivisWebsite {
         console.log('🔢 Setting up hero statistics...');
 
         // 初期値を直接0でセット（NaN点滅防止・HTML初期値補正）
-        const statIds = ['total-servers', 'total-users', 'total-vc-users', 'total-uptime'];
+        const statIds = ['total-servers', 'total-users', 'total-vc-users', 'total-shard'];
         statIds.forEach(id => {
             let el = document.getElementById(id)
                 || document.querySelector(`[data-api="${id}"]`)
                 || document.querySelector(`.${id}`);
             if (el) {
-                el.textContent = (id === 'total-uptime') ? '0.0' : '0';
+                el.textContent = (id === 'total-shard') ? '0.0' : '0';
             }
         });
 
@@ -735,18 +728,16 @@ class AivisWebsite {
                 return;
             }
 
-            let servers = 0, users = 0, vcUsers = 0, shardSum = 0, uptimeSum = 0;
+            let servers = 0, users = 0, vcUsers = 0, shardSum = 0
             botStatuses.forEach(bot => {
                 let s = Number.isFinite(Number(bot.serverCount)) ? Number(bot.serverCount) : 0;
                 let u = Number.isFinite(Number(bot.userCount)) ? Number(bot.userCount) : 0;
                 let v = Number.isFinite(Number(bot.vcCount)) ? Number(bot.vcCount) : 0;
                 let sh = Number.isFinite(Number(bot.shardCount)) ? Number(bot.shardCount) : 0;
-                let up = Number.isFinite(Number(bot.uptime)) ? Number(bot.uptime) : 0;
                 servers += s;
                 users += u;
                 vcUsers += v;
                 shardSum += sh;
-                uptimeSum += up;
             });
 
             const count = botStatuses.length;
@@ -754,20 +745,17 @@ class AivisWebsite {
             const avgUsers = count > 0 ? users / count : 0;
             const avgVcUsers = count > 0 ? vcUsers / count : 0;
             const avgShards = count > 0 ? shardSum / count : 0;
-            const avgUptime = count > 0 ? uptimeSum / count : 0;
 
             let dispServers = Number.isFinite(avgServers) ? Math.round(avgServers) : 0;
             let dispUsers = Number.isFinite(avgUsers) ? Math.round(avgUsers) : 0;
             let dispVcUsers = Number.isFinite(avgVcUsers) ? Math.round(avgVcUsers) : 0;
             let dispShards = Number.isFinite(avgShards) ? Math.round(avgShards) : 0;
-            let dispUptime = Number.isFinite(avgUptime) ? avgUptime.toFixed(1) : '0.0';
 
             // NaN補正
             dispServers = isNaN(dispServers) ? 0 : dispServers;
             dispUsers = isNaN(dispUsers) ? 0 : dispUsers;
             dispVcUsers = isNaN(dispVcUsers) ? 0 : dispVcUsers;
             dispShards = isNaN(dispShards) ? 0 : dispShards;
-            dispUptime = isNaN(Number(dispUptime)) ? 0 : Number(dispUptime);
 
             this.animateHeroStat('total-servers', dispServers);
             this.animateHeroStat('total-users', dispUsers);
@@ -778,7 +766,7 @@ class AivisWebsite {
                 dispServers,
                 dispUsers,
                 dispVcUsers,
-                dispUptime
+                dispShards
             });
         } catch (error) {
             // キャッシュ取得失敗時も必ず0で補正
@@ -786,7 +774,7 @@ class AivisWebsite {
             this.animateHeroStat('total-servers', 0);
             this.animateHeroStat('total-users', 0);
             this.animateHeroStat('total-vc-users', 0);
-            this.animateHeroStat('total-uptime', 0);
+            this.animateHeroStat('total-shard', 0);
         }
     }
 
@@ -822,7 +810,7 @@ class AivisWebsite {
         if (text === undefined || text === null || text === '' || text === 'NaN' || isNaN(Number(text))) text = '0';
 
         let currentValue;
-        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+        if (elementId === 'total-shard' || elementId.includes('shard')) {
             currentValue = parseFloat(text);
             if (!Number.isFinite(currentValue) || isNaN(currentValue)) currentValue = 0;
             // 値が同じなら何もしない
@@ -841,7 +829,7 @@ class AivisWebsite {
         this._heroStatCooldowns[elementId] = now;
 
         // 表示値を更新（NaN防止）
-        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+        if (elementId === 'total-shard' || elementId.includes('shard')) {
             targetElement.textContent = (Number.isFinite(safeValue) && !isNaN(safeValue)) ? safeValue.toFixed(1) : '0.0';
         } else {
             targetElement.textContent = (Number.isFinite(safeValue) && !isNaN(safeValue)) ? Math.round(safeValue).toLocaleString() : '0';
@@ -854,7 +842,7 @@ function animateElement(element, targetValue, elementId) {
     if (!element) return;
     let startValue;
     // 現在の値がNaNの場合は0にする
-    if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+    if (elementId === 'total-shard' || elementId.includes('shard')) {
         startValue = parseFloat(element.textContent);
         if (!Number.isFinite(startValue)) startValue = 0;
     } else {
@@ -878,7 +866,7 @@ function animateElement(element, targetValue, elementId) {
         // NaN防止
         if (!Number.isFinite(value)) value = 0;
 
-        if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+        if (elementId === 'total-shard' || elementId.includes('shard')) {
             element.textContent = (!isNaN(value)) ? value.toFixed(1) : '0.0';
         } else {
             element.textContent = (!isNaN(value)) ? Math.round(value).toLocaleString() : '0';
@@ -888,7 +876,7 @@ function animateElement(element, targetValue, elementId) {
             requestAnimationFrame(animate);
         } else {
             // 最終値で上書き
-            if (elementId === 'total-uptime' || elementId.includes('uptime')) {
+            if (elementId === 'total-shard' || elementId.includes('shard')) {
                 element.textContent = (!isNaN(endValue)) ? endValue.toFixed(1) : '0.0';
             } else {
                 element.textContent = (!isNaN(endValue)) ? Math.round(endValue).toLocaleString() : '0';

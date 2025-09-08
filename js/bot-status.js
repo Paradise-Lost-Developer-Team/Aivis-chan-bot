@@ -12,6 +12,7 @@ async function fetchDiscordBotStats(botId) {
                     serverCount: statsData.server_count || 0,
                     userCount: statsData.user_count || 0,
                     vcCount: statsData.vc_count || 0,
+                    shardCount: statsData.shard_count || statsData.shardCount || 0,
                     uptime: statsData.uptime || 0,
                     lastUpdate: new Date().toISOString()
                 };
@@ -30,6 +31,7 @@ async function fetchDiscordBotStats(botId) {
                     serverCount: widget?.presence_count ?? 0,
                     userCount: widget?.members?.length ?? 0,
                     vcCount: widget?.presence_count ?? 0,
+                    shardCount: widget?.shard_count ?? null,
                     uptime: null,
                     lastUpdate: new Date().toISOString()
                 };
@@ -123,7 +125,7 @@ async function updateBotStatus() {
                 if (bot.serverCount === null) {
                     statValues[0].textContent = '取得中...'; // サーバー数
                     statValues[1].textContent = '取得中...'; // ユーザー数
-                    statValues[2].textContent = '取得中...'; // 稼働率
+                    statValues[2].textContent = '取得中...'; // シャード数
                     statValues[3].textContent = '取得中...'; // VC接続数
                 } else {
                     let safeServer = bot.serverCount;
@@ -134,9 +136,9 @@ async function updateBotStatus() {
                     if (safeUser === undefined || safeUser === null || safeUser === '' || (typeof safeUser === 'number' && !Number.isFinite(safeUser)) || (typeof safeUser === 'string' && safeUser === 'NaN')) safeUser = '0';
                     statValues[1].textContent = safeUser; // ユーザー数
                     
-                    let safeUptime = bot.uptime;
-                    if (safeUptime === undefined || safeUptime === null || safeUptime === '' || (typeof safeUptime === 'number' && !Number.isFinite(safeUptime)) || (typeof safeUptime === 'string' && safeUptime === 'NaN')) safeUptime = '0';
-                    statValues[2].textContent = `${safeUptime}%`; // 稼働率
+                    let safeShard = bot.shardCount;
+                    if (safeShard === undefined || safeShard === null || safeShard === '' || (typeof safeShard === 'number' && !Number.isFinite(safeShard)) || (typeof safeShard === 'string' && safeShard === 'NaN')) safeShard = '0';
+                    statValues[2].textContent = safeShard; // シャード数
                     
                     let safeVc = bot.vcCount;
                     if (safeVc === undefined || safeVc === null || safeVc === '' || (typeof safeVc === 'number' && !Number.isFinite(safeVc)) || (typeof safeVc === 'string' && safeVc === 'NaN')) safeVc = '0';
