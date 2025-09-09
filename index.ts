@@ -266,37 +266,17 @@ client.on("guildCreate", async (guild) => {
 // --- サーバー数・VC数API ---
 const apiApp = express();
 import { Request, Response } from 'express';
-apiApp.get('/api/stats', async (req: Request, res: Response) => {
-    try {
-        const serverCount = client.guilds.cache.size;
-        const vcCount = client.voice.adapters.size;
-        // 全サーバーのメンバー数合計
-        const userCount = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount ?? 0), 0);
+apiApp.get('/api/stats', (req: Request, res: Response) => {
+    const serverCount = client.guilds.cache.size;
+    const vcCount = client.voice.adapters.size;
+    // 全サーバーのメンバー数合計
+    const userCount = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount ?? 0), 0);
+    // シャード数（shard情報があれば）
+    const shardCount = client.shard?.count ?? 1;
+    // 稼働率: ボイスチャンネル接続数 ÷ サーバー数（%表示）
+    const uptimeRate = serverCount > 0 ? Math.round((vcCount / serverCount) * 100) : 0;
 
-        // シャード情報が null の可能性があるため安全に扱う
-        let shardCount = 1;
-        let totalShards = 1;
-
-        if (client.shard) {
-            shardCount = client.shard.count ?? 1;
-            try {
-                const results = await client.shard.broadcastEval(() => 1);
-                if (Array.isArray(results) && results.length > 0) {
-                    totalShards = results.reduce((acc, val) => acc + (typeof val === 'number' ? val : Number(val)), 0);
-                } else {
-                    totalShards = shardCount;
-                }
-            } catch (e) {
-                console.warn('シャード集計に失敗しました、デフォルト値を使用します:', e);
-                totalShards = shardCount;
-            }
-        }
-
-        res.json({ serverCount, userCount, shardCount, totalShards, vcCount });
-    } catch (err) {
-        console.error('Stats API エラー:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    res.json({ serverCount, userCount, shardCount, vcCount, uptimeRate });
 });
 apiApp.listen(3002, () => {
     console.log('Stats APIサーバーがポート3002で起動しました');
