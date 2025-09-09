@@ -28,14 +28,34 @@ function clusterUrl(svcName, port) {
   return `http://${svcName}.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:${port}/api/stats`;
 }
 
-const SERVICE_PORT = parseInt(process.env.BOT_SERVICE_PORT || '3000', 10);
+// --- Per Bot Port Mapping ---
+// 実際: 1台目～6台目 = 3002～3007
+// 環境変数で個別上書き可能 (BOT_1ST_PORT など) / あるいは BOT_BASE_PORT で連番開始指定
+const BOT_BASE_PORT = parseInt(process.env.BOT_BASE_PORT || '3002', 10);
+// 旧互換: BOT_SERVICE_PORT が指定され、個別ポート未指定の場合のみ fallback として利用
+const LEGACY_SERVICE_PORT = process.env.BOT_SERVICE_PORT ? parseInt(process.env.BOT_SERVICE_PORT, 10) : null;
+function resolvePort(envName, offset) {
+  if (process.env[envName]) return parseInt(process.env[envName], 10);
+  // 個別未指定で legacy が設定されている場合は legacy を使う（ただし base が変更されていれば base 優先）
+  if (LEGACY_SERVICE_PORT != null && BOT_BASE_PORT === 3002 && !process.env.BOT_BASE_PORT) return LEGACY_SERVICE_PORT; // 旧挙動維持条件
+  return BOT_BASE_PORT + offset;
+}
+const BOT_PORTS = {
+  main: resolvePort('BOT_1ST_PORT', 0),
+  second: resolvePort('BOT_2ND_PORT', 1),
+  third: resolvePort('BOT_3RD_PORT', 2),
+  fourth: resolvePort('BOT_4TH_PORT', 3),
+  fifth: resolvePort('BOT_5TH_PORT', 4),
+  sixth: resolvePort('BOT_6TH_PORT', 5)
+};
+
 const BOT_API_URLS = {
-  main: process.env.BOT_API_URL || clusterUrl('aivis-chan-bot-1st', SERVICE_PORT),
-  second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd', SERVICE_PORT),
-  third: process.env.BOT_API_URL_3RD || clusterUrl('aivis-chan-bot-3rd', SERVICE_PORT),
-  fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th', SERVICE_PORT),
-  fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th', SERVICE_PORT),
-  sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th', SERVICE_PORT),
+  main: process.env.BOT_API_URL     || clusterUrl('aivis-chan-bot-1st', BOT_PORTS.main),
+  second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd', BOT_PORTS.second),
+  third: process.env.BOT_API_URL_3RD || clusterUrl('aivis-chan-bot-3rd', BOT_PORTS.third),
+  fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th', BOT_PORTS.fourth),
+  fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th', BOT_PORTS.fifth),
+  sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th', BOT_PORTS.sixth),
 };
 
 // 追加: bot-stats-server サービス (集約専用マイクロサービス) への委譲設定
@@ -55,14 +75,49 @@ const BOT_ID_MAP = {
   '1365633656173101086': BOT_API_URLS.sixth
 };
 
+// --- Internal fetch helper with multi-path fallback & structured debug ---
+// Tries sequentially: /api/stats (existing supplied url), then /stats, then /metrics
+// You can override fallback list via BOT_STATS_FALLBACK_PATHS (comma separated relative paths beginning with /)
+async function fetchBotWithFallback(baseUrl, timeoutMs = 7000) {
+  const urlsTried = [];
+  const errors = [];
+  // If baseUrl already ends with /api/stats keep that first, then build alternates.
+  const parsed = new URL(baseUrl);
+  const origin = `${parsed.protocol}//${parsed.host}`;
+  const providedPath = parsed.pathname; // e.g. /api/stats
+  const defaultFallbacks = ['/stats', '/metrics'];
+  let candidatePaths = [providedPath];
+  const envExtra = process.env.BOT_STATS_FALLBACK_PATHS;
+  if (envExtra) {
+    const list = envExtra.split(',').map(s => s.trim()).filter(Boolean);
+    candidatePaths = Array.from(new Set([providedPath, ...list]));
+  } else {
+    // only add default fallbacks if not explicitly overridden
+    defaultFallbacks.forEach(p => { if (!candidatePaths.includes(p)) candidatePaths.push(p); });
+  }
+  for (const p of candidatePaths) {
+    const url = origin + p;
+    urlsTried.push(url);
+    try {
+      const r = await axios.get(url, { timeout: timeoutMs });
+      return { success: true, data: r.data, path_used: p, urls_tried: urlsTried, errors };
+    } catch (e) {
+      errors.push({ path: p, message: e.message, status: e?.response?.status });
+    }
+  }
+  return { success: false, data: null, path_used: null, urls_tried: urlsTried, errors };
+}
+
 // API: aggregated bot stats expected by front-end
 app.get('/api/bot-stats', async (req, res) => {
   let aggregatorError = null;
+  const wantDebug = String(req.query.debug || 'false').toLowerCase() === 'true';
   if (USE_BOT_STATS_SERVER) {
     try {
       const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
       const upstream = await axios.get(upstreamUrl, { timeout: 7000 });
       if (upstream?.data && Array.isArray(upstream.data.bots)) {
+        // そのまま返却（aggregator 経由）
         return res.json(Object.assign({ via: 'aggregator' }, upstream.data));
       } else {
         aggregatorError = 'unexpected upstream shape';
@@ -78,32 +133,30 @@ app.get('/api/bot-stats', async (req, res) => {
   const botEntries = Object.entries(BOT_ID_MAP);
   const axiosTimeout = 7000;
   const results = await Promise.all(botEntries.map(async ([botId, url]) => {
-    try {
-      const r = await axios.get(url, { timeout: axiosTimeout });
-      const d = r.data || {};
-      const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
-      const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
-      const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
-      const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
-      const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
-      const online = d.online ?? d.is_online ?? (server_count > 0);
-      return Object.assign({ bot_id: botId, success: true }, { server_count, user_count, vc_count, uptime, shard_count, online });
-    } catch (err) {
-      const status = err?.response?.status;
-      const respBody = err?.response?.data;
-      let briefBody = '';
-      try {
-        briefBody = typeof respBody === 'string' ? respBody.slice(0, 500) : JSON.stringify(respBody).slice(0, 500);
-      } catch (e) {
-        briefBody = String(respBody).slice(0, 500);
-      }
-      console.warn(`Failed to fetch stats for ${botId} from ${url}: ${err.message} status=${status} body=${briefBody}`);
-      return { bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody };
+    const fetched = await fetchBotWithFallback(url, axiosTimeout);
+    if (!fetched.success) {
+      return {
+        bot_id: botId,
+        success: false,
+        error: 'fetch_failed',
+        fetch_errors: fetched.errors,
+        urls_tried: fetched.urls_tried
+      };
     }
+    const d = fetched.data || {};
+    const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
+    const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
+    const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
+    const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
+    const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
+    const online = d.online ?? d.is_online ?? (server_count > 0);
+    return Object.assign({ bot_id: botId, success: true, path_used: fetched.path_used }, { server_count, user_count, vc_count, uptime, shard_count, online });
   }));
   const total_bots = results.length;
   const online_bots = results.filter(r => r.success && r.online).length;
-  return res.json({ bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true, aggregator_error: aggregatorError });
+  const payload = { bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true, aggregator_error: aggregatorError };
+  if (wantDebug) payload.debug = { bot_namespace: BOT_NAMESPACE, base_port: BOT_BASE_PORT, per_bot_ports: BOT_PORTS, legacy_service_port: LEGACY_SERVICE_PORT, stats_server: BOT_STATS_SERVER_BASE, use_aggregator: USE_BOT_STATS_SERVER };
+  return res.json(payload);
 });
 
 // API: single bot stats by botId
@@ -121,15 +174,18 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
   const url = BOT_ID_MAP[botId];
   if (!url) return res.status(404).json({ error: 'unknown bot id' });
   try {
-    const r = await axios.get(url, { timeout: 7000 });
-    const d = r.data || {};
+    const fetched = await fetchBotWithFallback(url, 7000);
+    if (!fetched.success) {
+      return res.status(502).json({ bot_id: botId, success: false, error: 'fetch_failed', fetch_errors: fetched.errors, urls_tried: fetched.urls_tried, fallback: true });
+    }
+    const d = fetched.data || {};
     const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
     const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
     const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
     const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
     const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
     const online = d.online ?? d.is_online ?? (server_count > 0);
-    return res.json(Object.assign({ bot_id: botId, success: true, fallback: true }, { server_count, user_count, vc_count, uptime, shard_count, online }));
+    return res.json(Object.assign({ bot_id: botId, success: true, fallback: true, path_used: fetched.path_used }, { server_count, user_count, vc_count, uptime, shard_count, online }));
   } catch (err) {
     const status = err?.response?.status;
     const respBody = err?.response?.data;
@@ -142,6 +198,16 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
     console.warn(`Failed to fetch stats for ${botId} from ${url}: ${err.message} status=${status} body=${briefBody}`);
     return res.status(502).json({ bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody, fallback: true });
   }
+});
+
+// Debug endpoint: returns current config & raw attempt (without caching)
+app.get('/api/debug-bot-stats', async (req, res) => {
+  const axiosTimeout = 5000;
+  const detail = await Promise.all(Object.entries(BOT_ID_MAP).map(async ([botId, url]) => {
+    const fetched = await fetchBotWithFallback(url, axiosTimeout);
+    return { bot_id: botId, url, fetched };
+  }));
+  res.json({ namespace: BOT_NAMESPACE, base_port: BOT_BASE_PORT, per_bot_ports: BOT_PORTS, legacy_service_port: LEGACY_SERVICE_PORT, aggregator: BOT_STATS_SERVER_BASE, use_aggregator: USE_BOT_STATS_SERVER, detail });
 });
 
 app.get('/bot-stats', async (req, res) => {

@@ -473,7 +473,8 @@ class AivisWebsite {
         try {
             // 実際のAPIから統計情報を取得
             const apiBaseUrl = getApiBaseUrl();
-            const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
+            const debugFlag = /[?&]debugBots=1/.test(window.location.search);
+            const response = await fetch(`${apiBaseUrl}/api/bot-stats${debugFlag ? '?debug=true' : ''}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -485,6 +486,9 @@ class AivisWebsite {
             }
 
             const apiData = await response.json();
+            if (debugFlag) {
+                console.log('[DEBUG] aggregated payload (raw):', apiData);
+            }
             // APIレスポンスjsonを保存・上書き
             this._latestBotApiResponse = apiData;
             console.log('📊 API data received:', apiData);
@@ -507,6 +511,9 @@ class AivisWebsite {
                 const botId = botData.bot_id;
                 const name = botIdToName[botId] || `Bot (${botId})`;
                 const isOnline = botData.success && botData.online;
+                if (!botData.success && debugFlag) {
+                    console.warn('[DEBUG] bot fetch failed', botId, botData);
+                }
                 const serverCount = Number.isFinite(Number(botData.server_count)) ? Number(botData.server_count) : 0;
                 const userCount = Number.isFinite(Number(botData.user_count)) ? Number(botData.user_count) : 0;
                 const vcCount = Number.isFinite(Number(botData.vc_count)) ? Number(botData.vc_count) : 0;
