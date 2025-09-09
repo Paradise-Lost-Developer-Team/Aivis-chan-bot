@@ -176,13 +176,17 @@ async function initializeBotClients() {
 async function fetchBotStatistics(botId) {
     try {
         const axios = require('axios');
+        // Namespace が異なるため service 短縮名では解決できない問題 (Plan B):
+        //  各 Bot Service は namespace aivis-chan-bot 内で port 3000 を公開。
+        //  既存コードは 32001 〜 32006 など未定義ポートを参照していたため 0 件となっていた。
+        //  FQDN (service.namespace.svc.cluster.local) + :3000/api/stats に統一。
         const botApiMap = {
-            '1333819940645638154': 'http://aivis-chan-bot-1st:32001/api/stats',
-            '1334732369831268352': 'http://aivis-chan-bot-2nd:32002/api/stats',
-            '1334734681656262770': 'http://aivis-chan-bot-3rd:32003/api/stats',
-            '1365633502988472352': 'http://aivis-chan-bot-4th:32004/api/stats',
-            '1365633586123771934': 'http://aivis-chan-bot-5th:32005/api/stats',
-            '1365633656173101086': 'http://aivis-chan-bot-6th:32006/api/stats'
+            '1333819940645638154': 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3000/api/stats',
+            '1334732369831268352': 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3000/api/stats',
+            '1334734681656262770': 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3000/api/stats',
+            '1365633502988472352': 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3000/api/stats',
+            '1365633586123771934': 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3000/api/stats',
+            '1365633656173101086': 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3000/api/stats'
         };
         const apiUrl = botApiMap[botId];
         if (!apiUrl) {
