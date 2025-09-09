@@ -1,6 +1,22 @@
 // Aivis-chan Bot メインサイト JavaScript
 console.log('main.js version: 20250909');
 
+// APIベースURLを動的に決定（クラスタ内部 / 外部ドメイン両対応）
+function getApiBaseUrl() {
+    try {
+        const h = window.location.hostname;
+        // K8s 内部 Pod / Service 直接アクセス時
+        if (h === 'aivis-chan-bot-web.aivis-chan-bot-web' || h === 'aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local') {
+            return 'http://aivis-chan-bot-web.aivis-chan-bot-web:3001';
+        }
+        return window.location.protocol + '//' + h;
+    } catch (e) {
+        console.warn('getApiBaseUrl fallback', e);
+        return '';
+    }
+}
+window.getApiBaseUrl = getApiBaseUrl; // 他スクリプトからも利用可
+
 class AivisWebsite {
     constructor() {
         this.init();
@@ -456,10 +472,7 @@ class AivisWebsite {
 
         try {
             // 実際のAPIから統計情報を取得
-            const apiBaseUrl = window.location.hostname === 'aivis-chan-bot-web.aivis-chan-bot-web' || window.location.hostname === 'aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local'
-                ? 'http://aivis-chan-bot-web.aivis-chan-bot-web:3001'
-                : window.location.protocol + '//' + window.location.hostname;  // 同じドメインを使用
-                
+            const apiBaseUrl = getApiBaseUrl();
             const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {
                 method: 'GET',
                 headers: {
@@ -522,6 +535,10 @@ class AivisWebsite {
 
             // 最新のbotステータスを保存
             this._latestBotStatuses = botStatuses;
+            // 集約データを他スクリプトへ通知
+            try {
+                window.dispatchEvent(new CustomEvent('BotStatsAggregatedUpdate', { detail: { apiData, botStatuses, allStats } }));
+            } catch (e) { console.warn('dispatch BotStatsAggregatedUpdate failed', e); }
 
             // 統計情報を更新
             this.updateStatusDisplay({
