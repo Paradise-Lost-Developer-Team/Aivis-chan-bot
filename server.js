@@ -38,6 +38,12 @@ const BOT_API_URLS = {
   sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th', SERVICE_PORT),
 };
 
+// 追加: bot-stats-server サービス (集約専用マイクロサービス) への委譲設定
+// 例: Service 名: bot-stats-server (Port: 3000) -> http://bot-stats-server.<namespace>.svc.cluster.local:3000
+const BOT_STATS_SERVER_BASE = process.env.BOT_STATS_SERVER_URL || `http://bot-stats-server.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:3000`;
+// 強制無効化したい場合は USE_BOT_STATS_SERVER=false を指定
+const USE_BOT_STATS_SERVER = String(process.env.USE_BOT_STATS_SERVER || 'true').toLowerCase() !== 'false';
+
 // Map known bot IDs (used by frontend) to the internal BOT_API_URLS entries
 const BOT_ID_MAP = {
   '1333819940645638154': BOT_API_URLS.main,
@@ -50,23 +56,34 @@ const BOT_ID_MAP = {
 
 // API: aggregated bot stats expected by front-end
 app.get('/api/bot-stats', async (req, res) => {
+  // まず bot-stats-server への委譲を試みる
+  if (USE_BOT_STATS_SERVER) {
+    try {
+      const upstream = await axios.get(`${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`, { timeout: 7000 });
+      if (upstream?.data && Array.isArray(upstream.data.bots)) {
+        return res.json(upstream.data); // 期待形式そのまま返す
+      } else {
+        console.warn('[bot-stats] unexpected upstream shape from bot-stats-server, falling back');
+      }
+    } catch (e) {
+      console.warn('[bot-stats] bot-stats-server fetch failed, fallback to direct multi-fetch:', e.message);
+    }
+  }
+
+  // フォールバック: 旧ロジック (各 Bot Service へ直接並列アクセス)
   const botEntries = Object.entries(BOT_ID_MAP);
   const axiosTimeout = 7000;
-
   const results = await Promise.all(botEntries.map(async ([botId, url]) => {
     try {
-  const r = await axios.get(url, { timeout: axiosTimeout });
-  // Normalize upstream bot fields (accept camelCase and snake_case)
-  const d = r.data || {};
-  const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
-  const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
-  const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
-  const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
-  const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
-  const online = d.online ?? d.is_online ?? (server_count > 0);
-
-  // ensure returned shape includes bot_id for frontend (use snake_case keys)
-  return Object.assign({ bot_id: botId, success: true }, { server_count, user_count, vc_count, uptime, shard_count, online });
+      const r = await axios.get(url, { timeout: axiosTimeout });
+      const d = r.data || {};
+      const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
+      const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
+      const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
+      const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
+      const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
+      const online = d.online ?? d.is_online ?? (server_count > 0);
+      return Object.assign({ bot_id: botId, success: true }, { server_count, user_count, vc_count, uptime, shard_count, online });
     } catch (err) {
       const status = err?.response?.status;
       const respBody = err?.response?.data;
@@ -83,8 +100,7 @@ app.get('/api/bot-stats', async (req, res) => {
 
   const total_bots = results.length;
   const online_bots = results.filter(r => r.success && r.online).length;
-
-  return res.json({ bots: results, total_bots, online_bots, timestamp: new Date().toISOString() });
+  return res.json({ bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true });
 });
 
 // API: single bot stats by botId

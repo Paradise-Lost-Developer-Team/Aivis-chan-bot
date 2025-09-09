@@ -1,5 +1,5 @@
 // Aivis-chan Bot メインサイト JavaScript
-console.log('main.js version: 20250721');
+console.log('main.js version: 20250909');
 
 class AivisWebsite {
     constructor() {
@@ -456,8 +456,8 @@ class AivisWebsite {
 
         try {
             // 実際のAPIから統計情報を取得
-            const apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3001'
+            const apiBaseUrl = window.location.hostname === 'aivis-chan-bot-web.aivis-chan-bot-web' || window.location.hostname === 'aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local'
+                ? 'http://aivis-chan-bot-web.aivis-chan-bot-web:3001'
                 : window.location.protocol + '//' + window.location.hostname;  // 同じドメインを使用
                 
             const response = await fetch(`${apiBaseUrl}/api/bot-stats`, {

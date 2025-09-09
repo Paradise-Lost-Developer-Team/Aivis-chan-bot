@@ -3,8 +3,8 @@
 
 const API_CONFIG = {
     // APIベースURL - 実際のサーバーアドレスに変更
-    baseURL: 'http://mcserver:50021', // AivisSpeech Engine のデフォルトポート
-    
+    baseURL: 'http://aivisspeech-engine.aivis-chan-bot:10101', // AivisSpeech Engine のデフォルトポート
+
     // エンドポイント設定
     endpoints: {
         // AivisSpeech Engine エンドポイント
