@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 // Bot APIから統計データを取得して返すエンドポイント
 // デフォルトではクラスタ内部DNS（FQDN）を使うようにする。
 // 必要であれば環境変数で個別に上書き可能。
-const BOT_NAMESPACE = process.env.BOT_NAMESPACE || 'default';
+const BOT_NAMESPACE = process.env.BOT_NAMESPACE || 'aivis-chan-bot-web';
 const CLUSTER_DOMAIN = process.env.CLUSTER_DOMAIN || 'svc.cluster.local';
 
 function clusterUrl(svcName, port) {
@@ -39,8 +39,9 @@ const BOT_API_URLS = {
 };
 
 // 追加: bot-stats-server サービス (集約専用マイクロサービス) への委譲設定
-// 例: Service 名: bot-stats-server (Port: 3000) -> http://bot-stats-server.<namespace>.svc.cluster.local:3000
-const BOT_STATS_SERVER_BASE = process.env.BOT_STATS_SERVER_URL || `http://bot-stats-server.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:3000`;
+// 例: Service 名: bot-stats-server (Port: BOT_STATS_SERVER_PORT=3000)
+const BOT_STATS_SERVER_PORT = process.env.BOT_STATS_SERVER_PORT || '3001';
+const BOT_STATS_SERVER_BASE = process.env.BOT_STATS_SERVER_URL || `http://bot-stats-server.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:${BOT_STATS_SERVER_PORT}`;
 // 強制無効化したい場合は USE_BOT_STATS_SERVER=false を指定
 const USE_BOT_STATS_SERVER = String(process.env.USE_BOT_STATS_SERVER || 'true').toLowerCase() !== 'false';
 
@@ -56,21 +57,24 @@ const BOT_ID_MAP = {
 
 // API: aggregated bot stats expected by front-end
 app.get('/api/bot-stats', async (req, res) => {
-  // まず bot-stats-server への委譲を試みる
+  let aggregatorError = null;
   if (USE_BOT_STATS_SERVER) {
     try {
-      const upstream = await axios.get(`${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`, { timeout: 7000 });
+      const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
+      const upstream = await axios.get(upstreamUrl, { timeout: 7000 });
       if (upstream?.data && Array.isArray(upstream.data.bots)) {
-        return res.json(upstream.data); // 期待形式そのまま返す
+        return res.json(Object.assign({ via: 'aggregator' }, upstream.data));
       } else {
+        aggregatorError = 'unexpected upstream shape';
         console.warn('[bot-stats] unexpected upstream shape from bot-stats-server, falling back');
       }
     } catch (e) {
-      console.warn('[bot-stats] bot-stats-server fetch failed, fallback to direct multi-fetch:', e.message);
+      aggregatorError = e.message || String(e);
+      console.warn('[bot-stats] bot-stats-server fetch failed, fallback to direct multi-fetch:', aggregatorError);
     }
   }
 
-  // フォールバック: 旧ロジック (各 Bot Service へ直接並列アクセス)
+  // fallback direct multi-fetch
   const botEntries = Object.entries(BOT_ID_MAP);
   const axiosTimeout = 7000;
   const results = await Promise.all(botEntries.map(async ([botId, url]) => {
@@ -97,27 +101,35 @@ app.get('/api/bot-stats', async (req, res) => {
       return { bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody };
     }
   }));
-
   const total_bots = results.length;
   const online_bots = results.filter(r => r.success && r.online).length;
-  return res.json({ bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true });
+  return res.json({ bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true, aggregator_error: aggregatorError });
 });
 
 // API: single bot stats by botId
 app.get('/api/bot-stats/:botId', async (req, res) => {
   const botId = req.params.botId;
+  // まず集約サーバー（有効なら）を利用
+  if (USE_BOT_STATS_SERVER) {
+    try {
+      const r = await axios.get(`${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats/${botId}`, { timeout: 7000 });
+      if (r?.data) return res.json(Object.assign({ via: 'aggregator' }, r.data));
+    } catch (e) {
+      console.warn(`[single-bot] aggregator fetch failed for ${botId}:`, e.message);
+    }
+  }
   const url = BOT_ID_MAP[botId];
   if (!url) return res.status(404).json({ error: 'unknown bot id' });
   try {
-  const r = await axios.get(url, { timeout: 7000 });
-  const d = r.data || {};
-  const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
-  const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
-  const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
-  const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
-  const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
-  const online = d.online ?? d.is_online ?? (server_count > 0);
-  return res.json(Object.assign({ bot_id: botId, success: true }, { server_count, user_count, vc_count, uptime, shard_count, online }));
+    const r = await axios.get(url, { timeout: 7000 });
+    const d = r.data || {};
+    const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
+    const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
+    const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
+    const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
+    const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
+    const online = d.online ?? d.is_online ?? (server_count > 0);
+    return res.json(Object.assign({ bot_id: botId, success: true, fallback: true }, { server_count, user_count, vc_count, uptime, shard_count, online }));
   } catch (err) {
     const status = err?.response?.status;
     const respBody = err?.response?.data;
@@ -128,7 +140,7 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
       briefBody = String(respBody).slice(0, 1000);
     }
     console.warn(`Failed to fetch stats for ${botId} from ${url}: ${err.message} status=${status} body=${briefBody}`);
-    return res.status(502).json({ bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody });
+    return res.status(502).json({ bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody, fallback: true });
   }
 });
 
