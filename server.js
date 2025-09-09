@@ -112,13 +112,19 @@ async function fetchBotWithFallback(baseUrl, timeoutMs = 7000) {
 app.get('/api/bot-stats', async (req, res) => {
   let aggregatorError = null;
   const wantDebug = String(req.query.debug || 'false').toLowerCase() === 'true';
+  const forceAggregator = String(req.query.forceAggregator || 'false').toLowerCase() === 'true';
+  const noFallback = forceAggregator || String(req.query.noFallback || 'false').toLowerCase() === 'true';
+
   if (USE_BOT_STATS_SERVER) {
     try {
       const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
+      const started = Date.now();
       const upstream = await axios.get(upstreamUrl, { timeout: 7000 });
+      const latencyMs = Date.now() - started;
       if (upstream?.data && Array.isArray(upstream.data.bots)) {
-        // そのまま返却（aggregator 経由）
-        return res.json(Object.assign({ via: 'aggregator' }, upstream.data));
+        const payload = Object.assign({ via: 'aggregator', aggregator_latency_ms: latencyMs }, upstream.data);
+        if (wantDebug) payload.debug = Object.assign(payload.debug||{}, { upstream_url: upstreamUrl });
+        return res.json(payload);
       } else {
         aggregatorError = 'unexpected upstream shape';
         console.warn('[bot-stats] unexpected upstream shape from bot-stats-server, falling back');
@@ -127,6 +133,10 @@ app.get('/api/bot-stats', async (req, res) => {
       aggregatorError = e.message || String(e);
       console.warn('[bot-stats] bot-stats-server fetch failed, fallback to direct multi-fetch:', aggregatorError);
     }
+  }
+
+  if (noFallback && aggregatorError) {
+    return res.status(502).json({ error: 'aggregator_failed', aggregator_error: aggregatorError, via: 'aggregator', fallback_attempted: false });
   }
 
   // fallback direct multi-fetch
@@ -208,6 +218,21 @@ app.get('/api/debug-bot-stats', async (req, res) => {
     return { bot_id: botId, url, fetched };
   }));
   res.json({ namespace: BOT_NAMESPACE, base_port: BOT_BASE_PORT, per_bot_ports: BOT_PORTS, legacy_service_port: LEGACY_SERVICE_PORT, aggregator: BOT_STATS_SERVER_BASE, use_aggregator: USE_BOT_STATS_SERVER, detail });
+});
+
+// Aggregator 直接テスト用: フォールバック無しで結果/失敗を返す
+app.get('/api/debug-aggregator', async (req, res) => {
+  if (!USE_BOT_STATS_SERVER) return res.status(400).json({ error: 'aggregator_disabled' });
+  const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
+  const started = Date.now();
+  try {
+    const r = await axios.get(upstreamUrl, { timeout: 7000 });
+    const latencyMs = Date.now() - started;
+    if (!r?.data) return res.status(502).json({ error: 'no_data', upstream_url: upstreamUrl });
+    return res.json({ upstream_url: upstreamUrl, latency_ms: latencyMs, data_shape: { bots: Array.isArray(r.data.bots), keys: Object.keys(r.data||{}) }, raw: r.data });
+  } catch (e) {
+    return res.status(502).json({ error: 'aggregator_request_failed', message: e.message, upstream_url: upstreamUrl });
+  }
 });
 
 app.get('/bot-stats', async (req, res) => {
