@@ -71,6 +71,47 @@ export function VoiceStateUpdate(client: Client) {
                     if (currentSpeaker[guildId] !== undefined) delete currentSpeaker[guildId];
                 } catch (err) {
                     console.error('[TempVC作成] 追従指示でエラー:', err);
+                    // フォールバック: Bot情報からDiscord上で実際にそのギルドに参加しているBotだけを選んで再試行
+                    try {
+                        const guild = member.guild;
+                        const infos2 = await getBotInfos();
+                        const eligibleByPresence = infos2.filter(i => {
+                            if (!i.ok) return false;
+                            // まずオーケストレータ側のguildIdsを信用する
+                            if (i.guildIds?.includes(guildId)) return true;
+                            // なければinfo.bot オブジェクトから考えられるDiscordユーザーIDを取り出して
+                            // ギルドに参加しているかを確認する
+                            const possibleIds: string[] = [];
+                            if (i.bot) {
+                                if (typeof i.bot === 'string') {
+                                    possibleIds.push(i.bot);
+                                } else {
+                                    // Collect any string-valued properties from the bot object,
+                                    // and also handle nested objects that might contain an `id` field.
+                                    const botObj = i.bot as any;
+                                    for (const val of Object.values(botObj)) {
+                                        if (typeof val === 'string') {
+                                            possibleIds.push(val);
+                                        } else if (val && typeof val === 'object' && typeof (val as any).id === 'string') {
+                                            possibleIds.push((val as any).id);
+                                        }
+                                    }
+                                }
+                            }
+                            return possibleIds.some(id => !!guild.members.cache.get(id));
+                        });
+                        const picked2 = pickLeastBusyBot(eligibleByPresence);
+                        if (picked2) {
+                            const autoJoinData2 = loadAutoJoinChannels()[guildId];
+                            const textChannelId2 = autoJoinData2?.textChannelId;
+                            await instructJoin(picked2.bot, { guildId, voiceChannelId: newState.channel.id, textChannelId: textChannelId2 });
+                            await sendAutoJoinEmbed(member, newState.channel, client, textChannelId2, picked2.bot.baseUrl);
+                        }
+                        // TTSの再生先を確実にリセット（本Botが選ばれた場合に備える）
+                        if (currentSpeaker[guildId] !== undefined) delete currentSpeaker[guildId];
+                    } catch (err2) {
+                        console.error('[TempVC作成] フォールバック選択でも失敗:', err2);
+                    }
                 } finally {
                     console.log(`[TempVC作成] 追従指示: ${oldState.channel.name} → ${newState.channel.name}`);
                 }
