@@ -467,7 +467,8 @@ class AivisWebsite {
             '1334734681656262770': 'Aivis-chan Bot 3台目',
             '1365633502988472352': 'Aivis-chan Bot 4台目',
             '1365633586123771934': 'Aivis-chan Bot 5台目',
-            '1365633656173101086': 'Aivis-chan Bot 6台目'
+            '1365633656173101086': 'Aivis-chan Bot 6台目',
+            '1415251855147008023': 'Aivis-chan Bot Pro/Premium'
         };
 
         try {

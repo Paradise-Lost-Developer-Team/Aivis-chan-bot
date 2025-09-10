@@ -57,7 +57,8 @@ const BOT_TOKENS = {
     '1334734681656262770': process.env.BOT_TOKEN_3,
     '1365633502988472352': process.env.BOT_TOKEN_4,
     '1365633586123771934': process.env.BOT_TOKEN_5,
-    '1365633656173101086': process.env.BOT_TOKEN_6
+    '1365633656173101086': process.env.BOT_TOKEN_6,
+    '1415251855147008023': process.env.BOT_TOKEN_7
 };
 
 // Discord.js クライアントの管理
@@ -74,7 +75,8 @@ async function generateMockData(botId) {
         '1334734681656262770': { servers: 156, users: 8200, uptime: 99.2, vcUsers: 6 },
         '1365633502988472352': { servers: 134, users: 7100, uptime: 99.7, vcUsers: 5 },
         '1365633586123771934': { servers: 112, users: 5900, uptime: 99.4, vcUsers: 4 },
-        '1365633656173101086': { servers: 98, users: 4800, uptime: 99.1, vcUsers: 3 }
+    '1365633656173101086': { servers: 98, users: 4800, uptime: 99.1, vcUsers: 3 },
+    '1415251855147008023': { servers: 40, users: 2000, uptime: 99.9, vcUsers: 2 }
     };
     
     const stats = mockStats[botId] || { servers: 50, users: 2500, uptime: 98.5, vcUsers: 2 };
@@ -186,7 +188,8 @@ async function fetchBotStatistics(botId) {
             '1334734681656262770': 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004/api/stats',
             '1365633502988472352': 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005/api/stats',
             '1365633586123771934': 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006/api/stats',
-            '1365633656173101086': 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007/api/stats'
+            '1365633656173101086': 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007/api/stats',
+            '1415251855147008023': 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012/api/stats'
         };
         const apiUrl = botApiMap[botId];
         if (!apiUrl) {

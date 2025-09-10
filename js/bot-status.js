@@ -46,7 +46,8 @@ async function updateBotStatus() {
         { name: 'Aivis chan Bot 3台目', botId: '1334734681656262770' },
         { name: 'Aivis chan Bot 4台目', botId: '1365633502988472352' },
         { name: 'Aivis chan Bot 5台目', botId: '1365633586123771934' },
-        { name: 'Aivis chan Bot 6台目', botId: '1365633656173101086' }
+    { name: 'Aivis chan Bot 6台目', botId: '1365633656173101086' },
+    { name: 'Aivis-chan Bot Pro/Premium', botId: '1415251855147008023' }
     ];
 
     const aggregated = await ensureAggregatedSnapshot();

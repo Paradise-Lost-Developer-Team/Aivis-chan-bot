@@ -46,7 +46,8 @@ const BOT_PORTS = {
   third: resolvePort('BOT_3RD_PORT', 2),
   fourth: resolvePort('BOT_4TH_PORT', 3),
   fifth: resolvePort('BOT_5TH_PORT', 4),
-  sixth: resolvePort('BOT_6TH_PORT', 5)
+  sixth: resolvePort('BOT_6TH_PORT', 5),
+  pro: resolvePort('BOT_PRO_PORT', 6)
 };
 
 const BOT_API_URLS = {
@@ -56,6 +57,7 @@ const BOT_API_URLS = {
   fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th', BOT_PORTS.fourth),
   fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th', BOT_PORTS.fifth),
   sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th', BOT_PORTS.sixth),
+  pro: process.env.BOT_API_URL_PRO || clusterUrl('aivis-chan-bot-pro-premium', BOT_PORTS.pro)
 };
 
 // 追加: bot-stats-server サービス (集約専用マイクロサービス) への委譲設定
@@ -72,7 +74,8 @@ const BOT_ID_MAP = {
   '1334734681656262770': BOT_API_URLS.third,
   '1365633502988472352': BOT_API_URLS.fourth,
   '1365633586123771934': BOT_API_URLS.fifth,
-  '1365633656173101086': BOT_API_URLS.sixth
+  '1365633656173101086': BOT_API_URLS.sixth,
+  '1415251855147008023': BOT_API_URLS.pro
 };
 
 // --- Internal fetch helper with multi-path fallback & structured debug ---
