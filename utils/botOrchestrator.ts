@@ -15,6 +15,17 @@ export const BOTS: BotInfo[] = [
   { name: '6th', baseUrl: 'http://aivis-chan-bot-6th:3007' },
 ];
 
+// Pro/Premium Bot を候補に含める（環境変数でURLが与えられた場合）
+export function listBots(): BotInfo[] {
+  const arr: BotInfo[] = [...BOTS];
+  const proUrl = process.env.PRO_PREMIUM_BASE_URL; // 例: http://aivis-chan-bot-pro-premium:3012
+  if (proUrl) {
+    // プライマリ候補として先頭に追加
+    arr.unshift({ name: 'pro-premium', baseUrl: proUrl });
+  }
+  return arr;
+}
+
 export type InfoResp = {
   botId?: string;
   botTag?: string;
@@ -26,7 +37,8 @@ export type InfoResp = {
 
 export async function getBotInfos(timeoutMs = 2000): Promise<(InfoResp & { bot: BotInfo; ok: boolean })[]> {
   const results: (InfoResp & { bot: BotInfo; ok: boolean })[] = [];
-  await Promise.all(BOTS.map(async (bot) => {
+  const bots = listBots();
+  await Promise.all(bots.map(async (bot) => {
     try {
       const url = `${bot.baseUrl}/internal/info`;
       const { data } = await axios.get(url, { timeout: timeoutMs });
@@ -44,6 +56,29 @@ export function pickLeastBusyBot(infos: (InfoResp & { bot: BotInfo; ok: boolean 
   // 単純に vcCount が最小（同値なら serverCount が小さい）
   candidates.sort((a, b) => (a.vcCount - b.vcCount) || (a.serverCount - b.serverCount));
   return candidates[0];
+}
+
+// プライマリ優先（pro-premium / 1st）→ それ以外は負荷が軽い順
+export function pickPrimaryPreferredBot(
+  infos: (InfoResp & { bot: BotInfo; ok: boolean })[],
+  preferredOrder: string[] = ['pro-premium', '1st']
+): (InfoResp & { bot: BotInfo; ok: boolean }) | null {
+  const candidates = infos.filter(r => r.ok);
+  if (candidates.length === 0) return null;
+
+  const indexOfPref = (name: string) => {
+    const idx = preferredOrder.indexOf(name);
+    return idx === -1 ? Number.POSITIVE_INFINITY : idx;
+  };
+
+  candidates.sort((a, b) => {
+    const pa = indexOfPref(a.bot.name);
+    const pb = indexOfPref(b.bot.name);
+    if (pa !== pb) return pa - pb; // より優先度の高いものを先に
+    // 同一優先順位内では負荷の軽い順
+    return (a.vcCount - b.vcCount) || (a.serverCount - b.serverCount);
+  });
+  return candidates[0] || null;
 }
 
 export async function instructJoin(bot: BotInfo, payload: { guildId: string; voiceChannelId: string; textChannelId?: string }, timeoutMs = 5000) {

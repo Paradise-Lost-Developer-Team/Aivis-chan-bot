@@ -5,7 +5,7 @@ import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
-import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, pickPrimaryPreferredBot, instructJoin } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -93,12 +93,12 @@ module.exports = {
         textChannels[guildId] = textChannel;
 
         try {
-            // 全Botの状況を取得して最も空いているBotを選択
+            // 全Botの状況を取得してプライマリ優先（pro/1st）で選択、同順位は最も空いているBot
             const infos = await getBotInfos();
             // ギルドに参加しているBotの中から選択（該当がなければエラー）
             const guildBots = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
             if (guildBots.length === 0) throw new Error('no-bot-available');
-            const picked = pickLeastBusyBot(guildBots);
+            const picked = pickPrimaryPreferredBot(guildBots) || pickLeastBusyBot(guildBots);
             if (!picked) throw new Error('no-bot-available');
 
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
@@ -110,7 +110,7 @@ module.exports = {
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('接続指示完了')
-                        .setDescription(`✅ 最も空いているBot (${picked.bot.baseUrl}) に <#${voiceChannel.id}> への参加を指示しました。`)
+                        .setDescription(`✅ 選択Bot (${picked.bot.name}) に <#${voiceChannel.id}> への参加を指示しました。`)
                         .setColor(0x00bfff)
                         .addFields(
                             { name: '接続先', value: `<#${voiceChannel.id}>`, inline: true },
