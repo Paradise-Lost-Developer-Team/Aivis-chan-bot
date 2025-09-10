@@ -4,8 +4,8 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aivis chan Bot | 6+1台の高品質Discord音声合成ボット - 日本語TTS</title>
-    <meta name="description" content="6+1台のAivis chan Botで完全なDiscordサーバー管理。AivisSpeech Engine搭載の高品質日本語音声合成、音楽、ユーティリティ、モデレーション、アナリティクス機能を提供。無料から利用可能（有料Pro/Premiumボットあり）。">
+    <title>Aivis chan Bot | 6台の高品質Discord音声合成ボット - 日本語TTS</title>
+    <meta name="description" content="6台のAivis chan Botで完全なDiscordサーバー管理。AivisSpeech Engine搭載の高品質日本語音声合成、音楽、ユーティリティ、モデレーション、アナリティクス機能を提供。無料から利用可能（有料Pro/Premiumボットあり）。">
     <meta name="keywords" content="Discord Bot, 音声合成, TTS, AivisSpeech, 日本語, ボイスチャット, 音楽Bot, モデレーション, ユーティリティ, 読み上げBot, Discord TTS Bot, 日本語音声合成">
     <meta name="author" content="Paradise Lost Developer Team">
     <meta name="robots" content="index, follow">
@@ -27,22 +27,22 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://aivis-chan-bot.com/">
-    <meta property="og:title" content="Aivis-chan Bot | 6+1台の高品質Discord音声合成ボット">
-    <meta property="og:description" content="6+1台のAivis-chan Botで完全なDiscordサーバー管理。AivisSpeech Engine搭載の高品質日本語音声合成、音楽、ユーティリティ機能を無料から利用可能。">
+    <meta property="og:title" content="Aivis-chan Bot | 6台の高品質Discord音声合成ボット">
+    <meta property="og:description" content="6台のAivis-chan Botで完全なDiscordサーバー管理。AivisSpeech Engine搭載の高品質日本語音声合成、音楽、ユーティリティ機能を無料から利用可能。">
     <meta property="og:image" content="https://aivis-chan-bot.com/images/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Aivis-chan Bot - 高品質Discord音声合成ボット">
-    <meta property="og:site_name" content="Aivis-chan Bot">
+    <meta property="og:image:alt" content="Aivis chan Bot - 高品質Discord音声合成ボット">
+    <meta property="og:site_name" content="Aivis chan Bot">
     <meta property="og:locale" content="ja_JP">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://aivis-chan-bot.com/">
-    <meta property="twitter:title" content="Aivis-chan Bot | 6+1台の高品質Discord音声合成ボット">
-    <meta property="twitter:description" content="6+1台のAivis-chan Botで完全なDiscordサーバー管理。AivisSpeech Engine搭載の高品質日本語音声合成を無料から利用可能。">
+    <meta property="twitter:title" content="Aivis chan Bot | 6台の高品質Discord音声合成ボット">
+    <meta property="twitter:description" content="6台のAivis-chan Botで完全なDiscordサーバー管理。AivisSpeech Engine搭載の高品質日本語音声合成を無料から利用可能。">
     <meta property="twitter:image" content="https://aivis-chan-bot.com/images/og-image.png">
-    <meta property="twitter:image:alt" content="Aivis-chan Bot - 高品質Discord音声合成ボット">
+    <meta property="twitter:image:alt" content="Aivis chan Bot - 高品質Discord音声合成ボット">
     <meta property="twitter:creator" content="@aivis_chan_bot">
     <meta property="twitter:site" content="@aivis_chan_bot">
 
@@ -102,9 +102,9 @@
     }
     </script>
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313091268970088"
-         crossorigin="anonymous"></script>
+    <!-- Third-party IDs (loaded later via JS) -->
+    <meta name="ads-client" content="ca-pub-1313091268970088">
+    <meta name="gtag-id" content="G-BN8XJ4M3L0">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
@@ -113,24 +113,21 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Load fonts non-blocking and drop unused weight 300 to reduce CSS size -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"></noscript>
     
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
+    <!-- Preload LCP image -->
+    <link rel="preload" as="image" href="/images/aivis-chan-3d.webp" type="image/webp">
     
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#5865F2">
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BN8XJ4M3L0"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-BN8XJ4M3L0');
-    </script>
+    <!-- Google Analytics is deferred and loaded after interaction/idle -->
 </head>
 <body>
     <!-- ヘッダー -->
@@ -210,9 +207,9 @@
 
                     </div>
                 </div>
-                <div class="hero-image">
+        <div class="hero-image">
                     <div class="hero-bot-container">
-                        <img src="/images/aivis-chan-3d.webp" alt="Aivis-chan Bot キャラクター" class="hero-bot">
+            <img src="/images/aivis-chan-3d.webp" alt="Aivis-chan Bot キャラクター" class="hero-bot" loading="eager" fetchpriority="high" decoding="async">
                         <div class="hero-bot-glow"></div>
                     </div>
                 </div>
@@ -434,7 +431,7 @@
                 <!-- JavaScript によって動的に更新されます -->
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis chan Bot 1台目</h4>
+                        <h3>Aivis chan Bot 1台目</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -465,7 +462,7 @@
                 
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis chan Bot 2台目</h4>
+                        <h3>Aivis chan Bot 2台目</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -496,7 +493,7 @@
                 
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis chan Bot 3台目</h4>
+                        <h3>Aivis chan Bot 3台目</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -527,7 +524,7 @@
                 
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis chan Bot 4台目</h4>
+                        <h3>Aivis chan Bot 4台目</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -558,7 +555,7 @@
                 
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis chan Bot 5台目</h4>
+                        <h3>Aivis chan Bot 5台目</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -589,7 +586,7 @@
 
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis chan Bot 6台目</h4>
+                        <h3>Aivis chan Bot 6台目</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -621,7 +618,7 @@
                 <!-- Pro/Premium 専用ボット（有料） -->
                 <div class="bot-detail-card loading">
                     <div class="bot-header">
-                        <h4>Aivis-chan Bot Pro/Premium</h4>
+                        <h3>Aivis-chan Bot Pro/Premium</h3>
                         <span class="bot-status-badge loading">読込中...</span>
                     </div>
                     <div class="bot-stats">
@@ -719,14 +716,14 @@
                     <div class="voice-info">
                         <h3 class="voice-name">Anneli</h3>
                         <select class="voice-style-select" data-voice="Anneli">
-                            <option value="001_Anneli_normal.wav">ノーマル</option>
-                            <option value="002_Anneli_general.wav">通常</option>
-                            <option value="003_Anneli_high.wav">テンション高め</option>
-                            <option value="004_Anneli_happy.wav">上機嫌</option>
-                            <option value="005_Anneli_calm.wav">落ち着き</option>
-                            <option value="006_Anneli_angry.wav">怒り・悲しみ</option>
+                            <option value="001_Anneli_normal.opus">ノーマル</option>
+                            <option value="002_Anneli_general.opus">通常</option>
+                            <option value="003_Anneli_high.opus">テンション高め</option>
+                            <option value="004_Anneli_happy.opus">上機嫌</option>
+                            <option value="005_Anneli_calm.opus">落ち着き</option>
+                            <option value="006_Anneli_angry.opus">怒り・悲しみ</option>
                         </select>
-                        <audio controls class="voice-audio" src="/voicelines/001_Anneli_normal.wav"></audio>
+                        <audio controls class="voice-audio" data-src="/voicelines/001_Anneli_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- Anneli (Alt) -->
@@ -735,7 +732,7 @@
                     <div class="voice-info">
                         <h3 class="voice-name">Anneli (Alt)</h3>
                         <p class="voice-style">ノーマル</p>
-                        <audio controls src="/voicelines/007_AnneliAlt_normal.wav"></audio>
+                        <audio controls data-src="/voicelines/007_AnneliAlt_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- Anneli (Whisper) -->
@@ -744,14 +741,14 @@
                     <div class="voice-info">
                         <h3 class="voice-name">Anneli (Whisper)</h3>
                         <select class="voice-style-select" data-voice="Anneli (Whisper)">
-                            <option value="008_AnneliWhisper_normal.wav">ノーマル</option>
-                            <option value="009_AnneliWhisper_general.wav">通常</option>
-                            <option value="010_AnneliWhisper_high.wav">テンション高め</option>
-                            <option value="011_AnneliWhisper_happy.wav">上機嫌</option>
-                            <option value="012_AnneliWhisper_calm.wav">落ち着き</option>
-                            <option value="013_AnneliWhisper_angry.wav">怒り・悲しみ</option>
+                            <option value="008_AnneliWhisper_normal.opus">ノーマル</option>
+                            <option value="009_AnneliWhisper_general.opus">通常</option>
+                            <option value="010_AnneliWhisper_high.opus">テンション高め</option>
+                            <option value="011_AnneliWhisper_happy.opus">上機嫌</option>
+                            <option value="012_AnneliWhisper_calm.opus">落ち着き</option>
+                            <option value="013_AnneliWhisper_angry.opus">怒り・悲しみ</option>
                         </select>
-                        <audio controls class="voice-audio" src="/voicelines/008_AnneliWhisper_normal.wav"></audio>
+                        <audio controls class="voice-audio" data-src="/voicelines/008_AnneliWhisper_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- 阿井田 茂 -->
@@ -760,16 +757,16 @@
                     <div class="voice-info">
                         <h3 class="voice-name">阿井田 茂</h3>
                         <select class="voice-style-select" data-voice="阿井田 茂">
-                            <option value="014_AidaShigeru_normal.wav">ノーマル</option>
-                            <option value="015_AidaShigeru_calm.wav">Calm</option>
-                            <option value="016_AidaShigeru_far.wav">Far</option>
-                            <option value="017_AidaShigeru_heavy.wav">Heavy</option>
-                            <option value="018_AidaShigeru_mid.wav">Mid</option>
-                            <option value="019_AidaShigeru_shout.wav">Shout</option>
+                            <option value="014_AidaShigeru_normal.opus">ノーマル</option>
+                            <option value="015_AidaShigeru_calm.opus">Calm</option>
+                            <option value="016_AidaShigeru_far.opus">Far</option>
+                            <option value="017_AidaShigeru_heavy.opus">Heavy</option>
+                            <option value="018_AidaShigeru_mid.opus">Mid</option>
+                            <option value="019_AidaShigeru_shout.opus">Shout</option>
                             <option value="020_AidaShigeru_surprise.wav">Surprise</option>
                             <option value="021_AidaShigeru_surprise.wav">Surprise2</option>
                         </select>
-                        <audio controls class="voice-audio" src="/voicelines/014_AidaShigeru_normal.wav"></audio>
+                        <audio controls class="voice-audio" data-src="/voicelines/014_AidaShigeru_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- 亜空マオ -->
@@ -778,11 +775,11 @@
                     <div class="voice-info">
                         <h3 class="voice-name">亜空マオ</h3>
                         <select class="voice-style-select" data-voice="亜空マオ">
-                            <option value="022_AkuMao_normal.wav">ノーマル</option>
-                            <option value="023_AkuMao_angry.wav">ふきげん</option>
-                            <option value="024_AkuMao_happy.wav">じょうきげん</option>
+                            <option value="022_AkuMao_normal.opus">ノーマル</option>
+                            <option value="023_AkuMao_angry.opus">ふきげん</option>
+                            <option value="024_AkuMao_happy.opus">じょうきげん</option>
                         </select>
-                        <audio controls class="voice-audio" src="/voicelines/022_AkuMao_normal.wav"></audio>
+                        <audio controls class="voice-audio" data-src="/voicelines/022_AkuMao_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- 天深シノ -->
@@ -791,12 +788,12 @@
                     <div class="voice-info">
                         <h3 class="voice-name">天深シノ</h3>
                         <select class="voice-style-select" data-voice="天深シノ">
-                            <option value="025_AmamiShino_normal.wav">ノーマル</option>
-                            <option value="026_AmamiShino_happy.wav">じょうきげん</option>
-                            <option value="027_AmamiShino_angry.wav">ふきげん</option>
-                            <option value="028_AmamiShino_whisper.wav">ささやき</option>
+                            <option value="025_AmamiShino_normal.opus">ノーマル</option>
+                            <option value="026_AmamiShino_happy.opus">じょうきげん</option>
+                            <option value="027_AmamiShino_angry.opus">ふきげん</option>
+                            <option value="028_AmamiShino_whisper.opus">ささやき</option>
                         </select>
-                        <audio controls class="voice-audio" src="/voicelines/025_AmamiShino_normal.wav"></audio>
+                        <audio controls class="voice-audio" data-src="/voicelines/025_AmamiShino_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- 花音 -->
@@ -805,7 +802,7 @@
                     <div class="voice-info">
                         <h3 class="voice-name">花音</h3>
                         <p class="voice-style">ノーマル</p>
-                        <audio controls src="/voicelines/029_Kanon_normal.wav"></audio>
+                        <audio controls data-src="/voicelines/029_Kanon_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- にせ -->
@@ -814,7 +811,7 @@
                     <div class="voice-info">
                         <h3 class="voice-name">にせ</h3>
                         <p class="voice-style">ノーマル</p>
-                        <audio controls src="/voicelines/030_Nise_normal.wav"></audio>
+                        <audio controls data-src="/voicelines/030_Nise_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- fumifumi -->
@@ -823,7 +820,7 @@
                     <div class="voice-info">
                         <h3 class="voice-name">fumifumi</h3>
                         <p class="voice-style">ノーマル</p>
-                        <audio controls src="/voicelines/031_Fumifumi_normal.wav"></audio>
+                        <audio controls data-src="/voicelines/031_Fumifumi_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- るな -->
@@ -832,7 +829,7 @@
                     <div class="voice-info">
                         <h3 class="voice-name">るな</h3>
                         <p class="voice-style">ノーマル</p>
-                        <audio controls src="/voicelines/037_Luna_normal.wav"></audio>
+                        <audio controls data-src="/voicelines/037_Luna_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- 凛音エル -->
@@ -841,13 +838,13 @@
                     <div class="voice-info">
                         <h3 class="voice-name">凛音エル</h3>
                         <select class="voice-style-select" data-voice="凛音エル">
-                            <option value="032_RinneEru_normal.wav">ノーマル</option>
-                            <option value="033_RinneEru_angry.wav">Angry</option>
-                            <option value="034_RinneEru_fear.wav">Fear</option>
-                            <option value="035_RinneEru_happy.wav">Happy</option>
-                            <option value="036_RinneEru_sad.wav">Sad</option>
+                            <option value="032_RinneEru_normal.opus">ノーマル</option>
+                            <option value="033_RinneEru_angry.opus">Angry</option>
+                            <option value="034_RinneEru_fear.opus">Fear</option>
+                            <option value="035_RinneEru_happy.opus">Happy</option>
+                            <option value="036_RinneEru_sad.opus">Sad</option>
                         </select>
-                        <audio controls class="voice-audio" src="/voicelines/032_RinneEru_normal.wav"></audio>
+                        <audio controls class="voice-audio" data-src="/voicelines/032_RinneEru_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- ろてじん (長老ボイス) -->
@@ -856,7 +853,7 @@
                     <div class="voice-info">
                         <h3 class="voice-name">ろてじん (長老ボイス)</h3>
                         <p class="voice-style">ノーマル</p>
-                        <audio controls src="/voicelines/038_RotejinElder_normal.wav"></audio>
+                        <audio controls data-src="/voicelines/038_RotejinElder_normal.opus" preload="none"></audio>
                     </div>
                 </div>
                 <!-- 老当主 -->
@@ -865,7 +862,7 @@
                      <div class="voice-info">
                          <h3 class="voice-name">老当主</h3>
                          <p class="voice-style">ノーマル</p>
-                         <audio controls src="/voicelines/039_Rotoshu_normal.wav"></audio>
+                         <audio controls data-src="/voicelines/039_Rotoshu_normal.opus" preload="none"></audio>
                      </div>
                  </div>
             </div>
@@ -945,8 +942,18 @@
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script src="js/main.js"></script>
-    <script src="js/bot-status.js"></script>
+        <!-- JavaScript (modern only) -->
+        <script type="module" src="js/main.js"></script>
+        <script type="module" src="js/bot-status.js"></script>
+        <!-- Legacy browsers: show a minimal notice, no heavy polyfills/transpiles -->
+        <script nomodule>
+            (function(){
+                var d=document;var b=d.body; if(!b){return}
+                var bar=d.createElement('div');
+                bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px;text-align:center;background:#111;color:#fff;font:14px/1.4 system-ui,Arial, sans-serif';
+                bar.textContent='このブラウザはサポート対象外のため、機能の一部が動作しない可能性があります。最新のブラウザをご利用ください。';
+                b.appendChild(bar);
+            })();
+        </script>
 </body>
 </html>

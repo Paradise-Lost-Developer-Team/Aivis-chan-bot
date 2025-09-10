@@ -1,5 +1,6 @@
 // Aivis-chan Bot メインサイト JavaScript
-console.log('main.js version: 20250909');
+const __AIVIS_DEBUG__ = /[?&]debug=1/.test(window.location.search) || (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development');
+if (__AIVIS_DEBUG__) console.log('main.js version: 20250909');
 
 // APIベースURLを動的に決定（クラスタ内部 / 外部ドメイン両対応）
 function getApiBaseUrl() {
@@ -17,6 +18,25 @@ function getApiBaseUrl() {
 }
 window.getApiBaseUrl = getApiBaseUrl; // 他スクリプトからも利用可
 
+// 音声ファイルの拡張子をOpusへ正規化
+function normalizeToOpus(path) {
+    if (typeof path !== 'string') return path;
+    return path.replace(/\.wav(\b|$)/i, '.opus');
+}
+
+// 長時間タスクの回避: 配列処理をバッチに分けてメインスレッドを譲る
+async function processInBatches(items, batchSize, callback) {
+    const len = items.length;
+    for (let i = 0; i < len; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        for (let j = 0; j < batch.length; j++) {
+            await callback(batch[j], i + j);
+        }
+        // 次フレームまでメインスレッドを解放
+        await new Promise(requestAnimationFrame);
+    }
+}
+
 class AivisWebsite {
     constructor() {
         this.init();
@@ -25,70 +45,263 @@ class AivisWebsite {
     init() {
         this.setupNavigation();
         this.setupScrollEffects();
-        this.setupCounters();
-        this.setupIntersectionObserver();
+    // 非クリティカルはアイドル時に遅延実行
+    this.deferNonCriticalInit();
+    this.setupActiveSectionObserver();
         this.setupSmoothScroll();
         this.setupMobileMenu();
         this.setupBotStatus();
+    this.setupThirdPartyLazyLoad();
+    this.setupMediaLazyLoad();
+    // フォーム要素のアクセシビリティ改善（selectにラベル付与）
+    this.setupVoiceSelectA11y();
         
         // DOM が完全に読み込まれてから統計情報を設定
         setTimeout(() => {
             this.setupHeroStats();
         }, 100);
         
-        console.log('🤖 Aivis-chan Bot Website loaded');
+        if (__AIVIS_DEBUG__) console.log('🤖 Aivis-chan Bot Website loaded');
+    }
+
+    // 画像・音声の遅延読み込み（初期ペイロード圧縮）
+    setupMediaLazyLoad() {
+        // 声一覧などの画像は遅延読み込み
+        document.querySelectorAll('.voices .voice-avatar img').forEach(img => {
+            try {
+                img.loading = 'lazy';
+                img.decoding = 'async';
+            } catch {}
+        });
+
+        // 音声は初期ロードを避け、再生時にだけ読み込む
+        const lazyifyAudio = (audio) => {
+            if (!(audio instanceof HTMLAudioElement)) return;
+            // 既に初期化済みならスキップ
+            if (audio.__lazyAudioInit) return;
+            audio.__lazyAudioInit = true;
+
+            // 元のsrcをdata-srcへ移動
+            let src = audio.getAttribute('src');
+            if (src) {
+                audio.setAttribute('data-src', normalizeToOpus(src));
+                audio.removeAttribute('src');
+            }
+            // 既にdata-srcがある場合も正規化
+            const ds = audio.getAttribute('data-src');
+            if (ds) audio.setAttribute('data-src', normalizeToOpus(ds));
+            // 事前取得しない
+            audio.preload = 'none';
+
+            const ensureLoadAndPlay = () => {
+                if (audio.__loadedOnce) return; // 既にロード済み
+                const dataSrc = normalizeToOpus(audio.getAttribute('data-src'));
+                if (!dataSrc) return;
+                audio.pause();
+                audio.src = dataSrc;
+                // メタデータだけ先に
+                audio.preload = 'metadata';
+                audio.load();
+                audio.addEventListener('canplay', () => {
+                    // ユーザーが再生済みなら再開
+                    if (!audio.paused) return; // 別の操作で再開済み
+                    audio.play().catch(() => {});
+                }, { once: true });
+                audio.__loadedOnce = true;
+            };
+
+            // 再生要求が来たタイミングでロード
+            audio.addEventListener('play', (e) => {
+                if (!audio.__loadedOnce) {
+                    // 初回は一旦止めてロード→再生
+                    audio.pause();
+                    ensureLoadAndPlay();
+                }
+            }, { passive: true });
+        };
+
+        document.querySelectorAll('audio').forEach(lazyifyAudio);
+
+        // セレクトのoption値も .opus に正規化（UI側の一貫性維持）
+        document.querySelectorAll('.voice-style-select option').forEach(opt => {
+            const v = opt.getAttribute('value');
+            if (v && /\.wav(\b|$)/i.test(v)) {
+                opt.setAttribute('value', normalizeToOpus(v));
+            }
+        });
+    }
+
+    // 第三者スクリプトの遅延ロード（Ads/Analytics）
+    setupThirdPartyLazyLoad() {
+        // Ads無効化フラグ（開発時や検証時に警告を避けるため）
+        const qs = new URLSearchParams(window.location.search);
+        const disableAds = qs.get('ads') === '0' || qs.get('noads') === '1' || localStorage.getItem('disableAds') === '1';
+
+        const loadGtag = () => {
+            const idMeta = document.querySelector('meta[name="gtag-id"]');
+            const gtagId = idMeta && idMeta.getAttribute('content');
+            if (!gtagId || window.__gtagLoaded) return;
+            window.__gtagLoaded = true;
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gtagId)}`;
+            document.head.appendChild(s);
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function(){ dataLayer.push(arguments); };
+            gtag('js', new Date());
+            gtag('config', gtagId, { anonymize_ip: true });
+        };
+
+        const loadAds = () => {
+            if (disableAds) {
+                if (__AIVIS_DEBUG__) console.info('[Ads] disabled via flag (ads=0 / noads=1 / localStorage.disableAds=1)');
+                return;
+            }
+            const adsMeta = document.querySelector('meta[name="ads-client"]');
+            const client = adsMeta && adsMeta.getAttribute('content');
+            if (!client || window.__adsbygoogleLoaded) return;
+            window.__adsbygoogleLoaded = true;
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
+            s.setAttribute('crossorigin', 'anonymous');
+            document.head.appendChild(s);
+        };
+
+        // GAは初回インタラクション、またはページ完全ロード後しばらく経ってから
+        const onFirstInteraction = () => {
+            loadGtag();
+            window.removeEventListener('pointerdown', onFirstInteraction); 
+            window.removeEventListener('keydown', onFirstInteraction);
+        };
+        window.addEventListener('pointerdown', onFirstInteraction, { once: true, passive: true });
+        window.addEventListener('keydown', onFirstInteraction, { once: true });
+
+        // ページ完全ロード後、余裕ができてから（8秒後）読み込み
+        window.addEventListener('load', () => {
+            setTimeout(() => { loadGtag(); }, 8000);
+        }, { once: true });
+
+        // タブが非表示になったタイミングでのバックグラウンド読み込み（任意）
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                loadGtag();
+            }
+        }, { once: true });
+
+        // 広告は可視化された場合にのみ読み込む（初回操作やidleでは読み込まない）
+        const adContainer = document.querySelector('.ad-container, .adsbygoogle');
+        if (!disableAds && adContainer && 'IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        loadAds();
+                        io.disconnect();
+                    }
+                });
+            }, { rootMargin: '200px' });
+            io.observe(adContainer);
+        }
+    }
+
+    // 非クリティカル機能の遅延初期化
+    deferNonCriticalInit() {
+        const ric = window.requestIdleCallback || function(cb){ setTimeout(() => cb({ timeRemaining: () => 50 }), 1); };
+        ric(() => {
+            this.setupCounters();
+            this.setupIntersectionObserver();
+            this.setupPatreonLinks();
+            this.setupThemeToggle();
+            this.setupContactForm();
+            this.setupSearch();
+        });
     }
 
     // ナビゲーション設定
     setupNavigation() {
         const header = document.querySelector('.header');
-        
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 100) {
+        let navScrollScheduled = false;
+        let lastScrollY = 0;
+
+        const onScrollUpdate = () => {
+            navScrollScheduled = false;
+            const y = lastScrollY;
+            if (!header) return;
+            if (y > 100) {
                 header.style.background = 'rgba(10, 14, 26, 0.95)';
                 header.style.backdropFilter = 'blur(20px)';
             } else {
                 header.style.background = 'rgba(10, 14, 26, 0.8)';
                 header.style.backdropFilter = 'blur(10px)';
             }
-        });
+        };
 
-        // アクティブリンク設定
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.nav-link');
-        // safeValueの参照を削除（不要な変数参照を除去）
         window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (window.scrollY >= sectionTop - 200) {
-                    current = section.getAttribute('id');
-                }
-            });
-
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href').includes(current)) {
-                    link.classList.add('active');
-                }
-            });
-        });
+            lastScrollY = window.scrollY || window.pageYOffset;
+            if (!navScrollScheduled) {
+                navScrollScheduled = true;
+                requestAnimationFrame(onScrollUpdate);
+            }
+        }, { passive: true });
     }
 
     // スクロールエフェクト
     setupScrollEffects() {
-        // パララックス効果
+        // パララックス効果（rAFスロットリング）
         const heroParticles = document.querySelector('.hero-particles');
-        
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const rate = scrolled * -0.5;
-            
+        let parallaxScheduled = false;
+        let lastScrollY = 0;
+
+        const updateParallax = () => {
+            parallaxScheduled = false;
+            const rate = lastScrollY * -0.5;
             if (heroParticles) {
                 heroParticles.style.transform = `translateY(${rate}px)`;
             }
+        };
+
+        window.addEventListener('scroll', () => {
+            lastScrollY = window.pageYOffset || window.scrollY || 0;
+            if (!parallaxScheduled) {
+                parallaxScheduled = true;
+                requestAnimationFrame(updateParallax);
+            }
+        }, { passive: true });
+    }
+
+    // アクティブセクションの監視（IntersectionObserverでリフローミティゲート）
+    setupActiveSectionObserver() {
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+        if (!sections.length || !navLinks.length) return;
+
+        const setActive = (id) => {
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href') || '';
+                // '/#features' のような形式にも対応
+                const matches = href.includes(`#${id}`);
+                link.classList.toggle('active', matches);
+            });
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) setActive(id);
+                }
+            });
+        }, {
+            root: null,
+            // ビューポート中央付近に来たらアクティブ化
+            rootMargin: '-40% 0px -50% 0px',
+            threshold: 0.01
         });
+
+        sections.forEach(sec => observer.observe(sec));
+        // 初期状態同期
+        const current = (location.hash || '#home').replace('#', '');
+        if (current) setActive(current);
     }
 
     // カウンターアニメーション
@@ -379,7 +592,7 @@ class AivisWebsite {
             this.updateMultipleBotStatus();
         }, 180000);
         
-        console.log('🤖 Bot status system initialized');
+    if (__AIVIS_DEBUG__) console.log('🤖 Bot status system initialized');
     }
 
     async updateBotStatus() {
@@ -388,7 +601,7 @@ class AivisWebsite {
     }
 
     updateStatusDisplay(data) {
-        console.log('🎯 Updating status display with data:', data);
+    if (__AIVIS_DEBUG__) console.log('🎯 Updating status display with data:', data);
 
         const toSafeNumber = (value) => {
             if (typeof value === "string") {
@@ -458,7 +671,7 @@ class AivisWebsite {
 
     // 複数Bot統合ステータス取得（Discord API使用）
     async updateMultipleBotStatus() {
-        console.log('🔄 Starting bot status update...');
+    if (__AIVIS_DEBUG__) console.log('🔄 Starting bot status update...');
         
         // APIのbotIdのみで処理（ダミー番号を消す）
         const botIdToName = {
@@ -487,12 +700,12 @@ class AivisWebsite {
             }
 
             const apiData = await response.json();
-            if (debugFlag) {
+            if (__AIVIS_DEBUG__ || debugFlag) {
                 console.log('[DEBUG] aggregated payload (raw):', apiData);
             }
             // APIレスポンスjsonを保存・上書き
             this._latestBotApiResponse = apiData;
-            console.log('📊 API data received:', apiData);
+            if (__AIVIS_DEBUG__) console.log('📊 API data received:', apiData);
 
             // ...ヒーロー統計の即時更新は行わず、統計値の保存のみ...
 
@@ -539,7 +752,7 @@ class AivisWebsite {
                 }
             });
 
-            console.log('📈 Calculated stats:', allStats);
+            if (__AIVIS_DEBUG__) console.log('📈 Calculated stats:', allStats);
 
             // 最新のbotステータスを保存
             this._latestBotStatuses = botStatuses;
@@ -590,55 +803,52 @@ class AivisWebsite {
         }
     }
 
-    updateDetailedBotStatus(botStatuses, allStats) {
-        console.log('🎯 Updating detailed bot status...', botStatuses);
+    async updateDetailedBotStatus(botStatuses, allStats) {
+    if (__AIVIS_DEBUG__) console.log('🎯 Updating detailed bot status...', botStatuses);
         
         // 既存の読み込み中のカードを更新
         const botCards = document.querySelectorAll('.bot-detail-card');
-        console.log(`Found ${botCards.length} bot cards to update`);
+    if (__AIVIS_DEBUG__) console.log(`Found ${botCards.length} bot cards to update`);
         
-        botStatuses.forEach((bot, index) => {
-            if (botCards[index]) {
-                const card = botCards[index];
-                console.log(`Updating card ${index + 1} for ${bot.name}`);
-                
+        const applyCardUpdate = (bot, index) => new Promise((resolve) => {
+            if (!botCards[index]) return resolve();
+            const card = botCards[index];
+            if (__AIVIS_DEBUG__) console.log(`Updating card ${index + 1} for ${bot.name}`);
+
+            requestAnimationFrame(() => {
                 // カードのクラスを更新
                 card.className = `bot-detail-card ${bot.online ? 'online' : 'offline'}`;
-                
+
                 // ステータスバッジを更新
                 const statusBadge = card.querySelector('.bot-status-badge');
                 if (statusBadge) {
                     statusBadge.textContent = bot.online ? 'オンライン' : 'オフライン';
                     statusBadge.className = `bot-status-badge ${bot.online ? 'online' : 'offline'}`;
-                    console.log(`Status badge updated: ${statusBadge.textContent}`);
                 }
-                
-                // 統計値を更新（VC接続数を含む）
+
+                // 統計値を更新
                 const statValues = card.querySelectorAll('.stat-item .value');
                 if (statValues.length >= 3) {
                     statValues[0].textContent = (bot.serverCount || 0).toLocaleString();
                     statValues[1].textContent = (bot.userCount || 0).toLocaleString(); 
                     statValues[2].textContent = (bot.shardCount || 0).toLocaleString();
-                    
-                    // VC接続数が4番目の統計として存在する場合
-                    if (statValues[3]) {
-                        statValues[3].textContent = (bot.vcCount || 0).toLocaleString();
-                    }
-                    
-                    console.log(`Stats updated: servers=${statValues[0].textContent}, users=${statValues[1].textContent}, shards=${statValues[2].textContent}, vc=${statValues[3] ? statValues[3].textContent : 'N/A'}`);
+                    if (statValues[3]) statValues[3].textContent = (bot.vcCount || 0).toLocaleString();
                 }
-                
-                // 招待ボタンがあれば更新
+
+                // 招待ボタン
                 const inviteBtn = card.querySelector('.btn');
                 if (inviteBtn && bot.botId) {
                     inviteBtn.href = this.generateSpecificInviteLink(bot.botId);
                     inviteBtn.textContent = `${bot.name}を招待`;
-                    console.log(`Invite button updated for ${bot.name}`);
                 }
-            }
+                resolve();
+            });
         });
+
+        // 2カードずつ更新してメインスレッドを解放
+        await processInBatches(botStatuses, 2, (bot, index) => applyCardUpdate(bot, index));
         
-        console.log('✅ Detailed bot status update completed');
+    if (__AIVIS_DEBUG__) console.log('✅ Detailed bot status update completed');
         const statusIndicator = document.querySelector('.status-indicator');
         if (statusIndicator) {
             const onlineCount = allStats.onlineBots;
@@ -698,7 +908,7 @@ class AivisWebsite {
 
     updateBotDetailPage(botStatuses) {
         // 詳細ページで利用する場合の実装（現在は空実装）
-        console.log('updateBotDetailPage called with:', botStatuses);
+    if (__AIVIS_DEBUG__) console.log('updateBotDetailPage called with:', botStatuses);
     }
 
     generateSpecificInviteLink(botId) {
@@ -707,7 +917,7 @@ class AivisWebsite {
 
     // ヒーロー統計情報の設定と更新
     async setupHeroStats() {
-        console.log('🔢 Setting up hero statistics...');
+    if (__AIVIS_DEBUG__) console.log('🔢 Setting up hero statistics...');
 
         // 初期値を直接0でセット（NaN点滅防止・HTML初期値補正）
         const statIds = ['total-servers', 'total-users', 'total-vc-users', 'total-shard'];
@@ -741,11 +951,11 @@ class AivisWebsite {
         try {
             // API取得は行わず、キャッシュのみ参照
             const botStatuses = Array.isArray(this._latestBotStatuses) ? this._latestBotStatuses : [];
-            console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
+            if (__AIVIS_DEBUG__) console.log('🟦 [DEBUG] botStatuses for hero stats:', JSON.stringify(botStatuses, null, 2));
 
             // キャッシュが空なら0で補正
             if (!botStatuses || botStatuses.length === 0) {
-                console.warn("⚠️ botStatuses cache is empty, setting hero stats to 0");
+                if (__AIVIS_DEBUG__) console.warn("⚠️ botStatuses cache is empty, setting hero stats to 0");
                 this.animateHeroStat('total-servers', 0);
                 this.animateHeroStat('total-users', 0);
                 this.animateHeroStat('total-shard', 0);
@@ -787,7 +997,7 @@ class AivisWebsite {
             this.animateHeroStat('total-shard', dispShards);
             this.animateHeroStat('total-vc-users', dispVcUsers);
 
-            console.log('📈 Hero stats updated (average, formatted):', {
+            if (__AIVIS_DEBUG__) console.log('📈 Hero stats updated (average, formatted):', {
                 dispServers,
                 dispUsers,
                 dispVcUsers,
@@ -961,19 +1171,25 @@ document.addEventListener('DOMContentLoaded', () => {
         window.website.updateMultipleBotStatus();
     };
 
-    // デバッグ用: 5秒後に手動実行
-    setTimeout(() => {
-        console.log('🔍 Auto-testing bot status after 5 seconds...');
-        window.website.updateMultipleBotStatus();
-    }, 5000);
-
-    // 声一覧ドロップダウン切替
-    document.querySelectorAll('.voice-style-select').forEach(function(select) {
-        select.addEventListener('change', function() {
-            const audio = this.parentElement.querySelector('.voice-audio');
-            audio.src = '/voice lines/' + this.value;
-            // ラベルも切り替えたい場合はここで対応
-        });
+    // 声一覧ドロップダウン切替（イベント委譲でリスナー削減）
+    document.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof Element)) return;
+    if (target.matches('.voice-style-select')) {
+            const audio = target.parentElement && target.parentElement.querySelector('.voice-audio');
+            if (audio) {
+                // ネットワーク負荷を避け、実再生までは読み込まない
+        const filename = normalizeToOpus(String(target.value || ''));
+        const nextSrc = '/voicelines/' + filename;
+                audio.pause();
+                audio.removeAttribute('src');
+                audio.setAttribute('data-src', nextSrc);
+                audio.preload = 'none';
+                audio.__loadedOnce = false;
+                // UIの再描画のためにloadだけかける（ネットワークは走らない）
+                try { audio.load(); } catch {}
+            }
+        }
     });
 });
 
@@ -982,8 +1198,8 @@ window.addEventListener('resize', () => {
     // レスポンシブ対応の処理
 });
 
-// ページ離脱前の処理
-window.addEventListener('beforeunload', () => {
+// ページ離脱前の処理（最新の推奨に合わせて pagehide を使用）
+window.addEventListener('pagehide', () => {
     // 必要に応じてデータ保存など
 });
 

@@ -462,6 +462,7 @@ section {
     height: 100%;
     background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="400" cy="100" r="1" fill="rgba(255,255,255,0.2)"/><circle cx="600" cy="300" r="1.5" fill="rgba(255,255,255,0.4)"/><circle cx="800" cy="150" r="1" fill="rgba(255,255,255,0.3)"/><circle cx="100" cy="400" r="2" fill="rgba(255,255,255,0.2)"/><circle cx="700" cy="500" r="1.5" fill="rgba(255,255,255,0.3)"/><circle cx="300" cy="600" r="1" fill="rgba(255,255,255,0.4)"/><circle cx="900" cy="700" r="2" fill="rgba(255,255,255,0.2)"/></svg>');
     animation: float 20s ease-in-out infinite;
+    will-change: transform;
 }
 
 @keyframes float {
@@ -1366,7 +1367,7 @@ section {
     margin-bottom: var(--spacing-md);
 }
 
-.bot-header h4 {
+.bot-header h3 {
     color: var(--text-primary);
     font-size: var(--font-size-lg);
     font-weight: 600;
@@ -1443,7 +1444,7 @@ section {
 
 .btn-primary.btn-sm {
     background: var(--primary-color);
-    color: var(--text-primary);
+    color: #fff;
 }
 
 .btn-primary.btn-sm:hover {
@@ -1673,4 +1674,63 @@ body.patreon-success .note{margin-top:12px;color:#6b7280;font-size:13px}
     body.patreon-success .link{background:#0f1720;color:#e6eef8;border-color:#111827 !important}
     body.patreon-success .link.primary{background:#0ea5a4}
     body.patreon-success .note{color:#9aa7b9}
+}
+
+/* ==============================
+   Accessibility: Color Contrast Overrides
+   - Keep brand tone while meeting WCAG contrast
+   - Appended at end to safely override earlier rules
+   ============================== */
+.btn-primary {
+  background: #007a8a;
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #00606c;
+  color: #fff;
+}
+.btn-secondary {
+  background: #e0f7fa;
+  color: #005e6a;
+}
+.btn-secondary:hover {
+  background: #007a8a;
+  color: #fff;
+}
+.btn-outline:hover {
+  color: #005e6a;
+}
+.section-title {
+  color: #0a4a52;
+}
+.price-amount {
+  color: #005e6a;
+}
+.invite {
+  background: #006b75;
+}
+.invite-title {
+  color: #fff;
+}
+.command-usage {
+  background: #eef6f8;
+  color: #0a4a52;
+}
+.step-code {
+  color: #0a4a52;
+}
+.bot-status-badge.online {
+  background: #1b5e20 !important;
+  color: #fff !important;
+}
+.bot-status-badge.offline {
+  background: #616161 !important;
+  color: #fff !important;
+}
+.btn-primary.btn-sm {
+  background: #007a8a;
+  color: #fff;
+}
+.btn-primary.btn-sm:hover {
+  background: #00606c;
 }
