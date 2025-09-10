@@ -15,6 +15,33 @@ import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; /
 import { initSentry } from './utils/sentry';
 import { VoiceConnection, VoiceConnectionStatus, entersState } from "@discordjs/voice";
 import express from 'express';
+import axios from 'axios';
+const FOLLOW_PRIMARY = process.env.FOLLOW_PRIMARY === 'true';
+const PRIMARY_URL = process.env.PRIMARY_URL || 'http://aivis-chan-bot-1st:3002';
+const ALLOW_COMMANDS = process.env.ALLOW_COMMANDS === 'true';
+
+async function syncSettingsFromPrimary() {
+    if (!FOLLOW_PRIMARY) return;
+    try {
+        const url = `${PRIMARY_URL.replace(/\/$/, '')}/internal/settings/bundle`;
+        const { data } = await axios.get(url, { timeout: 7000 });
+        const d: any = data as any;
+        if (d && d.files && typeof d.files === 'object') {
+            const dataDir = path.resolve(process.cwd(), 'data');
+            fs.mkdirSync(dataDir, { recursive: true });
+            for (const [name, content] of Object.entries<any>(d.files)) {
+                try {
+                    fs.writeFileSync(path.join(dataDir, name), JSON.stringify(content, null, 2), 'utf8');
+                } catch (e) {
+                    console.warn(`設定書き込みに失敗: ${name}`, e);
+                }
+            }
+            console.log('Primary設定を同期しました');
+        }
+    } catch (e) {
+        console.warn('Primary設定の同期に失敗:', e);
+    }
+}
 
 // アプリケーション起動の最初にSentryを初期化
 initSentry();
@@ -72,18 +99,18 @@ async function gracefulShutdown() {
 
 client.once("ready", async () => {
     try {
-        // 起動時にAivisSpeech Engineから話者情報を取得しspeakers.jsonに保存
-        await fetchAndSaveSpeakers();
+        if (FOLLOW_PRIMARY) {
+            console.log('[Follower Mode] プライマリ設定を同期して起動します');
+            client.user!.setActivity('Linked to Primary', { type: ActivityType.Playing });
+            await syncSettingsFromPrimary();
+        }
 
-        await deployCommands(client);
-        console.log("コマンドのデプロイ完了");
-        
-        // ボイスチャンネル再接続を先に実行し、完全に完了するまで待機
+        // ボイスチャンネル再接続（常に実施）
         console.log('ボイスチャンネルへの再接続を試みています...');
         await reconnectToVoiceChannels(client);
         console.log('ボイスチャンネル再接続処理が完了しました');
 
-        // --- 追加: 各ギルドのVoiceConnectionがReadyになるまで待機 ---
+        // --- 各ギルドのVoiceConnectionがReadyになるまで待機 ---
         const { voiceClients } = await import('./utils/TTS-Engine');
         const waitForReady = async (vc: VoiceConnection, guildId: string) => {
             try {
@@ -97,7 +124,6 @@ client.once("ready", async () => {
                 await waitForReady(vc, guildId);
             }
         }
-        // --- 追加ここまで ---
         
         // 会話統計トラッキングサービスの初期化
         console.log("会話分析サービスを初期化しています...");
@@ -111,18 +137,30 @@ client.once("ready", async () => {
         setupVoiceStampEvents(client);
         console.log("ボイススタンプ機能の初期化が完了しました");
         
-        // TTS関連の初期化を先に実行
+        // TTS関連の初期化
         console.log("TTS初期化中...");
-        loadAutoJoinChannels();
+        if (!FOLLOW_PRIMARY) {
+            // 自動参加設定は1台目のみ
+            loadAutoJoinChannels();
+        } else {
+            console.log('FOLLOW_PRIMARYのため auto_join_channels は使用しません');
+        }
         loadJoinChannels();
         loadSpeakers();
         loadUserVoiceSettings();
-        
         console.log("TTS初期化完了");
 
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
-        
+
+        // コマンドは1台目のみ
+        if (ALLOW_COMMANDS) {
+            await deployCommands(client);
+            console.log("コマンドのデプロイ完了(許可有り)");
+        } else {
+            console.log("コマンド機能は無効化(ALLOW_COMMANDS=false)");
+        }
+
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
         VoiceStateUpdate(client);
@@ -146,11 +184,40 @@ client.once("ready", async () => {
             }
         });
 
+        // クラスター内Botの /internal/info を叩いてVC合計を集計
+        const BOTS = [
+            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st:3002' },
+            { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd:3003' },
+            { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd:3004' },
+            { name: '4th', baseUrl: 'http://aivis-chan-bot-4th:3005' },
+            { name: '5th', baseUrl: 'http://aivis-chan-bot-5th:3006' },
+            { name: '6th', baseUrl: 'http://aivis-chan-bot-6th:3007' }
+        ];
+
+        async function getClusterVCCount(selfCount: number, timeoutMs = 2000): Promise<number> {
+            try {
+                const results: number[] = await Promise.all(BOTS.map(async b => {
+                    try {
+                        const { data } = await axios.get<{ vcCount?: number }>(`${b.baseUrl}/internal/info`, { timeout: timeoutMs });
+                        return (typeof data?.vcCount === 'number') ? (data.vcCount as number) : 0;
+                    } catch {
+                        return 0;
+                    }
+                }));
+                const sum = results.reduce((a: number, c: number) => a + c, 0);
+                return Math.max(sum, selfCount);
+            } catch {
+                return selfCount;
+            }
+        }
+
         setInterval(async () => {
             try {
                 const joinServerCount = client.guilds.cache.size;
-                const joinVCCount = client.voice.adapters.size;
-                client.user!.setActivity(`/help | VC接続中: ${joinVCCount} | サーバー数: ${joinServerCount} | Ping: ${client.ws.ping}ms | 内部: ${client.voice.adapters.size}`, { type: ActivityType.Custom });
+                const selfVC = client.voice.adapters.size;
+                const totalVC = await getClusterVCCount(selfVC);
+                const label = FOLLOW_PRIMARY ? 'Linked' : '/help';
+                client.user!.setActivity(`${label} | VC: ${selfVC}/${totalVC} | Srv: ${joinServerCount} | ${client.ws.ping}ms`, { type: ActivityType.Custom });
             } catch (error) {
                 console.error("ステータス更新エラー:", error);
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));
@@ -166,6 +233,9 @@ client.on("interactionCreate", async interaction => {
     try {
         // スラッシュコマンド処理
         if (interaction.isChatInputCommand()) {
+            if (!ALLOW_COMMANDS) {
+                return;
+            }
             const command = client.commands.get(interaction.commandName);
             if (!command) return;
             
@@ -265,6 +335,7 @@ client.on("guildCreate", async (guild) => {
 
 // --- サーバー数・VC数API ---
 const apiApp = express();
+apiApp.use(express.json());
 import { Request, Response } from 'express';
 apiApp.get('/api/stats', async (req: Request, res: Response) => {
     try {
@@ -302,6 +373,58 @@ apiApp.listen(3005, () => {
     console.log('Stats APIサーバーがポート3005で起動しました');
 });
 // --- ここまで追加 ---
+
+// --- 内部: 指定ギルド/チャンネルへ参加API & info ---
+import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
+import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { saveVoiceState } from './utils/voiceStateManager';
+
+apiApp.post('/internal/join', async (req: Request, res: Response) => {
+    try {
+        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+        if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return res.status(404).json({ error: 'guild-not-found' });
+        const voiceChannel = guild.channels.cache.get(voiceChannelId);
+        if (!voiceChannel || !('type' in voiceChannel) || (voiceChannel as any).type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
+        const existing = voiceClients[guildId];
+        if (existing && existing.state.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
+            return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
+        }
+        const prev = getVoiceConnection(guildId);
+        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
+        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+        voiceClients[guildId] = connection;
+        if (textChannelId) {
+            const tc = guild.channels.cache.get(textChannelId) as any;
+            if (tc && tc.type === 0) (textChannels as any)[guildId] = tc;
+        }
+        await new Promise<void>((resolve)=>{
+            const onReady=()=>{cleanup();resolve();};
+            const onDisc=()=>{cleanup();resolve();};
+            const cleanup=()=>{connection.off(VoiceConnectionStatus.Ready,onReady);connection.off(VoiceConnectionStatus.Disconnected,onDisc);};
+            connection.once(VoiceConnectionStatus.Ready,onReady);
+            connection.once(VoiceConnectionStatus.Disconnected,onDisc);
+            setTimeout(()=>cleanup(),10000);
+        });
+        try { saveVoiceState(client as any); } catch {}
+        return res.json({ ok: true });
+    } catch (e) {
+        console.error('internal/join error:', e);
+        return res.status(500).json({ error: 'join-failed' });
+    }
+});
+
+apiApp.get('/internal/info', async (req: Request, res: Response) => {
+    try {
+        const guildIds = Array.from(client.guilds.cache.keys());
+        const connectedGuildIds = Object.keys(voiceClients);
+        return res.json({ botId: client.user?.id, botTag: client.user?.tag, guildIds, connectedGuildIds, vcCount: client.voice.adapters.size, serverCount: client.guilds.cache.size });
+    } catch (e) {
+        console.error('internal/info error:', e);
+        return res.status(500).json({ error: 'info-failed' });
+    }
+});
 
 client.login(TOKEN).catch(error => {
     console.error("ログインエラー:", error);
