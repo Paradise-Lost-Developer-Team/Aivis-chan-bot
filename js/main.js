@@ -656,15 +656,37 @@ class AivisWebsite {
 
     // Botステータス取得（複数Bot対応）
     setupBotStatus() {
-        // 初期ロード時にすぐに実行
-        this.updateMultipleBotStatus();
-        
-        // 3分ごとにステータスを更新
-        setInterval(() => {
+        const section = document.getElementById('bot-status');
+        const triggerFetch = () => {
+            // 二重起動防止
+            if (this.__botStatusStarted) return;
+            this.__botStatusStarted = true;
+
+            // 直ちに1回だけ実行
             this.updateMultipleBotStatus();
-        }, 180000);
-        
-    if (__AIVIS_DEBUG__) console.log('🤖 Bot status system initialized');
+            // 3分ごとに更新
+            this.__botStatusInterval = setInterval(() => {
+                this.updateMultipleBotStatus();
+            }, 180000);
+            if (__AIVIS_DEBUG__) console.log('🤖 Bot status system started (lazy)');
+        };
+
+        // セクションがビューポート手前に来たら開始（LCPを阻害しない）
+        if (section && 'IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        triggerFetch();
+                        io.disconnect();
+                    }
+                });
+            }, { rootMargin: '300px 0px' });
+            io.observe(section);
+        } else {
+            // Fallback: ページロード後のアイドル時に開始
+            const ric = window.requestIdleCallback || function(cb){ setTimeout(() => cb({ timeRemaining: () => 50 }), 1500); };
+            ric(() => triggerFetch());
+        }
     }
 
     async updateBotStatus() {
