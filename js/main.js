@@ -287,52 +287,55 @@ class AivisWebsite {
     setupNavigation() {
         const header = document.querySelector('.header');
         if (!header) return;
-        let scheduled = false;
-        let lastY = 0;
 
-        // 初期状態を一度だけ設定（描画後に書き込み）
-        requestAnimationFrame(() => {
-            header.style.background = 'rgba(10, 14, 26, 0.8)';
-            header.style.backdropFilter = 'blur(10px)';
-        });
+        let isScrolled = null; // 未設定
 
-        const apply = () => {
-            scheduled = false;
-            const y = lastY; // 読み取りはリスナー側で済ませている
-            header.style.background = y > 100 ? 'rgba(10, 14, 26, 0.95)' : 'rgba(10, 14, 26, 0.8)';
-            header.style.backdropFilter = y > 100 ? 'blur(20px)' : 'blur(10px)';
+        const updateHeaderState = (y) => {
+            const next = y > 100;
+            if (next === isScrolled) return; // 状態が変わらない限り書き込まない
+            isScrolled = next;
+            requestAnimationFrame(() => {
+                header.style.background = next ? 'rgba(10, 14, 26, 0.95)' : 'rgba(10, 14, 26, 0.8)';
+                header.style.backdropFilter = next ? 'blur(20px)' : 'blur(10px)';
+            });
         };
 
+        // 初期同期
+        requestAnimationFrame(() => updateHeaderState(window.pageYOffset || window.scrollY || 0));
+
         window.addEventListener('scroll', () => {
-            // 読み取りはここで一度だけ
-            lastY = window.pageYOffset || window.scrollY || 0;
-            if (!scheduled) {
-                scheduled = true;
-                requestAnimationFrame(apply);
-            }
+            const y = window.pageYOffset || window.scrollY || 0;
+            updateHeaderState(y);
         }, { passive: true });
     }
 
     // スクロールエフェクト
     setupScrollEffects() {
-        // パララックス効果（rAFスロットリング）
         const heroParticles = document.querySelector('.hero-particles');
-        let parallaxScheduled = false;
-        let lastScrollY = 0;
+        if (!heroParticles) return;
 
-        const updateParallax = () => {
-            parallaxScheduled = false;
-            const rate = lastScrollY * -0.5;
-            if (heroParticles) {
-                heroParticles.style.transform = `translateY(${rate}px)`;
-            }
+        // 低負荷化: モバイルや reduce-motion では無効化
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (reduceMotion || isMobile) return;
+
+        let scheduled = false;
+        let lastScrollY = 0;
+        let lastApplied = null;
+
+        const apply = () => {
+            scheduled = false;
+            const ty = Math.round(lastScrollY * -0.5);
+            if (ty === lastApplied) return; // 変化が小さい時はスキップ
+            lastApplied = ty;
+            heroParticles.style.transform = `translate3d(0, ${ty}px, 0)`;
         };
 
         window.addEventListener('scroll', () => {
             lastScrollY = window.pageYOffset || window.scrollY || 0;
-            if (!parallaxScheduled) {
-                parallaxScheduled = true;
-                requestAnimationFrame(updateParallax);
+            if (!scheduled) {
+                scheduled = true;
+                requestAnimationFrame(apply);
             }
         }, { passive: true });
     }
