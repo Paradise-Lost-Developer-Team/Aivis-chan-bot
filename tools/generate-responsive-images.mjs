@@ -4,7 +4,7 @@ import path from 'path';
 
 const input = path.resolve('images/aivis-chan-3d.webp');
 const outDir = path.resolve('images');
-const widths = [400, 800, 1080];
+const widths = [400, 600, 800, 1080];
 
 async function ensureOutDir() {
   await fs.mkdir(outDir, { recursive: true });
