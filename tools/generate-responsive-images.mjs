@@ -15,12 +15,17 @@ async function run() {
   const base = 'aivis-chan-3d';
 
   for (const w of widths) {
-    const pipeline = sharp(input).resize({ width: w, height: w, fit: 'cover' });
+  const pipeline = sharp(input).resize({ width: w, height: w, fit: 'cover' });
     const avifOut = path.join(outDir, `${base}-${w}.avif`);
     const webpOut = path.join(outDir, `${base}-${w}.webp`);
 
-    await pipeline.avif({ quality: 55 }).toFile(avifOut);
-    await sharp(input).resize({ width: w, height: w, fit: 'cover' }).webp({ quality: 70 }).toFile(webpOut);
+    await pipeline
+      .avif({ quality: 40, effort: 6, chromaSubsampling: '4:2:0' })
+      .toFile(avifOut);
+    await sharp(input)
+      .resize({ width: w, height: w, fit: 'cover' })
+      .webp({ quality: 60, smartSubsample: true })
+      .toFile(webpOut);
 
     console.log(`generated: ${path.basename(avifOut)} and ${path.basename(webpOut)}`);
   }
