@@ -1,0 +1,38 @@
+/* Minimal critical CSS to stabilize initial layout and reduce CLS */
+html{box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:#fff;color:#0f172a}
+/* Container */
+.container{max-width:1200px;margin:0 auto;padding:0 16px}
+/* Avoid CLS from gradient-text late style application */
+.gradient-text{padding:0.5em 1.2em;letter-spacing:0.01em}
+/* Fixed header baseline */
+.header{position:fixed;top:0;left:0;right:0;background:#10131b;border-bottom:2px solid #00bcd4;z-index:1030}
+.nav{padding:16px 0}
+.nav-container{display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:16px}
+.nav-title{font-weight:700;color:#fff}
+.nav-menu{display:flex;list-style:none;gap:32px;margin:0;padding:0}
+.nav-actions{display:flex;align-items:center;gap:16px}
+.nav-toggle{display:none}
+/* Hero section skeleton */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;background:#f4fafd;overflow:hidden}
+.hero-content{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;width:100%}
+.hero-title{font-size:3rem;line-height:1.2;margin:0 0 24px}
+/* Match final margin-bottom: calc(48px + 24px) = 72px */
+.hero-description{font-size:1.125rem;margin:0 0 72px}
+.hero-image{text-align:center}
+.hero-bot{max-width:400px;height:auto}
+/* Stats and buttons basic spacing */
+.hero-buttons{display:flex;gap:24px;margin-bottom:64px}
+.hero-stats{display:flex;gap:32px}
+/* Mobile */
+@media (max-width:768px){
+  .nav-menu{display:none}
+  .nav-toggle{display:flex;flex-direction:column;gap:4px}
+  .hero-content{grid-template-columns:1fr;text-align:center}
+  .hero-title{font-size:1.875rem;padding-top:40px}
+  .hero-description{padding-bottom:40px}
+  .hero-buttons{flex-direction:column;align-items:center}
+  .hero-stats{justify-content:center;flex-wrap:wrap}
+}

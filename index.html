@@ -109,10 +109,14 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <!-- Preload critical CSS to minimize blocking time -->
+    <link rel="preload" href="/css/critical.css" as="style">
     
     <!-- Preload LCP image (responsive) -->
     <link rel="preload" as="image" imagesrcset="/images/aivis-chan-3d-400.avif 400w, /images/aivis-chan-3d-600.avif 600w, /images/aivis-chan-3d-800.avif 800w, /images/aivis-chan-3d-1080.avif 1080w" imagesizes="(max-width: 480px) 90vw, (max-width: 768px) 70vw, 400px" type="image/avif" fetchpriority="high">
     <link rel="preload" as="image" imagesrcset="/images/aivis-chan-3d-400.webp 400w, /images/aivis-chan-3d-600.webp 600w, /images/aivis-chan-3d-800.webp 800w, /images/aivis-chan-3d-1080.webp 1080w" imagesizes="(max-width: 480px) 90vw, (max-width: 768px) 70vw, 400px" type="image/webp" fetchpriority="high">
+    <!-- Critical CSS for initial layout stability (blocking, small) -->
+    <link rel="stylesheet" href="/css/critical.css">
     <!-- CSS (non-blocking load, no inline CSS) -->
     <link rel="stylesheet" href="/css/style.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="/css/style.css"></noscript>
