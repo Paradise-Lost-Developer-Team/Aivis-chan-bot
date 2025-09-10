@@ -592,6 +592,50 @@ try {
     guildDictionary = {};
 }
 
+// ローカル辞書のスナップショット取得（軽量キャッシュ）
+let _dictCache: any = null;
+let _dictMtimeMs = 0;
+function getGuildDictionarySnapshot(): any {
+    try {
+        if (fs.existsSync(DICTIONARY_FILE)) {
+            const stat = fs.statSync(DICTIONARY_FILE);
+            if (!_dictCache || stat.mtimeMs !== _dictMtimeMs) {
+                const raw = fs.readFileSync(DICTIONARY_FILE, 'utf-8');
+                _dictCache = JSON.parse(raw) || {};
+                _dictMtimeMs = stat.mtimeMs;
+            }
+        } else {
+            _dictCache = {};
+            _dictMtimeMs = 0;
+        }
+    } catch (e) {
+        // 壊れた場合は空辞書として扱う
+        _dictCache = {};
+    }
+    return _dictCache || {};
+}
+
+// ギルド辞書をテキストへ適用（単純置換: 長い語から順に）
+function applyGuildDictionary(guildId: string, text: string): string {
+    const dict = getGuildDictionarySnapshot()[guildId];
+    if (!dict || typeof dict !== 'object') return text;
+    const entries = Object.entries(dict) as Array<[string, any]>;
+    if (entries.length === 0) return text;
+    // 長い単語から置換して重なりを回避
+    entries.sort((a, b) => b[0].length - a[0].length);
+    let out = text;
+    for (const [word, details] of entries) {
+        try {
+            const pronunciation = (details && (details as any).pronunciation) || '';
+            if (!word || !pronunciation) continue;
+            const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp(escaped, 'g');
+            out = out.replace(re, pronunciation);
+        } catch {}
+    }
+    return out;
+}
+
 export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: string) {
     audioQuery["outputSamplingRate"] = 44100;
     audioQuery["outputStereo"] = false;
@@ -660,6 +704,8 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     if (text.length > limit) {
         text = text.slice(0, limit) + "以下省略";
     }
+    // ギルド辞書を適用してから分割
+    text = applyGuildDictionary(guildId, text);
     const chunks = chunkText(text);
     if (chunks.length === 0) return;
 

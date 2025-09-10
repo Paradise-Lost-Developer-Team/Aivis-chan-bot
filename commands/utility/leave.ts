@@ -4,6 +4,7 @@ import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine'; // Adjust the path as necessary
+import { getBotInfos, pickLeastBusyBot, instructLeave } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,16 +15,73 @@ module.exports = {
         const voiceClient = voiceClients[guildId];
 
         if (!voiceClient) {
-            await interaction.reply({
-                embeds: [addCommonFooter(
-                    new EmbedBuilder()
-                        .setTitle('未接続')
-                        .setDescription('現在、ボイスチャンネルに接続していません。')
-                        .setColor(0xffa500)
-                )],
-                flags: MessageFlags.Ephemeral,
-                components: [getCommonLinksRow()]
-            });
+            // botOrchestrator経由で対応を試みる
+            try {
+                // 最適なボット候補を取得（オーケストレーターからボット情報を取得して選定）
+                const infos = await getBotInfos().catch(err => {
+                    console.error('getBotInfos error:', err);
+                    return null;
+                });
+                let candidateBotId: string | null = null;
+                if (infos && Array.isArray(infos)) {
+                    const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
+                    const picked = pickLeastBusyBot ? pickLeastBusyBot(eligible) : null;
+                    if (picked) {
+                        // picked.bot may be a string id or an object; try to extract a string to mention
+                        if (typeof picked.bot === 'string') {
+                            candidateBotId = picked.bot;
+                        } else if (picked.bot && typeof picked.bot === 'object') {
+                            const botObj = picked.bot as any;
+                            if (typeof botObj.id === 'string') {
+                                candidateBotId = botObj.id;
+                            } else {
+                                const strVal = Object.values(botObj).find(v => typeof v === 'string') as string | undefined;
+                                candidateBotId = strVal ?? null;
+                            }
+                        }
+                    }
+                }
+                if (candidateBotId) {
+                    // instructJoin は通常「参加」を指示する関数ですが、オーケストレーター側で
+                    // leave 指示にも対応している想定で、任意型で呼び出します。
+                    await (instructLeave as any)(candidateBotId, { guildId });
+
+                    await interaction.reply({
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('退出依頼を送信しました')
+                                .setDescription(`<@${candidateBotId}> にボイスチャンネルからの退出を依頼しました。反映まで少しお待ちください。`)
+                                .setColor(0x00bfff)
+                        )],
+                        flags: MessageFlags.Ephemeral,
+                        components: [getCommonLinksRow()]
+                    });
+                } else {
+                    // オーケストレーターに該当ボットが見つからない場合は従来のメッセージを返す
+                    await interaction.reply({
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('未接続')
+                                .setDescription('現在、ボイスチャンネルに接続していません。')
+                                .setColor(0xffa500)
+                        )],
+                        flags: MessageFlags.Ephemeral,
+                        components: [getCommonLinksRow()]
+                    });
+                }
+            } catch (err) {
+                console.error('orchestrator leave error:', err);
+                await interaction.reply({
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('エラー')
+                            .setDescription('オーケストレーターへの退出依頼に失敗しました。')
+                            .setColor(0xff0000)
+                    )],
+                    flags: MessageFlags.Ephemeral,
+                    components: [getCommonLinksRow()]
+                });
+            }
             return;
         }
 
