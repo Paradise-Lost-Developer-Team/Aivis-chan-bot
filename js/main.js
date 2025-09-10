@@ -286,27 +286,29 @@ class AivisWebsite {
     // ナビゲーション設定
     setupNavigation() {
         const header = document.querySelector('.header');
-        let navScrollScheduled = false;
-        let lastScrollY = 0;
+        if (!header) return;
+        let scheduled = false;
+        let lastY = 0;
 
-        const onScrollUpdate = () => {
-            navScrollScheduled = false;
-            const y = lastScrollY;
-            if (!header) return;
-            if (y > 100) {
-                header.style.background = 'rgba(10, 14, 26, 0.95)';
-                header.style.backdropFilter = 'blur(20px)';
-            } else {
-                header.style.background = 'rgba(10, 14, 26, 0.8)';
-                header.style.backdropFilter = 'blur(10px)';
-            }
+        // 初期状態を一度だけ設定（描画後に書き込み）
+        requestAnimationFrame(() => {
+            header.style.background = 'rgba(10, 14, 26, 0.8)';
+            header.style.backdropFilter = 'blur(10px)';
+        });
+
+        const apply = () => {
+            scheduled = false;
+            const y = lastY; // 読み取りはリスナー側で済ませている
+            header.style.background = y > 100 ? 'rgba(10, 14, 26, 0.95)' : 'rgba(10, 14, 26, 0.8)';
+            header.style.backdropFilter = y > 100 ? 'blur(20px)' : 'blur(10px)';
         };
 
         window.addEventListener('scroll', () => {
-            lastScrollY = window.scrollY || window.pageYOffset;
-            if (!navScrollScheduled) {
-                navScrollScheduled = true;
-                requestAnimationFrame(onScrollUpdate);
+            // 読み取りはここで一度だけ
+            lastY = window.pageYOffset || window.scrollY || 0;
+            if (!scheduled) {
+                scheduled = true;
+                requestAnimationFrame(apply);
             }
         }, { passive: true });
     }
@@ -433,27 +435,28 @@ class AivisWebsite {
         });
     }
 
-    // スムーススクロール
+    // スムーススクロール（強制リフロー回避: geometryの同期読み取りをしない）
     setupSmoothScroll() {
         const links = document.querySelectorAll('a[href^="#"]');
-        
         links.forEach(link => {
             link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href') || '';
+                if (!href.startsWith('#')) return; // 他のリンクは無視
                 e.preventDefault();
-                
-                const targetId = link.getAttribute('href').substring(1);
+
+                const targetId = href.slice(1);
                 const targetElement = document.getElementById(targetId);
-                
-                if (targetElement) {
-                    const headerHeight = document.querySelector('.header').offsetHeight;
-                    const targetPosition = targetElement.offsetTop - headerHeight;
-                    
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
+                if (targetElement && typeof targetElement.scrollIntoView === 'function') {
+                    // CSS側の scroll-padding-top で固定ヘッダー分を吸収
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+                    // URLハッシュを同期（履歴を汚さない）
+                    if (history.replaceState) {
+                        history.replaceState(null, '', `#${targetId}`);
+                    } else {
+                        location.hash = `#${targetId}`;
+                    }
                 }
-            });
+            }, { passive: true });
         });
     }
 
