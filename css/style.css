@@ -901,7 +901,7 @@ section:not(.hero){
 
 /* 招待セクション */
 .invite {
-    background: #005555; /* brighter background for better contrast with white buttons */
+    background: #40e0d0; /* very light background for high contrast */
     text-align: center;
 }
 
@@ -909,12 +909,12 @@ section:not(.hero){
     font-size: var(--font-size-4xl);
     font-weight: 700;
     margin-bottom: var(--spacing-lg);
-    color: #ffffff;
+    color: #333333; /* dark text for high contrast */
 }
 
 .invite-description {
     font-size: var(--font-size-lg);
-    color: #ffffff; /* pure white for maximum contrast */
+    color: #333333; /* dark text for high contrast */
     margin-bottom: var(--spacing-2xl);
 }
 
@@ -926,7 +926,7 @@ section:not(.hero){
 
 /* Increase button contrast on invite background */
 .invite .btn-primary {
-    background: #ffffff;
+    background: #40e0d0;
     color: #000000; /* maximum contrast */
     border: 3px solid #000000; /* thick border for visibility */
     font-weight: 700; /* bold text */
@@ -934,31 +934,31 @@ section:not(.hero){
 }
 .invite .btn-primary:hover {
     background: var(--primary-700);
-    color: #ffffff;
+    color: #333333;
     border-color: var(--primary-700);
 }
 .invite .btn-secondary {
-    background: #ffffff;
-    color: #000000; /* maximum contrast */
-    border: 3px solid #000000; /* thick border for visibility */
+    background: #40e0d0;
+    color: #333333; /* maximum contrast */
+    border: 3px solid #333333; /* thick border for visibility */
     font-weight: 700; /* bold text */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* shadow for depth */
 }
 .invite .btn-secondary:hover {
     background: var(--primary-700);
-    color: #ffffff;
+    color: #333333;
     border-color: var(--primary-700);
 }
 .invite .btn-outline {
-    background: #ffffff;
-    color: #000000; /* strong contrast on white background */
-    border: 3px solid #000000; /* thick border for visibility */
+    background: #40e0d0;
+    color: #333333; /* strong contrast on white background */
+    border: 3px solid #333333; /* thick border for visibility */
     font-weight: 700; /* bold text */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* shadow for depth */
 }
 .invite .btn-outline:hover {
     background: var(--primary-700);
-    color: #ffffff;
+    color: #333333;
     border-color: var(--primary-700);
 }
 
@@ -1577,6 +1577,12 @@ section:not(.hero){
     background: var(--primary-700);
     color: #ffffff;
     border-color: var(--primary-700);
+}
+
+/* Improve contrast for bot detail card buttons */
+.bot-detail-card .btn-primary.btn-sm {
+    background: #000000; /* black background for maximum contrast */
+    color: #ffffff;
 }
 
 /* レスポンシブ対応 */
