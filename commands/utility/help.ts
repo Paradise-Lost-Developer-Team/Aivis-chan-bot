@@ -63,17 +63,6 @@ class HelpMenu {
                 )
                 .setColor(0x3498db),
             new EmbedBuilder()
-                .setTitle("ヘルプ - Premium / サブスクリプション")
-                .setDescription("有料プラン・連携機能に関するコマンドです。")
-                .addFields(
-                    { name: "/voice-history list", value: "読み上げ履歴を表示します（プランにより件数制限あり）。" },
-                    { name: "/voice-history search <query>", value: "履歴をキーワードで検索します。" },
-                    { name: "/subscription info", value: "現在のサブスクリプション情報を確認します。" },
-                    { name: "/subscription purchase", value: "サブスクリプションの購入手続きへ案内します。" },
-                    { name: "/subscription compare", value: "プラン比較を表示します。" }
-                )
-                .setColor(0x3498db),
-            new EmbedBuilder()
                 .setTitle("ヘルプ - キュー優先度と運用")
                 .setDescription("キュー挙動や優先度ルールの説明です。")
                 .addFields(
@@ -112,16 +101,6 @@ class HelpMenu {
                     { name: "/voice-style list", value: "利用可能な音声スタイル一覧を表示します。" },
                     { name: "/voice-style set <name>",  value: "指定した音声スタイルを適用します。" },
                     { name: "/voice-style reset", value: "音声スタイルをデフォルトに戻します。" }
-                )
-                .setColor(0x3498db),
-            // 外部連携・支援関連
-            new EmbedBuilder()
-                .setTitle("ヘルプ - 支援 / 連携")
-                .setDescription("Patreonなどの連携やサポート関連のコマンドです。")
-                .addFields(
-                    { name: "/patreon link",      value: "PatreonアカウントとDiscordを連携します。" },
-                    { name: "/patreon benefits",  value: "支援者向け特典を表示します。" },
-                    { name: "/support", value: "サポート窓口への案内を表示します。" }
                 )
                 .setColor(0x3498db),
             // Reminderコマンドページ

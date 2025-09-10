@@ -1,10 +1,10 @@
-# Aivis-chan-bot
+# Aivis-chan-bot Pro/Premium
 
 [![Release](https://img.shields.io/github/release/Paradise-Lost-Developer-Team/Aivis-chan-bot?include_prereleases=&sort=semver&color=blue)](https://github.com/Paradise-Lost-Developer-Team/Aivis-chan-bot/releases/)
 [![Discord](https://discord.com/api/guilds/1337303326332813334/widget.png)](https://discord.gg/MPx2ny8HXT)
 
-Aivis-chan-botは、[AivisSpeech Engine](https://github.com/Aivis-Project/AivisSpeech-Engine)を使用したDiscord読み上げBotです。\
-AivisSpeechを使った、違和感のないスムーズな読み上げが可能です。
+これは Aivis-chan-bot の有料版です。全てのコマンドに Patreon 連携（Pro または Premium）が必要です。\
+内部 Stats API はポート 3012 で `/api/stats` を提供します。
 
 ## 機能
 
@@ -13,7 +13,7 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
 - 話者・スタイルの変更(Anneli、Anneli(Alt)、Anneli(Whisper)、にせ、るな、ろてじん、亜空マオ、凛音エル、花音、阿井田茂)
 - 音量、速度、ピッチ、テンポの緩急の調節
 
-## 導入方法
+## 導入方法（Pro/Premium）
 
 1. BOTをワンクリックで招待する  [招待リンク1](https://discord.com/oauth2/authorize?client_id=1333819940645638154), [招待リンク2](https://discord.com/oauth2/authorize?client_id=1334732369831268352), [招待リンク3](https://discord.com/oauth2/authorize?client_id=1334734681656262770), [招待リンク4](https://discord.com/oauth2/authorize?client_id=1365633502988472352), [招待リンク5](https://discord.com/oauth2/authorize?client_id=1365633586123771934), [招待リンク6](https://discord.com/oauth2/authorize?client_id=1365633656173101086)
 2. 任意のVCに入った状態で`/join`コマンドを使用する
@@ -33,25 +33,15 @@ AivisSpeechを使った、違和感のないスムーズな読み上げが可能
   - macOS: `brew install ffmpeg`
   - Linux(Debian/Ubuntu): `sudo apt install ffmpeg`
 
-## Pro版・Premium版について
+## 認証について
 
-Aivis-chan-botには有料の「Pro版」と「Premium版」があります。
+以下のコマンドは認証なしで利用できます：
 
-### Pro版特典 (月額$5)
+- `/patreon`（連携・状態確認）
+- `/subscription`（プラン情報）
 
-- 読み上げ制限が400文字に拡張
-- Pro版専用の追加音声モデル
-- 高度な音声設定オプション
-- 優先サポート
 
-### Premium版特典 (月額$10)
-
-- 読み上げ制限が800文字に拡張
-- Premium版専用の追加音声モデル
-- すべてのPro版特典を含む
-- 最優先サポート
-
-詳細および購入方法については、Botの `/subscription` コマンドで確認できます。
+それ以外の全コマンドは Pro または Premium の会員のみ利用可能です。
 
 ## その他のセットアップ手順
 
