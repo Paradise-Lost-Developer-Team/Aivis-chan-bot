@@ -125,6 +125,9 @@
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#5865F2">
+    
+    <!-- Preload module script to reduce fetch delay without blocking render -->
+    <link rel="modulepreload" href="/js/main.js">
 
     <!-- Google Analytics is deferred and loaded after interaction/idle -->
 </head>
@@ -964,7 +967,7 @@
     </footer>
 
         <!-- JavaScript (modern only) -->
-    <script type="module" src="js/main.js"></script>
+    <script type="module" async src="/js/main.js"></script>
         <!-- Legacy browsers: show a minimal notice, no heavy polyfills/transpiles -->
         <script nomodule>
             (function(){
