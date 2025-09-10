@@ -3,4 +3,3 @@ data/
 node_modules/
 __pycache__/
 .vscode/
-deployment/config-configmap.yaml
