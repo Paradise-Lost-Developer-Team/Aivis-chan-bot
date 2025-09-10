@@ -58,7 +58,7 @@ const BOT_TOKENS = {
     '1365633502988472352': process.env.BOT_TOKEN_4,
     '1365633586123771934': process.env.BOT_TOKEN_5,
     '1365633656173101086': process.env.BOT_TOKEN_6,
-    '1415251855147008023': process.env.BOT_TOKEN_7
+    '1415251855147008023': process.env.BOT_TOKEN_PRO
 };
 
 // Discord.js クライアントの管理
