@@ -163,7 +163,10 @@
 /* 基本設定 */
 :root {
     /* カラーパレット（白・シアン基調、グラデなし） */
-    --primary-color: #00bcd4;
+    --primary-color: #00bcd4; /* brand base */
+    --primary-600: #0097a7;
+    --primary-700: #00838f;
+    --primary-800: #006a75;
     --primary-hover: #0097a7;
     --secondary-color: #e0f7fa;
     --accent-color: #00bcd4;
@@ -310,36 +313,36 @@ section:not(.hero){
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: var(--primary-700);
     color: #fff;
     box-shadow: none;
 }
 
 .btn-primary:hover {
-    background: #0097a7;
+    background: var(--primary-800);
     color: #fff;
 }
 
 .btn-secondary {
     background: #e0f7fa;
-    color: #00bcd4;
+    color: #0f172a; /* darker text for contrast */
     border: none;
 }
 
 .btn-secondary:hover {
-    background: #00bcd4;
+    background: var(--primary-700);
     color: #fff;
 }
 
 .btn-outline {
     background: transparent;
-    color: var(--text-secondary);
-    border: none;
+    color: #0f172a; /* strong text */
+    border: 2px solid var(--primary-700);
 }
 
 .btn-outline:hover {
-    background: #f4fafd;
-    color: #00bcd4;
+    background: var(--primary-700);
+    color: #ffffff;
 }
 
 .btn-large {
@@ -890,7 +893,7 @@ section:not(.hero){
 
 /* 招待セクション */
 .invite {
-    background: var(--primary-color);
+    background: var(--primary-800);
     text-align: center;
 }
 
@@ -898,11 +901,12 @@ section:not(.hero){
     font-size: var(--font-size-4xl);
     font-weight: 700;
     margin-bottom: var(--spacing-lg);
+    color: #fff;
 }
 
 .invite-description {
     font-size: var(--font-size-lg);
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
     margin-bottom: var(--spacing-2xl);
 }
 
@@ -910,6 +914,24 @@ section:not(.hero){
     display: flex;
     justify-content: center;
     gap: var(--spacing-lg);
+}
+
+/* Increase button contrast on invite background */
+.invite .btn-primary {
+    background: #ffffff;
+    color: var(--primary-800);
+}
+.invite .btn-primary:hover {
+    background: var(--primary-700);
+    color: #ffffff;
+}
+.invite .btn-secondary {
+    background: #ffffff;
+    color: var(--primary-800);
+}
+.invite .btn-secondary:hover {
+    background: var(--primary-700);
+    color: #ffffff;
 }
 
 /* フッター */
