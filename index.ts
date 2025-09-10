@@ -9,12 +9,12 @@ import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
-import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
 import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
 import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
 import { initSentry } from './utils/sentry';
 import { VoiceConnection, VoiceConnectionStatus, entersState } from "@discordjs/voice";
 import express from 'express';
+import axios from 'axios';
 
 // アプリケーション起動の最初にSentryを初期化
 initSentry();
@@ -146,11 +146,39 @@ client.once("ready", async () => {
             }
         });
 
+        // クラスター内Botの /internal/info を叩いてVC合計を集計
+        const BOTS = [
+            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st:3002' },
+            { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd:3003' },
+            { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd:3004' },
+            { name: '4th', baseUrl: 'http://aivis-chan-bot-4th:3005' },
+            { name: '5th', baseUrl: 'http://aivis-chan-bot-5th:3006' },
+            { name: '6th', baseUrl: 'http://aivis-chan-bot-6th:3007' }
+        ];
+
+    async function getClusterVCCount(selfCount: number, timeoutMs = 2000): Promise<number> {
+            try {
+        const results: number[] = await Promise.all(BOTS.map(async b => {
+                    try {
+            const { data } = await axios.get<{ vcCount?: number }>(`${b.baseUrl}/internal/info`, { timeout: timeoutMs });
+            return (typeof data?.vcCount === 'number') ? (data.vcCount as number) : 0;
+                    } catch {
+                        return 0;
+                    }
+                }));
+        const sum = results.reduce((a: number, c: number) => a + c, 0);
+                return Math.max(sum, selfCount);
+            } catch {
+                return selfCount;
+            }
+        }
+
         setInterval(async () => {
             try {
                 const joinServerCount = client.guilds.cache.size;
-                const joinVCCount = client.voice.adapters.size;
-                client.user!.setActivity(`/help | VC接続中: ${joinVCCount} | サーバー数: ${joinServerCount} | Ping: ${client.ws.ping}ms | 内部: ${client.voice.adapters.size}`, { type: ActivityType.Custom });
+                const selfVC = client.voice.adapters.size;
+                const totalVC = await getClusterVCCount(selfVC);
+                client.user!.setActivity(`/help | VC接続中: ${selfVC}/${totalVC} | サーバー数: ${joinServerCount} | Ping: ${client.ws.ping}ms`, { type: ActivityType.Custom });
             } catch (error) {
                 console.error("ステータス更新エラー:", error);
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));
@@ -223,9 +251,7 @@ client.on("guildCreate", async (guild) => {
             .addFields(
                 { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
                 { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
-                { name: '基本コマンド', value: '• /help\n• /join\n• /leave' },
-                { name: '🌟 プレミアムプラン', value: '• Pro版: 読み上げキューの優先度が上昇\n全てのコマンド・機能\n優先サポート（Discord）\n音声設定カスタマイズ\n• Premium版: 読み上げキューの優先度がさらに上昇\n無制限利用・全ての機能\n優先サポート（Discord・メール）\nカスタム話者追加\nAPIアクセス（外部連携）\n特別リクエスト・開発協力\n• 詳細は `/subscription info` で確認' },
-                { name: '💰 Patreon連携', value: 'PatreonでBot開発をサポートすると、Pro版やPremium版の特典が自動で適用されます！\n• `/patreon link` コマンドでPatreonアカウントを連携\n• 支援Tierに応じて特典が自動有効化' }
+                { name: '基本コマンド', value: '• /help\n• /join\n• /leave' }
             )
             .setFooter({ text: 'Powered by AivisSpeech' })
             .setColor(0x00AAFF);
@@ -240,14 +266,6 @@ client.on("guildCreate", async (guild) => {
                     .setLabel('プライバシーポリシー')
                     .setStyle(ButtonStyle.Link)
                     .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Privacy-Policy'),
-                new ButtonBuilder()
-                    .setLabel('購読プラン')
-                    .setStyle(ButtonStyle.Link)
-                    .setURL('https://paradise-lost-developer-team.github.io/Aivis-chan-bot/Subscription'),
-                new ButtonBuilder()
-                    .setLabel('Patreonで支援する')
-                    .setStyle(ButtonStyle.Link)
-                    .setURL('https://www.patreon.com/AlecJP02'),
                 new ButtonBuilder()
                     .setLabel('サポートサーバー')
                     .setStyle(ButtonStyle.Link)
@@ -265,6 +283,7 @@ client.on("guildCreate", async (guild) => {
 
 // --- サーバー数・VC数API ---
 const apiApp = express();
+apiApp.use(express.json());
 import { Request, Response } from 'express';
 apiApp.get('/api/stats', (req: Request, res: Response) => {
     const serverCount = client.guilds.cache.size;
@@ -287,4 +306,71 @@ client.login(TOKEN).catch(error => {
     console.error("ログインエラー:", error);
     logError('loginError', error);
     process.exit(1);
+});
+// 内部用: 設定バンドル (config.json 等の秘匿ファイルは除外)
+apiApp.get('/internal/settings/bundle', (req: Request, res: Response) => {
+    try {
+        const dir = path.resolve(process.cwd(), 'data');
+        if (!fs.existsSync(dir)) return res.json({ files: {} });
+        const entries = fs.readdirSync(dir);
+        const files: Record<string, any> = {};
+        for (const name of entries) {
+            if (!name.endsWith('.json')) continue;
+            const lower = name.toLowerCase();
+            if (lower === 'config.json') continue; // token等を含むため除外
+            if (lower === 'voice_state.json') continue; // 一時的な音声状態は共有しない
+            if (lower === 'auto_join_channels.json') continue; // 自動参加設定は1台目のみが保持・使用
+            const full = path.join(dir, name);
+            try {
+                const txt = fs.readFileSync(full, 'utf8');
+                files[name] = JSON.parse(txt);
+            } catch (e) {
+                // パースできない場合はスキップ
+            }
+        }
+        res.json({ files });
+    } catch (e) {
+        console.error('settings bundle error:', e);
+        res.status(500).json({ error: 'settings-bundle-failed' });
+    }
+});
+
+// --- 内部: 指定ギルド/チャンネルへ参加API & info ---
+import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
+import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { saveVoiceState } from './utils/voiceStateManager';
+
+apiApp.post('/internal/join', async (req: Request, res: Response) => {
+    try {
+        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+        if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return res.status(404).json({ error: 'guild-not-found' });
+        const voiceChannel = guild.channels.cache.get(voiceChannelId) as any;
+        if (!voiceChannel || voiceChannel.type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
+        const prev = getVoiceConnection(guildId);
+        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
+        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+        voiceClients[guildId] = connection;
+        if (textChannelId) {
+            const tc = guild.channels.cache.get(textChannelId) as any;
+            if (tc && tc.type === 0) (textChannels as any)[guildId] = tc;
+        }
+        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
+        return res.json({ ok: true });
+    } catch (e) {
+        console.error('internal/join error:', e);
+        return res.status(500).json({ error: 'join-failed' });
+    }
+});
+
+apiApp.get('/internal/info', async (req: Request, res: Response) => {
+    try {
+        const guildIds = Array.from(client.guilds.cache.keys());
+        const connectedGuildIds = Object.keys(voiceClients);
+        return res.json({ botId: client.user?.id, botTag: client.user?.tag, guildIds, connectedGuildIds, vcCount: client.voice.adapters.size, serverCount: client.guilds.cache.size });
+    } catch (e) {
+        console.error('internal/info error:', e);
+        return res.status(500).json({ error: 'info-failed' });
+    }
 });

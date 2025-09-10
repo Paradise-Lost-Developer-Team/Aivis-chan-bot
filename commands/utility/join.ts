@@ -1,10 +1,11 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
+import { VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
+import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -50,9 +51,9 @@ module.exports = {
 
         const guildId = interaction.guildId!;
         
-        // 既に接続しているかチェック
-        let voiceClient = voiceClients[guildId];
-        if (voiceClient) {
+    // 既に接続しているかチェック（本Bot）
+    let voiceClient = voiceClients[guildId];
+    if (voiceClient) {
             // 現在Botが接続しているボイスチャンネルを取得
             const currentVoiceChannel = interaction.guild?.channels.cache.find(
                 ch => ch.isVoiceBased() && ch.members.has(interaction.client.user!.id)
@@ -92,23 +93,22 @@ module.exports = {
         textChannels[guildId] = textChannel;
 
         try {
-            voiceClient = await joinVoiceChannel({
-                channelId: voiceChannel.id,
-                guildId: guildId,
-                adapterCreator: interaction.guild!.voiceAdapterCreator as any,
-                selfDeaf: true, // スピーカーはOFF（聞こえない）
-                selfMute: false // マイクはON（話せる）
-            });
-            voiceClients[guildId] = voiceClient;
+            // 全Botの状況を取得して最も空いているBotを選択
+            const infos = await getBotInfos();
+            const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
+            const picked = pickLeastBusyBot(eligible);
+            if (!picked) throw new Error('no-bot-available');
 
-            // 新規：取得したチャネル情報を join_channels.json に保存
+            await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
+
+            // join_channels.json に保存（本Botの設定としても記録）
             updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
 
             await interaction.reply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
-                        .setTitle('接続完了')
-                        .setDescription(`✅ <#${voiceChannel.id}> に接続しました。`)
+                        .setTitle('接続指示完了')
+                        .setDescription(`✅ 最も空いているBot (${picked.bot.baseUrl}) に <#${voiceChannel.id}> への参加を指示しました。`)
                         .setColor(0x00bfff)
                         .addFields(
                             { name: '接続先', value: `<#${voiceChannel.id}>`, inline: true },
@@ -120,24 +120,6 @@ module.exports = {
                 components: [getCommonLinksRow()]
             });
             loadJoinChannels();
-
-            // 追加: Ready になるまで待機
-            await new Promise<void>((resolve) => {
-                const onReady = () => {
-                    voiceClient.off(VoiceConnectionStatus.Disconnected, onError);
-                    resolve();
-                };
-                const onError = () => {
-                    voiceClient.off(VoiceConnectionStatus.Ready, onReady);
-                    resolve();
-                };
-                voiceClient.once(VoiceConnectionStatus.Ready, onReady);
-                voiceClient.once(VoiceConnectionStatus.Disconnected, onError);
-            });
-
-            // 読み上げ開始
-            await speakVoice("接続しました。", currentSpeaker[guildId] || 888753760, guildId);
-
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
@@ -145,7 +127,7 @@ module.exports = {
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
-                            .setDescription('ボイスチャンネルへの接続に失敗しました。')
+                            .setDescription('最も空いているBotへの接続指示に失敗しました。')
                             .setColor(0xff0000)
                     )],
                     components: [getCommonLinksRow()]
