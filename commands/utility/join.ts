@@ -95,8 +95,10 @@ module.exports = {
         try {
             // 全Botの状況を取得して最も空いているBotを選択
             const infos = await getBotInfos();
-            const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
-            const picked = pickLeastBusyBot(eligible);
+            // ギルドに参加しているBotの中から選択（該当がなければエラー）
+            const guildBots = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
+            if (guildBots.length === 0) throw new Error('no-bot-available');
+            const picked = pickLeastBusyBot(guildBots);
             if (!picked) throw new Error('no-bot-available');
 
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
