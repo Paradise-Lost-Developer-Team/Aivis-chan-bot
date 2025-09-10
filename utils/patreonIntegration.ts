@@ -129,12 +129,36 @@ export function storePatreonUser(discordId: string, tokenData: any, patreonId?: 
 }
 
 // サーバーのティア情報を取得（サーバー所有者のPatreon情報を基に）
-export async function getGuildTier(guildId: string): Promise<string> {
+export async function getGuildTier(guildId: string, client?: any): Promise<string> {
   console.log(`${LOG_PREFIX} getGuildTier start for guild ${guildId}`);
 
-  // この関数は現在使用されていないため、常にfreeを返す
-  console.log(`${LOG_PREFIX} getGuildTier result for guild ${guildId}: free (function deprecated)`);
-  return 'free';
+  try {
+    if (!client) {
+      console.log(`${LOG_PREFIX} no client provided, cannot get guild info`);
+      return 'free';
+    }
+
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      console.log(`${LOG_PREFIX} guild ${guildId} not found`);
+      return 'free';
+    }
+
+    const ownerId = guild.ownerId;
+    if (!ownerId) {
+      console.log(`${LOG_PREFIX} guild ${guildId} has no owner`);
+      return 'free';
+    }
+
+    // サーバー所有者のティアを取得
+    const ownerTier = await getUserTierByOwnership(ownerId, guildId);
+    console.log(`${LOG_PREFIX} getGuildTier result for guild ${guildId}: ${ownerTier} (owner: ${ownerId})`);
+    return ownerTier;
+
+  } catch (error) {
+    console.error(`${LOG_PREFIX} error in getGuildTier for guild ${guildId}:`, error);
+    return 'free';
+  }
 }
 
 // ユーザーの所有権に基づくティア情報を取得
