@@ -481,14 +481,16 @@ function toggleDebugMode() {
 }
 
 // サービスワーカーの登録（PWA対応）
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
             .then(registration => {
-                console.log('ServiceWorker registration successful');
+                console.log('ServiceWorker registration successful:', registration.scope);
             })
             .catch(error => {
-                console.log('ServiceWorker registration failed');
+                console.log('ServiceWorker registration failed:', error);
             });
     });
+} else {
+    console.log('ServiceWorker not supported or not HTTPS/localhost');
 }
