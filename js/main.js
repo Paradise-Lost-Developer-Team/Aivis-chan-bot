@@ -385,29 +385,35 @@ class AivisWebsite {
     // ヒーロー統計IDは除外（total-uptime を total-shard に置換）
     const heroStatIds = ['total-servers', 'total-users', 'total-shard', 'total-vc-users'];
         const counters = Array.from(document.querySelectorAll('.stat-number')).filter(counter => !heroStatIds.includes(counter.id));
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
         const animateCounter = (counter) => {
-            const target = parseInt(counter.getAttribute('data-count'));
-            const increment = target / 100;
-            let current = 0;
+            const raw = counter.getAttribute('data-count');
+            let target = Number(raw);
+            if (!Number.isFinite(target)) target = 0;
+            const isDecimal = String(raw || '').includes('.');
 
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
+            // 低負荷化: モバイルや reduce-motion ではアニメーションせず即時反映
+            if (reduceMotion || isMobile) {
+                counter.textContent = isDecimal ? target.toFixed(1) : Math.floor(target).toLocaleString();
+                return;
+            }
 
-                if (target === 99.9) {
-                    counter.textContent = current.toFixed(1);
-                } else {
-                    counter.textContent = Math.floor(current).toLocaleString();
-                }
-            }, 20);
+            // デスクトップのみ短時間のrAFアニメーション（約600ms）
+            const duration = 600;
+            const start = performance.now();
+            const step = (now) => {
+                const t = Math.min(1, (now - start) / duration);
+                const val = target * t;
+                counter.textContent = isDecimal ? val.toFixed(1) : Math.floor(val).toLocaleString();
+                if (t < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
         };
 
         // Intersection Observer でカウンター開始
-        const counterObserver = new IntersectionObserver((entries) => {
+    const counterObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const counter = entry.target;
@@ -445,7 +451,8 @@ class AivisWebsite {
 
     // スムーススクロール（強制リフロー回避: geometryの同期読み取りをしない）
     setupSmoothScroll() {
-        const links = document.querySelectorAll('a[href^="#"]');
+    const links = document.querySelectorAll('a[href^="#"]');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         links.forEach(link => {
             link.addEventListener('click', (e) => {
                 const href = link.getAttribute('href') || '';
@@ -456,7 +463,8 @@ class AivisWebsite {
                 const targetElement = document.getElementById(targetId);
                 if (targetElement && typeof targetElement.scrollIntoView === 'function') {
                     // CSS側の scroll-padding-top で固定ヘッダー分を吸収
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+                    const behavior = reduceMotion ? 'auto' : 'smooth';
+                    targetElement.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
                     // URLハッシュを同期（履歴を汚さない）
                     if (history.replaceState) {
                         history.replaceState(null, '', `#${targetId}`);

@@ -237,8 +237,9 @@
 }
 
 /* HTML・BODY */
-html {
-    scroll-behavior: smooth;
+/* OS設定に合わせてスムーススクロールを制御（JS側でscrollIntoViewを使用）*/
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
 }
 
 body {
@@ -482,6 +483,7 @@ section:not(.hero){
     background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="400" cy="100" r="1" fill="rgba(255,255,255,0.2)"/><circle cx="600" cy="300" r="1.5" fill="rgba(255,255,255,0.4)"/><circle cx="800" cy="150" r="1" fill="rgba(255,255,255,0.3)"/><circle cx="100" cy="400" r="2" fill="rgba(255,255,255,0.2)"/><circle cx="700" cy="500" r="1.5" fill="rgba(255,255,255,0.3)"/><circle cx="300" cy="600" r="1" fill="rgba(255,255,255,0.4)"/><circle cx="900" cy="700" r="2" fill="rgba(255,255,255,0.2)"/></svg>');
     animation: float 20s ease-in-out infinite;
     will-change: transform;
+    contain: layout paint;
 }
 
 @keyframes float {
@@ -554,6 +556,8 @@ section:not(.hero){
 .hero-bot-container {
     position: relative;
     display: inline-block;
+    contain: layout paint;
+    aspect-ratio: 1 / 1;
 }
 
 .hero-bot {
