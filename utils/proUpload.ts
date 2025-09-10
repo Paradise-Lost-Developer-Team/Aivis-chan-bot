@@ -5,8 +5,8 @@ import { getGuildSubscriptionTier, getUserSubscription } from "./subscription";
  * サーバーがProプランまたはPremiumプランかどうかを返す
  * サブスクリプション情報から取得
  */
-export function isProPlan(serverId: string): boolean {
-    const tier = getGuildSubscriptionTier(serverId) || getUserSubscription(serverId);
+export async function isProPlan(serverId: string): Promise<boolean> {
+    const tier = await getGuildSubscriptionTier(serverId) || getUserSubscription(serverId);
     // "pro" または "premium" が対象
     return tier === "pro" || tier === "premium";
 }
@@ -24,7 +24,7 @@ export async function processAivmxUpload(serverId: string, file: { name: string,
     }
     
     // サーバーがProプラン以上か判定
-    if (!isProPlan(serverId)) {
+    if (!(await isProPlan(serverId))) {
         throw new Error("このサーバーはProプラン以上の契約が必要です。");
     }
     

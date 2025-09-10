@@ -48,7 +48,7 @@ module.exports = {
         try {
             // Pro版以上が必要
             const guildId = interaction.guildId!;
-            if (!isProFeatureAvailable(guildId, 'smart-tts')) {
+            if (!(await isProFeatureAvailable(guildId, 'smart-tts'))) {
                 await interaction.reply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
@@ -87,7 +87,7 @@ module.exports = {
 
 async function handleSettingsSubcommand(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId!;
-    const isPremium = isPremiumFeatureAvailable(guildId, 'smart-tts');
+    const isPremium = await isPremiumFeatureAvailable(guildId, 'smart-tts');
     
     // 現在の設定を取得
     const currentSettings = getSmartTTSSettings(guildId);

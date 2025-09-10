@@ -665,8 +665,8 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
 export const MAX_TEXT_LENGTH = 200;
 
 // 最大読み上げ文字数の修正（サブスクリプションに基づく）
-export function getMaxTextLength(guildId: string): number {
-    return getSubscriptionMaxTextLength(guildId);
+export async function getMaxTextLength(guildId: string): Promise<number> {
+    return await getSubscriptionMaxTextLength(guildId);
 }
 
 // 追加：句点読点とコンマとピリオド、半角クエスチョンマークと改行で分割
@@ -698,7 +698,7 @@ let vcDisconnectTimers: { [guildId: string]: NodeJS.Timeout } = {};
 // export const DEFAULT_SPEAKER_ID = 888753760; // ← 既に上部で宣言済みのため削除
 
 async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency?: number, userId?: string) {
-    const limit = getMaxTextLength(guildId);
+    const limit = await getMaxTextLength(guildId);
     if (text.length > limit) {
         text = text.slice(0, limit) + "以下省略";
     }
@@ -898,32 +898,32 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
 /**
  * メッセージ読み上げ: ユーザーごとの話者設定を参照
  */
-export function speakVoice(text: string, userId: string | number, guildId: string, client?: any): Promise<void> {
+export async function speakVoice(text: string, userId: string | number, guildId: string, client?: any): Promise<void> {
     // voiceSettings.speaker優先、なければcurrentSpeaker
     const speaker = (voiceSettings.speaker?.[String(userId)] ?? currentSpeaker[String(userId)]) ?? DEFAULT_SPEAKER_ID;
-    const queue = getQueueForUser(guildId);
+    const queue = await getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, speaker, guildId, String(userId), client));
 }
 
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-export function speakAnnounce(text: string, guildId: string, client?: any): Promise<void> {
-    const queue = getQueueForUser(guildId);
+export async function speakAnnounce(text: string, guildId: string, client?: any): Promise<void> {
+    const queue = await getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理
 const userQueues = new Map<string, PQueue>();
-function getQueueForUser(userId: string): PQueue {
-    const plan = getSubscription(userId); // SubscriptionType を取得
+async function getQueueForUser(guildId: string): Promise<PQueue> {
+    const plan = await getGuildSubscriptionTier(guildId); // SubscriptionType を取得
     const concurrency = plan === SubscriptionType.PREMIUM ? 4 :
                         plan === SubscriptionType.PRO     ? 2 : 1;
-    if (!userQueues.has(userId)) {
-        userQueues.set(userId, new PQueue({ concurrency }));
+    if (!userQueues.has(guildId)) {
+        userQueues.set(guildId, new PQueue({ concurrency }));
     }
     // 動的に並列数を更新
-    const queue = userQueues.get(userId)!;
+    const queue = userQueues.get(guildId)!;
     queue.concurrency = concurrency;
     return queue;
 }
@@ -1247,16 +1247,16 @@ export function resetTTSEngine(): void {
 }
 
 // 読み上げ優先度の確認関数
-export function getTTSPriority(guildId: string): number {
-    const subscriptionType = getSubscription(guildId);
+export async function getTTSPriority(guildId: string): Promise<number> {
+    const subscriptionType = await getGuildSubscriptionTier(guildId);
     // 優先度が高いほど、キュー内で先に処理される
     return subscriptionType === SubscriptionType.PREMIUM ? 2 :
     subscriptionType === SubscriptionType.PRO ? 1 : 0;
 }
 
 // 音声品質の確認関数
-export function getVoiceQuality(guildId: string): string {
-    return checkSubscriptionFeature(guildId, 'highQualityVoice') ? 'high' : 'standard';
+export async function getVoiceQuality(guildId: string): Promise<string> {
+    return (await checkSubscriptionFeature(guildId, 'highQualityVoice')) ? 'high' : 'standard';
 }
 
 // 全ての声優を取得する関数
@@ -1284,26 +1284,26 @@ function getAllVoices() {
 }
 
 // メッセージ長の確認
-export function validateMessageLength(guildId: string, message: string): boolean {
-    const maxLength = getSubscriptionLimit(guildId, 'maxMessageLength');
+export async function validateMessageLength(guildId: string, message: string): Promise<boolean> {
+    const maxLength = await getSubscriptionLimit(guildId, 'maxMessageLength');
     return message.length <= maxLength;
 }
 
 // 既存のTTS処理関数を拡張
-export function processMessage(guildId: string, message: string, options: any) {
+export async function processMessage(guildId: string, message: string, options: any) {
     // メッセージ長チェック
     if (!validateMessageLength(guildId, message)) {
         throw new Error(`メッセージが長すぎます。現在のプランでは${getSubscriptionLimit(guildId, 'maxMessageLength')}文字までです。`);
     }
     
     // 音声品質の設定
-    options.quality = getVoiceQuality(guildId);
+    options.quality = await getVoiceQuality(guildId);
     
     // 優先度の設定
-    options.priority = getTTSPriority(guildId);
+    options.priority = await getTTSPriority(guildId);
     
     // Premiumユーザー向けの特殊機能
-    if (checkSubscriptionFeature(guildId, 'textTransformationEffects')) {
+    if (await checkSubscriptionFeature(guildId, 'textTransformationEffects')) {
         message = applyTextTransformations(message, options);
     }
     

@@ -20,9 +20,9 @@ const proSettings: { [guildId: string]: AdvancedVoiceSettings } = {};
 const guildVoiceEffects: { [guildId: string]: any } = {};
 
 // Pro版の高度な音声設定を取得
-export function getProVoiceSettings(guildId: string): AdvancedVoiceSettings {
+export async function getProVoiceSettings(guildId: string): Promise<AdvancedVoiceSettings> {
     // Pro版ではない場合は空のオブジェクトを返す
-    if (!isProFeatureAvailable(guildId, 'voice-settings')) {
+    if (!(await isProFeatureAvailable(guildId, 'voice-settings'))) {
         return {};
     }
     
@@ -124,13 +124,13 @@ export async function speakWithEffects(
     effects?: Partial<AdvancedVoiceSettings>
 ): Promise<void> {
     // Pro版ではない場合は通常の読み上げ
-    if (!isProFeatureAvailable(guildId, 'voice-effects')) {
+    if (!(await isProFeatureAvailable(guildId, 'voice-effects'))) {
         await speakVoice(text, speaker, guildId);
         return;
     }
     
     // 使用する効果を取得
-    const settingsToUse = effects || getProVoiceSettings(guildId);
+    const settingsToUse = effects || await getProVoiceSettings(guildId);
     
     // エフェクト適用処理を削除
     await speakVoice(text, speaker, guildId);
@@ -152,9 +152,9 @@ export function getProPlanInfo(guildId: string): string {
 }
 
 // 利用可能なPro版音声モデル一覧を取得
-export function getAvailableProVoices(guildId: string): string[] {
+export async function getAvailableProVoices(guildId: string): Promise<string[]> {
     // Premium版の場合
-    if (isPremiumFeatureAvailable(guildId, 'premium-voices')) {
+    if (await isPremiumFeatureAvailable(guildId, 'premium-voices')) {
         return [
             "Anneli - ノーマル",
             "Anneli - テンション高め",
@@ -172,7 +172,7 @@ export function getAvailableProVoices(guildId: string): string[] {
     }
     
     // Pro版の場合
-    if (isProFeatureAvailable(guildId, 'pro-voices')) {
+    if (await isProFeatureAvailable(guildId, 'pro-voices')) {
         return [
             "Anneli - ノーマル",
             "Anneli - テンション高め",
@@ -228,7 +228,7 @@ export function getSpeakPriority(guildId: string): number {
 }
 
 // 音声品質設定の選択肢を取得
-export function getAvailableVoiceQualityOptions(guildId: string): string[] {
+export async function getAvailableVoiceQualityOptions(guildId: string): Promise<string[]> {
     const tier = getGuildSubscriptionTier(guildId);
     
     switch (tier) {
@@ -243,7 +243,7 @@ export function getAvailableVoiceQualityOptions(guildId: string): string[] {
 }
 
 // 音声効果のプリセット選択肢を取得
-export function getAvailableVoiceEffectPresets(guildId: string): string[] {
+export async function getAvailableVoiceEffectPresets(guildId: string): Promise<string[]> {
     const tier = getGuildSubscriptionTier(guildId);
     
     if (tier === SubscriptionType.PREMIUM) {
@@ -259,7 +259,7 @@ export function getAvailableVoiceEffectPresets(guildId: string): string[] {
 }
 
 // 機能の利用可否チェック
-export function checkFeatureAvailability(guildId: string): Record<string, boolean> {
+export async function checkFeatureAvailability(guildId: string): Promise<Record<string, boolean>> {
     const tier = getGuildSubscriptionTier(guildId);
     
     return {

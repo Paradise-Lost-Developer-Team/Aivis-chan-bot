@@ -141,16 +141,16 @@ export function setSubscription(guildId: string, type: SubscriptionType, duratio
 }
 
 // サブスクリプションの特典チェック
-export function checkSubscriptionFeature(guildId: string, feature: string): boolean {
-    const subscriptionType = getGuildSubscriptionTier(guildId);
-    const benefits = SubscriptionBenefits[subscriptionType];
+export async function checkSubscriptionFeature(guildId: string, feature: string): Promise<boolean> {
+    const tier = await getGuildSubscriptionTier(guildId);
+    const benefits = SubscriptionBenefits[tier];
     
     return feature in benefits && !!benefits[feature as keyof typeof benefits];
 }
 
 // サブスクリプション数値特典の取得
-export function getSubscriptionLimit(guildId: string, limitType: string): number {
-    const subscriptionType = getGuildSubscriptionTier(guildId);
+export async function getSubscriptionLimit(guildId: string, limitType: string): Promise<number> {
+    const subscriptionType = await getGuildSubscriptionTier(guildId);
     const benefits = SubscriptionBenefits[subscriptionType];
     
     return benefits[limitType as keyof typeof benefits] as number || 0;
@@ -235,9 +235,31 @@ export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
         if (guildSub && typeof guildSub.expiresAt === 'number' && guildSub.expiresAt > Date.now()) {
             return guildSub.type;
         }
-        
-        // Patreonチェックはバックグラウンドで実行
-        // ここでは同期的にFREEを返す
+
+        // 永続化されたサブスクリプションがない場合、同期的にPatreonチェックを実行
+        try {
+            const guild = client.guilds.cache.get(guildId);
+            if (guild) {
+                const ownerId = guild.ownerId;
+                // 同期的にPatreonチェックを実行（ただしタイムアウトを設定）
+                const checkPromise = patreonIntegration.getUserTier(ownerId);
+                const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)); // 5秒タイムアウト
+
+                Promise.race([checkPromise, timeoutPromise]).then((tier) => {
+                    if (tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM) {
+                        // Patreon連携がある場合、30日間のサブスクリプションを適用
+                        setSubscription(guildId, tier, 30);
+                        console.log(`Patreon連携を確認: サーバー ${guildId} に ${tier} 特典を適用 (所有者: ${ownerId})`);
+                    }
+                }).catch((patreonErr) => {
+                    console.log('Patreon check failed:', patreonErr);
+                });
+            }
+        } catch (syncErr) {
+            console.log('Sync Patreon check failed:', syncErr);
+        }
+
+        // 同期チェックの結果を待たずにFREEを返す（バックグラウンドで適用される）
         return SubscriptionType.FREE;
     } catch (err) {
         console.error('getGuildSubscriptionTier error:', err);
@@ -297,8 +319,8 @@ export function cancelSubscription(userId: string): boolean {
 }
 
 // ギルドの最大音声長さを取得する（Proサブスクリプションによる制限の緩和）
-export function getMaxTextLength(guildId: string): number {
-    const tier = getGuildSubscriptionTier(guildId);
+export async function getMaxTextLength(guildId: string): Promise<number> {
+    const tier = await getGuildSubscriptionTier(guildId);
     
     switch (tier) {
         case SubscriptionType.PREMIUM:
@@ -312,20 +334,64 @@ export function getMaxTextLength(guildId: string): number {
 }
 
 // Pro版機能が利用可能かチェック
-export function isProFeatureAvailable(guildId: string, p0: string): boolean {
+export async function isProFeatureAvailable(guildId: string, feature: string): Promise<boolean> {
+    // まず永続化されたサブスクリプションを確認
     const tier = getGuildSubscriptionTier(guildId);
-    return tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM;
+    if (tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM) {
+        return true;
+    }
+
+    // 永続化されたサブスクリプションがない場合、所有者のPatreonを直接チェック
+    try {
+        const guild = client.guilds.cache.get(guildId);
+        if (guild) {
+            const ownerId = guild.ownerId;
+            const patreonTier = await patreonIntegration.getUserTier(ownerId);
+            if (patreonTier === SubscriptionType.PRO || patreonTier === SubscriptionType.PREMIUM) {
+                // Patreon連携がある場合、30日間のサブスクリプションを適用
+                setSubscription(guildId, patreonTier, 30);
+                console.log(`Patreon連携を確認: サーバー ${guildId} に ${patreonTier} 特典を適用 (所有者: ${ownerId})`);
+                return true;
+            }
+        }
+    } catch (err) {
+        console.log('Pro feature check Patreon error:', err);
+    }
+
+    return false;
 }
 
 // Premium版機能が利用可能かチェック
-export function isPremiumFeatureAvailable(guildId: string, p0: string): boolean {
+export async function isPremiumFeatureAvailable(guildId: string, feature: string): Promise<boolean> {
     // 作者が管理するサーバーの場合は常にtrue
     if (isOwnerGuild(guildId)) {
         return true;
     }
 
+    // まず永続化されたサブスクリプションを確認
     const tier = getGuildSubscriptionTier(guildId);
-    return tier === SubscriptionType.PREMIUM;
+    if (tier === SubscriptionType.PREMIUM) {
+        return true;
+    }
+
+    // 永続化されたサブスクリプションがない場合、所有者のPatreonを直接チェック
+    try {
+        const guild = client.guilds.cache.get(guildId);
+        if (guild) {
+            const ownerId = guild.ownerId;
+            const patreonTier = await patreonIntegration.getUserTier(ownerId);
+            if (patreonTier === SubscriptionType.PREMIUM) {
+                // Patreon連携がある場合、30日間のサブスクリプションを適用
+                setSubscription(guildId, patreonTier, 30);
+                console.log(`Patreon連携を確認: サーバー ${guildId} に ${patreonTier} 特典を適用 (所有者: ${ownerId})`);
+                return true;
+            }
+        }
+    } catch (err) {
+        console.log('Premium feature check Patreon error:', err);
+    }
+
+    return false;
 }
 
 // 指定したギルドがBOT作者の管理下にあるかどうかを確認する

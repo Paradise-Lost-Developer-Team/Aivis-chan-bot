@@ -264,7 +264,7 @@ export function MessageCreate(client: ExtendedClient) {
                 // ボイスチャンネルに接続中ならTTSを試みる
                 if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
                     try {
-                        if (isProFeatureAvailable(guildId, 'smart-tts')) {
+                        if (await isProFeatureAvailable(guildId, 'smart-tts')) {
                             const audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
                             // カスタム応答はアナウンス形式で読み上げ

@@ -125,21 +125,25 @@ async function processQueue(guildId: string): Promise<void> {
                 updateLastSpeechTime();
 
                 // Pro版ユーザーの場合、履歴に保存
-                if (item.originalMessage && isProFeatureAvailable(guildId, 'voice-history')) {
+                if (item.originalMessage) {
                     try {
-                        const historyItem: VoiceHistoryItem = {
-                            timestamp: new Date().toISOString(),
-                            text: item.text,
-                            userId: item.originalMessage.author.id,
-                            username: item.originalMessage.member?.displayName || item.originalMessage.author.username,
-                            speakerId: item.speakerId,
-                            channelId: item.originalMessage.channelId,
-                            channelName: item.originalMessage.channel.isTextBased() ? 
-                                        (item.originalMessage.channel.isDMBased() ? 'DM' : item.originalMessage.channel.name) : 
-                                        '不明なチャンネル'
-                        };
-                        
-                        await saveVoiceHistoryItem(guildId, historyItem);
+                        // 非同期で特典チェックを実行
+                        const isProAvailable = await isProFeatureAvailable(guildId, 'voice-history');
+                        if (isProAvailable) {
+                            const historyItem: VoiceHistoryItem = {
+                                timestamp: new Date().toISOString(),
+                                text: item.text,
+                                userId: item.originalMessage.author.id,
+                                username: item.originalMessage.member?.displayName || item.originalMessage.author.username,
+                                speakerId: item.speakerId,
+                                channelId: item.originalMessage.channelId,
+                                channelName: item.originalMessage.channel.isTextBased() ? 
+                                            (item.originalMessage.channel.isDMBased() ? 'DM' : item.originalMessage.channel.name) : 
+                                            '不明なチャンネル'
+                            };
+                            
+                            await saveVoiceHistoryItem(guildId, historyItem);
+                        }
                     } catch (historyError) {
                         console.error('履歴保存エラー:', historyError);
                     }

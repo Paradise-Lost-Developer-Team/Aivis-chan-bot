@@ -41,8 +41,8 @@ export class VoiceReminder {
     
     // 音声機能の権限チェック
     if (voiceEnabled) {
-      const isPremium = isPremiumFeatureAvailable(userId, 'voice-reminder');
-      const isPro = isProFeatureAvailable(userId, 'voice-reminder');
+      const isPremium = await isPremiumFeatureAvailable(guildId || '', 'voice-reminder');
+      const isPro = await isProFeatureAvailable(guildId || '', 'voice-reminder');
       
       if (!isPremium && !isPro) {
         return '音声付きリマインダーはPremiumまたはProプランでのみ利用可能です。';

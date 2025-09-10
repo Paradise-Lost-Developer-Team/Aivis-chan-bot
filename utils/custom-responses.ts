@@ -55,9 +55,9 @@ export function getCustomResponses(guildId: string): CustomResponse[] {
 }
 
 // カスタム応答を追加
-export function addCustomResponse(guildId: string, response: Omit<CustomResponse, 'id' | 'createdAt'>): CustomResponse | null {
+export async function addCustomResponse(guildId: string, response: Omit<CustomResponse, 'id' | 'createdAt'>): Promise<CustomResponse | null> {
     // 最大数チェック
-    const maxResponses = getMaxCustomResponses(guildId);
+    const maxResponses = await getMaxCustomResponses(guildId);
     const currentResponses = guildResponses[guildId] || [];
     
     if (currentResponses.length >= maxResponses) {
@@ -173,8 +173,8 @@ export function processResponse(response: CustomResponse, message: string, usern
 }
 
 // サブスクリプションレベルに基づく最大カスタム応答数
-export function getMaxCustomResponses(guildId: string): number {
-    const tier = getGuildSubscriptionTier(guildId);
+export async function getMaxCustomResponses(guildId: string): Promise<number> {
+    const tier = await getGuildSubscriptionTier(guildId);
     switch (tier) {
         case SubscriptionType.PREMIUM:
             return 50;

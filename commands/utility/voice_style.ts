@@ -100,7 +100,7 @@ async function handleCreate(interaction: ChatInputCommandInteraction, guildId: s
         });
         return;
     }
-    const max = getMaxStylesCount(guildId);
+    const max = await getMaxStylesCount(guildId);
     if (styles.length >= max) {
         await interaction.reply({
             embeds: [addCommonFooter(
@@ -114,7 +114,7 @@ async function handleCreate(interaction: ChatInputCommandInteraction, guildId: s
         });
         return;
     }
-    const created = createStyle(guildId, name, { volume, pitch, speed, description, createdBy: interaction.user.id });
+    const created = await createStyle(guildId, name, { volume, pitch, speed, description, createdBy: interaction.user.id });
     if (!created) {
         await interaction.reply({
             embeds: [addCommonFooter(
@@ -184,7 +184,7 @@ async function handleApply(interaction: ChatInputCommandInteraction, guildId: st
         });
         return;
     }
-    applyStyle(guildId, style.id);
+    await applyStyle(guildId, style.id);
     await interaction.reply({
         embeds: [addCommonFooter(
             new EmbedBuilder()
@@ -266,7 +266,7 @@ async function handleInfo(interaction: ChatInputCommandInteraction, guildId: str
 }
 
 async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId: string) {
-    if (!isPremiumFeatureAvailable(guildId, 'voice-style-advanced')) {
+    if (!(await isPremiumFeatureAvailable(guildId, 'voice-style-advanced'))) {
         await interaction.reply({
             embeds: [addCommonFooter(
                 new EmbedBuilder()
@@ -310,7 +310,7 @@ async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId:
         return;
     }
     const newName = `${style.name}_adv_${Date.now()}`;
-    const newStyle = createStyle(guildId, newName, {
+    const newStyle = await createStyle(guildId, newName, {
         volume: style.volume,
         pitch: style.pitch,
         speed: style.speed,
@@ -333,7 +333,7 @@ async function handleAdvanced(interaction: ChatInputCommandInteraction, guildId:
         });
         return;
     }
-    applyStyle(guildId, newStyle.id);
+    await applyStyle(guildId, newStyle.id);
     await interaction.reply({
         embeds: [addCommonFooter(
             new EmbedBuilder()
