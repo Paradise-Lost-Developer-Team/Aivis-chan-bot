@@ -292,6 +292,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// ダッシュボードルート
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // 追加: sitemap / robots / Google ping（末尾に追記）
 
 const BASE_URL = process.env.BASE_URL || 'https://aivis-chan-bot.com';
