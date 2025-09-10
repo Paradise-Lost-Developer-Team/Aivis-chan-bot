@@ -168,15 +168,23 @@
     --warning-color: #ffd93d;
     --danger-color: #ff4757;
     --success-color: #2ed573;
-    --text-primary: #222;
-    --text-secondary: #555;
-    --text-muted: #aaa;
+    /* 強いコントラストのテキストカラーに更新（WCAG 準拠を目指す） */
+    --text-primary: #0f172a;
+    --text-secondary: #374151;
+    --text-muted: #6b7280;
     --text-accent: #00bcd4;
     --background-primary: #fff;
     --background-secondary: #f4fafd;
     --background-tertiary: #e0f7fa;
     --surface: #f8fafd;
-    --surface-hover: #e0f7fa;
+    /* surface hover / responsive image helpers */
+    --surface-hover: rgba(0,0,0,0.04);
+    --surface-color: #fff;
+    /* Recommended sizes for responsive images:
+       --image-display-size: target CSS display size (use in layout)
+       --image-source-max: max source width for srcset (generate smaller files accordingly) */
+    --image-display-size: 400px;
+    --image-source-max: 1080px;
     --surface-light: #f4fafd;
     --overlay-dark: rgba(0, 0, 0, 0.05);
     /* グラデーションは使用しない */
@@ -1733,4 +1741,17 @@ body.patreon-success .note{margin-top:12px;color:#6b7280;font-size:13px}
 }
 .btn-primary.btn-sm:hover {
   background: #00606c;
+}
+
+/* 視覚的に非表示だがスクリーンリーダーには読み上げるユーティリティ */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
 }

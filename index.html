@@ -110,18 +110,10 @@
     <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <link rel="apple-touch-icon" href="/images/icon-192.png">
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Load fonts non-blocking and drop unused weight 300 to reduce CSS size -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"></noscript>
-    
+    <!-- Preload LCP image (place as early as possible in head) -->
+    <link rel="preload" as="image" href="/images/aivis-chan-3d.webp" type="image/webp" fetchpriority="high">
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
-    <!-- Preload LCP image -->
-    <link rel="preload" as="image" href="/images/aivis-chan-3d.webp" type="image/webp">
     
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -209,7 +201,7 @@
                 </div>
         <div class="hero-image">
                     <div class="hero-bot-container">
-            <img src="/images/aivis-chan-3d.webp" alt="Aivis-chan Bot キャラクター" class="hero-bot" loading="eager" fetchpriority="high" decoding="async">
+            <img src="/images/aivis-chan-3d.webp" alt="Aivis-chan Bot キャラクター" class="hero-bot" loading="eager" fetchpriority="high" decoding="async" width="800" height="800">
                         <div class="hero-bot-glow"></div>
                     </div>
                 </div>
@@ -715,7 +707,8 @@
                     <div class="voice-avatar"><img src="/images/Anneli.jpg" alt="Anneli" /></div>
                     <div class="voice-info">
                         <h3 class="voice-name">Anneli</h3>
-                        <select class="voice-style-select" data-voice="Anneli">
+                        <label class="sr-only" for="voice-style-anneli">Anneli の音声スタイル</label>
+                        <select id="voice-style-anneli" class="voice-style-select" data-voice="Anneli">
                             <option value="001_Anneli_normal.opus">ノーマル</option>
                             <option value="002_Anneli_general.opus">通常</option>
                             <option value="003_Anneli_high.opus">テンション高め</option>
@@ -740,7 +733,8 @@
                     <div class="voice-avatar"><img src="/images/Anneli (Whisper).jpg" alt="Anneli (Whisper)" /></div>
                     <div class="voice-info">
                         <h3 class="voice-name">Anneli (Whisper)</h3>
-                        <select class="voice-style-select" data-voice="Anneli (Whisper)">
+                        <label class="sr-only" for="voice-style-anneli-whisper">Anneli (Whisper) の音声スタイル</label>
+                        <select id="voice-style-anneli-whisper" class="voice-style-select" data-voice="Anneli (Whisper)">
                             <option value="008_AnneliWhisper_normal.opus">ノーマル</option>
                             <option value="009_AnneliWhisper_general.opus">通常</option>
                             <option value="010_AnneliWhisper_high.opus">テンション高め</option>
@@ -756,7 +750,8 @@
                     <div class="voice-avatar"><img src="/images/阿井田 茂.jpg" alt="阿井田 茂" /></div>
                     <div class="voice-info">
                         <h3 class="voice-name">阿井田 茂</h3>
-                        <select class="voice-style-select" data-voice="阿井田 茂">
+                        <label class="sr-only" for="voice-style-aida-shigeru">阿井田 茂 の音声スタイル</label>
+                        <select id="voice-style-aida-shigeru" class="voice-style-select" data-voice="阿井田 茂">
                             <option value="014_AidaShigeru_normal.opus">ノーマル</option>
                             <option value="015_AidaShigeru_calm.opus">Calm</option>
                             <option value="016_AidaShigeru_far.opus">Far</option>
@@ -774,7 +769,8 @@
                     <div class="voice-avatar"><img src="/images/亜空マオ.jpg" alt="亜空マオ" /></div>
                     <div class="voice-info">
                         <h3 class="voice-name">亜空マオ</h3>
-                        <select class="voice-style-select" data-voice="亜空マオ">
+                        <label class="sr-only" for="voice-style-aku-mao">亜空マオ の音声スタイル</label>
+                        <select id="voice-style-aku-mao" class="voice-style-select" data-voice="亜空マオ">
                             <option value="022_AkuMao_normal.opus">ノーマル</option>
                             <option value="023_AkuMao_angry.opus">ふきげん</option>
                             <option value="024_AkuMao_happy.opus">じょうきげん</option>
@@ -787,7 +783,8 @@
                     <div class="voice-avatar"><img src="/images/天深シノ.jpg" alt="天深シノ" /></div>
                     <div class="voice-info">
                         <h3 class="voice-name">天深シノ</h3>
-                        <select class="voice-style-select" data-voice="天深シノ">
+                        <label class="sr-only" for="voice-style-amami-shino">天深シノ の音声スタイル</label>
+                        <select id="voice-style-amami-shino" class="voice-style-select" data-voice="天深シノ">
                             <option value="025_AmamiShino_normal.opus">ノーマル</option>
                             <option value="026_AmamiShino_happy.opus">じょうきげん</option>
                             <option value="027_AmamiShino_angry.opus">ふきげん</option>
@@ -837,7 +834,8 @@
                     <div class="voice-avatar"><img src="/images/凛音エル.jpg" alt="凛音エル" /></div>
                     <div class="voice-info">
                         <h3 class="voice-name">凛音エル</h3>
-                        <select class="voice-style-select" data-voice="凛音エル">
+                        <label class="sr-only" for="voice-style-rinne-elu">凛音エル の音声スタイル</label>
+                        <select id="voice-style-rinne-elu" class="voice-style-select" data-voice="凛音エル">
                             <option value="032_RinneEru_normal.opus">ノーマル</option>
                             <option value="033_RinneEru_angry.opus">Angry</option>
                             <option value="034_RinneEru_fear.opus">Fear</option>
