@@ -113,15 +113,6 @@ class HelpMenu {
                     { name: "/reminder cancel <id>", value: "指定したリマインダーをキャンセルします。", inline: true }
                 )
                 .setColor(0x3498db),
-            // 最新機能ページ: チャットコマンド
-            new EmbedBuilder()
-                .setTitle("ヘルプ - AIチャット / 対話")
-                .setDescription("AI対話やチャット機能に関するコマンドです。")
-                .addFields(
-                    { name: "/chat <prompt>", value: "Google Geminiまたは指定モデルを使った対話を行います。" },
-                    { name: "/chat history", value: "最近のチャット履歴を表示します。" }
-                )
-                .setColor(0x3498db),
         ];
         this.currentPage = 0;
     }
