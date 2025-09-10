@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Discord Bot Statistics API Server for Aivis-chan Bot",
   "scripts": {
-    "dev": "pnpm --filter ./far-field dev",
+  "dev": "pnpm --filter ./far-field dev",
+  "images:gen": "node tools/generate-responsive-images.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -14,7 +15,8 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "googleapis": "^121.0.0",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "sharp": "^0.33.5"
   },
   "keywords": [
     "discord",
@@ -27,5 +29,6 @@
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
-  }
+  },
+  "devDependencies": {}
 }

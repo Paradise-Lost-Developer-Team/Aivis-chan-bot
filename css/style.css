@@ -55,7 +55,8 @@
     align-items: center;
     gap: var(--spacing-xl);
     padding: var(--spacing-xl);
-    border: 1px solid var(--surface-hover);
+    /* 罫線を濃くしてコントラスト向上 */
+    border: 1px solid rgba(0,0,0,0.12);
     transition: box-shadow 0.2s, transform 0.2s;
 }
 .voice-card:hover {
@@ -80,7 +81,8 @@
 .voice-name {
     font-size: var(--font-size-xl);
     font-weight: 700;
-    color: var(--primary-color);
+    /* アクセント色から高コントラストの本文色へ */
+    color: var(--text-primary);
     margin-bottom: var(--spacing-xs);
 }
 .voice-style {
@@ -798,7 +800,8 @@ section {
     background: var(--surface);
     padding: var(--spacing-xl);
     border-radius: var(--border-radius-lg);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* 罫線を濃くしてコントラスト向上 */
+    border: 1px solid rgba(0,0,0,0.12);
     transition: all 0.3s ease;
 }
 
@@ -810,7 +813,8 @@ section {
 .command-name {
     font-size: var(--font-size-lg);
     font-weight: 700;
-    color: var(--primary-color);
+    /* 強いコントラストのテキストカラーに変更 */
+    color: var(--text-primary);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -822,7 +826,8 @@ section {
 .command-usage {
     display: block;
     background: var(--background-primary);
-    color: var(--secondary-color);
+    /* 可読性のため濃いテキスト色を使用 */
+    color: var(--text-primary);
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--border-radius-sm);
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;

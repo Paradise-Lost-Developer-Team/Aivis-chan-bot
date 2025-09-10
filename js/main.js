@@ -397,9 +397,14 @@ class AivisWebsite {
         const navMenu = document.querySelector('.nav-menu');
         
         if (navToggle && navMenu) {
+            // 初期状態の ARIA を同期
+            navToggle.setAttribute('aria-expanded', 'false');
+
             navToggle.addEventListener('click', () => {
                 navToggle.classList.toggle('active');
                 navMenu.classList.toggle('active');
+                const expanded = navToggle.classList.contains('active');
+                navToggle.setAttribute('aria-expanded', String(expanded));
             });
 
             // メニューリンククリック時にメニューを閉じる
@@ -408,6 +413,7 @@ class AivisWebsite {
                 link.addEventListener('click', () => {
                     navToggle.classList.remove('active');
                     navMenu.classList.remove('active');
+                    navToggle.setAttribute('aria-expanded', 'false');
                 });
             });
         }

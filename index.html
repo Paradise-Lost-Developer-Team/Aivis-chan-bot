@@ -110,8 +110,9 @@
     <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
     <link rel="apple-touch-icon" href="/images/icon-192.png">
     
-    <!-- Preload LCP image (place as early as possible in head) -->
-    <link rel="preload" as="image" href="/images/aivis-chan-3d.webp" type="image/webp" fetchpriority="high">
+    <!-- Preload LCP image (responsive) -->
+    <link rel="preload" as="image" imagesrcset="/images/aivis-chan-3d-400.avif 400w, /images/aivis-chan-3d-800.avif 800w, /images/aivis-chan-3d-1080.avif 1080w" imagesizes="(max-width: 768px) 80vw, 400px" type="image/avif" fetchpriority="high">
+    <link rel="preload" as="image" imagesrcset="/images/aivis-chan-3d-400.webp 400w, /images/aivis-chan-3d-800.webp 800w, /images/aivis-chan-3d-1080.webp 1080w" imagesizes="(max-width: 768px) 80vw, 400px" type="image/webp" fetchpriority="high">
     <!-- CSS -->
     <link rel="stylesheet" href="/css/style.css">
     
@@ -130,7 +131,7 @@
                     <img src="/images/aivis-logo.svg" alt="Aivis chan Bot ロゴ" width="40" height="40">
                     <span class="nav-title">Aivis chan Bot</span>
                 </div>
-                <ul class="nav-menu">
+                <ul class="nav-menu" id="primary-navigation">
                     <li><a href="/#home" class="nav-link">ホーム</a></li>
                     <li><a href="/#features" class="nav-link">機能</a></li>
                     <li><a href="/#pricing" class="nav-link">プラン</a></li>
@@ -142,10 +143,11 @@
                 <div class="nav-actions">
                     <a href="https://discord.com/api/oauth2/authorize?client_id=1333819940645638154&permissions=3148800&scope=bot%20applications.commands" 
                        target="_blank" class="btn btn-primary">Botを追加</a>
-                    <button class="nav-toggle" id="nav-toggle">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="メニューを開閉" aria-expanded="false" aria-controls="primary-navigation">
+                        <span class="sr-only">メニューを開閉</span>
+                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
                     </button>
                 </div>
             </div>
@@ -201,7 +203,11 @@
                 </div>
         <div class="hero-image">
                     <div class="hero-bot-container">
-            <img src="/images/aivis-chan-3d.webp" alt="Aivis-chan Bot キャラクター" class="hero-bot" loading="eager" fetchpriority="high" decoding="async" width="800" height="800">
+            <picture>
+                <source type="image/avif" srcset="/images/aivis-chan-3d-400.avif 400w, /images/aivis-chan-3d-800.avif 800w, /images/aivis-chan-3d-1080.avif 1080w" sizes="(max-width: 768px) 80vw, 400px">
+                <source type="image/webp" srcset="/images/aivis-chan-3d-400.webp 400w, /images/aivis-chan-3d-800.webp 800w, /images/aivis-chan-3d-1080.webp 1080w" sizes="(max-width: 768px) 80vw, 400px">
+                <img src="/images/aivis-chan-3d.webp" alt="Aivis-chan Bot キャラクター" class="hero-bot" loading="eager" fetchpriority="high" decoding="async" width="400" height="400">
+            </picture>
                         <div class="hero-bot-glow"></div>
                     </div>
                 </div>
