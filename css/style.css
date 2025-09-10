@@ -502,6 +502,14 @@ section:not(.hero){
     grid-template-columns: 1fr 1fr;
     gap: var(--spacing-3xl);
     align-items: center;
+    min-height: 520px;
+}
+
+.hero-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    contain: layout paint;
 }
 
 .hero-title {
@@ -1067,6 +1075,7 @@ section:not(.hero){
     .hero-content {
         grid-template-columns: 1fr;
         text-align: center;
+        min-height: 600px;
     }
     
     .hero-title {

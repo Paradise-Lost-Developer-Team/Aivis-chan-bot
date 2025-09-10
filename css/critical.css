@@ -22,8 +22,8 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 .nav-toggle{display:none}
 /* Hero section skeleton */
 .hero{position:relative;min-height:100vh;display:flex;align-items:center;background:#f4fafd;overflow:hidden;padding-top:80px}
-.hero-content{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;width:100%}
-.hero-text{min-height:520px}
+.hero-content{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;width:100%;min-height:520px}
+.hero-text{min-height:520px;display:flex;flex-direction:column;justify-content:center}
 .hero-title{font-size:3rem;line-height:1.2;margin:0 0 24px}
 /* Match final margin-bottom: calc(48px + 24px) = 72px */
 .hero-description{font-size:1.125rem;margin:0 0 72px}
@@ -32,7 +32,7 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 .hero-bot{max-width:360px;width:100%;height:auto;aspect-ratio:1/1;display:block}
 .hero-bot-container{aspect-ratio:1/1}
 /* Stats and buttons basic spacing */
-.hero-buttons{display:flex;gap:24px;margin-bottom:64px}
+.hero-buttons{display:flex;gap:24px;margin-bottom:64px;flex-wrap:wrap}
 .hero-stats{display:flex;gap:32px}
 /* Minimal button layout to avoid size jump on CSS swap */
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:0.5em 1.2em;font-size:1rem;text-decoration:none}
@@ -44,7 +44,7 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 @media (max-width:768px){
   .nav-menu{display:none}
   .nav-toggle{display:flex;flex-direction:column;gap:4px}
-  .hero-content{text-align:center}
+  .hero-content{text-align:center;min-height:600px}
   .hero-title{font-size:1.875rem;padding-top:16px}
   .hero-description{padding-bottom:40px}
   .hero-buttons{flex-direction:column;align-items:center}
