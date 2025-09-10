@@ -131,6 +131,72 @@ class AivisWebsite {
         });
     }
 
+    // 声スタイル select のアクセシビリティ補完（ID/ラベル/aria-label を動的付与）
+    setupVoiceSelectA11y() {
+        try {
+            const makeSlug = (text) => {
+                return String(text || '')
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^\p{L}\p{N}_-]+/gu, '')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+            };
+
+            const usedIds = new Set(Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+            const ensureUniqueId = (base) => {
+                let id = base;
+                let i = 1;
+                while (!id || usedIds.has(id)) {
+                    id = `${base || 'voice-style'}-${i++}`;
+                }
+                usedIds.add(id);
+                return id;
+            };
+
+            document.querySelectorAll('.voice-card').forEach((card) => {
+                const select = card.querySelector('.voice-style-select');
+                if (!select) return;
+
+                const voiceName = (card.querySelector('.voice-name')?.textContent || '音声').trim();
+
+                // ID 付与
+                if (!select.id) {
+                    const base = `voice-style-${makeSlug(voiceName)}`;
+                    select.id = ensureUniqueId(base);
+                }
+
+                // 既存ラベル確認（for 属性で関連付け済みか）
+                let label = card.querySelector(`label[for="${CSS.escape(select.id)}"]`);
+                if (!label) {
+                    // 直前に label がある場合も認識（for 無し）
+                    const prev = select.previousElementSibling;
+                    if (prev && prev.tagName === 'LABEL') {
+                        label = prev;
+                        // for を補完
+                        if (!label.htmlFor) label.htmlFor = select.id;
+                    }
+                }
+
+                // ラベルが無ければ sr-only で動的生成
+                if (!label) {
+                    label = document.createElement('label');
+                    label.className = 'sr-only';
+                    label.setAttribute('for', select.id);
+                    label.textContent = `${voiceName} の音声スタイル`;
+                    select.parentElement?.insertBefore(label, select);
+                }
+
+                // スクリーンリーダー向けの名前（フォールバック）
+                if (!select.getAttribute('aria-label')) {
+                    select.setAttribute('aria-label', `${voiceName} の音声スタイル`);
+                }
+            });
+        } catch (e) {
+            console.warn('setupVoiceSelectA11y failed:', e);
+        }
+    }
+
     // 第三者スクリプトの遅延ロード（Ads/Analytics）
     setupThirdPartyLazyLoad() {
         // Ads無効化フラグ（開発時や検証時に警告を避けるため）
