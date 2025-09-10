@@ -418,13 +418,10 @@ section:not(.hero){
     text-shadow: 0 1px 6px rgba(0,0,0,0.7);
 }
 
-.nav-menu {
-    display: flex;
-    list-style: none;
-    gap: var(--spacing-xl);
-}
-
-.nav-link {
+    .nav-menu.active {
+        opacity: 1;
+        visibility: visible;
+    }.nav-link {
     color: #f4fafd;
     text-decoration: none;
     font-weight: 500;
@@ -503,6 +500,7 @@ section:not(.hero){
     gap: var(--spacing-3xl);
     align-items: center;
     min-height: 520px;
+    contain-intrinsic-size: 600px;
 }
 
 .hero-text {
@@ -562,6 +560,7 @@ section:not(.hero){
 
 .hero-image {
     text-align: center;
+    contain-intrinsic-size: 400px;
 }
 
 .hero-bot-container {
@@ -569,6 +568,7 @@ section:not(.hero){
     display: inline-block;
     contain: layout paint;
     aspect-ratio: 1 / 1;
+    contain-intrinsic-size: 400px;
 }
 
 .hero-bot {
@@ -1076,7 +1076,7 @@ section:not(.hero){
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
     .nav-menu {
-        display: none;
+        display: flex;
     }
     
     .nav-toggle {

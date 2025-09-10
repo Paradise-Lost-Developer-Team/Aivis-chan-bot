@@ -29,7 +29,7 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 .hero-description{font-size:1.125rem;margin:0 0 72px}
 .hero-image{text-align:center}
 .hero-image, .hero-text{contain:layout paint}
-.hero-bot{max-width:360px;width:100%;height:auto;aspect-ratio:1/1;display:block}
+.hero-bot{max-width:400px;width:100%;height:auto;aspect-ratio:1/1;display:block}
 .hero-bot-container{aspect-ratio:1/1}
 /* Stats and buttons basic spacing */
 .hero-buttons{display:flex;gap:24px;margin-bottom:64px;flex-wrap:wrap}
