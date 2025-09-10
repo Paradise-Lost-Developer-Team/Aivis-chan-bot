@@ -336,7 +336,7 @@ section:not(.hero){
 
 .btn-outline {
     background: transparent;
-    color: #0f172a; /* strong text */
+    color: #000000; /* strong text for better contrast */
     border: 2px solid var(--primary-700);
 }
 
@@ -933,6 +933,15 @@ section:not(.hero){
     background: var(--primary-700);
     color: #ffffff;
 }
+.invite .btn-outline {
+    background: #ffffff;
+    color: #000000; /* strong contrast on white background */
+    border-color: var(--primary-700);
+}
+.invite .btn-outline:hover {
+    background: var(--primary-700);
+    color: #ffffff;
+}
 
 /* フッター */
 .footer {
@@ -1097,10 +1106,30 @@ section:not(.hero){
     .invite-buttons {
         flex-direction: column;
         align-items: center;
+        gap: var(--spacing-md);
     }
+    .invite .btn { width: 100%; max-width: 420px; }
     
     .setup-steps {
         grid-template-columns: 1fr;
+    }
+    
+    /* モバイルでのタップターゲット改善 */
+    .btn {
+        min-height: 48px;
+        padding: 1em 1.5em;
+    }
+    
+    .btn-large {
+        padding: 1em 2em;
+    }
+    
+    .pricing-grid {
+        gap: var(--spacing-2xl);
+    }
+    
+    .setup-steps {
+        gap: var(--spacing-3xl);
     }
 }
 
@@ -1122,6 +1151,24 @@ section:not(.hero){
     .hero-stats {
         flex-direction: column;
         gap: var(--spacing-md);
+    }
+    
+    /* モバイルでのタップターゲット改善 */
+    .btn {
+        min-height: 48px;
+        padding: 1em 1.5em;
+    }
+    
+    .btn-large {
+        padding: 1em 2em;
+    }
+    
+    .pricing-grid {
+        gap: var(--spacing-2xl);
+    }
+    
+    .setup-steps {
+        gap: var(--spacing-3xl);
     }
 }
 
@@ -1491,25 +1538,25 @@ section:not(.hero){
 }
 
 .btn-primary.btn-sm {
-    background: var(--primary-color);
-    color: #fff;
+    background: var(--primary-700);
+    color: #ffffff;
 }
 
 .btn-primary.btn-sm:hover {
-    background: var(--primary-hover);
+    background: var(--primary-800);
     transform: translateY(-1px);
 }
 
 .btn-secondary.btn-sm {
-    background: var(--surface);
-    color: var(--text-secondary);
-    border: 1px solid var(--surface-hover);
+    background: #ffffff;
+    color: #0f172a;
+    border: 2px solid var(--primary-700);
 }
 
 .btn-secondary.btn-sm:hover {
-    background: var(--surface-hover);
-    color: var(--text-primary);
-    border-color: var(--primary-color);
+    background: var(--primary-700);
+    color: #ffffff;
+    border-color: var(--primary-700);
 }
 
 /* レスポンシブ対応 */
@@ -1558,6 +1605,8 @@ section:not(.hero){
     .btn-sm {
         width: 100%;
         justify-content: center;
+        min-height: 48px;
+        padding: var(--spacing-md) var(--spacing-lg);
     }
 }
     .docs-container {
