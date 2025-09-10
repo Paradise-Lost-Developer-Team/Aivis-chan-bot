@@ -81,9 +81,16 @@ function savePatreonUsers() {
 }
 
 // Patreon認証用のURLを生成
-export function getPatreonAuthUrl(discordId: string): string {
-  const state = Buffer.from(JSON.stringify({ discordId })).toString('base64');
-  return `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}&scope=identity%20identity.memberships`;
+export function getPatreonAuthUrl(state: string): string {
+  // stateがJSON文字列の場合はbase64エンコード、それ以外の場合はそのまま使用
+  let encodedState: string;
+  try {
+    JSON.parse(state);
+    encodedState = Buffer.from(state).toString('base64');
+  } catch {
+    encodedState = state;
+  }
+  return `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${encodedState}&scope=identity%20identity.memberships`;
 }
 
 // アクセストークンを取得
@@ -108,7 +115,7 @@ export async function getPatreonTokens(code: string): Promise<any> {
 }
 
 // ユーザー情報を保存
-export function storePatreonUser(discordId: string, tokenData: any, patreonId?: string): void {
+export function storePatreonUser(discordId: string, tokenData: any, patreonId?: string, guildId?: string): void {
   const expires = tokenData?.expires_in ? Date.now() + tokenData.expires_in * 1000 : 0;
   patreonUsers[discordId] = {
     discordId,
@@ -121,10 +128,22 @@ export function storePatreonUser(discordId: string, tokenData: any, patreonId?: 
   savePatreonUsers();
 }
 
-// ユーザーのティア情報を取得
-export async function getUserTier(discordId: string): Promise<string> {
-  console.log(`${LOG_PREFIX} getUserTier start for ${discordId}`);
+// サーバーのティア情報を取得（サーバー所有者のPatreon情報を基に）
+export async function getGuildTier(guildId: string): Promise<string> {
+  console.log(`${LOG_PREFIX} getGuildTier start for guild ${guildId}`);
+
+  // この関数は現在使用されていないため、常にfreeを返す
+  console.log(`${LOG_PREFIX} getGuildTier result for guild ${guildId}: free (function deprecated)`);
+  return 'free';
+}
+
+// ユーザーの所有権に基づくティア情報を取得
+export async function getUserTierByOwnership(discordId: string, guildId?: string): Promise<string> {
+  console.log(`${LOG_PREFIX} getUserTierByOwnership start for ${discordId}${guildId ? ` in guild ${guildId}` : ''}`);
+
+  // まず個人レベルのPatreon情報をチェック
   let user = patreonUsers[discordId];
+  let tier = 'free';
 
   // ローカルに情報がなければ中央サーバを問い合わせて同期を試みる
   if (!user) {
@@ -154,35 +173,36 @@ export async function getUserTier(discordId: string): Promise<string> {
     }
   }
 
-  if (!user) {
-    console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: free (no user)`);
-    return 'free';
-  }
+  // 個人レベルのPatreon情報がある場合
+  if (user) {
+    console.log(`${LOG_PREFIX} found personal Patreon link for ${discordId}`);
+    // トークンが期限切れならリフレッシュを試みる
+    if (user.expiresAt < Date.now()) {
+      try {
+        await refreshTokens(discordId);
+      } catch (error) {
+        console.error(`ユーザー ${discordId} のトークンリフレッシュエラー:`, error);
+        return 'free';
+      }
+    }
 
-  // トークンが期限切れならリフレッシュを試みる
-  if (user.expiresAt < Date.now()) {
+    // トークンを使ってPatreon APIからメンバーシップ情報を取得し、tier を更新する
     try {
-      await refreshTokens(discordId);
-    } catch (error) {
-      console.error(`ユーザー ${discordId} のトークンリフレッシュエラー:`, error);
-      return 'free';
+      const fetchedTier = await fetchPatreonMemberships(user.accessToken);
+      if (fetchedTier && fetchedTier !== user.tier) {
+        user.tier = fetchedTier;
+        savePatreonUsers();
+      }
+    } catch (err) {
+      const e: any = err;
+      console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
     }
+
+    tier = user.tier;
   }
 
-  // トークンを使ってPatreon APIからメンバーシップ情報を取得し、tier を更新する
-  try {
-    const fetchedTier = await fetchPatreonMemberships(user.accessToken);
-    if (fetchedTier && fetchedTier !== user.tier) {
-      user.tier = fetchedTier;
-      savePatreonUsers();
-    }
-  } catch (err) {
-    const e: any = err;
-    console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
-  }
-
-  console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: ${user.tier}`);
-  return user.tier;
+  console.log(`${LOG_PREFIX} getUserTierByOwnership result for ${discordId}: ${tier}`);
+  return tier;
 }
 
 // Patreon API レスポンスの型定義
@@ -435,5 +455,6 @@ export default {
   getPatreonAuthUrl,
   getPatreonTokens,
   storePatreonUser,
-  getUserTier
+  getUserTier: getUserTierByOwnership,
+  getGuildTier
 };

@@ -142,7 +142,7 @@ export function setSubscription(guildId: string, type: SubscriptionType, duratio
 
 // サブスクリプションの特典チェック
 export function checkSubscriptionFeature(guildId: string, feature: string): boolean {
-    const subscriptionType = getSubscription(guildId);
+    const subscriptionType = getGuildSubscriptionTier(guildId);
     const benefits = SubscriptionBenefits[subscriptionType];
     
     return feature in benefits && !!benefits[feature as keyof typeof benefits];
@@ -150,7 +150,7 @@ export function checkSubscriptionFeature(guildId: string, feature: string): bool
 
 // サブスクリプション数値特典の取得
 export function getSubscriptionLimit(guildId: string, limitType: string): number {
-    const subscriptionType = getSubscription(guildId);
+    const subscriptionType = getGuildSubscriptionTier(guildId);
     const benefits = SubscriptionBenefits[subscriptionType];
     
     return benefits[limitType as keyof typeof benefits] as number || 0;
@@ -235,11 +235,10 @@ export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
         if (guildSub && typeof guildSub.expiresAt === 'number' && guildSub.expiresAt > Date.now()) {
             return guildSub.type;
         }
-        // 次に Bot 製作者が管理するサーバーかどうかを確認
-        if (isOwnerGuild(guildId)) {
-            console.log(`Bot製作者が管理するサーバー ${guildId} にPremium特権を付与`);
-            return SubscriptionType.PREMIUM;
-        }
+        
+        // Patreonチェックはバックグラウンドで実行
+        // ここでは同期的にFREEを返す
+        return SubscriptionType.FREE;
     } catch (err) {
         console.error('getGuildSubscriptionTier error:', err);
     }
@@ -247,23 +246,21 @@ export function getGuildSubscriptionTier(guildId: string): SubscriptionType {
     return SubscriptionType.FREE;
 }
 
-// Patreon 連携を元にギルドへサブスクリプションを適用する (外部から呼べるようにする)
-export async function applySubscriptionFromPatreon(discordId: string, guildId: string, durationDays = 30): Promise<boolean> {
+// バックグラウンドでPatreonチェックを実行
+export async function checkPatreonInBackground(guildId: string): Promise<void> {
     try {
-        const tier = await patreonIntegration.getUserTier(discordId);
-        if (!tier) return false;
-        if (tier === SubscriptionType.PRO) {
-            setSubscription(guildId, SubscriptionType.PRO, durationDays);
-            return true;
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return;
+
+        const ownerId = guild.ownerId;
+        const tier = await patreonIntegration.getUserTier(ownerId);
+        if (tier === SubscriptionType.PRO || tier === SubscriptionType.PREMIUM) {
+            // Patreon連携がある場合、30日間のサブスクリプションを適用
+            setSubscription(guildId, tier, 30);
+            console.log(`Patreon連携を確認: サーバー ${guildId} に ${tier} 特典を適用 (所有者: ${ownerId})`);
         }
-        if (tier === SubscriptionType.PREMIUM) {
-            setSubscription(guildId, SubscriptionType.PREMIUM, durationDays);
-            return true;
-        }
-        return false;
-    } catch (err) {
-        console.error('applySubscriptionFromPatreon error:', err);
-        return false;
+    } catch (patreonErr) {
+        console.log('Patreon check in background failed:', patreonErr);
     }
 }
 
@@ -352,6 +349,26 @@ function isOwnerGuild(guildId: string): boolean {
         return false;
     } catch (error) {
         console.error('オーナーギルドチェックエラー:', error);
+        return false;
+    }
+}
+
+// Patreon 連携を元にギルドへサブスクリプションを適用する (外部から呼べるようにする)
+export async function applySubscriptionFromPatreon(discordId: string, guildId: string, durationDays = 30): Promise<boolean> {
+    try {
+        const tier = await patreonIntegration.getUserTier(discordId);
+        if (!tier) return false;
+        if (tier === SubscriptionType.PRO) {
+            setSubscription(guildId, SubscriptionType.PRO, durationDays);
+            return true;
+        }
+        if (tier === SubscriptionType.PREMIUM) {
+            setSubscription(guildId, SubscriptionType.PREMIUM, durationDays);
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.error('applySubscriptionFromPatreon error:', err);
         return false;
     }
 }

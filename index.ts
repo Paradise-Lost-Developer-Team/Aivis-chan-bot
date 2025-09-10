@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits, ActivityType, MessageFlags, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
+import { getUserTierByOwnership } from "./utils/patreonIntegration";
 import * as fs from "fs";
 import * as path from "path";
 import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings } from "./utils/TTS-Engine";
@@ -185,6 +186,20 @@ client.once("ready", async () => {
                 logError('statusUpdateError', error instanceof Error ? error : new Error(String(error)));
             }
         }, 30000);
+
+        // Patreonチェックを定期的に実行
+        setInterval(async () => {
+            try {
+                // 全てのサーバーに対してPatreonチェックを実行
+                for (const guild of client.guilds.cache.values()) {
+                    const { checkPatreonInBackground } = await import('./utils/subscription');
+                    await checkPatreonInBackground(guild.id);
+                }
+            } catch (error) {
+                console.error("Patreonチェックエラー:", error);
+                logError('patreonCheckError', error instanceof Error ? error : new Error(String(error)));
+            }
+        }, 3600000); // 1時間ごとに実行
     } catch (error) {
         console.error("Bot起動エラー:", error);
         logError('botStartupError', error instanceof Error ? error : new Error(String(error)));
@@ -203,11 +218,22 @@ client.on("interactionCreate", async interaction => {
                 const name = interaction.commandName?.toLowerCase?.() || '';
                 const bypass = name === 'subscription' || name === 'patreon';
                 if (!bypass) {
-                    const { getUserTier } = await import('./utils/patreonIntegration');
-                    const tier = await getUserTier(interaction.user.id);
-                    if (tier !== 'pro' && tier !== 'premium') {
+                    // ユーザーがサーバーの所有権を持っていてPatreon連携済みの場合のみ特典を適用
+                    let hasAccess = false;
+                    if (interaction.guildId) {
+                        const guild = client.guilds.cache.get(interaction.guildId);
+                        if (guild && guild.ownerId === interaction.user.id) {
+                            // サーバー所有者の場合、Patreon連携をチェック
+                            const tier = await getUserTierByOwnership(interaction.user.id, interaction.guildId);
+                            if (tier === 'pro' || tier === 'premium') {
+                                hasAccess = true;
+                            }
+                        }
+                    }
+                    
+                    if (!hasAccess) {
                         await interaction.reply({
-                            content: 'このBotは有料版です。利用には Patreon 連携で Pro もしくは Premium が必要です。\n`/patreon link` で連携し、`/subscription info` で詳細をご確認ください。',
+                            content: 'このBotは有料版です。利用にはサーバー所有権とPatreon連携（ProもしくはPremium）が必要です。\nサーバー所有者が `/patreon link` で連携し、`/subscription info` で詳細をご確認ください。',
                             flags: MessageFlags.Ephemeral
                         });
                         return;

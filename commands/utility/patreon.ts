@@ -106,7 +106,7 @@ async function handleLinkSubcommand(interaction: CommandInteraction) {
     embeds: [addCommonFooter(
       new EmbedBuilder()
         .setTitle('Patreon連携')
-        .setDescription('PatreonアカウントとAivis Chan Botを連携するには、下記のボタンをクリックしてください。')
+        .setDescription('PatreonアカウントとAivis Chan Botを連携します。\n連携が完了すると、あなたが所有権を持つ全てのサーバーで特典が自動的に適用されます。')
         .setColor(0xFF5500)
         .addFields({ name: '認証リンク', value: `[Patreonで認証する](${authUrl})` })
     )],
@@ -117,8 +117,8 @@ async function handleLinkSubcommand(interaction: CommandInteraction) {
 
 async function handleStatusSubcommand(interaction: CommandInteraction) {
   // パトレオン連携からユーザー情報を取得
-  const { getUserTier } = await import('../../utils/patreonIntegration');
-  const userTier = await getUserTier(interaction.user.id);
+  const { getUserTierByOwnership } = await import('../../utils/patreonIntegration');
+  const userTier = await getUserTierByOwnership(interaction.user.id);
   let tierInfo = '連携されていません';
   let color = 0x888888; // Using a gray color instead
   if (userTier === 'free') {

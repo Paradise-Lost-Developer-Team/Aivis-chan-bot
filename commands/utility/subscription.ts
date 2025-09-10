@@ -48,7 +48,7 @@ export async function execute(interaction: CommandInteraction) {
         return;
     }
     if (subcommand === 'info') {
-        let subscriptionType = getGuildSubscriptionTier(guildId) || getSubscription(guildId);
+        let subscriptionType = await getGuildSubscriptionTier(guildId) || getSubscription(guildId);
         if (!subscriptionType) subscriptionType = SubscriptionType.FREE;
         const benefits = SubscriptionBenefits[subscriptionType];
         const subscriptionNames = {
@@ -116,7 +116,7 @@ export async function execute(interaction: CommandInteraction) {
         });
     } else if (subcommand === 'status') {
         // show effective subscription for this guild; if patreon linked for bot user, apply it
-        const current = getGuildSubscriptionTier(guildId);
+        const current = await getGuildSubscriptionTier(guildId);
         const subscriptionNames = {
             [SubscriptionType.FREE]: '無料プラン',
             [SubscriptionType.PRO]: 'Proプラン',
