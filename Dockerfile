@@ -23,6 +23,7 @@ COPY docs ./docs
 COPY contact ./contact
 COPY blog ./blog
 COPY auth/patreon ./auth/patreon
+COPY far-field ./far-field	
 
 FROM node:current-alpine3.22 AS runtime
 WORKDIR /app
