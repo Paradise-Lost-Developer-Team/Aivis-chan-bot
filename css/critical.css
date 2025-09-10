@@ -28,7 +28,9 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 /* Match final margin-bottom: calc(48px + 24px) = 72px */
 .hero-description{font-size:1.125rem;margin:0 0 72px}
 .hero-image{text-align:center}
-.hero-bot{max-width:360px;width:100%;height:auto}
+.hero-image, .hero-text{contain:layout paint}
+.hero-bot{max-width:360px;width:100%;height:auto;aspect-ratio:1/1;display:block}
+.hero-bot-container{aspect-ratio:1/1}
 /* Stats and buttons basic spacing */
 .hero-buttons{display:flex;gap:24px;margin-bottom:64px}
 .hero-stats{display:flex;gap:32px}
@@ -37,6 +39,7 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 .btn-large{padding:0.7em 1.5em;font-size:1.125rem}
 /* Stabilize numeric width for counters */
 .stat-number{font-variant-numeric:tabular-nums;min-width:6ch;display:inline-block}
+.hero-stats .stat-number{min-height:1.2em;line-height:1.2}
 /* Mobile */
 @media (max-width:768px){
   .nav-menu{display:none}
