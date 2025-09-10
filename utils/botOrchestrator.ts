@@ -64,6 +64,8 @@ export function pickPrimaryPreferredBot(
   infos: (InfoResp & { bot: BotInfo; ok: boolean })[],
   preferredOrder: string[] = ['pro-premium', '1st']
 ): (InfoResp & { bot: BotInfo; ok: boolean }) | null {
+  // 注意: 現行方針では使用しません。/join や自動接続はギルド在籍Botの中から
+  // pickLeastBusyBot で選ぶ実装に統一しています。
   const candidates = infos.filter(r => r.ok);
   if (candidates.length === 0) return null;
 

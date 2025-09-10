@@ -5,7 +5,7 @@ import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
-import { getBotInfos, pickPrimaryPreferredBot, instructJoin } from '../../utils/botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -93,12 +93,11 @@ module.exports = {
         textChannels[guildId] = textChannel;
 
         try {
-            // 全Botの状況を取得してプライマリ優先（Pro/Premium or 1st）で選択
+            // 全Botの状況を取得し、当該ギルドに在籍するBotの中から「最も空いている」個体を選択
             const infos = await getBotInfos();
-            // ギルドに参加しているBotの中から選択（該当がなければエラー）
             const guildBots = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
             if (guildBots.length === 0) throw new Error('no-bot-available');
-            const picked = pickPrimaryPreferredBot(guildBots);
+            const picked = pickLeastBusyBot(guildBots);
             if (!picked) throw new Error('no-bot-available');
 
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
@@ -125,11 +124,15 @@ module.exports = {
         } catch (error) {
             console.error(error);
             if (!interaction.replied) {
+                // ギルド在籍Botがいないケースを明示
+                const msg = (error as Error)?.message === 'no-bot-available'
+                    ? 'このギルドに参加しているBotがいません。先にBotを招待してください。'
+                    : '最も空いているBotへの接続指示に失敗しました。';
                 await interaction.reply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
-                            .setDescription('最も空いているBotへの接続指示に失敗しました。')
+                            .setDescription(msg)
                             .setColor(0xff0000)
                     )],
                     components: [getCommonLinksRow()]
