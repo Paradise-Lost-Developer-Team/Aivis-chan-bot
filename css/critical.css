@@ -40,7 +40,7 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 @media (max-width:768px){
   .nav-menu{display:none}
   .nav-toggle{display:flex;flex-direction:column;gap:4px}
-  .hero-content{grid-template-columns:1fr;text-align:center}
+  .hero-content{text-align:center}
   .hero-title{font-size:1.875rem;padding-top:40px}
   .hero-description{padding-bottom:40px}
   .hero-buttons{flex-direction:column;align-items:center}
