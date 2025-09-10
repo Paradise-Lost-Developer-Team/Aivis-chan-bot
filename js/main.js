@@ -288,15 +288,20 @@ class AivisWebsite {
         const header = document.querySelector('.header');
         if (!header) return;
 
-        let isScrolled = null; // 未設定
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+            // モバイルはスクロールによるヘッダー更新を無効化（安定優先）
+            header.classList.toggle('header--scrolled', false);
+            return;
+        }
 
+        let isScrolled = null; // 未設定
         const updateHeaderState = (y) => {
             const next = y > 100;
-            if (next === isScrolled) return; // 状態が変わらない限り書き込まない
+            if (next === isScrolled) return;
             isScrolled = next;
             requestAnimationFrame(() => {
-                header.style.background = next ? 'rgba(10, 14, 26, 0.95)' : 'rgba(10, 14, 26, 0.8)';
-                header.style.backdropFilter = next ? 'blur(20px)' : 'blur(10px)';
+                header.classList.toggle('header--scrolled', next);
             });
         };
 

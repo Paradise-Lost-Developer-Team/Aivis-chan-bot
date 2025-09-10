@@ -12,6 +12,7 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 .gradient-text{padding:0.5em 1.2em;letter-spacing:0.01em}
 /* Fixed header baseline */
 .header{position:fixed;top:0;left:0;right:0;background:#10131b;border-bottom:2px solid #00bcd4;z-index:1030}
+.header.header--scrolled{background:rgba(10,14,26,0.95);backdrop-filter:blur(20px)}
 .nav{padding:16px 0}
 .nav-container{display:flex;align-items:center;justify-content:space-between}
 .nav-logo{display:flex;align-items:center;gap:16px}

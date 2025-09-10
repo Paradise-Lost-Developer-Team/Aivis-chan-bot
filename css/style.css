@@ -260,6 +260,11 @@ body {
 section {
     padding: var(--spacing-3xl) 0;
 }
+/* Offscreen sections: avoid layout/paint until needed (supported browsers) */
+section:not(.hero){
+    content-visibility: auto;
+    contain-intrinsic-size: 800px;
+}
 
 .section-header {
     text-align: center;
@@ -380,6 +385,10 @@ section {
     backdrop-filter: blur(14px);
     border-bottom: 2px solid #00bcd4;
     z-index: var(--z-fixed);
+}
+.header.header--scrolled{
+    background: rgba(10,14,26,0.95);
+    backdrop-filter: blur(20px);
 }
 
 .nav {
