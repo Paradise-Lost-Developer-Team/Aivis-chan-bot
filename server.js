@@ -668,9 +668,22 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
     const meResp = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', { headers: { Authorization: `Bearer ${tokenData.access_token}` } });
     const patreonId = meResp.data?.data?.id || null;
 
-    // save link: state contains discordId
-    const discordId = String(state).split(':')[0];
-    savePatreonLink({ discordId, patreonId, tokenData, createdAt: new Date().toISOString() });
+    // save link: state contains discordId and possibly guildId
+    const stateParts = String(state).split(':');
+    const discordId = stateParts[0];
+    let guildId = undefined;
+
+    // Try to decode state as base64 JSON (for server owner links)
+    try {
+      const decodedState = JSON.parse(Buffer.from(String(state), 'base64').toString('utf8'));
+      if (decodedState.discordId && decodedState.guildId) {
+        guildId = decodedState.guildId;
+      }
+    } catch (e) {
+      // Not base64 JSON, use simple format
+    }
+
+    savePatreonLink({ discordId, patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
 
   // Optionally notify Discord user via bot API - not implemented here
   // Redirect to a static success page (auth/patreon/success.html) and pass dynamic parts via query params
