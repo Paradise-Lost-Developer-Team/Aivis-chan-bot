@@ -431,3 +431,22 @@ client.login(TOKEN).catch(error => {
     logError('loginError', error);
     process.exit(1);
 });
+
+apiApp.post('/internal/leave', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.body || {};
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+
+        const prev = getVoiceConnection(guildId);
+        if (prev) {
+            try { prev.destroy(); } catch {}
+        }
+        try { delete voiceClients[guildId]; } catch {}
+        try { delete (textChannels as any)[guildId]; } catch {}
+        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        return res.json({ ok: true });
+    } catch (e) {
+        console.error('internal/leave error:', e);
+        return res.status(500).json({ error: 'leave-failed' });
+    }
+});
