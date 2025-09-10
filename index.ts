@@ -149,7 +149,7 @@ client.once("ready", async () => {
 
         // クラスター内Botの /internal/info を叩いてVC合計を集計
         const BOTS = [
-            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st:3002' },
+            { name: '1st', baseUrl: 'http://aivis-chan-bot-pro-premium:3012' },
             { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd:3003' },
             { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd:3004' },
             { name: '4th', baseUrl: 'http://aivis-chan-bot-4th:3005' },
@@ -276,14 +276,15 @@ client.on("interactionCreate", async interaction => {
 client.on("guildCreate", async (guild) => {
     try {
         const embed = new EmbedBuilder()
-            .setTitle('Aivis Chan Botが導入されました！')
+            .setTitle('Aivis Chan Bot（Pro/Premium版）が導入されました！')
             .setDescription('Aivis Chan Botを導入いただきありがとうございます。Discordサーバーにてメッセージ読み上げ等を行う便利BOTです。')
             .addFields(
-                { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
-                { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
-                { name: '基本コマンド', value: '• /help\n• /join\n• /leave' }
+            { name: '本アカウントについて', value: 'このBotインスタンスは Pro / Premium 向けの有料版です。利用には Patreon 連携で Pro もしくは Premium の購読が必要になります。`/patreon link` で連携、`/subscription info` で詳細をご確認ください。' },
+            { name: 'BOTの概要', value: '音声合成を活用した読み上げBotです。多彩な話者やエフェクトを使えます。' },
+            { name: '主要特徴', value: '• カスタマイズ可能な読み上げ\n• 豊富な音声エフェクト\n• カスタム辞書の登録' },
+            { name: '基本コマンド', value: '• /help\n• /join\n• /leave' }
             )
-            .setFooter({ text: 'Powered by AivisSpeech' })
+            .setFooter({ text: 'Powered by AivisSpeech — Pro/Premium edition' })
             .setColor(0x00AAFF);
 
         const row = new ActionRowBuilder<ButtonBuilder>()
@@ -402,5 +403,24 @@ apiApp.get('/internal/info', async (req: Request, res: Response) => {
     } catch (e) {
         console.error('internal/info error:', e);
         return res.status(500).json({ error: 'info-failed' });
+    }
+});
+
+apiApp.post('/internal/leave', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.body || {};
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+
+        const prev = getVoiceConnection(guildId);
+        if (prev) {
+            try { prev.destroy(); } catch {}
+        }
+        try { delete voiceClients[guildId]; } catch {}
+        try { delete (textChannels as any)[guildId]; } catch {}
+        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        return res.json({ ok: true });
+    } catch (e) {
+        console.error('internal/leave error:', e);
+        return res.status(500).json({ error: 'leave-failed' });
     }
 });

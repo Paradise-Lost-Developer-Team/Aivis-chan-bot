@@ -122,6 +122,30 @@ class HelpMenu {
                     { name: "/chat history", value: "最近のチャット履歴を表示します。" }
                 )
                 .setColor(0x3498db),
+            // Pro機能ページ（このBotはPro/Premium向け）
+            new EmbedBuilder()
+                .setTitle("ヘルプ - Pro 機能（有料）")
+                .setDescription("Proプランで利用できる主な特典と利用方法です。")
+                .addFields(
+                    { name: "Patreon認証（必須）", value: "まず `/patreon link` でPatreon連携を行い、`/subscription info` で認証状態を確認してください。例外コマンド（`/subscription`・`/patreon`）以外は認証済みユーザーのみ実行できます。" },
+                    { name: "読み上げキュー優先度の向上", value: "Freeより高い優先度で処理され、待ち時間が短縮されます。" },
+                    { name: "上限緩和", value: "同時接続・キュー長・レート制限などの運用上限がFreeより緩和されます。" },
+                    { name: "音声品質・スタイルの強化", value: "高品質な音声設定や追加のスタイル/プリセットが解放されます。" },
+                    { name: "サポート優先度", value: "Discordでのサポート応答が優先されます。" }
+                )
+                .setColor(0x2ecc71),
+            // Premium機能ページ
+            new EmbedBuilder()
+                .setTitle("ヘルプ - Premium 機能（有料）")
+                .setDescription("Premiumプランで利用できる最上位特典と利用方法です。")
+                .addFields(
+                    { name: "Patreon認証（必須）", value: "`/patreon link` → `/subscription info` の順で認証を完了してください。例外（`/subscription`・`/patreon`）以外のコマンドは認証済みユーザー限定です。" },
+                    { name: "最優先キュー処理", value: "全プラン中で最も高い優先度で読み上げが行われます。" },
+                    { name: "大幅な上限緩和/無制限に近い運用", value: "同時接続やキューの上限がさらに拡張され、大規模サーバーでも快適に運用できます。" },
+                    { name: "カスタム話者・外部API連携", value: "（提供状況に応じて）カスタム話者の追加や外部連携APIの利用が可能です。詳細は `/help` 内の設定/スタイル項目や公式ドキュメントをご参照ください。" },
+                    { name: "最優先サポート", value: "Discord/メール等でのサポートを最優先でご提供します。" }
+                )
+                .setColor(0xf1c40f),
         ];
         this.currentPage = 0;
     }

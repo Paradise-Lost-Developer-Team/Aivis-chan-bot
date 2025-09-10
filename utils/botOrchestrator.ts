@@ -88,3 +88,24 @@ export async function instructJoin(bot: BotInfo, payload: { guildId: string; voi
   const url = `${bot.baseUrl}/internal/join`;
   await axios.post(url, payload, { timeout: timeoutMs });
 }
+
+export async function instructLeave(bot: BotInfo, payload: { guildId: string }, timeoutMs = 5000) {
+  const url = `${bot.baseUrl}/internal/leave`;
+  await axios.post(url, payload, { timeout: timeoutMs });
+}
+
+export async function getBotConnectedToGuild(guildId: string, infoTimeoutMs = 2000): Promise<(InfoResp & { bot: BotInfo; ok: boolean }) | null> {
+  const infos = await getBotInfos(infoTimeoutMs);
+  return infos.find(i => i.ok && i.connectedGuildIds.includes(guildId)) || null;
+}
+
+export async function instructLeaveConnectedBot(guildId: string, infoTimeoutMs = 2000, leaveTimeoutMs = 5000): Promise<boolean> {
+  const info = await getBotConnectedToGuild(guildId, infoTimeoutMs);
+  if (!info) return false;
+  try {
+    await instructLeave(info.bot, { guildId }, leaveTimeoutMs);
+    return true;
+  } catch {
+    return false;
+  }
+}
