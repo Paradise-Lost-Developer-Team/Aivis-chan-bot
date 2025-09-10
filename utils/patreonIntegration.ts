@@ -8,12 +8,12 @@ const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const { PATREON } = CONFIG;
 
 // Patreonの認証情報（環境変数優先）
-const CLIENT_ID = process.env.PATREON_CLIENT_ID || PATREON.CLIENT_ID;
-const CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || PATREON.CLIENT_SECRET;
-const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
+const CLIENT_ID = PATREON.CLIENT_ID;
+const CLIENT_SECRET = PATREON.CLIENT_SECRET;
+const REDIRECT_URI = PATREON.REDIRECT_URI;
 // 中央サーバ（web）のURL（フォールバック）。クラスタ内では web サービス名を既定にします。
 // デプロイ時は BASE_URL または config PATREON.FALLBACK_SERVER を設定してください
-const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web:80';
+const FALLBACK_SERVER = PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:80';
 
 // ログプレフィックス
 const LOG_PREFIX = '[patreon]';
