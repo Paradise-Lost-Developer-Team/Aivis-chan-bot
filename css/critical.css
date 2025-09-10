@@ -1,5 +1,5 @@
 /* Minimal critical CSS to stabilize initial layout and reduce CLS */
-html{box-sizing:border-box}
+html{box-sizing:border-box;scroll-padding-top:80px}
 *,*::before,*::after{box-sizing:inherit}
 /* Match main font stack order to avoid metric swap CLS */
 body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;line-height:1.6;background:#fff;color:#0f172a}
@@ -20,14 +20,14 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
 .nav-actions{display:flex;align-items:center;gap:16px}
 .nav-toggle{display:none}
 /* Hero section skeleton */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;background:#f4fafd;overflow:hidden}
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;background:#f4fafd;overflow:hidden;padding-top:80px}
 .hero-content{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;width:100%}
 .hero-text{min-height:520px}
 .hero-title{font-size:3rem;line-height:1.2;margin:0 0 24px}
 /* Match final margin-bottom: calc(48px + 24px) = 72px */
 .hero-description{font-size:1.125rem;margin:0 0 72px}
 .hero-image{text-align:center}
-.hero-bot{max-width:400px;height:auto}
+.hero-bot{max-width:360px;width:100%;height:auto}
 /* Stats and buttons basic spacing */
 .hero-buttons{display:flex;gap:24px;margin-bottom:64px}
 .hero-stats{display:flex;gap:32px}
@@ -41,8 +41,11 @@ body{margin:0;font-family:"Noto Sans JP",-apple-system,BlinkMacSystemFont,"Segoe
   .nav-menu{display:none}
   .nav-toggle{display:flex;flex-direction:column;gap:4px}
   .hero-content{text-align:center}
-  .hero-title{font-size:1.875rem;padding-top:40px}
+  .hero-title{font-size:1.875rem;padding-top:16px}
   .hero-description{padding-bottom:40px}
   .hero-buttons{flex-direction:column;align-items:center}
   .hero-stats{justify-content:center;flex-wrap:wrap}
+}
+@media (max-width:480px){
+  .hero-title{font-size:1.5rem}
 }

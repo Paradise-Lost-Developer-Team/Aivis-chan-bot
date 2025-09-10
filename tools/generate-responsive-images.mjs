@@ -20,11 +20,11 @@ async function run() {
     const webpOut = path.join(outDir, `${base}-${w}.webp`);
 
     await pipeline
-      .avif({ quality: 40, effort: 6, chromaSubsampling: '4:2:0' })
+      .avif({ quality: 36, effort: 7, chromaSubsampling: '4:2:0' })
       .toFile(avifOut);
     await sharp(input)
       .resize({ width: w, height: w, fit: 'cover' })
-      .webp({ quality: 60, smartSubsample: true })
+  .webp({ quality: 55, smartSubsample: true })
       .toFile(webpOut);
 
     console.log(`generated: ${path.basename(avifOut)} and ${path.basename(webpOut)}`);
