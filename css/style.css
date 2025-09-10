@@ -427,6 +427,10 @@ section:not(.hero){
     font-weight: 500;
     transition: color 0.3s ease;
     text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+    padding: 0.5rem 1rem; /* improve tap target */
+    min-height: 44px; /* ensure minimum touch target */
+    display: flex;
+    align-items: center;
 }
 
 .nav-link:hover {
@@ -914,7 +918,7 @@ section:not(.hero){
 
 .invite-description {
     font-size: var(--font-size-lg);
-    color: #333333; /* dark text for high contrast */
+    color: #ffffff; /* white text for high contrast */
     margin-bottom: var(--spacing-2xl);
 }
 
@@ -1830,10 +1834,10 @@ body.patreon-success .note{margin-top:12px;color:#6b7280;font-size:13px}
   color: #005e6a;
 }
 .invite {
-  background: #006b75;
+  background: #101010; /* very dark background for high contrast */
 }
 .invite-title {
-  color: #fff;
+  color: #ffffff; /* white text for high contrast */
 }
 .command-usage {
   background: #eef6f8;
