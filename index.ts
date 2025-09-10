@@ -9,6 +9,7 @@ import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
+import { orchestrateReconnectFromSavedState } from './utils/reconnectOrchestrator';
 import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
 import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
 import { initSentry } from './utils/sentry';
@@ -78,13 +79,13 @@ client.once("ready", async () => {
         await deployCommands(client);
         console.log("コマンドのデプロイ完了");
         
-        // ボイスチャンネル再接続を先に実行し、完全に完了するまで待機
-        console.log('ボイスチャンネルへの再接続を試みています...');
-        await reconnectToVoiceChannels(client);
-        console.log('ボイスチャンネル再接続処理が完了しました');
+    // 再接続はオーケストレーションで最も空いている在籍Botへ
+    console.log('再接続オーケストレーションを開始...');
+    await orchestrateReconnectFromSavedState(client);
+    console.log('再接続オーケストレーションが完了しました');
 
         // --- 追加: 各ギルドのVoiceConnectionがReadyになるまで待機 ---
-        const { voiceClients } = await import('./utils/TTS-Engine');
+    const { voiceClients } = await import('./utils/TTS-Engine');
         const waitForReady = async (vc: VoiceConnection, guildId: string) => {
             try {
                 await entersState(vc, VoiceConnectionStatus.Ready, 10_000);

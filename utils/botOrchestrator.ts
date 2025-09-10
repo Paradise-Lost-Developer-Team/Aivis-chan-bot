@@ -81,6 +81,9 @@ export function pickPrimaryPreferredBot(
   return candidates[0] || null;
 }
 
+// プライマリを閾値以下のときのみ採用し、超える場合はサブ群（非プライマリ）から最も空いているBotを選ぶ
+// しきい値選択は廃止（グローバルに最も空いているBotを選ぶ方針に統一）
+
 export async function instructJoin(bot: BotInfo, payload: { guildId: string; voiceChannelId: string; textChannelId?: string }, timeoutMs = 5000) {
   const url = `${bot.baseUrl}/internal/join`;
   await axios.post(url, payload, { timeout: timeoutMs });

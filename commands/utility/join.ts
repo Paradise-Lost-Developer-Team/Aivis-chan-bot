@@ -5,7 +5,7 @@ import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
-import { getBotInfos, pickLeastBusyBot, pickPrimaryPreferredBot, instructJoin } from '../../utils/botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -98,7 +98,7 @@ module.exports = {
             // ギルドに参加しているBotの中から選択（該当がなければエラー）
             const guildBots = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
             if (guildBots.length === 0) throw new Error('no-bot-available');
-            const picked = pickPrimaryPreferredBot(guildBots) || pickLeastBusyBot(guildBots);
+            const picked = pickLeastBusyBot(guildBots);
             if (!picked) throw new Error('no-bot-available');
 
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });

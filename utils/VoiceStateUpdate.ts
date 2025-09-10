@@ -3,7 +3,7 @@ import { VoiceConnectionStatus } from '@discordjs/voice';
 import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
-import { getBotInfos, pickLeastBusyBot, pickPrimaryPreferredBot, instructJoin } from './botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, instructJoin } from './botOrchestrator';
 
 // 自動接続Embed送信を共通化（通知のみ。実際の接続はオーケストレータが担当）
 async function sendAutoJoinEmbed(member: any, channel: any, client: Client, textChannelId?: string, pickedBaseUrl?: string) {
@@ -62,7 +62,7 @@ export function VoiceStateUpdate(client: Client) {
                     const textChannelId = autoJoinData?.textChannelId;
                     const infos = await getBotInfos();
                     const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
-                    const picked = pickPrimaryPreferredBot(eligible) || pickLeastBusyBot(eligible);
+                    const picked = pickLeastBusyBot(eligible);
                     if (picked) {
                         await instructJoin(picked.bot, { guildId, voiceChannelId: newState.channel.id, textChannelId });
                         await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
@@ -100,7 +100,7 @@ export function VoiceStateUpdate(client: Client) {
                             }
                             return possibleIds.some(id => !!guild.members.cache.get(id));
                         });
-                        const picked2 = pickPrimaryPreferredBot(eligibleByPresence) || pickLeastBusyBot(eligibleByPresence);
+                        const picked2 = pickLeastBusyBot(eligibleByPresence);
                         if (picked2) {
                             const autoJoinData2 = loadAutoJoinChannels()[guildId];
                             const textChannelId2 = autoJoinData2?.textChannelId;
@@ -159,7 +159,7 @@ export function VoiceStateUpdate(client: Client) {
                         try {
                             const infos = await getBotInfos();
                             const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
-                            const picked = pickPrimaryPreferredBot(eligible) || pickLeastBusyBot(eligible);
+                            const picked = pickLeastBusyBot(eligible);
                             if (picked) {
                                 await instructJoin(picked.bot, { guildId, voiceChannelId, textChannelId });
                                 await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
