@@ -3,10 +3,88 @@ const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
 const { google } = require('googleapis');
+const session = require('express-session');
+const passport = require('passport');
+const DiscordStrategy = require('passport-discord').Strategy;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
+
+// Discord OAuth2設定（無料版とPro/Premium版）
+const DISCORD_CONFIG_FREE = {
+    clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
+    redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
+    version: 'free'
+};
+
+const DISCORD_CONFIG_PRO = {
+    clientId: process.env.DISCORD_CLIENT_ID_PRO,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
+    redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
+    version: 'pro'
+};
+
+// デフォルト設定（後方互換性のため）
+const DISCORD_CLIENT_ID = DISCORD_CONFIG_FREE.clientId;
+const DISCORD_CLIENT_SECRET = DISCORD_CONFIG_FREE.clientSecret;
+const DISCORD_REDIRECT_URI = DISCORD_CONFIG_FREE.redirectUri;
+
+// Passport設定（無料版）
+passport.use('discord-free', new DiscordStrategy({
+    clientID: DISCORD_CONFIG_FREE.clientId,
+    clientSecret: DISCORD_CONFIG_FREE.clientSecret,
+    callbackURL: DISCORD_CONFIG_FREE.redirectUri,
+    scope: ['identify', 'guilds']
+}, (accessToken, refreshToken, profile, done) => {
+    // バージョン情報を追加
+    profile.version = 'free';
+    return done(null, profile);
+}));
+
+// Passport設定（Pro/Premium版）
+passport.use('discord-pro', new DiscordStrategy({
+    clientID: DISCORD_CONFIG_PRO.clientId,
+    clientSecret: DISCORD_CONFIG_PRO.clientSecret,
+    callbackURL: DISCORD_CONFIG_PRO.redirectUri,
+    scope: ['identify', 'guilds']
+}, (accessToken, refreshToken, profile, done) => {
+    // バージョン情報を追加
+    profile.version = 'pro';
+    return done(null, profile);
+}));
+
+// 後方互換性のためのデフォルト設定
+passport.use(new DiscordStrategy({
+    clientID: DISCORD_CLIENT_ID,
+    clientSecret: DISCORD_CLIENT_SECRET,
+    callbackURL: DISCORD_REDIRECT_URI,
+    scope: ['identify', 'guilds']
+}, (accessToken, refreshToken, profile, done) => {
+    return done(null, profile);
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+
+// ミドルウェア設定
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // HTTPS環境ではtrueに設定
+        maxAge: 24 * 60 * 60 * 1000 // 24時間
+    }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // 静的ファイル配信（Dockerfileでコピーした全ディレクトリを対象に）
 app.use(express.static(__dirname));
@@ -287,13 +365,183 @@ app.get('/bot-stats-6th', async (req, res) => {
     }
 });
 
+// 認証チェックミドルウェア
+function requireAuth(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/login');
+}
+
 // ルートはindex.htmlを返す
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ダッシュボードルート
-app.get('/dashboard', (req, res) => {
+// ログインページ
+app.get('/login', (req, res) => {
+    if (req.isAuthenticated()) {
+        return res.redirect('/dashboard');
+    }
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Discord認証開始（無料版）
+app.get('/auth/discord/free', passport.authenticate('discord-free'));
+
+// Discord認証開始（Pro/Premium版）
+app.get('/auth/discord/pro', passport.authenticate('discord-pro'));
+
+// Discord認証開始（デフォルト - 後方互換性）
+app.get('/auth/discord', passport.authenticate('discord'));
+
+// Discord認証コールバック（無料版）
+app.get('/auth/discord/callback/free',
+    passport.authenticate('discord-free', { failureRedirect: '/login' }),
+    (req, res) => {
+        res.redirect('/dashboard?version=free');
+    }
+);
+
+// Discord認証コールバック（Pro/Premium版）
+app.get('/auth/discord/callback/pro',
+    passport.authenticate('discord-pro', { failureRedirect: '/login' }),
+    (req, res) => {
+        res.redirect('/dashboard?version=pro');
+    }
+);
+
+// Discord認証コールバック（デフォルト - 後方互換性）
+app.get('/auth/discord/callback',
+    passport.authenticate('discord', { failureRedirect: '/login' }),
+    (req, res) => {
+        res.redirect('/dashboard');
+    }
+);
+
+// ログアウト
+app.get('/logout', (req, res) => {
+    req.logout((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+        }
+        res.redirect('/');
+    });
+});
+
+// プレミアムステータス取得API
+app.get('/api/premium-status', requireAuth, async (req, res) => {
+    try {
+        // Patreon連携やデータベースからプレミアムステータスを確認
+        const userId = req.user.id;
+
+        // 仮の実装：Patreon連携データを確認
+        const patreonLink = await getPatreonLink(userId);
+        const isPremium = patreonLink && patreonLink.patreonId;
+
+        const premiumData = {
+            isPremium: isPremium,
+            tier: isPremium ? 'スタンダード' : null,
+            expiryDate: isPremium ? '2025-12-31' : null, // 仮の有効期限
+            features: isPremium ? ['tts', 'priority', 'dict', 'analytics', 'backup', 'support'] : []
+        };
+
+        res.json(premiumData);
+    } catch (error) {
+        console.error('Premium status error:', error);
+        res.status(500).json({ error: 'プレミアムステータスの取得に失敗しました' });
+    }
+});
+
+// プレミアム設定取得API
+app.get('/api/premium-settings', requireAuth, (req, res) => {
+    try {
+        // ローカルストレージやデータベースから設定を取得
+        const userId = req.user.id;
+        const settingsKey = `premium_settings_${userId}`;
+
+        // 仮の実装：デフォルト設定を返す
+        const defaultSettings = {
+            tts: false,
+            priority: false,
+            dict: false,
+            analytics: false,
+            backup: false,
+            support: false
+        };
+
+        // 実際の実装ではデータベースから取得
+        const settings = defaultSettings; // 仮
+
+        res.json(settings);
+    } catch (error) {
+        console.error('Premium settings error:', error);
+        res.status(500).json({ error: 'プレミアム設定の取得に失敗しました' });
+    }
+});
+
+// プレミアム設定保存API
+app.post('/api/premium-settings', requireAuth, express.json(), (req, res) => {
+    try {
+        const userId = req.user.id;
+        const settings = req.body;
+
+        // 設定を保存（データベースやファイルに）
+        const settingsKey = `premium_settings_${userId}`;
+
+        // 仮の実装：コンソールに出力
+        console.log(`Saving premium settings for user ${userId}:`, settings);
+
+        // 実際の実装ではデータベースに保存
+        // await saveToDatabase(settingsKey, settings);
+
+        res.json({ success: true, message: '設定を保存しました' });
+    } catch (error) {
+        console.error('Premium settings save error:', error);
+        res.status(500).json({ error: '設定の保存に失敗しました' });
+    }
+});
+
+// プレミアム統計取得API
+app.get('/api/premium-stats', requireAuth, (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // 仮の実装：サンプル統計データを返す
+        const stats = {
+            usageTime: 42,
+            messagesProcessed: 1250,
+            responseTime: 150,
+            utilization: 75
+        };
+
+        // 実際の実装ではデータベースから取得
+        // const stats = await getPremiumStats(userId);
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Premium stats error:', error);
+        res.status(500).json({ error: '統計データの取得に失敗しました' });
+    }
+});
+
+// Patreonリンク取得ヘルパー関数
+async function getPatreonLink(discordId) {
+    try {
+        if (!fs.existsSync(PATREON_LINKS_FILE)) return null;
+        const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
+        const arr = JSON.parse(raw);
+        return arr.find(x => String(x.discordId) === String(discordId)) || null;
+    } catch (e) {
+        console.error('getPatreonLink error', e);
+        return null;
+    }
+}
+
+// ダッシュボードルート（認証必須）
+app.get('/dashboard', requireAuth, (req, res) => {
+    // バージョン情報を取得
+    const version = req.query.version || req.user.version || 'free';
     res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 

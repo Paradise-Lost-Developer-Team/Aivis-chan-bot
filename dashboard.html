@@ -10,18 +10,42 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <header class="dashboard-header">
-            <h1>Aivis chan Bot ダッシュボード</h1>
-            <nav class="dashboard-nav">
-                <button class="nav-tab active" data-tab="overview">概要</button>
-                <button class="nav-tab" data-tab="dictionary">辞書</button>
-                <button class="nav-tab" data-tab="auto-connect">自動接続</button>
-                <button class="nav-tab" data-tab="settings">設定</button>
-                <button class="nav-tab" data-tab="personal">個人の設定</button>
-            </nav>
-        </header>
+        <!-- ログインページ -->
+        <div id="login-page" class="login-container" style="display: none;">
+            <div class="login-card">
+                <h1>Aivis chan Bot</h1>
+                <p>ダッシュボードにアクセスするには、Discordアカウントでログインしてください。</p>
+                <button id="discord-login-btn" class="discord-login-btn">
+                    <svg class="discord-icon" viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0189 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/>
+                    </svg>
+                    Discordでログイン
+                </button>
+            </div>
+        </div>
 
-        <main class="dashboard-content">
+        <!-- メインのダッシュボード -->
+        <div id="main-dashboard" class="main-dashboard">
+            <header class="dashboard-header">
+                <h1>Aivis chan Bot ダッシュボード</h1>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <img id="user-avatar" class="user-avatar" src="" alt="Avatar" style="display: none;">
+                        <span id="user-display">読み込み中...</span>
+                        <a href="#" id="logout-btn" class="logout-btn">ログアウト</a>
+                    </div>
+                </div>
+                <nav class="dashboard-nav">
+                    <button class="nav-tab active" data-tab="overview">概要</button>
+                    <button class="nav-tab" data-tab="dictionary">辞書</button>
+                    <button class="nav-tab" data-tab="auto-connect">自動接続</button>
+                    <button class="nav-tab" data-tab="settings">設定</button>
+                    <button class="nav-tab" data-tab="personal">個人の設定</button>
+                    <button class="nav-tab premium-tab" data-tab="premium" id="premium-tab" style="display: none;">プレミアム</button>
+                </nav>
+            </header>
+
+            <main class="dashboard-content">
             <!-- 概要タブ -->
             <section id="overview" class="tab-content active">
                 <h2>概要</h2>
@@ -43,6 +67,15 @@
                         <div class="stat-value" id="vc-connections">0</div>
                     </div>
                 </div>
+
+                <!-- 参加ギルドリスト -->
+                <div class="guilds-section">
+                    <h3>参加中のギルド</h3>
+                    <div id="guilds-list" class="guilds-list">
+                        <div class="loading">ギルド情報を読み込み中...</div>
+                    </div>
+                </div>
+
                 <div class="bot-list">
                     <h3>Botステータス</h3>
                     <div id="bot-status-list"></div>
@@ -201,7 +234,122 @@
                 </div>
                 <button id="save-personal">個人設定を保存</button>
             </section>
-        </main>
+
+            <!-- プレミアムタブ -->
+            <section id="premium" class="tab-content">
+                <h2>プレミアム機能</h2>
+
+                <!-- プレミアムステータス -->
+                <div class="premium-status-card">
+                    <div class="premium-header">
+                        <h3>プレミアムステータス</h3>
+                        <div class="premium-badge" id="premium-badge">確認中...</div>
+                    </div>
+                    <div class="premium-details" id="premium-details">
+                        <div class="loading">プレミアム情報を読み込み中...</div>
+                    </div>
+                </div>
+
+                <!-- プレミアム機能設定 -->
+                <div class="premium-features">
+                    <h3>プレミアム機能設定</h3>
+
+                    <div class="premium-feature-grid">
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>高度なTTS設定</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-tts-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>感情表現、話速調整、ピッチ制御などの高度なTTS設定</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>優先処理</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-priority-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>メッセージの優先処理と高速応答</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>カスタム辞書</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-dict-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>サーバー固有の拡張辞書機能</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>統計分析</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-analytics-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>詳細な使用統計と分析レポート</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>自動バックアップ</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-backup-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>設定とデータの自動バックアップ</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>サポート優先</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-support-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>優先的なサポート対応</p>
+                        </div>
+                    </div>
+
+                    <button id="save-premium-settings" class="premium-save-btn">プレミアム設定を保存</button>
+                </div>
+
+                <!-- プレミアム統計 -->
+                <div class="premium-stats">
+                    <h3>プレミアム統計</h3>
+                    <div class="premium-stats-grid">
+                        <div class="premium-stat-card">
+                            <h4>使用時間</h4>
+                            <div class="stat-value" id="premium-usage-time">0時間</div>
+                        </div>
+                        <div class="premium-stat-card">
+                            <h4>処理メッセージ数</h4>
+                            <div class="stat-value" id="premium-messages-processed">0</div>
+                        </div>
+                        <div class="premium-stat-card">
+                            <h4>平均応答時間</h4>
+                            <div class="stat-value" id="premium-response-time">0ms</div>
+                        </div>
+                        <div class="premium-stat-card">
+                            <h4>利用率</h4>
+                            <div class="stat-value" id="premium-utilization">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </main>
+        </div>
     </div>
 
     <script src="/js/dashboard.js"></script>

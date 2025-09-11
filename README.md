@@ -63,19 +63,78 @@
 └── README.md           # このファイル
 ```
 
-## セットアップ
+## 🔐 Discord認証設定
 
-### 1. 基本設定
+ダッシュボードにアクセスするにはDiscord認証が必要です。以下の手順で設定してください。
 
-1. `js/api-config.js` を編集してAPIエンドポイントを設定
-```javascript
-const API_CONFIG = {
-    baseURL: 'http://your-api-server.com/api', // 実際のAPIサーバーURL
-    // ... その他の設定
-};
+### 1. Discordアプリケーションの作成
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) にアクセス
+2. "New Application" をクリック
+3. アプリケーション名を入力（例: "Aivis-chan Bot Dashboard"）
+4. 作成されたアプリケーションの "General Information" から **Application ID** をコピー
+
+### 2. OAuth2設定
+
+1. 左側のメニューから "OAuth2" → "General" を選択
+2. **Client Secret** を生成してコピー
+3. "OAuth2" → "URL Generator" を選択
+4. Scopesで `bot` と `identify` を選択
+5. Bot Permissionsで必要な権限を選択
+6. 生成されたURLをコピー
+
+### 3. 環境変数の設定
+
+`.env` ファイルに以下の変数を設定：
+
+```bash
+# Discord OAuth2 Configuration
+DISCORD_CLIENT_ID=your_discord_application_id_here
+DISCORD_CLIENT_SECRET=your_discord_client_secret_here
+DISCORD_REDIRECT_URI=https://your-domain.com/auth/discord/callback
+SESSION_SECRET=your_random_session_secret_here
 ```
 
-2. 開発環境の場合は `DEVELOPMENT_MODE = true` に設定
+### 4. リダイレクトURIの設定
+
+Discord Developer Portalの "OAuth2" → "General" で以下のリダイレクトURIを追加：
+- `https://your-domain.com/auth/discord/callback`
+
+### 5. 依存関係のインストール
+
+```bash
+npm install express-session passport passport-discord
+```
+
+### 6. サーバーの再起動
+
+環境変数を設定したらサーバーを再起動してください。
+
+```bash
+npm start
+# または
+node server.js
+```
+
+### 7. アクセス方法
+
+1. ブラウザで `https://your-domain.com/dashboard` にアクセス
+2. Discordログイン画面が表示される
+3. Discordアカウントでログイン
+4. ダッシュボードにアクセス可能
+
+## 📋 必要な権限
+
+ダッシュボード機能を使用するには、以下のDiscord権限が必要です：
+
+- `identify` - ユーザー情報の取得
+- `guilds` - サーバー情報の取得（オプション）
+
+## 🔒 セキュリティ注意事項
+
+- `SESSION_SECRET` は強力なランダム文字列を使用してください
+- 本番環境ではHTTPSを使用してください
+- 定期的にClient Secretを更新することを推奨します
 
 ### 2. APIエンドポイント
 

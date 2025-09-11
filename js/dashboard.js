@@ -2,10 +2,45 @@
 class Dashboard {
     constructor() {
         this.currentTab = 'overview';
+        this.isLoggedIn = false;
         this.init();
     }
 
     init() {
+        this.checkLoginStatus();
+        this.setupDiscordLogin();
+        this.setupLogout();
+        this.handleAuthCallback();
+        this.checkPremiumStatus(); // プレミアムステータスを確認
+    }
+
+    // ログイン状態を確認
+    checkLoginStatus() {
+        const token = localStorage.getItem('discord_token');
+        const user = localStorage.getItem('discord_user');
+
+        if (token && user) {
+            this.isLoggedIn = true;
+            this.showDashboard();
+            this.loadUserInfo(JSON.parse(user));
+        } else {
+            this.showLoginPage();
+        }
+    }
+
+    // ログインページを表示
+    showLoginPage() {
+        document.getElementById('login-page').style.display = 'flex';
+        document.getElementById('main-dashboard').style.display = 'none';
+    }
+
+    // ダッシュボードを表示
+    showDashboard() {
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.getElementById('main-dashboard').classList.add('logged-in');
+
+        // ダッシュボードの初期化
         this.setupTabNavigation();
         this.loadOverviewData();
         this.setupEventListeners();
@@ -13,6 +48,340 @@ class Dashboard {
         this.loadPersonalSettings();
         this.loadDictionary();
         this.loadAutoConnectSettings();
+        this.loadGuilds(); // ギルド情報を読み込む
+        this.startGuildUpdates(); // 定期更新を開始
+    }
+
+    // Discordログインのセットアップ
+    setupDiscordLogin() {
+        const loginBtn = document.getElementById('discord-login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                this.initiateDiscordLogin();
+            });
+        }
+    }
+
+    // Discord OAuth2を開始
+    initiateDiscordLogin(version = 'free') {
+        // バージョンに基づいて適切な設定を取得
+        const config = this.getDiscordConfig(version);
+
+        // Discord OAuth2 URLを構築
+        const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&response_type=code&scope=identify`;
+
+        // Discordの認証ページにリダイレクト
+        window.location.href = authUrl;
+    }
+
+    // Discord設定を取得
+    getDiscordConfig(version = 'free') {
+        // サーバーから設定を取得するか、デフォルト設定を使用
+        const configs = {
+            free: {
+                clientId: '1333819940645638154', // 無料版のClient ID
+                redirectUri: window.location.origin + '/auth/discord/callback/free'
+            },
+            pro: {
+                clientId: '1415251855147008023', // Pro/Premium版のClient ID
+                redirectUri: window.location.origin + '/auth/discord/callback/pro'
+            }
+        };
+
+        return configs[version] || configs.free;
+    }
+
+    // ログアウトのセットアップ
+    setupLogout() {
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
+            });
+        }
+    }
+
+    // ログアウト処理
+    logout() {
+        localStorage.removeItem('discord_token');
+        localStorage.removeItem('discord_user');
+        this.isLoggedIn = false;
+        this.showLoginPage();
+    }
+
+    // プレミアムステータスを確認
+    async checkPremiumStatus() {
+        try {
+            const token = localStorage.getItem('discord_token');
+            if (!token) return;
+
+            // プレミアムステータスを確認するAPIを呼び出し
+            const response = await fetch('/api/premium-status', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const premiumData = await response.json();
+                this.handlePremiumStatus(premiumData);
+            } else {
+                console.warn('Failed to check premium status');
+                this.showPremiumTab(false);
+            }
+        } catch (error) {
+            console.error('Error checking premium status:', error);
+            this.showPremiumTab(false);
+        }
+    }
+
+    // プレミアムステータスを処理
+    handlePremiumStatus(premiumData) {
+        const isPremium = premiumData.isPremium || false;
+        this.showPremiumTab(isPremium);
+
+        if (isPremium) {
+            this.updatePremiumBadge(premiumData);
+            this.loadPremiumSettings();
+            this.loadPremiumStats();
+        }
+    }
+
+    // プレミアムタブの表示/非表示
+    showPremiumTab(show) {
+        const premiumTab = document.getElementById('premium-tab');
+        if (premiumTab) {
+            premiumTab.style.display = show ? 'inline-block' : 'none';
+        }
+    }
+
+    // プレミアムバッジを更新
+    updatePremiumBadge(premiumData) {
+        const badge = document.getElementById('premium-badge');
+        const details = document.getElementById('premium-details');
+
+        if (premiumData.isPremium) {
+            badge.textContent = 'プレミアム会員';
+            badge.className = 'premium-badge active';
+
+            const expiryDate = new Date(premiumData.expiryDate).toLocaleDateString('ja-JP');
+            details.innerHTML = `
+                <p><strong>会員種別:</strong> ${premiumData.tier || 'スタンダード'}</p>
+                <p><strong>有効期限:</strong> ${expiryDate}</p>
+                <p><strong>特典:</strong> 高度なTTS設定、優先処理、カスタム辞書、詳細統計</p>
+            `;
+        } else {
+            badge.textContent = '無料会員';
+            badge.className = 'premium-badge inactive';
+            details.innerHTML = `
+                <p>プレミアム機能を利用するには、プレミアム会員登録が必要です。</p>
+                <p><a href="/premium" target="_blank">プレミアム登録はこちら</a></p>
+            `;
+        }
+    }
+
+    // プレミアム設定を読み込む
+    async loadPremiumSettings() {
+        try {
+            const response = await fetch('/api/premium-settings');
+            if (response.ok) {
+                const settings = await response.json();
+                this.applyPremiumSettings(settings);
+            }
+        } catch (error) {
+            console.error('Failed to load premium settings:', error);
+        }
+    }
+
+    // プレミアム設定を適用
+    applyPremiumSettings(settings) {
+        const checkboxes = [
+            'premium-tts-enabled',
+            'premium-priority-enabled',
+            'premium-dict-enabled',
+            'premium-analytics-enabled',
+            'premium-backup-enabled',
+            'premium-support-enabled'
+        ];
+
+        checkboxes.forEach(id => {
+            const checkbox = document.getElementById(id);
+            const settingKey = id.replace('premium-', '').replace('-enabled', '');
+            if (checkbox && settings[settingKey] !== undefined) {
+                checkbox.checked = settings[settingKey];
+            }
+        });
+    }
+
+    // プレミアム統計を読み込む
+    async loadPremiumStats() {
+        try {
+            const response = await fetch('/api/premium-stats');
+            if (response.ok) {
+                const stats = await response.json();
+                this.updatePremiumStats(stats);
+            }
+        } catch (error) {
+            console.error('Failed to load premium stats:', error);
+        }
+    }
+
+    // プレミアム統計を更新
+    updatePremiumStats(stats) {
+        document.getElementById('premium-usage-time').textContent = `${stats.usageTime || 0}時間`;
+        document.getElementById('premium-messages-processed').textContent = stats.messagesProcessed || 0;
+        document.getElementById('premium-response-time').textContent = `${stats.responseTime || 0}ms`;
+        document.getElementById('premium-utilization').textContent = `${stats.utilization || 0}%`;
+    }
+
+    // プレミアム設定を保存
+    async savePremiumSettings() {
+        const settings = {
+            tts: document.getElementById('premium-tts-enabled').checked,
+            priority: document.getElementById('premium-priority-enabled').checked,
+            dict: document.getElementById('premium-dict-enabled').checked,
+            analytics: document.getElementById('premium-analytics-enabled').checked,
+            backup: document.getElementById('premium-backup-enabled').checked,
+            support: document.getElementById('premium-support-enabled').checked
+        };
+
+        try {
+            const response = await fetch('/api/premium-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings)
+            });
+
+            if (response.ok) {
+                alert('プレミアム設定を保存しました。');
+            } else {
+                alert('設定の保存に失敗しました。');
+            }
+        } catch (error) {
+            console.error('Failed to save premium settings:', error);
+            alert('設定の保存中にエラーが発生しました。');
+        }
+    }
+
+    // 共通のギルドをフィルタリング
+    filterCommonGuilds(userGuilds, botGuilds) {
+        const botGuildIds = new Set(botGuilds.map(guild => guild.id));
+
+        return userGuilds
+            .filter(guild => botGuildIds.has(guild.id))
+            .map(guild => ({
+                ...guild,
+                botInfo: botGuilds.find(bg => bg.id === guild.id)
+            }));
+    }
+
+    // ギルドリストを表示
+    renderGuilds(guilds) {
+        const container = document.getElementById('guilds-list');
+
+        if (guilds.length === 0) {
+            container.innerHTML = '<div class="no-guilds">Botが参加しているギルドが見つかりません</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        guilds.forEach(guild => {
+            const guildElement = this.createGuildElement(guild);
+            container.appendChild(guildElement);
+        });
+    }
+
+    // ギルド要素を作成
+    createGuildElement(guild) {
+        const guildDiv = document.createElement('div');
+        guildDiv.className = 'guild-item';
+
+        const iconUrl = guild.icon
+            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+            : null;
+
+        const memberCount = guild.approximate_member_count || '不明';
+        const botInfo = guild.botInfo || {};
+
+        guildDiv.innerHTML = `
+            <div class="guild-icon">
+                ${iconUrl
+                    ? `<img src="${iconUrl}" alt="${guild.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                    : `<span>${guild.name.charAt(0).toUpperCase()}</span>`
+                }
+            </div>
+            <div class="guild-info">
+                <div class="guild-name">${guild.name}</div>
+                <div class="guild-details">
+                    メンバー: ${memberCount}
+                    ${guild.owner ? '<span class="guild-owner">オーナー</span>' : ''}
+                    ${botInfo.online ? '<span style="color: #28a745;">● Botオンライン</span>' : '<span style="color: #dc3545;">● Botオフライン</span>'}
+                </div>
+            </div>
+        `;
+
+        return guildDiv;
+    }
+
+    // エラーメッセージを表示
+    showGuildsError(message) {
+        const container = document.getElementById('guilds-list');
+        container.innerHTML = `<div class="no-guilds">${message}</div>`;
+    }
+
+    // OAuth2コールバック処理（URLパラメータからコードを取得）
+    handleAuthCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+
+        if (code) {
+            this.exchangeCodeForToken(code);
+            // URLからコードパラメータを削除
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    // 認証コードをトークンと交換
+    async exchangeCodeForToken(code) {
+        try {
+            const response = await fetch('/auth/discord/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('discord_token', data.access_token);
+
+                // ユーザー情報を取得
+                const userResponse = await fetch('https://discord.com/api/users/@me', {
+                    headers: {
+                        'Authorization': `Bearer ${data.access_token}`
+                    }
+                });
+
+                if (userResponse.ok) {
+                    const user = await userResponse.json();
+                    localStorage.setItem('discord_user', JSON.stringify(user));
+                    this.isLoggedIn = true;
+                    this.showDashboard();
+                    this.loadUserInfo(user);
+                }
+            } else {
+                console.error('Failed to exchange code for token');
+                this.showLoginPage();
+            }
+        } catch (error) {
+            console.error('Auth error:', error);
+            this.showLoginPage();
+        }
     }
 
     setupTabNavigation() {
@@ -97,6 +466,14 @@ class Dashboard {
         document.getElementById('save-auto-connect').addEventListener('click', () => {
             this.saveAutoConnectSettings();
         });
+
+        // プレミアム設定保存
+        const premiumSaveBtn = document.getElementById('save-premium-settings');
+        if (premiumSaveBtn) {
+            premiumSaveBtn.addEventListener('click', () => {
+                this.savePremiumSettings();
+            });
+        }
 
         // スライダーの値表示
         this.setupSliderValues();
@@ -289,6 +666,11 @@ class Dashboard {
         } catch (error) {
             console.error('Failed to load auto-connect settings:', error);
         }
+    }
+
+    async loadUserInfo() {
+        // このメソッドはもはや使用されないため、空の実装にしておく
+        // ユーザー情報はログイン時に設定される
     }
 }
 
