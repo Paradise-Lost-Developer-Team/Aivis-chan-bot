@@ -489,31 +489,6 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
             }
         }
 
-        if (!finalTextChannelId) {
-            // 4. ギルドのシステムチャンネルを使用
-            if (guild.systemChannel && guild.systemChannel.type === 0) {
-                finalTextChannelId = guild.systemChannel.id;
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // 5. 一般チャンネルを探す
-            const generalChannel = guild.channels.cache.find(ch =>
-                ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般'))
-            );
-            if (generalChannel) {
-                finalTextChannelId = generalChannel.id;
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // 6. 最初のテキストチャンネルを使用
-            const firstTextChannel = guild.channels.cache.find(ch => ch.type === 0);
-            if (firstTextChannel) {
-                finalTextChannelId = firstTextChannel.id;
-            }
-        }
-
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
             const tc = guild.channels.cache.get(finalTextChannelId) as any;
