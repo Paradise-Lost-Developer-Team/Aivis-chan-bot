@@ -7,7 +7,6 @@ import { AivisAdapter } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { logError } from "./utils/errorLogger";
-import { reconnectToVoiceChannels } from './utils/voiceStateManager';
 import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
 import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
 import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
@@ -118,11 +117,6 @@ client.once("ready", async () => {
             await syncSettingsFromPrimary();
         }
 
-        // ボイスチャンネル再接続（常に実施）
-        console.log('ボイスチャンネルへの再接続を試みています...');
-        await reconnectToVoiceChannels(client);
-        console.log('ボイスチャンネル再接続処理が完了しました');
-
         // --- 各ギルドのVoiceConnectionがReadyになるまで待機 ---
         const { voiceClients } = await import('./utils/TTS-Engine');
         const waitForReady = async (vc: VoiceConnection, guildId: string) => {
@@ -153,7 +147,7 @@ client.once("ready", async () => {
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
 
-        // コマンドは1台目のみ
+        // コマンドは1台目のみ: デプロイとハンドリングを制御
         if (ALLOW_COMMANDS) {
             await deployCommands(client);
             console.log("コマンドのデプロイ完了(許可有り)");
@@ -233,6 +227,7 @@ client.on("interactionCreate", async interaction => {
         // スラッシュコマンド処理
         if (interaction.isChatInputCommand()) {
             if (!ALLOW_COMMANDS) {
+                // コマンド無効。静かに無視するか、エフェメラル通知（必要なら有効化）
                 return;
             }
             const command = client.commands.get(interaction.commandName);
@@ -376,7 +371,6 @@ apiApp.listen(3005, () => {
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 import { textChannels, voiceClients } from './utils/TTS-Engine';
-import { saveVoiceState } from './utils/voiceStateManager';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -394,14 +388,24 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         // テキストチャンネルの決定ロジックを改善
         let finalTextChannelId = textChannelId;
 
+        // 1stまたはProのBotからテキストチャンネル情報を取得
         if (!finalTextChannelId) {
-            // 1. 保存されたテキストチャンネルを取得
-            const { getTextChannelForGuild } = await import('./utils/voiceStateManager');
-            finalTextChannelId = getTextChannelForGuild(guildId);
+            try {
+                console.log(`[2nd Bot] 1st Botからテキストチャンネル情報を取得: ${PRIMARY_URL}/internal/text-channel/${guildId}`);
+                const response = await axios.get(`${PRIMARY_URL.replace(/\/$/, '')}/internal/text-channel/${guildId}`, { timeout: 5000 });
+                const data = response.data as { ok?: boolean; textChannelId?: string; textChannelName?: string; error?: string };
+                if (data && data.ok && data.textChannelId) {
+                    finalTextChannelId = data.textChannelId;
+                    console.log(`[2nd Bot] 1st Botからテキストチャンネルを取得: ${data.textChannelName} (${finalTextChannelId})`);
+                }
+            } catch (error) {
+                const err = error as any;
+                console.warn(`[2nd Bot] 1st Botからのテキストチャンネル取得に失敗:`, err?.message || String(error));
+            }
         }
 
         if (!finalTextChannelId) {
-            // 2. 自動参加設定から取得
+            // フォールバック: 自動参加設定から取得
             const { autoJoinChannels } = await import('./utils/TTS-Engine');
             const autoJoinSetting = autoJoinChannels[guildId];
             if (autoJoinSetting && autoJoinSetting.textChannelId) {
@@ -459,7 +463,8 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             connection.once(VoiceConnectionStatus.Disconnected,onDisc);
             setTimeout(()=>cleanup(),10000);
         });
-        try { saveVoiceState(client as any); } catch {}
+        // 2nd Botではボイス状態の保存をスキップ（1st Botが管理）
+        // try { saveVoiceState(client as any); } catch {}
         return res.json({
             ok: true,
             textChannelId: finalTextChannelId,
@@ -499,7 +504,8 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         }
         try { delete voiceClients[guildId]; } catch {}
         try { delete (textChannels as any)[guildId]; } catch {}
-        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        // 2nd Botではボイス状態の保存をスキップ（1st Botが管理）
+        // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
