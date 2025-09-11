@@ -13,17 +13,17 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 // Discord OAuth2設定（無料版とPro/Premium版）
 const DISCORD_CONFIG_FREE = {
-    clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
-    redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
-    version: 'free'
+  clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
+  clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
+  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
+  version: 'free'
 };
 
 const DISCORD_CONFIG_PRO = {
-    clientId: process.env.DISCORD_CLIENT_ID_PRO,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
-    redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
-    version: 'pro'
+  clientId: process.env.DISCORD_CLIENT_ID_PRO,
+  clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
+  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
+  version: 'pro'
 };
 
 // デフォルト設定（後方互換性のため）
@@ -31,39 +31,45 @@ const DISCORD_CLIENT_ID = DISCORD_CONFIG_FREE.clientId;
 const DISCORD_CLIENT_SECRET = DISCORD_CONFIG_FREE.clientSecret;
 const DISCORD_REDIRECT_URI = DISCORD_CONFIG_FREE.redirectUri;
 
-// Passport設定（無料版）
-passport.use('discord-free', new DiscordStrategy({
-    clientID: DISCORD_CONFIG_FREE.clientId,
-    clientSecret: DISCORD_CONFIG_FREE.clientSecret,
-    callbackURL: DISCORD_CONFIG_FREE.redirectUri,
-    scope: ['identify', 'guilds']
-}, (accessToken, refreshToken, profile, done) => {
-    // バージョン情報を追加
-    profile.version = 'free';
-    return done(null, profile);
-}));
+// Passport設定（無料版） - 必須値がある場合のみ登録
+if (DISCORD_CONFIG_FREE.clientId && DISCORD_CONFIG_FREE.clientSecret) {
+  passport.use('discord-free', new DiscordStrategy({
+      clientID: DISCORD_CONFIG_FREE.clientId,
+      clientSecret: DISCORD_CONFIG_FREE.clientSecret,
+      callbackURL: DISCORD_CONFIG_FREE.redirectUri,
+      scope: ['identify', 'guilds']
+  }, (accessToken, refreshToken, profile, done) => {
+      // バージョン情報を追加
+      profile.version = 'free';
+      return done(null, profile);
+  }));
+}
 
-// Passport設定（Pro/Premium版）
-passport.use('discord-pro', new DiscordStrategy({
-    clientID: DISCORD_CONFIG_PRO.clientId,
-    clientSecret: DISCORD_CONFIG_PRO.clientSecret,
-    callbackURL: DISCORD_CONFIG_PRO.redirectUri,
-    scope: ['identify', 'guilds']
-}, (accessToken, refreshToken, profile, done) => {
-    // バージョン情報を追加
-    profile.version = 'pro';
-    return done(null, profile);
-}));
+// Passport設定（Pro/Premium版） - 必須値がある場合のみ登録
+if (DISCORD_CONFIG_PRO.clientId && DISCORD_CONFIG_PRO.clientSecret) {
+  passport.use('discord-pro', new DiscordStrategy({
+      clientID: DISCORD_CONFIG_PRO.clientId,
+      clientSecret: DISCORD_CONFIG_PRO.clientSecret,
+      callbackURL: DISCORD_CONFIG_PRO.redirectUri,
+      scope: ['identify', 'guilds']
+  }, (accessToken, refreshToken, profile, done) => {
+      // バージョン情報を追加
+      profile.version = 'pro';
+      return done(null, profile);
+  }));
+}
 
-// 後方互換性のためのデフォルト設定
-passport.use(new DiscordStrategy({
-    clientID: DISCORD_CLIENT_ID,
-    clientSecret: DISCORD_CLIENT_SECRET,
-    callbackURL: DISCORD_REDIRECT_URI,
-    scope: ['identify', 'guilds']
-}, (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
-}));
+// 後方互換性のためのデフォルト設定 - 必須値がある場合のみ登録
+if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
+  passport.use(new DiscordStrategy({
+      clientID: DISCORD_CLIENT_ID,
+      clientSecret: DISCORD_CLIENT_SECRET,
+      callbackURL: DISCORD_REDIRECT_URI,
+      scope: ['identify', 'guilds']
+  }, (accessToken, refreshToken, profile, done) => {
+      return done(null, profile);
+  }));
+}
 
 passport.serializeUser((user, done) => {
     done(null, user);
@@ -387,46 +393,66 @@ app.get('/login', (req, res) => {
 });
 
 // Discord認証開始（無料版）
-app.get('/auth/discord/free', passport.authenticate('discord-free'));
+app.get('/auth/discord/free', (req, res, next) => {
+  if (!passport._strategies['discord-free']) return res.status(500).send('discord-free not configured');
+  return passport.authenticate('discord-free')(req, res, next);
+});
 
 // Discord認証開始（Pro/Premium版）
-app.get('/auth/discord/pro', passport.authenticate('discord-pro'));
+app.get('/auth/discord/pro', (req, res, next) => {
+  if (!passport._strategies['discord-pro']) return res.status(500).send('discord-pro not configured');
+  return passport.authenticate('discord-pro')(req, res, next);
+});
 
 // Discord認証開始（デフォルト - 後方互換性）
-app.get('/auth/discord', passport.authenticate('discord'));
+app.get('/auth/discord', (req, res, next) => {
+  if (!passport._strategies['discord']) return res.status(500).send('discord strategy not configured');
+  return passport.authenticate('discord')(req, res, next);
+});
 
 // Discord認証コールバック（無料版）
-app.get('/auth/discord/callback/free',
-    passport.authenticate('discord-free', { failureRedirect: '/login' }),
-    (req, res) => {
-        res.redirect('/dashboard?version=free');
-    }
-);
+app.get('/auth/discord/callback/free', (req, res, next) => {
+  if (!passport._strategies['discord-free']) return res.redirect('/login');
+  return passport.authenticate('discord-free', { failureRedirect: '/login' })(req, res, () => {
+    res.redirect('/dashboard?version=free');
+  });
+});
 
 // Discord認証コールバック（Pro/Premium版）
-app.get('/auth/discord/callback/pro',
-    passport.authenticate('discord-pro', { failureRedirect: '/login' }),
-    (req, res) => {
-        res.redirect('/dashboard?version=pro');
-    }
-);
+app.get('/auth/discord/callback/pro', (req, res, next) => {
+  if (!passport._strategies['discord-pro']) return res.redirect('/login');
+  return passport.authenticate('discord-pro', { failureRedirect: '/login' })(req, res, () => {
+    res.redirect('/dashboard?version=pro');
+  });
+});
 
 // Discord認証コールバック（デフォルト - 後方互換性）
-app.get('/auth/discord/callback',
-    passport.authenticate('discord', { failureRedirect: '/login' }),
-    (req, res) => {
-        res.redirect('/dashboard');
-    }
-);
+app.get('/auth/discord/callback', (req, res, next) => {
+  if (!passport._strategies['discord']) return res.redirect('/login');
+  return passport.authenticate('discord', { failureRedirect: '/login' })(req, res, () => {
+    res.redirect('/dashboard');
+  });
+});
 
 // ログアウト
 app.get('/logout', (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            console.error('Logout error:', err);
-        }
-        res.redirect('/');
+  // Passport 0.6+: req.logout requires callback
+  req.logout(err => {
+    if (err) console.error('Logout error:', err);
+    // Destroy the session
+    req.session?.destroy(() => {
+      res.clearCookie('connect.sid');
+      return res.redirect('/login');
     });
+  });
+});
+
+// クライアント用：現在のセッション状態を返す（フロントがlocalStorageではなくサーバーセッションを見るため）
+app.get('/api/session', (req, res) => {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return res.json({ authenticated: true, user: req.user });
+  }
+  return res.json({ authenticated: false });
 });
 
 // プレミアムステータス取得API

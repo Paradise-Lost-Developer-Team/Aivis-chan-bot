@@ -178,6 +178,18 @@
             });
             document.getElementById(version + '-login').classList.add('active');
         }
+
+        // 既に認証済みのときはダッシュボードへ（二重ログイン防止）
+        (async () => {
+            try {
+                const s = await fetch('/api/session', { credentials: 'include' }).then(r => r.json());
+                if (s && s.authenticated) {
+                    location.replace('/dashboard');
+                }
+            } catch (e) {
+                console.warn('session check failed', e);
+            }
+        })();
     </script>
 </body>
 </html>

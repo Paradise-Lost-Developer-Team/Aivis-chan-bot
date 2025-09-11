@@ -3,30 +3,33 @@ class Dashboard {
     constructor() {
         this.currentTab = 'overview';
         this.isLoggedIn = false;
+        this.user = null;
         this.init();
     }
 
-    init() {
-        this.checkLoginStatus();
-        this.setupDiscordLogin();
-        this.setupLogout();
-        this.handleAuthCallback();
-        this.checkPremiumStatus(); // プレミアムステータスを確認
-    }
-
-    // ログイン状態を確認
-    checkLoginStatus() {
-        const token = localStorage.getItem('discord_token');
-        const user = localStorage.getItem('discord_user');
-
-        if (token && user) {
-            this.isLoggedIn = true;
-            this.showDashboard();
-            this.loadUserInfo(JSON.parse(user));
-        } else {
+    async init() {
+        // サーバーセッションで認証状態を確認（localStorageは使わない）
+        try {
+            const session = await fetch('/api/session', { credentials: 'include' }).then(r => r.json());
+            if (session && session.authenticated) {
+                this.isLoggedIn = true;
+                this.user = session.user || null;
+                this.showDashboard();
+                // 認証済みのみプレミアム状態を確認
+                this.checkPremiumStatus();
+            } else {
+                this.showLoginPage();
+            }
+        } catch (e) {
+            console.error('Failed to check session:', e);
             this.showLoginPage();
         }
+
+        this.setupDiscordLogin();
+        this.setupLogout();
     }
+
+    // ログイン状態はサーバーセッションで確認するため、localStorageは使用しない
 
     // ログインページを表示
     showLoginPage() {
@@ -57,39 +60,13 @@ class Dashboard {
         const loginBtn = document.getElementById('discord-login-btn');
         if (loginBtn) {
             loginBtn.addEventListener('click', () => {
-                this.initiateDiscordLogin();
+                // サーバー側のルートへ（Freeをデフォルトに）
+                window.location.href = '/auth/discord/free';
             });
         }
     }
 
-    // Discord OAuth2を開始
-    initiateDiscordLogin(version = 'free') {
-        // バージョンに基づいて適切な設定を取得
-        const config = this.getDiscordConfig(version);
-
-        // Discord OAuth2 URLを構築
-        const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&redirect_uri=${encodeURIComponent(config.redirectUri)}&response_type=code&scope=identify`;
-
-        // Discordの認証ページにリダイレクト
-        window.location.href = authUrl;
-    }
-
-    // Discord設定を取得
-    getDiscordConfig(version = 'free') {
-        // サーバーから設定を取得するか、デフォルト設定を使用
-        const configs = {
-            free: {
-                clientId: '1333819940645638154', // 無料版のClient ID
-                redirectUri: window.location.origin + '/auth/discord/callback/free'
-            },
-            pro: {
-                clientId: '1415251855147008023', // Pro/Premium版のClient ID
-                redirectUri: window.location.origin + '/auth/discord/callback/pro'
-            }
-        };
-
-        return configs[version] || configs.free;
-    }
+    // フロントからのOAuth開始や設定取得は廃止（サーバーに委譲）
 
     // ログアウトのセットアップ
     setupLogout() {
@@ -104,24 +81,15 @@ class Dashboard {
 
     // ログアウト処理
     logout() {
-        localStorage.removeItem('discord_token');
-        localStorage.removeItem('discord_user');
-        this.isLoggedIn = false;
-        this.showLoginPage();
+        // サーバーセッションを破棄
+        window.location.href = '/logout';
     }
 
     // プレミアムステータスを確認
     async checkPremiumStatus() {
         try {
-            const token = localStorage.getItem('discord_token');
-            if (!token) return;
-
             // プレミアムステータスを確認するAPIを呼び出し
-            const response = await fetch('/api/premium-status', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch('/api/premium-status', { credentials: 'include' });
 
             if (response.ok) {
                 const premiumData = await response.json();
@@ -333,56 +301,7 @@ class Dashboard {
         container.innerHTML = `<div class="no-guilds">${message}</div>`;
     }
 
-    // OAuth2コールバック処理（URLパラメータからコードを取得）
-    handleAuthCallback() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-
-        if (code) {
-            this.exchangeCodeForToken(code);
-            // URLからコードパラメータを削除
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    }
-
-    // 認証コードをトークンと交換
-    async exchangeCodeForToken(code) {
-        try {
-            const response = await fetch('/auth/discord/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ code })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('discord_token', data.access_token);
-
-                // ユーザー情報を取得
-                const userResponse = await fetch('https://discord.com/api/users/@me', {
-                    headers: {
-                        'Authorization': `Bearer ${data.access_token}`
-                    }
-                });
-
-                if (userResponse.ok) {
-                    const user = await userResponse.json();
-                    localStorage.setItem('discord_user', JSON.stringify(user));
-                    this.isLoggedIn = true;
-                    this.showDashboard();
-                    this.loadUserInfo(user);
-                }
-            } else {
-                console.error('Failed to exchange code for token');
-                this.showLoginPage();
-            }
-        } catch (error) {
-            console.error('Auth error:', error);
-            this.showLoginPage();
-        }
-    }
+    // OAuth2コールバック処理やコード交換はサーバー側に移行済みのため不要
 
     setupTabNavigation() {
         const tabs = document.querySelectorAll('.nav-tab');
