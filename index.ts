@@ -452,6 +452,90 @@ apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
     }
 });
 
+// テキストチャンネル決定API（他のBotが使用）
+apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return res.status(404).json({ error: 'guild-not-found' });
+
+        // ギルドのTier情報を取得
+        const { getGuildTier } = await import('./utils/patreonIntegration');
+        const guildTier = await getGuildTier(guildId, client);
+
+        // テキストチャンネルの決定ロジック
+        let finalTextChannelId = null;
+
+        // 1. 保存されたテキストチャンネルを取得
+        finalTextChannelId = getTextChannelForGuild(guildId);
+
+        if (!finalTextChannelId) {
+            // 2. 自動参加設定から取得
+            const { autoJoinChannels } = await import('./utils/TTS-Engine');
+            const autoJoinSetting = autoJoinChannels[guildId];
+            if (autoJoinSetting && autoJoinSetting.textChannelId) {
+                finalTextChannelId = autoJoinSetting.textChannelId;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 3. 参加チャンネル設定から取得
+            const { joinChannels } = await import('./utils/TTS-Engine');
+            const joinSetting = joinChannels[guildId];
+            if (joinSetting && joinSetting.textChannelId) {
+                finalTextChannelId = joinSetting.textChannelId;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 4. ギルドのシステムチャンネルを使用
+            if (guild.systemChannel && guild.systemChannel.type === 0) {
+                finalTextChannelId = guild.systemChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 5. 一般チャンネルを探す
+            const generalChannel = guild.channels.cache.find(ch =>
+                ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般'))
+            );
+            if (generalChannel) {
+                finalTextChannelId = generalChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 6. 最初のテキストチャンネルを使用
+            const firstTextChannel = guild.channels.cache.find(ch => ch.type === 0);
+            if (firstTextChannel) {
+                finalTextChannelId = firstTextChannel.id;
+            }
+        }
+
+        // テキストチャンネルが見つかった場合のみ設定
+        if (finalTextChannelId) {
+            const tc = guild.channels.cache.get(finalTextChannelId) as any;
+            if (tc && tc.type === 0) {
+                return res.json({
+                    ok: true,
+                    textChannelId: finalTextChannelId,
+                    textChannelName: tc.name,
+                    guildTier: guildTier // ギルドTier情報を追加
+                });
+            } else {
+                return res.status(404).json({ error: 'text-channel-invalid' });
+            }
+        } else {
+            return res.status(404).json({ error: 'no-text-channel-found' });
+        }
+    } catch (e) {
+        console.error('text-channel API error:', e);
+        return res.status(500).json({ error: 'text-channel-failed' });
+    }
+});
+
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId } = req.body || {};
