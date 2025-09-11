@@ -336,7 +336,7 @@ section:not(.hero){
 
 .btn-outline {
     background: transparent;
-    color: #000000; /* strong text for better contrast */
+    color: #333333; /* strong text for better contrast */
     border: 2px solid var(--primary-700);
 }
 
@@ -931,8 +931,8 @@ section:not(.hero){
 /* Increase button contrast on invite background */
 .invite .btn-primary {
     background: #40e0d0;
-    color: #000000; /* maximum contrast */
-    border: 3px solid #000000; /* thick border for visibility */
+    color: #333333; /* maximum contrast */
+    border: 3px solid #333333; /* thick border for visibility */
     font-weight: 700; /* bold text */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* shadow for depth */
 }
@@ -1585,7 +1585,7 @@ section:not(.hero){
 
 /* Improve contrast for bot detail card buttons */
 .bot-detail-card .btn-primary.btn-sm {
-    background: #000000; /* black background for maximum contrast */
+    background: #333333; /* black background for maximum contrast */
     color: #ffffff;
 }
 
