@@ -71,11 +71,25 @@ module.exports = {
             }
 
             loadAutoJoinChannels();
+            
+            // テキストチャンネルが指定されていない場合は、コマンド実行チャンネルまたはデフォルトを使用
+            let finalTextChannel = textChannel;
+            if (!finalTextChannel) {
+                if (interaction.channel && interaction.channel.type === ChannelType.GuildText) {
+                    finalTextChannel = interaction.channel as TextChannel;
+                } else {
+                    // ギルドの最初のテキストチャンネルを使用
+                    finalTextChannel = interaction.guild?.channels.cache
+                        .filter(ch => ch.type === ChannelType.GuildText)
+                        .first() as TextChannel;
+                }
+            }
+            
             autoJoinChannels[guildId] = {
                 voiceChannelId: voiceChannel.id,
-                textChannelId: textChannel ? textChannel.id : undefined,
+                textChannelId: finalTextChannel ? finalTextChannel.id : undefined,
                 tempVoice: tempVoice === true, // undefinedならfalse扱い
-                isManualTextChannelId: !!textChannel
+                isManualTextChannelId: !!textChannel // 元々指定されていたかどうか
             };
 
             saveAutoJoinChannels();  // ここで保存

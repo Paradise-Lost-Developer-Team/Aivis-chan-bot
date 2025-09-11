@@ -49,8 +49,31 @@ module.exports = {
         }
 
         if (!textChannel) {
-            // コマンド実行チャンネルを使用
-            textChannel = interaction.channel as TextChannel;
+            // コマンド実行チャンネルを使用（テキストチャンネルかどうか確認）
+            const currentChannel = interaction.channel;
+            if (currentChannel && currentChannel.type === ChannelType.GuildText) {
+                textChannel = currentChannel as TextChannel;
+            } else {
+                // テキストチャンネルでない場合、ギルドの最初のテキストチャンネルを使用
+                const firstTextChannel = interaction.guild?.channels.cache
+                    .filter(ch => ch.type === ChannelType.GuildText)
+                    .first() as TextChannel;
+                if (firstTextChannel) {
+                    textChannel = firstTextChannel;
+                } else {
+                    await interaction.followUp({
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('エラー')
+                                .setDescription('適切なテキストチャンネルが見つかりません。テキストチャンネルを指定してください。')
+                                .setColor(0xff0000)
+                        )],
+                        components: [getCommonLinksRow()],
+                        flags: MessageFlags.Ephemeral
+                    });
+                    return;
+                }
+            }
         }
 
         const guildId = interaction.guildId!;

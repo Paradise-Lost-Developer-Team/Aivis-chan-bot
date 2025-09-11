@@ -25,45 +25,57 @@ export function MessageCreate(client: ExtendedClient) {
             const guildId = message.guildId!;
             let messageContent = message.content;
             let voiceClient = voiceClients[guildId];
+            // 設定ファイルはキャッシュされた関数を使用（頻繁な読み込みを避ける）
             const autoJoinChannelsData = loadAutoJoinChannels();
             const joinChannelsData = loadJoinChannels();
-    
-            // APIで設定されたテキストチャンネルを優先的にチェック
+
+            // 統一されたテキストチャンネル検証ロジック
+            let isValidTextChannel = false;
+            let configuredChannelId: string | null = null;
+            let configSource = '';
+            
+            // 1. API設定（最優先）
             if (textChannels[guildId]) {
-                if (message.channel.id !== textChannels[guildId].id) {
-                    console.log(`Message is not in the API-configured text channel (${textChannels[guildId].id}). Ignoring message. Channel ID: ${message.channel.id}`);
-                    return;
-                }
-            } else if (joinChannelsData[guildId]?.textChannelId) {
-                if (message.channel.id !== joinChannelsData[guildId].textChannelId) {
-                    console.log(`Message is not in the joinChannelsData text channel (${joinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
-                    return;
-                }
-            } else if (autoJoinChannelsData[guildId]) {
-                if (autoJoinChannelsData[guildId].tempVoice) {
-                    // TempVoice固有のロジック
-                    if (autoJoinChannelsData[guildId].isManualTextChannelId) {
-                        // 手動指定ならtextChannelIdのみ許可
-                        if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
-                            console.log(`[TempVoice:Manual] Message is not in the correct text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
-                            return;
-                        }
-                    } else {
-                        // 自動設定: textChannelIdがundefinedでもVCのIDと一致していれば許可
-                        if (!voiceClient || message.channel.id !== voiceClient.joinConfig.channelId) {
-                            console.log(`[TempVoice:Auto] Message is not in the VC channel. (VC: ${voiceClient?.joinConfig.channelId}, textChannelId: ${autoJoinChannelsData[guildId].textChannelId}) Ignoring message. Channel ID: ${message.channel.id}`);
-                            return;
-                        }
-                    }
+                configuredChannelId = textChannels[guildId].id;
+                configSource = 'API';
+                isValidTextChannel = (message.channel.id === configuredChannelId);
+            }
+            // 2. joinChannelsData設定
+            else if (joinChannelsData[guildId]?.textChannelId) {
+                configuredChannelId = joinChannelsData[guildId].textChannelId;
+                configSource = 'joinChannels';
+                isValidTextChannel = (message.channel.id === configuredChannelId);
+            }
+            // 3. autoJoinChannelsData設定
+            else if (autoJoinChannelsData[guildId]) {
+                if (autoJoinChannelsData[guildId].tempVoice && !autoJoinChannelsData[guildId].isManualTextChannelId) {
+                    // TempVoice自動設定: VC接続中ならどのチャンネルでも許可
+                    configSource = 'autoJoin-tempVoice';
+                    isValidTextChannel = (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready);
                 } else if (autoJoinChannelsData[guildId].textChannelId) {
-                    // 通常のautoJoinロジック
-                    if (message.channel.id !== autoJoinChannelsData[guildId].textChannelId) {
-                        console.log(`Message is not in the autoJoinChannelsData text channel (${autoJoinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
-                        return;
-                    }
+                    configuredChannelId = autoJoinChannelsData[guildId].textChannelId;
+                    configSource = 'autoJoin';
+                    isValidTextChannel = (message.channel.id === configuredChannelId);
                 }
-            } else {
-                console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
+            }
+            
+            // 4. VC接続中フォールバック（設定なしまたは不一致時）
+            if (!isValidTextChannel && voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
+                isValidTextChannel = true;
+                if (!configuredChannelId) {
+                    configSource = 'voice-fallback';
+                } else {
+                    configSource = 'voice-override';
+                }
+            }
+
+            // メッセージを無視する場合のログ出力
+            if (!isValidTextChannel) {
+                if (configuredChannelId) {
+                    console.log(`[${configSource}] Message not in configured text channel (${configuredChannelId}). Current: ${message.channel.id}. Ignoring.`);
+                } else {
+                    console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
+                }
                 return;
             }
             

@@ -102,13 +102,32 @@ export function VoiceStateUpdate(client: Client) {
                 try {
                     // auto_join_channels.json の既定テキストチャンネルを採用
                     const autoJoinData = loadAutoJoinChannels()[guildId];
-                    const textChannelId = autoJoinData?.textChannelId;
+                    let textChannelId = autoJoinData?.textChannelId;
+                    
+                    // テキストチャンネルが指定されていない場合のフォールバック
+                    if (!textChannelId) {
+                        // 1. システムチャンネルを試行
+                        if (member.guild.systemChannelId) {
+                            textChannelId = member.guild.systemChannelId;
+                        } else {
+                            // 2. ギルドの最初のテキストチャンネルを使用
+                            const firstTextChannel = member.guild.channels.cache
+                                .filter(ch => ch.type === 0)
+                                .first();
+                            if (firstTextChannel) {
+                                textChannelId = firstTextChannel.id;
+                            }
+                        }
+                        console.log(`[TempVC:pro] テキストチャンネル自動選択: ${textChannelId} (guild: ${member.guild.name})`);
+                    }
+                    
                     const infos = await getBotInfos();
                     const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                     const picked = pickLeastBusyBot(eligible);
                     if (picked) {
                         await instructJoin(picked.bot, { guildId, voiceChannelId: newState.channel!.id, textChannelId });
                         await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
+                        console.log(`[TempVC:pro] 追従接続指示完了: bot=${picked.bot.name} vc=${newState.channel!.name} tc=${textChannelId}`);
                     }
                     // TTSの再生先を確実にリセット（本Botが選ばれた場合に備える）
                     if (currentSpeaker[guildId] !== undefined) delete currentSpeaker[guildId];
@@ -200,15 +219,33 @@ export function VoiceStateUpdate(client: Client) {
                 if (guildData.tempVoice !== true && voiceChannelId === newState.channel.id) {
                     if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                         try {
+                            // テキストチャンネル確実指定
+                            let finalTextChannelId = textChannelId;
+                            if (!finalTextChannelId) {
+                                // フォールバック: システムチャンネル → 最初のテキストチャンネル
+                                if (member.guild.systemChannelId) {
+                                    finalTextChannelId = member.guild.systemChannelId;
+                                } else {
+                                    const firstTextChannel = member.guild.channels.cache
+                                        .filter(ch => ch.type === 0)
+                                        .first();
+                                    if (firstTextChannel) {
+                                        finalTextChannelId = firstTextChannel.id;
+                                    }
+                                }
+                                console.log(`[AutoJoin:pro] テキストチャンネル自動選択: ${finalTextChannelId} (guild: ${member.guild.name})`);
+                            }
+                            
                             const infos = await getBotInfos();
                             const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                             const picked = pickLeastBusyBot(eligible);
                             if (picked) {
-                                await instructJoin(picked.bot, { guildId, voiceChannelId, textChannelId });
-                                await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
+                                await instructJoin(picked.bot, { guildId, voiceChannelId, textChannelId: finalTextChannelId });
+                                await sendAutoJoinEmbed(member, newState.channel, client, finalTextChannelId, picked.bot.baseUrl);
+                                console.log(`[AutoJoin:pro] 自動接続完了: bot=${picked.bot.name} vc=${newState.channel.name} tc=${finalTextChannelId}`);
                             }
                         } catch (error) {
-                            console.error('Auto-join orchestrate error:', error);
+                            console.error('[AutoJoin:pro] 自動接続エラー:', error);
                         }
                     }
                 }

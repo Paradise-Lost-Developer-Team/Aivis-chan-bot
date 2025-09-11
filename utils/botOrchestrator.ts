@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+// Axiosのデフォルト設定を改善
+axios.defaults.timeout = 10000; // 10秒
+axios.defaults.headers.common['User-Agent'] = 'BotOrchestrator/1.0';
+
 export type BotInfo = {
   name: string;
   baseUrl: string; // http://aivis-chan-bot-<n>:300x
@@ -53,31 +57,81 @@ export type InfoResp = {
   serverCount: number;
 };
 
-export async function getBotInfos(timeoutMs = 4000, attempts = 2): Promise<(InfoResp & { bot: BotInfo; ok: boolean })[]> {
+// 接続テスト用のヘルパー関数
+async function testConnection(baseUrl: string): Promise<boolean> {
+  try {
+    const healthUrl = `${baseUrl.replace(/\/$/, '')}/health`;
+    await axios.get(healthUrl, { timeout: 2000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getBotInfos(timeoutMs = 8000, attempts = 3): Promise<(InfoResp & { bot: BotInfo; ok: boolean })[]> {
   const results: (InfoResp & { bot: BotInfo; ok: boolean })[] = [];
   const bots = listBots();
 
-  // シンプルなリトライ付きフェッチ
+  console.log(`[botOrchestrator:pro] ${bots.length}個のBotの情報を取得開始`);
+
+  // 改善されたリトライ付きフェッチ
   const fetchInfo = async (bot: BotInfo): Promise<(InfoResp & { bot: BotInfo; ok: boolean })> => {
     const url = `${bot.baseUrl.replace(/\/$/, '')}/internal/info`;
     let lastErr: any;
+    
     for (let i = 0; i < Math.max(1, attempts); i++) {
       try {
-        const { data } = await axios.get(url, { timeout: timeoutMs });
-        return { ...(data as InfoResp), bot, ok: true };
-      } catch (e) {
+        console.log(`[botOrchestrator:pro] info取得開始: ${bot.name} (${url}) - 試行 ${i + 1}/${attempts}`);
+        
+        const response = await axios.get(url, { 
+          timeout: timeoutMs,
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'BotOrchestrator-Pro/1.0'
+          }
+        });
+        
+        console.log(`[botOrchestrator:pro] info取得成功: ${bot.name} - status: ${response.status}`);
+        return { ...(response.data as InfoResp), bot, ok: true };
+      } catch (e: any) {
         lastErr = e;
+        
+        // より詳細なエラーログ
+        const errorDetails = {
+          code: e.code,
+          status: e.response?.status,
+          statusText: e.response?.statusText,
+          message: e.message,
+          timeout: e.code === 'ECONNABORTED'
+        };
+        
+        console.warn(`[botOrchestrator:pro] info取得失敗 (試行 ${i + 1}/${attempts}): ${bot.name} (${url}) -> ${JSON.stringify(errorDetails)}`);
+        
+        // リトライ前の待機（最後の試行以外）
+        if (i < attempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // 指数バックオフ
+        }
       }
     }
-    // eslint-disable-next-line no-console
-    console.warn(`[botOrchestrator:pro] info取得失敗: ${bot.name} (${url}) -> ${lastErr?.message || lastErr}`);
+    
+    console.error(`[botOrchestrator:pro] info取得最終失敗: ${bot.name} (${url}) -> ${lastErr?.message || lastErr}`);
     return { bot, ok: false, guildIds: [], connectedGuildIds: [], vcCount: 0, serverCount: 0 };
   };
 
-  await Promise.all(bots.map(async (bot) => {
-    const info = await fetchInfo(bot);
-    results.push(info);
-  }));
+  // 並列処理で情報取得（ただし、同時実行数を制限）
+  const CONCURRENT_LIMIT = 3;
+  for (let i = 0; i < bots.length; i += CONCURRENT_LIMIT) {
+    const batch = bots.slice(i, i + CONCURRENT_LIMIT);
+    const batchResults = await Promise.all(batch.map(async (bot) => {
+      const info = await fetchInfo(bot);
+      return info;
+    }));
+    results.push(...batchResults);
+  }
+  
+  const successCount = results.filter(r => r.ok).length;
+  console.log(`[botOrchestrator:pro] 情報取得完了: ${successCount}/${results.length} 成功`);
+  
   return results;
 }
 
@@ -114,7 +168,14 @@ export function pickPrimaryPreferredBot(
 
 export async function instructJoin(bot: BotInfo, payload: { guildId: string; voiceChannelId: string; textChannelId?: string }, timeoutMs = 6000) {
   const url = `${bot.baseUrl.replace(/\/$/, '')}/internal/join`;
+  
+  // テキストチャンネルIDが指定されていない場合は警告ログを出力
+  if (!payload.textChannelId) {
+    console.warn(`[botOrchestrator:pro] テキストチャンネルが指定されていません: guildId=${payload.guildId} bot=${bot.name}`);
+  }
+  
   try {
+    console.log(`[botOrchestrator:pro] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'}`);
     await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
     const msg = `[botOrchestrator:pro] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
