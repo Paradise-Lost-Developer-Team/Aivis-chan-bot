@@ -13,6 +13,7 @@ RUN npm install --production --no-audit --no-fund
 COPY server.js sw.js ./
 COPY index.html ./
 COPY dashboard.html ./
+COPY login.html ./
 COPY manifest.json ./
 COPY robots.txt ./
 COPY nginx.conf ./
