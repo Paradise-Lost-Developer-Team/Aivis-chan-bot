@@ -70,6 +70,8 @@ function markTTSDown() {
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
+// joinコマンド実行チャンネルを記録するマップ
+export const joinCommandChannels: { [guildId: string]: string } = {};
 // ユーザーごとの話者設定
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
@@ -159,7 +161,7 @@ console.log(`プロジェクトルートディレクトリ: ${PROJECT_ROOT}`);
 export const SPEAKERS_FILE = path.join(PROJECT_ROOT, "data", "speakers.json");
 export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "data", "guild_dictionaries.json");
 export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "data", "auto_join_channels.json");
-export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels.json");
+// JOIN_CHANNELS_FILE は動的判定により不要になったため削除
 
 // ユーザーごとの音声設定を永続化するファイル
 const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings.json');
@@ -1107,10 +1109,12 @@ export function getSpeakerOptions() {
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
 export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-let joinChannelsCache: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-let joinChannelsLastModified = 0;
+// join_channels関連のキャッシュは動的判定により不要
+// let joinChannelsCache: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+// let joinChannelsLastModified = 0;
 
-joinChannels = loadJoinChannels();
+// 新規：auto_join_channels.json を読み込む関数（キャッシュ付き）
+autoJoinChannels = loadAutoJoinChannels();
 
 // 新規：join_channels.json を読み込む関数（キャッシュ付き）
 export function loadJoinChannels() {
@@ -1207,6 +1211,17 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
+}
+
+// joinコマンド実行チャンネルを記録する関数
+export function setJoinCommandChannel(guildId: string, channelId: string) {
+    joinCommandChannels[guildId] = channelId;
+    console.log(`[Join:1st] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
+}
+
+// joinコマンド実行チャンネルを取得する関数
+export function getJoinCommandChannel(guildId: string): string | undefined {
+    return joinCommandChannels[guildId];
 }
 
 /**

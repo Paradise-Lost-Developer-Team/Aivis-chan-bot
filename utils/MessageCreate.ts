@@ -1,5 +1,5 @@
-import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, textChannels } from './TTS-Engine';
+import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, textChannels, getJoinCommandChannel } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -24,6 +24,72 @@ interface ExtendedClient extends Client {
 // 追加: ギルドごとにボイス接続状態の初期化済みかどうかを記録するマップ
 const voiceInitMap: { [guildId: string]: boolean } = {};
 
+/**
+ * 動的テキストチャンネル判定システム
+ * join_channels.jsonに依存せず、現在の状況に基づいてTTSを実行するかを決定
+ */
+const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean; reason: string }> => {
+    const guildId = message.guildId!;
+    const currentChannel = message.channel as TextChannel;
+    const voiceClient = voiceClients[guildId];
+    
+    // 音声接続がない場合は読み上げ不可
+    if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+        return { shouldTTS: false, reason: 'no-voice-connection' };
+    }
+    
+    try {
+        // 1. API設定による明示的許可（textChannelsマップから）
+        if (textChannels[guildId] && textChannels[guildId].id === currentChannel.id) {
+            return { shouldTTS: true, reason: 'api-setting' };
+        }
+        
+        // 2. /joinコマンドを実行したチャンネル
+        const joinCommandChannelId = getJoinCommandChannel(guildId);
+        if (joinCommandChannelId === currentChannel.id) {
+            return { shouldTTS: true, reason: 'join-command-channel' };
+        }
+        
+        // 3. Botが接続しているボイスチャンネル（関連テキストチャンネル）
+        const voiceChannelId = voiceClient.joinConfig?.channelId;
+        if (voiceChannelId) {
+            const voiceChannel = message.guild?.channels.cache.get(voiceChannelId) as VoiceChannel;
+            
+            if (voiceChannel) {
+                // 3a. 同じカテゴリ内のテキストチャンネル
+                if (voiceChannel.parentId && voiceChannel.parentId === currentChannel.parentId) {
+                    return { shouldTTS: true, reason: 'voice-channel-category' };
+                }
+                
+                // 3b. ボイスチャンネルと同名のテキストチャンネル
+                const matchingTextChannel = voiceChannel.parent?.children.cache.find(
+                    ch => ch.type === ChannelType.GuildText && 
+                          ch.name.toLowerCase() === voiceChannel.name.toLowerCase()
+                );
+                if (matchingTextChannel && matchingTextChannel.id === currentChannel.id) {
+                    return { shouldTTS: true, reason: 'matching-text-channel' };
+                }
+            }
+        }
+        
+        // 4. Auto-join設定のフォールバック
+        const autoJoinChannelsData = loadAutoJoinChannels();
+        if (autoJoinChannelsData[guildId]) {
+            if (autoJoinChannelsData[guildId].tempVoice && !autoJoinChannelsData[guildId].isManualTextChannelId) {
+                return { shouldTTS: true, reason: 'temp-voice-auto' };
+            } else if (autoJoinChannelsData[guildId].textChannelId === currentChannel.id) {
+                return { shouldTTS: true, reason: 'auto-join-setting' };
+            }
+        }
+        
+        return { shouldTTS: false, reason: 'no-match' };
+        
+    } catch (error) {
+        console.error(`[TTS:1st] 動的判定エラー:`, error);
+        return { shouldTTS: false, reason: 'error' };
+    }
+};
+
 export function MessageCreate(client: ExtendedClient) {
     client.on(Events.MessageCreate, async (message: Message) => {
         if (message.author.bot) {
@@ -35,60 +101,17 @@ export function MessageCreate(client: ExtendedClient) {
             const guildId = message.guildId!;
             let messageContent = message.content;
             let voiceClient = voiceClients[guildId];
-            // 設定ファイルはキャッシュされた関数を使用（頻繁な読み込みを避ける）
-            const autoJoinChannelsData = loadAutoJoinChannels();
-            const joinChannelsData = loadJoinChannels();
-    
-            // 統一されたテキストチャンネル検証ロジック
-            let isValidTextChannel = false;
-            let configuredChannelId: string | null = null;
-            let configSource = '';
-            
-            // 1. API設定（最優先）
-            if (textChannels[guildId]) {
-                configuredChannelId = textChannels[guildId].id;
-                configSource = 'API';
-                isValidTextChannel = (message.channel.id === configuredChannelId);
-            }
-            // 2. joinChannelsData設定
-            else if (joinChannelsData[guildId]?.textChannelId) {
-                configuredChannelId = joinChannelsData[guildId].textChannelId;
-                configSource = 'joinChannels';
-                isValidTextChannel = (message.channel.id === configuredChannelId);
-            }
-            // 3. autoJoinChannelsData設定
-            else if (autoJoinChannelsData[guildId]) {
-                if (autoJoinChannelsData[guildId].tempVoice && !autoJoinChannelsData[guildId].isManualTextChannelId) {
-                    // TempVoice自動設定: VC接続中ならどのチャンネルでも許可
-                    configSource = 'autoJoin-tempVoice';
-                    isValidTextChannel = (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready);
-                } else if (autoJoinChannelsData[guildId].textChannelId) {
-                    configuredChannelId = autoJoinChannelsData[guildId].textChannelId;
-                    configSource = 'autoJoin';
-                    isValidTextChannel = (message.channel.id === configuredChannelId);
-                }
-            }
-            
-            // 4. VC接続中フォールバック（設定なしまたは不一致時）
-            if (!isValidTextChannel && voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
-                isValidTextChannel = true;
-                if (!configuredChannelId) {
-                    configSource = 'voice-fallback';
-                } else {
-                    configSource = 'voice-override';
-                }
-            }
 
-            // メッセージを無視する場合のログ出力
-            if (!isValidTextChannel) {
-                if (configuredChannelId) {
-                    console.log(`[${configSource}] Message not in configured text channel (${configuredChannelId}). Current: ${message.channel.id}. Ignoring.`);
-                } else {
-                    console.log(`No join configuration for guild ${guildId}. Ignoring message.`);
-                }
+            // 動的テキストチャンネル判定システムを使用
+            const { shouldTTS, reason } = await shouldPerformTTS(message);
+            
+            if (!shouldTTS) {
+                console.log(`[TTS:1st] メッセージ無視: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
                 return;
             }
             
+            console.log(`[TTS:1st] TTS実行許可: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
+    
             // メッセージ内容の加工
             // スポイラーを置換
             const spoilers = messageContent.match(/\|\|[\s\S]+?\|\|/g) || [];
