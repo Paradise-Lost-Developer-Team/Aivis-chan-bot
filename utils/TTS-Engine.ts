@@ -5,14 +5,13 @@ import * as fs from "fs";
 import path from "path";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
-import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
-// config.jsonを使う
+import fetch from 'node-fetch';
 
 export const TTS_BASE_URL = config.speechEngineUrl;
 const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
@@ -1116,9 +1115,29 @@ export function deleteJoinChannelsConfig(guildId: string) {
 }
 
 // メッセージ送信先を決定する関数
-export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
+// 1台目のボットのAPIからテキストチャンネルを取得する関数
+async function getTextChannelForGuild(guildId: string): Promise<string | undefined> {
+    try {
+        const response = await fetch(`http://aivis-chan-bot-1st:3002/internal/text-channel/${guildId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 5000
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.ok && data.textChannelId) {
+                return data.textChannelId;
+            }
+        }
+    } catch (error) {
+        console.warn(`1台目のボットからテキストチャンネル取得エラー (${guildId}):`, error);
+    }
+    return undefined;
+}
+
+export async function determineMessageTargetChannel(guildId: string, defaultChannelId?: string): Promise<string | undefined> {
   // 保存されたテキストチャンネルIDを優先
-    const savedTextChannelId = getTextChannelForGuild(guildId);
+    const savedTextChannelId = await getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
 }
 
