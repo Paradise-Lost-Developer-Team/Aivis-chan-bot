@@ -4,7 +4,7 @@ import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine'; // Adjust the path as necessary
-import { getBotInfos, pickLeastBusyBot, instructLeave, BotInfo } from '../../utils/botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, instructLeave } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
