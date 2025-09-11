@@ -894,24 +894,43 @@ export function isVoiceClientConnected(guildId: string): boolean {
 }
 
 let autoJoinChannelsData: { [key: string]: any } = {};
-// 初期化時に既存のデータを読み込む
+let autoJoinChannelsCache: { [key: string]: any } = {};
+let autoJoinChannelsLastModified = 0;
+
+// 初期化時に既存のデータを読み込む（キャッシュ付き）
 autoJoinChannels = loadAutoJoinChannels();
 
 export function loadAutoJoinChannels() {
     try {
-        if (fs.existsSync(AUTO_JOIN_FILE)) {
-            console.log(`自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
-            const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
-            const loadedData = JSON.parse(data);
-            
-            // 読み込んだデータが有効なオブジェクトであることを確認
-            if (loadedData && typeof loadedData === 'object') {
-                // 既存のautoJoinChannelsにデータをマージ
-                return loadedData;
-            }
+        if (!fs.existsSync(AUTO_JOIN_FILE)) {
+            return autoJoinChannelsCache;
+        }
+
+        const stats = fs.statSync(AUTO_JOIN_FILE);
+        const lastModified = stats.mtime.getTime();
+
+        // ファイルが変更されていない場合はキャッシュを返す
+        if (lastModified === autoJoinChannelsLastModified && Object.keys(autoJoinChannelsCache).length > 0) {
+            return autoJoinChannelsCache;
+        }
+
+        // ファイルが変更された場合のみ読み込み
+        console.log(`[Cache:6th] 自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
+        const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
+        const loadedData = JSON.parse(data);
+        
+        // 読み込んだデータが有効なオブジェクトであることを確認
+        if (loadedData && typeof loadedData === 'object') {
+            autoJoinChannelsCache = loadedData;
+            autoJoinChannelsLastModified = lastModified;
+            return loadedData;
         }
     } catch (error) {
         console.error("自動参加チャンネル設定読み込みエラー:", error);
+        // エラー時もキャッシュがあれば返す
+        if (Object.keys(autoJoinChannelsCache).length > 0) {
+            return autoJoinChannelsCache;
+        }
     }
     return {};
 }

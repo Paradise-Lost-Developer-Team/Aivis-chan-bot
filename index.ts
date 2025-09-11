@@ -440,15 +440,35 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
-            const tc = guild.channels.cache.get(finalTextChannelId) as any;
-            if (tc && tc.type === 0) {
-                (textChannels as any)[guildId] = tc;
-                console.log(`ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
-            } else {
-                console.warn(`ギルド ${guildId} のテキストチャンネルが見つからないか無効: ${finalTextChannelId}`);
+            try {
+                let tc = guild.channels.cache.get(finalTextChannelId) as any;
+                
+                // キャッシュに存在しない場合はフェッチを試行
+                if (!tc) {
+                    console.log(`[internal/join:6th] チャンネル ${finalTextChannelId} がキャッシュにないため、フェッチを試行中...`);
+                    tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                }
+                
+                if (tc && tc.type === 0) {
+                    (textChannels as any)[guildId] = tc;
+                    console.log(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                } else {
+                    console.warn(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルが見つからないかテキストチャンネルではない: ${finalTextChannelId}`);
+                    
+                    // フォールバック: ギルドの最初のテキストチャンネルを使用
+                    const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0) as any;
+                    if (fallbackChannel) {
+                        (textChannels as any)[guildId] = fallbackChannel;
+                        console.log(`[internal/join:6th] フォールバックチャンネルを使用: ${fallbackChannel.name} (${fallbackChannel.id})`);
+                    } else {
+                        console.warn(`[internal/join:6th] ギルド ${guildId} でフォールバックテキストチャンネルも見つかりませんでした`);
+                    }
+                }
+            } catch (error) {
+                console.error(`[internal/join:6th] テキストチャンネル設定エラー:`, error);
             }
         } else {
-            console.warn(`ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
+            console.warn(`[internal/join:6th] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
         const prev = getVoiceConnection(guildId);
