@@ -1291,7 +1291,7 @@ export function resetTTSEngine(): void {
         
         // 各種初期化関数を再実行
         loadAutoJoinChannels();
-        loadJoinChannels();
+        // loadJoinChannels(); // 動的判定により不要
         AivisAdapter();
         
         // 最終発話時刻をリセット

@@ -3,7 +3,7 @@ import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings } from "./utils/TTS-Engine";
+import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -115,7 +115,7 @@ client.once("ready", async () => {
         // TTS関連の初期化を先に実行
         console.log("TTS初期化中...");
         loadAutoJoinChannels();
-        loadJoinChannels();
+        // loadJoinChannels(); // 動的判定により不要
         loadSpeakers();
         loadUserVoiceSettings();
         

@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels, setJoinCommandChannel } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, textChannels, voiceClients, setJoinCommandChannel } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 
 module.exports = {
@@ -132,7 +132,7 @@ module.exports = {
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
 
             // join_channels.json に保存（本Botの設定としても記録）
-            updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+            // updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id); // 動的判定により不要
 
             await interaction.editReply({
                 embeds: [addCommonFooter(
@@ -149,7 +149,7 @@ module.exports = {
                 )],
                 components: [getCommonLinksRow()]
             });
-            loadJoinChannels();
+            // loadJoinChannels(); // 動的判定により不要
         } catch (error) {
             console.error(error);
             // エラーメッセージを送信

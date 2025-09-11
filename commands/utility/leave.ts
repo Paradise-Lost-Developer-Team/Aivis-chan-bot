@@ -3,7 +3,7 @@ import { CommandInteraction, MessageFlags } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine'; // Adjust the path as necessary
+import { voiceClients } from '../../utils/TTS-Engine'; // 動的判定により削除された関数のimportを削除
 import { getBotInfos, pickLeastBusyBot, instructLeave } from '../../utils/botOrchestrator';
 
 module.exports = {
@@ -109,7 +109,7 @@ module.exports = {
         try {
             await voiceClient.disconnect();
             delete voiceClients[guildId];
-            deleteJoinChannelsConfig(guildId);
+            // deleteJoinChannelsConfig(guildId); // 動的判定により不要
             await interaction.editReply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
@@ -127,7 +127,7 @@ module.exports = {
                 )],
                 components: [getCommonLinksRow()]
             });
-            loadJoinChannels();
+            // loadJoinChannels(); // 動的判定により不要
         } catch (error) {
             console.error(error);
             await interaction.followUp({
