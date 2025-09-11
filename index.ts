@@ -402,7 +402,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         const voiceChannel = guild.channels.cache.get(voiceChannelId) as any;
         if (!voiceChannel || voiceChannel.type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
 
-        // テキストチャンネルの決定ロジックを改善
+    // テキストチャンネルの決定ロジックを改善（Proは単独で完結）
         let finalTextChannelId = textChannelId;
 
         if (!finalTextChannelId) {
@@ -426,6 +426,19 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             if (joinSetting && joinSetting.textChannelId) {
                 finalTextChannelId = joinSetting.textChannelId;
             }
+        }
+
+        if (!finalTextChannelId) {
+            // 4. ギルドのシステムチャンネル
+            if (guild.systemChannel && guild.systemChannel.type === 0) {
+                finalTextChannelId = guild.systemChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 5. 一般 or 最初のテキストチャンネル
+            const generalChannel = guild.channels.cache.find(ch => ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般')));
+            finalTextChannelId = (generalChannel && (generalChannel as any).id) || (guild.channels.cache.find(ch => ch.type === 0) as any)?.id || null;
         }
 
         // テキストチャンネルが見つかった場合のみ設定
@@ -513,21 +526,9 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
         }
 
         if (!finalTextChannelId) {
-            // 5. 一般チャンネルを探す
-            const generalChannel = guild.channels.cache.find(ch =>
-                ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般'))
-            );
-            if (generalChannel) {
-                finalTextChannelId = generalChannel.id;
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // 6. 最初のテキストチャンネルを使用
-            const firstTextChannel = guild.channels.cache.find(ch => ch.type === 0);
-            if (firstTextChannel) {
-                finalTextChannelId = firstTextChannel.id;
-            }
+            // 5. 一般チャンネル → なければ最初のテキストチャンネル
+            const generalChannel = guild.channels.cache.find(ch => ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般')));
+            finalTextChannelId = (generalChannel && (generalChannel as any).id) || (guild.channels.cache.find(ch => ch.type === 0) as any)?.id || null;
         }
 
         // テキストチャンネルが見つかった場合のみ設定
