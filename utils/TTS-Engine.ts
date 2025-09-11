@@ -6,7 +6,7 @@ import path from "path";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
-import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
+import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType, getGuildSubscriptionTier } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";

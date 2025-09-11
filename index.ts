@@ -150,7 +150,7 @@ client.once("ready", async () => {
 
         // クラスター内Botの /internal/info を叩いてVC合計を集計
         const BOTS = [
-            { name: '1st', baseUrl: 'http://aivis-chan-bot-pro-premium:3012' },
+            { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium:3012' },
             { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd:3003' },
             { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd:3004' },
             { name: '4th', baseUrl: 'http://aivis-chan-bot-4th:3005' },
