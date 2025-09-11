@@ -1085,7 +1085,7 @@ export function getSpeakerOptions() {
 }
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
-let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
 joinChannels = loadJoinChannels();
 
 // 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
@@ -1106,25 +1106,8 @@ export function loadJoinChannels() {
 
 // 新規：取得したチャネル情報を保存する関数
 export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
-    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-    try {
-        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-            joinChannels = JSON.parse(data);
-        }
-    } catch (error) {
-        console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, error);
-        joinChannels = {};
-    }
-    // tempVoiceはundefinedでOK（従来型もサポート）
     joinChannels[guildId] = { voiceChannelId, textChannelId };
-    try {
-        ensureDirectoryExists(JOIN_CHANNELS_FILE);
-        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-        console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
-    } catch (error) {
-        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
-    }
+    saveJoinChannels(joinChannels);
 }
 
 // 新規：join_channels.json を保存する関数
@@ -1139,17 +1122,6 @@ export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId
 
 // 新規：チャンネル情報を削除する関数
 export function deleteJoinChannelsConfig(guildId: string) {
-    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-    try {
-        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-            joinChannels = JSON.parse(data);
-        }
-    } catch (error) {
-        console.error("参加チャンネル設定読み込みエラー:", error);
-        joinChannels = {};
-    }
-    
     delete joinChannels[guildId];
     try {
         ensureDirectoryExists(JOIN_CHANNELS_FILE);

@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, textChannels } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { enqueueText, Priority } from './VoiceQueue';
 import { logError } from './errorLogger';
@@ -28,8 +28,13 @@ export function MessageCreate(client: ExtendedClient) {
             const autoJoinChannelsData = loadAutoJoinChannels();
             const joinChannelsData = loadJoinChannels();
     
-            // ここを変更してjoinChannelsDataを先にチェックし、無い場合のみautoJoinChannelsDataを使用
-            if (joinChannelsData[guildId]?.textChannelId) {
+            // APIで設定されたテキストチャンネルを優先的にチェック
+            if (textChannels[guildId]) {
+                if (message.channel.id !== textChannels[guildId].id) {
+                    console.log(`Message is not in the API-configured text channel (${textChannels[guildId].id}). Ignoring message. Channel ID: ${message.channel.id}`);
+                    return;
+                }
+            } else if (joinChannelsData[guildId]?.textChannelId) {
                 if (message.channel.id !== joinChannelsData[guildId].textChannelId) {
                     console.log(`Message is not in the joinChannelsData text channel (${joinChannelsData[guildId].textChannelId}). Ignoring message. Channel ID: ${message.channel.id}`);
                     return;
