@@ -164,88 +164,79 @@ export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels
 // ユーザーごとの音声設定を永続化するファイル
 const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings.json');
 
-/**
- * ユーザーごとの話者設定を保存
- */
-
 // ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を保存
-export function saveUserVoiceSettings() {
-    try {
-        // 親ディレクトリを確実に作成し、テンポラリファイルへ書き込んでから原子的にリネームする
-        ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
-        const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
-        fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
-        fs.renameSync(tmpPath, USER_VOICE_SETTINGS_FILE);
-        console.log(`ユーザー音声設定を保存しました: ${USER_VOICE_SETTINGS_FILE}`);
-    } catch (e) {
-        console.error('ユーザー音声設定の保存エラー:', e);
-    }
-}
-
-
-/**
- * ユーザーごとの話者設定を読み込み
- */
+// export function saveUserVoiceSettings() {
+//     try {
+//         // 親ディレクトリを確実に作成し、テンポラリファイルへ書き込んでから原子的にリネームする
+//         ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
+//         const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
+//         fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
+//         fs.renameSync(tmpPath, USER_VOICE_SETTINGS_FILE);
+//         console.log(`ユーザー音声設定を保存しました: ${USER_VOICE_SETTINGS_FILE}`);
+//     } catch (e) {
+//         console.error('ユーザー音声設定の保存エラー:', e);
+//     }
+// }
 
 // ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を読み込み
-export function loadUserVoiceSettings() {
-    try {
-        if (fs.existsSync(USER_VOICE_SETTINGS_FILE)) {
-            const data = fs.readFileSync(USER_VOICE_SETTINGS_FILE, 'utf-8');
-            const obj = JSON.parse(data);
-            Object.assign(voiceSettings, obj);
-        }
-    } catch (e) {
-        console.error('ユーザー音声設定の読み込みエラー:', e);
-    }
-}
+// export function loadUserVoiceSettings() {
+//     try {
+//         if (fs.existsSync(USER_VOICE_SETTINGS_FILE)) {
+//             const data = fs.readFileSync(USER_VOICE_SETTINGS_FILE, 'utf-8');
+//             const obj = JSON.parse(data);
+//             Object.assign(voiceSettings, obj);
+//         }
+//     } catch (e) {
+//         console.error('ユーザー音声設定の読み込みエラー:', e);
+//     }
+// }
 
-export async function loadSpeakers(): Promise<any[]> {
-    try {
-        // まず /speakers API から最新情報を取得して JSON ファイルに上書き
-        console.log(`スピーカー情報を TTS サービスから取得します: ${TTS_BASE_URL}/speakers`);
-        const res = await fetchWithRetry(`${TTS_BASE_URL}/speakers`, { method: "GET" });
-        if (res.ok) {
-            const remoteSpeakers = await res.json();
-            console.log(`取得したスピーカー情報をファイルに保存します: ${SPEAKERS_FILE}`);
-            ensureDirectoryExists(SPEAKERS_FILE);
-            fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(remoteSpeakers, null, 2), "utf-8");
-            return remoteSpeakers;
-        } else {
-            console.warn(`TTS /speakers API エラー: ${res.status} ${res.statusText}`);
-        }
-    } catch (err) {
-        console.warn("TTS /speakers API からの取得に失敗しました。ローカルデータを使用します。", err);
-    }
+// export async function loadSpeakers(): Promise<any[]> {
+//     try {
+//         // まず /speakers API から最新情報を取得して JSON ファイルに上書き
+//         console.log(`スピーカー情報を TTS サービスから取得します: ${TTS_BASE_URL}/speakers`);
+//         const res = await fetchWithRetry(`${TTS_BASE_URL}/speakers`, { method: "GET" });
+//         if (res.ok) {
+//             const remoteSpeakers = await res.json();
+//             console.log(`取得したスピーカー情報をファイルに保存します: ${SPEAKERS_FILE}`);
+//             ensureDirectoryExists(SPEAKERS_FILE);
+//             fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(remoteSpeakers, null, 2), "utf-8");
+//             return remoteSpeakers;
+//         } else {
+//             console.warn(`TTS /speakers API エラー: ${res.status} ${res.statusText}`);
+//         }
+//     } catch (err) {
+//         console.warn("TTS /speakers API からの取得に失敗しました。ローカルデータを使用します。", err);
+//     }
 
-    // フェールオーバー: ローカル speakers.json もしくはデフォルト
-    try {
-        console.log(`ローカルファイルからスピーカー情報を読み込みます: ${SPEAKERS_FILE}`);
-        if (!fs.existsSync(SPEAKERS_FILE)) {
-            console.log("speakers.json が存在しません。デフォルト設定を使用します。");
-            ensureDirectoryExists(SPEAKERS_FILE);
-            fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(DEFAULT_SPEAKERS, null, 2), "utf-8");
-            return DEFAULT_SPEAKERS;
-        }
-        const data = fs.readFileSync(SPEAKERS_FILE, "utf-8");
-        const localSpeakers = JSON.parse(data);
-        if (!Array.isArray(localSpeakers) || localSpeakers.length === 0) {
-            console.warn("ローカル speakers.json の形式が不正です。デフォルト設定を使用します。");
-            return DEFAULT_SPEAKERS;
-        }
-        return localSpeakers;
-    } catch (error) {
-        console.error("スピーカー情報の読み込み中にエラーが発生しました:", error);
-        return DEFAULT_SPEAKERS;
-    }
-}
+//     // フェールオーバー: ローカル speakers.json もしくはデフォルト
+//     try {
+//         console.log(`ローカルファイルからスピーカー情報を読み込みます: ${SPEAKERS_FILE}`);
+//         if (!fs.existsSync(SPEAKERS_FILE)) {
+//             console.log("speakers.json が存在しません。デフォルト設定を使用します。");
+//             ensureDirectoryExists(SPEAKERS_FILE);
+//             fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(DEFAULT_SPEAKERS, null, 2), "utf-8");
+//             return DEFAULT_SPEAKERS;
+//         }
+//         const data = fs.readFileSync(SPEAKERS_FILE, "utf-8");
+//         const localSpeakers = JSON.parse(data);
+//         if (!Array.isArray(localSpeakers) || localSpeakers.length === 0) {
+//             console.warn("ローカル speakers.json の形式が不正です。デフォルト設定を使用します。");
+//             return DEFAULT_SPEAKERS;
+//         }
+//         return localSpeakers;
+//     } catch (error) {
+//         console.error("スピーカー情報の読み込み中にエラーが発生しました:", error);
+//         return DEFAULT_SPEAKERS;
+//     }
+// }
 
-export let speakers: any[] = [];
-loadSpeakers().then(data => {
-    speakers = data;
-}).catch(err => {
-    console.error("スピーカー情報初期化エラー:", err);
-});
+// export let speakers: any[] = [];
+// loadSpeakers().then(data => {
+//     speakers = data;
+// }).catch(err => {
+//     console.error("スピーカー情報初期化エラー:", err);
+// });
 
 export const voiceSettings: { [key: string]: any } = {
     volume: {},
@@ -336,24 +327,24 @@ export function AivisAdapter() {
 }
 
 // AivisSpeech Engine から話者情報を取得して speakers.json に保存
-export async function fetchAndSaveSpeakers() {
-    const SPEAKERS_FILE = path.join(getProjectRoot(), "data", "speakers.json");
-    try {
-        const res = await fetch(`${TTS_BASE_URL}/speakers`, { method: "GET" });
-        if (!res.ok) throw new Error(`TTS Engine API error: ${res.status}`);
-        const speakers = await res.json();
-        ensureDirectoryExists(SPEAKERS_FILE);
-        fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(speakers, null, 2), "utf-8");
-        console.log("AivisSpeech Engineから話者情報を取得しspeakers.jsonに保存しました");
-        return speakers;
-    } catch (err) {
-        console.error("AivisSpeech Engineから話者情報取得に失敗。ローカルspeakers.jsonを使用します。", err);
-        if (fs.existsSync(SPEAKERS_FILE)) {
-            return JSON.parse(fs.readFileSync(SPEAKERS_FILE, "utf-8"));
-        }
-        return [];
-    }
-}
+// export async function fetchAndSaveSpeakers() {
+//     const SPEAKERS_FILE = path.join(getProjectRoot(), "data", "speakers.json");
+//     try {
+//         const res = await fetch(`${TTS_BASE_URL}/speakers`, { method: "GET" });
+//         if (!res.ok) throw new Error(`TTS Engine API error: ${res.status}`);
+//         const speakers = await res.json();
+//         ensureDirectoryExists(SPEAKERS_FILE);
+//         fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(speakers, null, 2), "utf-8");
+//         console.log("AivisSpeech Engineから話者情報を取得しspeakers.jsonに保存しました");
+//         return speakers;
+//     } catch (err) {
+//         console.error("AivisSpeech Engineから話者情報取得に失敗。ローカルspeakers.jsonを使用します。", err);
+//         if (fs.existsSync(SPEAKERS_FILE)) {
+//             return JSON.parse(fs.readFileSync(SPEAKERS_FILE, "utf-8"));
+//         }
+//         return [];
+//     }
+// }
 
 // タイムアウト付きfetch関数
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout: number = TTS_TIMEOUT): Promise<any> {
@@ -970,69 +961,69 @@ export function isVoiceClientConnected(guildId: string): boolean {
     return voiceClients[guildId].state.status === VoiceConnectionStatus.Ready;
 }
 
-let autoJoinChannelsData: { [key: string]: any } = {};
+// let autoJoinChannelsData: { [key: string]: any } = {};
 // 初期化時に既存のデータを読み込む
-autoJoinChannels = loadAutoJoinChannels();
+// autoJoinChannels = loadAutoJoinChannels();
 
-export function loadAutoJoinChannels() {
-    try {
-        if (fs.existsSync(AUTO_JOIN_FILE)) {
-            console.log(`自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
-            const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
-            const loadedData = JSON.parse(data);
+// export function loadAutoJoinChannels() {
+//     try {
+//         if (fs.existsSync(AUTO_JOIN_FILE)) {
+//             console.log(`自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
+//             const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
+//             const loadedData = JSON.parse(data);
             
-            // 読み込んだデータが有効なオブジェクトであることを確認
-            if (loadedData && typeof loadedData === 'object') {
-                // 既存のautoJoinChannelsにデータをマージ
-                return loadedData;
-            }
-        }
-    } catch (error) {
-        console.error("自動参加チャンネル設定読み込みエラー:", error);
-    }
-    return {};
-}
+//             // 読み込んだデータが有効なオブジェクトであることを確認
+//             if (loadedData && typeof loadedData === 'object') {
+//                 // 既存のautoJoinChannelsにデータをマージ
+//                 return loadedData;
+//             }
+//         }
+//     } catch (error) {
+//         console.error("自動参加チャンネル設定読み込みエラー:", error);
+//     }
+//     return {};
+// }
 
-export function saveAutoJoinChannels() {
-    try {
-        // 既存のデータを読み込む
-        let existingData = {};
-        if (fs.existsSync(AUTO_JOIN_FILE)) {
-            try {
-                const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
-                existingData = JSON.parse(data);
-            } catch (readError) {
-                console.error(`既存の自動参加チャンネル設定読み込みエラー: ${readError}`);
-                // 読み込みエラーの場合は空のオブジェクトで続行
-                existingData = {};
-            }
-        }
+// export function saveAutoJoinChannels() {
+//     try {
+//         // 既存のデータを読み込む
+//         let existingData = {};
+//         if (fs.existsSync(AUTO_JOIN_FILE)) {
+//             try {
+//                 const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
+//                 existingData = JSON.parse(data);
+//             } catch (readError) {
+//                 console.error(`既存の自動参加チャンネル設定読み込みエラー: ${readError}`);
+//                 // 読み込みエラーの場合は空のオブジェクトで続行
+//                 existingData = {};
+//             }
+//         }
 
-    // autoJoinChannelsの内容のみで上書き保存
-    ensureDirectoryExists(AUTO_JOIN_FILE);
-    fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
-    console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
-    } catch (error) {
-        console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
-    }
-}
+//     // autoJoinChannelsの内容のみで上書き保存
+//     ensureDirectoryExists(AUTO_JOIN_FILE);
+//     fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
+//     console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
+//     } catch (error) {
+//         console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
+//     }
+// }
 
 // 新規：特定のギルドの自動参加設定を更新/追加する関数
-export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string, tempVoice?: boolean) {
-    // 既存の設定を保持したまま特定のギルドの設定だけを更新
-    autoJoinChannels[guildId] = { voiceChannelId, textChannelId, tempVoice };
-    saveAutoJoinChannels();
-}
+// export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string, tempVoice?: boolean) {
+//     // 既存の設定を保持したまま特定のギルドの設定だけを更新
+//     autoJoinChannels[guildId] = { voiceChannelId, textChannelId, tempVoice };
+//     saveAutoJoinChannels();
+// }
 
 // 新規：特定のギルドの自動参加設定を削除する関数
-export function removeAutoJoinChannel(guildId: string) {
-    if (autoJoinChannels[guildId]) {
-        delete autoJoinChannels[guildId];
-        saveAutoJoinChannels();
-        return true;
-    }
-    return false;
-}
+// export function removeAutoJoinChannel(guildId: string) {
+//     if (autoJoinChannels[guildId]) {
+//         delete autoJoinChannels[guildId];
+//         saveAutoJoinChannels();
+//         return true;
+//     }
+//     return false;
+// }
 
 // ファイル書き込み時にパスの存在チェックと親ディレクトリ作成を行う関数
 function ensureDirectoryExists(filePath: string): void {
@@ -1087,79 +1078,79 @@ export function getSpeakerOptions() {
 }
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
-let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-joinChannels = loadJoinChannels();
+// let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+// joinChannels = loadJoinChannels();
 
 // 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
-export function loadJoinChannels() {
-    try {
-        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-            console.log(`参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
-            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-            const parsed = JSON.parse(data);
-            // 後方互換: tempVoiceがない場合はundefinedのまま
-            return parsed;
-        }
-    } catch (error) {
-        console.error("参加チャンネル設定読み込みエラー:", error);
-    }
-    return {};
-}
+// export function loadJoinChannels() {
+//     try {
+//         if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+//             console.log(`参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
+//             const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+//             const parsed = JSON.parse(data);
+//             // 後方互換: tempVoiceがない場合はundefinedのまま
+//             return parsed;
+//         }
+//     } catch (error) {
+//         console.error("参加チャンネル設定読み込みエラー:", error);
+//     }
+//     return {};
+// }
 
 // 新規：取得したチャネル情報を保存する関数
-export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
-    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-    try {
-        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-            joinChannels = JSON.parse(data);
-        }
-    } catch (error) {
-        console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, error);
-        joinChannels = {};
-    }
-    // tempVoiceはundefinedでOK（従来型もサポート）
-    joinChannels[guildId] = { voiceChannelId, textChannelId };
-    try {
-        ensureDirectoryExists(JOIN_CHANNELS_FILE);
-        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-        console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
-    } catch (error) {
-        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
-    }
-}
+// export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+//     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+//     try {
+//         if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+//             const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+//             joinChannels = JSON.parse(data);
+//         }
+//     } catch (error) {
+//         console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, error);
+//         joinChannels = {};
+//     }
+//     // tempVoiceはundefinedでOK（従来型もサポート）
+//     joinChannels[guildId] = { voiceChannelId, textChannelId };
+//     try {
+//         ensureDirectoryExists(JOIN_CHANNELS_FILE);
+//         fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+//         console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+//     } catch (error) {
+//         console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+//     }
+// }
 
 // 新規：join_channels.json を保存する関数
-export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
-    try {
-        ensureDirectoryExists(JOIN_CHANNELS_FILE);
-        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-    } catch (error) {
-        console.error("参加チャンネル設定保存エラー:", error);
-    }
-}
+// export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
+//     try {
+//         ensureDirectoryExists(JOIN_CHANNELS_FILE);
+//         fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+//     } catch (error) {
+//         console.error("参加チャンネル設定保存エラー:", error);
+//     }
+// }
 
 // 新規：チャンネル情報を削除する関数
-export function deleteJoinChannelsConfig(guildId: string) {
-    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-    try {
-        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-            joinChannels = JSON.parse(data);
-        }
-    } catch (error) {
-        console.error("参加チャンネル設定読み込みエラー:", error);
-        joinChannels = {};
-    }
+// export function deleteJoinChannelsConfig(guildId: string) {
+//     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+//     try {
+//         if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+//             const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+//             joinChannels = JSON.parse(data);
+//         }
+//     } catch (error) {
+//         console.error("参加チャンネル設定読み込みエラー:", error);
+//         joinChannels = {};
+//     }
     
-    delete joinChannels[guildId];
-    try {
-        ensureDirectoryExists(JOIN_CHANNELS_FILE);
-        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-    } catch (error) {
-        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
-    }
-}
+//     delete joinChannels[guildId];
+//     try {
+//         ensureDirectoryExists(JOIN_CHANNELS_FILE);
+//         fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+//     } catch (error) {
+//         console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+//     }
+// }
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {

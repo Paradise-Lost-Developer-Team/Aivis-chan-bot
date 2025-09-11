@@ -3,10 +3,9 @@ import { deployCommands } from "./utils/deploy-commands";
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, loadJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings } from "./utils/TTS-Engine";
+import { AivisAdapter } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
-import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import { reconnectToVoiceChannels } from './utils/voiceStateManager';
 import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
@@ -37,6 +36,20 @@ async function syncSettingsFromPrimary() {
                 }
             }
             console.log('Primary設定を同期しました');
+        }
+
+        // ボイス設定も同期
+        try {
+            const voiceSettingsUrl = `${PRIMARY_URL.replace(/\/$/, '')}/internal/voice-settings`;
+            const { data: voiceData } = await axios.get(voiceSettingsUrl, { timeout: 7000 });
+            const vd: any = voiceData as any;
+            if (vd && vd.voiceSettings) {
+                const { voiceSettings } = await import('./utils/TTS-Engine');
+                Object.assign(voiceSettings, vd.voiceSettings);
+                console.log('Primaryボイス設定を同期しました');
+            }
+        } catch (e) {
+            console.warn('Primaryボイス設定の同期に失敗:', e);
         }
     } catch (e) {
         console.warn('Primary設定の同期に失敗:', e);
@@ -136,19 +149,6 @@ client.once("ready", async () => {
         const voiceStampManager = VoiceStampManager.getInstance(client);
         setupVoiceStampEvents(client);
         console.log("ボイススタンプ機能の初期化が完了しました");
-        
-        // TTS関連の初期化
-        console.log("TTS初期化中...");
-        if (!FOLLOW_PRIMARY) {
-            // 自動参加設定は1台目のみ
-            loadAutoJoinChannels();
-        } else {
-            console.log('FOLLOW_PRIMARYのため auto_join_channels は使用しません');
-        }
-        loadJoinChannels();
-        loadSpeakers();
-        loadUserVoiceSettings();
-        console.log("TTS初期化完了");
 
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
@@ -163,7 +163,6 @@ client.once("ready", async () => {
 
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
-        VoiceStateUpdate(client);
         console.log("起動完了");
         client.user!.setActivity("起動完了", { type: ActivityType.Playing });
         
