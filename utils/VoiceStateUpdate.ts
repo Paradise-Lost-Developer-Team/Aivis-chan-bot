@@ -3,7 +3,7 @@ import { VoiceConnectionStatus } from '@discordjs/voice';
 import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
-import { getBotInfos, pickLeastBusyBot, instructJoin } from './botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, instructJoin, instructLeave } from './botOrchestrator';
 
 // 自動接続Embed送信を共通化（通知のみ。実際の接続はオーケストレータが担当）
 async function sendAutoJoinEmbed(member: any, channel: any, client: Client, textChannelId?: string, pickedBaseUrl?: string) {
@@ -30,6 +30,31 @@ async function sendAutoJoinEmbed(member: any, channel: any, client: Client, text
     }
 }
 
+async function sendAutoLeaveEmbed(member: any, channel: any, client: Client, textChannelId?: string, pickedBaseUrl?: string) {
+    try {
+        if (!textChannelId) return;
+        const textChannel: any = member.guild.channels.cache.get(textChannelId);
+        if (!textChannel || !textChannel.isTextBased()) return;
+        const botUser = client.user;
+        const embed = new EmbedBuilder()
+            .setTitle('自動退出通知')
+            .setDescription(`最も空いているBotに <#${channel ? channel.id : '不明'}> からの退出を指示しました。`)
+            .addFields(
+                { name: '接続先', value: `<#${channel ? channel.id : '不明'}>`, inline: true },
+                { name: 'テキストチャンネル', value: `<#${textChannelId}>`, inline: true }
+            )
+            .addFields(
+                { name: '選択Bot', value: pickedBaseUrl ?? '不明', inline: true }
+            )
+            .setThumbnail(botUser?.displayAvatarURL() ?? null)
+            .setTimestamp();
+
+        await textChannel.send({ embeds: [embed] });
+    } catch (err) {
+        console.error('[自動退出Embed送信失敗]:', err);
+    }
+}
+
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         const member = newState.member!;
@@ -49,8 +74,26 @@ export function VoiceStateUpdate(client: Client) {
             const oldChannel = oldState.channel;
             if (oldChannel && oldChannel.members.filter(m => !m.user.bot).size === 0) {
                 if (voiceClient && voiceClient.joinConfig.channelId === oldChannel.id) {
+                    // 自分自身のBotが接続している場合は直接切断
                     voiceClient.disconnect();
                     delete voiceClients[guildId];
+                } else {
+                    // 他のBotが接続している場合はinstructLeaveで切断指示
+                        try {
+                            const autoJoinData = loadAutoJoinChannels()[guildId];
+                            const textChannelId = autoJoinData?.textChannelId;
+                            const voiceChannelId = oldChannel.id;
+                            const infos = await getBotInfos();
+                            const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
+                            const picked = pickLeastBusyBot(eligible);
+                            if (picked) {
+                                await instructLeave(picked.bot, { guildId });
+                                await sendAutoLeaveEmbed(member, voiceChannelId, client, textChannelId, picked.bot.baseUrl);
+                            }
+                        } catch (error) {
+                            console.error('Failed to instruct leave for empty channel:', error);
+                        }
+                    }
                 }
             }
 
@@ -64,7 +107,7 @@ export function VoiceStateUpdate(client: Client) {
                     const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                     const picked = pickLeastBusyBot(eligible);
                     if (picked) {
-                        await instructJoin(picked.bot, { guildId, voiceChannelId: newState.channel.id, textChannelId });
+                        await instructJoin(picked.bot, { guildId, voiceChannelId: newState.channel!.id, textChannelId });
                         await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
                     }
                     // TTSの再生先を確実にリセット（本Botが選ばれた場合に備える）
@@ -104,7 +147,7 @@ export function VoiceStateUpdate(client: Client) {
                         if (picked2) {
                             const autoJoinData2 = loadAutoJoinChannels()[guildId];
                             const textChannelId2 = autoJoinData2?.textChannelId;
-                            await instructJoin(picked2.bot, { guildId, voiceChannelId: newState.channel.id, textChannelId: textChannelId2 });
+                            await instructJoin(picked2.bot, { guildId, voiceChannelId: newState.channel!.id, textChannelId: textChannelId2 });
                             await sendAutoJoinEmbed(member, newState.channel, client, textChannelId2, picked2.bot.baseUrl);
                         }
                         // TTSの再生先を確実にリセット（本Botが選ばれた場合に備える）
@@ -113,10 +156,9 @@ export function VoiceStateUpdate(client: Client) {
                         console.error('[TempVC作成] フォールバック選択でも失敗:', err2);
                     }
                 } finally {
-                    console.log(`[TempVC作成] 追従指示: ${oldState.channel.name} → ${newState.channel.name}`);
+                    console.log(`[TempVC作成] 追従指示: ${oldState.channel!.name} → ${newState.channel!.name}`);
                 }
             }
-        }
     
         if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
             if (!oldState.channel && newState.channel) {
@@ -135,6 +177,7 @@ export function VoiceStateUpdate(client: Client) {
     
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
+                        // 自分自身のBotが接続している場合は直接切断
                         voiceClient.disconnect();
                         delete voiceClients[guildId];
                     }

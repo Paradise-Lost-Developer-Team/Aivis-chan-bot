@@ -4,7 +4,7 @@ import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { voiceClients, deleteJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine'; // Adjust the path as necessary
-import { getBotInfos, pickLeastBusyBot, instructLeave } from '../../utils/botOrchestrator';
+import { getBotInfos, pickLeastBusyBot, instructLeave, BotInfo } from '../../utils/botOrchestrator';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,20 +42,40 @@ module.exports = {
                     }
                 }
                 if (candidateBotId) {
-                    // instructJoin は通常「参加」を指示する関数ですが、オーケストレーター側で
-                    // leave 指示にも対応している想定で、任意型で呼び出します。
-                    await (instructLeave as any)(candidateBotId, { guildId });
-
-                    await interaction.reply({
-                        embeds: [addCommonFooter(
-                            new EmbedBuilder()
-                                .setTitle('退出依頼を送信しました')
-                                .setDescription(`<@${candidateBotId}> にボイスチャンネルからの退出を依頼しました。反映まで少しお待ちください。`)
-                                .setColor(0x00bfff)
-                        )],
-                        flags: MessageFlags.Ephemeral,
-                        components: [getCommonLinksRow()]
+                    // candidateBotIdから対応するBotInfoオブジェクトを見つける
+                    const bots = await getBotInfos().catch(err => {
+                        console.error('getBotInfos error:', err);
+                        return null;
                     });
+                    const targetBot = bots?.find(b => b.ok && b.botId === candidateBotId);
+                    
+                    if (targetBot) {
+                        // instructLeave に BotInfo オブジェクトを渡す
+                        await instructLeave(targetBot.bot, { guildId });
+
+                        await interaction.reply({
+                            embeds: [addCommonFooter(
+                                new EmbedBuilder()
+                                    .setTitle('退出依頼を送信しました')
+                                    .setDescription(`<@${candidateBotId}> にボイスチャンネルからの退出を依頼しました。反映まで少しお待ちください。`)
+                                    .setColor(0x00bfff)
+                            )],
+                            flags: MessageFlags.Ephemeral,
+                            components: [getCommonLinksRow()]
+                        });
+                    } else {
+                        // 該当するBotが見つからない場合
+                        await interaction.reply({
+                            embeds: [addCommonFooter(
+                                new EmbedBuilder()
+                                    .setTitle('エラー')
+                                    .setDescription('該当するBotが見つかりませんでした。')
+                                    .setColor(0xffa500)
+                            )],
+                            flags: MessageFlags.Ephemeral,
+                            components: [getCommonLinksRow()]
+                        });
+                    }
                 } else {
                     // オーケストレーターに該当ボットが見つからない場合は従来のメッセージを返す
                     await interaction.reply({
