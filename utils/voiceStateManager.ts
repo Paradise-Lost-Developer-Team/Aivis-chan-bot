@@ -2,7 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Client, VoiceChannel, ChannelType, TextChannel } from 'discord.js';
 import { monitorMemoryUsage } from './TTS-Engine';
-import { instructJoin, getBotInfos, pickLeastBusyBot } from './botOrchestrator';
+import { instructJoin, getBotInfos, pickLeastBusyBot, pickPrimaryPreferredBot } from './botOrchestrator';
+import { getGuildTier } from './patreonIntegration';
 
 // プロジェクトルートディレクトリへのパスを取得する関数
 function getProjectRoot(): string {
@@ -152,9 +153,23 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       }
 
       // オーケストレーション: 当該ギルドに在籍する中で最も空いているBotへ join を指示
+      // Pro BotはPro/Premiumギルドでは自身を優先、そうでなければ無料版Botを優先
       const infos = await getBotInfos();
       const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
-      const picked = pickLeastBusyBot(eligible);
+      
+      // ギルドのTierを確認
+      const guildTier = await getGuildTier(guildId, client);
+      const isProGuild = guildTier === 'pro' || guildTier === 'premium';
+      
+      let picked;
+      if (isProGuild) {
+        // Pro/PremiumギルドではPro Bot自身を優先
+        picked = pickPrimaryPreferredBot(eligible, ['pro-premium', '1st', '2nd', '3rd', '4th', '5th', '6th']);
+      } else {
+        // 無料ギルドでは無料版Botを優先
+        picked = pickPrimaryPreferredBot(eligible, ['2nd', '3rd', '4th', '5th', '6th', '1st', 'pro-premium']);
+      }
+      
       if (!picked) {
         console.warn(`在籍Botが見つからずスキップ: guildId=${guildId}`);
         skipped++;
