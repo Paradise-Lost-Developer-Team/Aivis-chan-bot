@@ -157,19 +157,31 @@ client.once("ready", async () => {
             { name: '6th', baseUrl: 'http://aivis-chan-bot-6th:3007' }
         ];
 
-    async function getClusterVCCount(selfCount: number, timeoutMs = 2000): Promise<number> {
+    async function getClusterVCCount(selfCount: number, timeoutMs = 5000): Promise<number> {
             try {
         const results: number[] = await Promise.all(BOTS.map(async b => {
                     try {
-            const { data } = await axios.get<{ vcCount?: number }>(`${b.baseUrl}/internal/info`, { timeout: timeoutMs });
-            return (typeof data?.vcCount === 'number') ? (data.vcCount as number) : 0;
-                    } catch {
+                        console.log(`[cluster] VC数取得開始: ${b.name} (${b.baseUrl})`);
+            const { data } = await axios.get<{ vcCount?: number }>(`${b.baseUrl}/internal/info`, { 
+                            timeout: timeoutMs,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'User-Agent': 'ClusterVCCounter/1.0'
+                            }
+                        });
+                        const vcCount = (typeof data?.vcCount === 'number') ? (data.vcCount as number) : 0;
+                        console.log(`[cluster] VC数取得成功: ${b.name} -> ${vcCount}`);
+            return vcCount;
+                    } catch (error: any) {
+                        console.warn(`[cluster] VC数取得失敗: ${b.name} -> ${error.message || error}`);
                         return 0;
                     }
                 }));
         const sum = results.reduce((a: number, c: number) => a + c, 0);
+                console.log(`[cluster] 総VC数: ${sum} (自身: ${selfCount})`);
                 return Math.max(sum, selfCount);
-            } catch {
+            } catch (error) {
+                console.error(`[cluster] getClusterVCCount全体エラー: ${error}`);
                 return selfCount;
             }
         }
@@ -403,15 +415,40 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
-            const tc = guild.channels.cache.get(finalTextChannelId) as any;
-            if (tc && tc.type === 0) {
-                (textChannels as any)[guildId] = tc;
-                console.log(`ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
-            } else {
-                console.warn(`ギルド ${guildId} のテキストチャンネルが見つからないか無効: ${finalTextChannelId}`);
+            console.log(`[internal/join] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
+            
+            try {
+                // まずキャッシュから確認
+                let tc = guild.channels.cache.get(finalTextChannelId) as any;
+                
+                // キャッシュにない場合はフェッチを試行
+                if (!tc) {
+                    tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                }
+                
+                if (tc && tc.type === 0) {
+                    (textChannels as any)[guildId] = tc;
+                    console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                } else {
+                    console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
+                    
+                    // フォールバック: 利用可能なテキストチャンネルを探す
+                    const fallbackChannel = guild.channels.cache.find(ch => 
+                        ch.type === 0 && 
+                        ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
+                    ) as any;
+                    
+                    if (fallbackChannel) {
+                        (textChannels as any)[guildId] = fallbackChannel;
+                        finalTextChannelId = fallbackChannel.id;
+                        console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
+                    }
+                }
+            } catch (error) {
+                console.error(`[internal/join] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);
             }
         } else {
-            console.warn(`ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
+            console.warn(`[internal/join] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
         const prev = getVoiceConnection(guildId);
@@ -491,18 +528,68 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
-            const tc = guild.channels.cache.get(finalTextChannelId) as any;
-            if (tc && tc.type === 0) {
-                return res.json({
-                    ok: true,
-                    textChannelId: finalTextChannelId,
-                    textChannelName: tc.name,
-                    guildTier: guildTier // ギルドTier情報を追加
+            console.log(`[text-channel API] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を確認中`);
+            
+            try {
+                // チャンネルをフェッチして最新の情報を取得
+                const tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                
+                if (tc && tc.type === 0) {
+                    console.log(`[text-channel API] 成功: ギルド ${guildId} テキストチャンネル ${tc.name} (${finalTextChannelId})`);
+                    return res.json({
+                        ok: true,
+                        textChannelId: finalTextChannelId,
+                        textChannelName: tc.name,
+                        guildTier: guildTier // ギルドTier情報を追加
+                    });
+                } else {
+                    // チャンネルがキャッシュにない場合はキャッシュから確認
+                    const cachedChannel = guild.channels.cache.get(finalTextChannelId) as any;
+                    if (cachedChannel && cachedChannel.type === 0) {
+                        console.log(`[text-channel API] キャッシュから成功: ギルド ${guildId} テキストチャンネル ${cachedChannel.name} (${finalTextChannelId})`);
+                        return res.json({
+                            ok: true,
+                            textChannelId: finalTextChannelId,
+                            textChannelName: cachedChannel.name,
+                            guildTier: guildTier
+                        });
+                    } else {
+                        console.warn(`[text-channel API] テキストチャンネル無効: ギルド ${guildId} チャンネル ${finalTextChannelId} - フェッチ結果: ${!!tc}, タイプ: ${tc?.type}, キャッシュ結果: ${!!cachedChannel}, キャッシュタイプ: ${cachedChannel?.type}`);
+                        
+                        // フォールバック: ギルドのデフォルトチャンネルを探す
+                        const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0 && ch.permissionsFor(guild.members.me!)?.has('SendMessages'));
+                        if (fallbackChannel) {
+                            console.log(`[text-channel API] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id})`);
+                            return res.json({
+                                ok: true,
+                                textChannelId: fallbackChannel.id,
+                                textChannelName: fallbackChannel.name,
+                                guildTier: guildTier,
+                                fallback: true
+                            });
+                        }
+                        
+                        return res.status(404).json({ 
+                            error: 'text-channel-invalid',
+                            details: {
+                                guildId,
+                                requestedChannelId: finalTextChannelId,
+                                channelExists: !!tc,
+                                channelType: tc?.type,
+                                availableChannels: guild.channels.cache.filter(ch => ch.type === 0).size
+                            }
+                        });
+                    }
+                }
+            } catch (fetchError) {
+                console.error(`[text-channel API] チャンネルフェッチエラー: ギルド ${guildId} チャンネル ${finalTextChannelId}:`, fetchError);
+                return res.status(500).json({ 
+                    error: 'channel-fetch-failed',
+                    details: { guildId, channelId: finalTextChannelId }
                 });
-            } else {
-                return res.status(404).json({ error: 'text-channel-invalid' });
             }
         } else {
+            console.warn(`[text-channel API] テキストチャンネルが見つからない: ギルド ${guildId}`);
             return res.status(404).json({ error: 'no-text-channel-found' });
         }
     } catch (e) {

@@ -142,12 +142,37 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
         continue;
       }
 
-      // テキストチャンネル情報があれば、ローカルの関連付けも更新
+      // テキストチャンネル情報の確実な設定
+      let finalTextChannelId = state.textChannelId;
+      
       if (state.textChannelId) {
         const textChannel = guild.channels.cache.get(state.textChannelId) as TextChannel | undefined;
         if (textChannel && textChannel.type === ChannelType.GuildText) {
           guildTextChannels[guildId] = state.textChannelId;
           console.log(`${guild.name}のテキストチャンネル${textChannel.name}を関連付けしました`);
+        } else {
+          // 保存されたテキストチャンネルが無効な場合はフォールバック
+          finalTextChannelId = undefined;
+        }
+      }
+      
+      // テキストチャンネルが未設定の場合のフォールバック
+      if (!finalTextChannelId) {
+        if (guild.systemChannelId) {
+          finalTextChannelId = guild.systemChannelId;
+          console.log(`[Reconnect:1st] システムチャンネルを使用: ${guild.systemChannelId} (guild: ${guild.name})`);
+        } else {
+          const firstTextChannel = guild.channels.cache
+            .filter(ch => ch.type === ChannelType.GuildText)
+            .first() as TextChannel;
+          if (firstTextChannel) {
+            finalTextChannelId = firstTextChannel.id;
+            console.log(`[Reconnect:1st] 最初のテキストチャンネルを使用: ${firstTextChannel.name} (guild: ${guild.name})`);
+          } else {
+            console.warn(`[Reconnect:1st] 適切なテキストチャンネルが見つからないためスキップ: guildId=${guildId}`);
+            skipped++;
+            continue;
+          }
         }
       }
 
@@ -162,7 +187,7 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
         continue;
       }
 
-      await instructJoin(picked.bot, { guildId, voiceChannelId: channel.id, textChannelId: state.textChannelId });
+      await instructJoin(picked.bot, { guildId, voiceChannelId: channel.id, textChannelId: finalTextChannelId });
       console.log(`再接続指示: bot=${picked.bot.name} guild=${guild.name} vc=${channel.name}`);
       instructed++;
 
