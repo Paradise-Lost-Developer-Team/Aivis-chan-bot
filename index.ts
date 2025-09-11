@@ -396,7 +396,7 @@ apiApp.listen(3003, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { textChannels, voiceClients, cleanupAudioResources } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -531,12 +531,9 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         const { guildId } = req.body || {};
         if (!guildId) return res.status(400).json({ error: 'guildId is required' });
 
-        const prev = getVoiceConnection(guildId);
-        if (prev) {
-            try { prev.destroy(); } catch {}
-        }
-        try { delete voiceClients[guildId]; } catch {}
-        try { delete (textChannels as any)[guildId]; } catch {}
+    try { cleanupAudioResources(guildId); } catch {}
+    try { delete voiceClients[guildId]; } catch {}
+    try { delete (textChannels as any)[guildId]; } catch {}
         // 2nd Botではボイス状態の保存をスキップ（1st Botが管理）
         // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
