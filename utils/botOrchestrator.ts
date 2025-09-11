@@ -29,10 +29,10 @@ export function listBots(): BotInfo[] {
       }
       // 形式不正時はフォールバック
       // eslint-disable-next-line no-console
-      console.warn('[botOrchestrator] BOTS_JSON の形式が不正です。デフォルト構成を使用します');
+      console.warn('[botOrchestrator:pro] BOTS_JSON の形式が不正です。デフォルト構成を使用します');
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('[botOrchestrator] BOTS_JSON のパースに失敗しました。デフォルト構成を使用します:', (e as Error)?.message);
+      console.warn('[botOrchestrator:pro] BOTS_JSON のパースに失敗しました。デフォルト構成を使用します:', (e as Error)?.message);
     }
   }
 
@@ -70,7 +70,7 @@ export async function getBotInfos(timeoutMs = 4000, attempts = 2): Promise<(Info
       }
     }
     // eslint-disable-next-line no-console
-    console.warn(`[botOrchestrator] info取得失敗: ${bot.name} (${url}) -> ${lastErr?.message || lastErr}`);
+    console.warn(`[botOrchestrator:pro] info取得失敗: ${bot.name} (${url}) -> ${lastErr?.message || lastErr}`);
     return { bot, ok: false, guildIds: [], connectedGuildIds: [], vcCount: 0, serverCount: 0 };
   };
 
@@ -112,15 +112,12 @@ export function pickPrimaryPreferredBot(
   return candidates[0] || null;
 }
 
-// プライマリを閾値以下のときのみ採用し、超える場合はサブ群（非プライマリ）から最も空いているBotを選ぶ
-// しきい値選択は廃止（グローバルに最も空いているBotを選ぶ方針に統一）
-
 export async function instructJoin(bot: BotInfo, payload: { guildId: string; voiceChannelId: string; textChannelId?: string }, timeoutMs = 6000) {
   const url = `${bot.baseUrl.replace(/\/$/, '')}/internal/join`;
   try {
     await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
-    const msg = `[botOrchestrator] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
+    const msg = `[botOrchestrator:pro] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
     // eslint-disable-next-line no-console
     console.warn(msg);
     throw new Error(msg);
@@ -132,21 +129,18 @@ export async function instructLeave(bot: BotInfo, payload: { guildId: string }, 
   try {
     await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
-    const msg = `[botOrchestrator] leave指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
+    const msg = `[botOrchestrator:pro] leave指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
     // eslint-disable-next-line no-console
     console.warn(msg);
     throw new Error(msg);
   }
 }
+
 export async function findBotConnectedToGuild(guildId: string, infoTimeoutMs = 2000): Promise<(InfoResp & { bot: BotInfo; ok: boolean }) | null> {
   const infos = await getBotInfos(infoTimeoutMs);
   return infos.find(i => i.ok && i.connectedGuildIds.includes(guildId)) || null;
 }
 
-/**
- * 手動切断: 指定したギルドに現在接続しているBotを探して切断を指示する
- * 見つからなければ false を返す。切断コマンド送信に失敗しても false を返す。
- */
 export async function instructLeaveConnectedBot(guildId: string, infoTimeoutMs = 2000, leaveTimeoutMs = 5000): Promise<boolean> {
   const info = await findBotConnectedToGuild(guildId, infoTimeoutMs);
   if (!info) return false;
