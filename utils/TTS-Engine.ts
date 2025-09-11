@@ -164,75 +164,8 @@ export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels
 // ユーザーごとの音声設定を永続化するファイル
 const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings.json');
 
-// ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を保存
-// export function saveUserVoiceSettings() {
-//     try {
-//         // 親ディレクトリを確実に作成し、テンポラリファイルへ書き込んでから原子的にリネームする
-//         ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
-//         const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
-//         fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
-//         fs.renameSync(tmpPath, USER_VOICE_SETTINGS_FILE);
-//         console.log(`ユーザー音声設定を保存しました: ${USER_VOICE_SETTINGS_FILE}`);
-//     } catch (e) {
-//         console.error('ユーザー音声設定の保存エラー:', e);
-//     }
-// }
-
-// ユーザーごとの音声設定（話者・音量・音高・感情・話速・テンポ）を読み込み
-// export function loadUserVoiceSettings() {
-//     try {
-//         if (fs.existsSync(USER_VOICE_SETTINGS_FILE)) {
-//             const data = fs.readFileSync(USER_VOICE_SETTINGS_FILE, 'utf-8');
-//             const obj = JSON.parse(data);
-//             Object.assign(voiceSettings, obj);
-//         }
-//     } catch (e) {
-//         console.error('ユーザー音声設定の読み込みエラー:', e);
-//     }
-// }
-
-// export async function loadSpeakers(): Promise<any[]> {
-//     try {
-//         // まず /speakers API から最新情報を取得して JSON ファイルに上書き
-//         console.log(`スピーカー情報を TTS サービスから取得します: ${TTS_BASE_URL}/speakers`);
-//         const res = await fetchWithRetry(`${TTS_BASE_URL}/speakers`, { method: "GET" });
-//         if (res.ok) {
-//             const remoteSpeakers = await res.json();
-//             console.log(`取得したスピーカー情報をファイルに保存します: ${SPEAKERS_FILE}`);
-//             ensureDirectoryExists(SPEAKERS_FILE);
-//             fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(remoteSpeakers, null, 2), "utf-8");
-//             return remoteSpeakers;
-//         } else {
-//             console.warn(`TTS /speakers API エラー: ${res.status} ${res.statusText}`);
-//         }
-//     } catch (err) {
-//         console.warn("TTS /speakers API からの取得に失敗しました。ローカルデータを使用します。", err);
-//     }
-
-//     // フェールオーバー: ローカル speakers.json もしくはデフォルト
-//     try {
-//         console.log(`ローカルファイルからスピーカー情報を読み込みます: ${SPEAKERS_FILE}`);
-//         if (!fs.existsSync(SPEAKERS_FILE)) {
-//             console.log("speakers.json が存在しません。デフォルト設定を使用します。");
-//             ensureDirectoryExists(SPEAKERS_FILE);
-//             fs.writeFileSync(SPEAKERS_FILE, JSON.stringify(DEFAULT_SPEAKERS, null, 2), "utf-8");
-//             return DEFAULT_SPEAKERS;
-//         }
-//         const data = fs.readFileSync(SPEAKERS_FILE, "utf-8");
-//         const localSpeakers = JSON.parse(data);
-//         if (!Array.isArray(localSpeakers) || localSpeakers.length === 0) {
-//             console.warn("ローカル speakers.json の形式が不正です。デフォルト設定を使用します。");
-//             return DEFAULT_SPEAKERS;
-//         }
-//         return localSpeakers;
-//     } catch (error) {
-//         console.error("スピーカー情報の読み込み中にエラーが発生しました:", error);
-//         return DEFAULT_SPEAKERS;
-//     }
-// }
-
-// export let speakers: any[] = [];
-// loadSpeakers().then(data => {
+export let speakers: any[] = [];
+// speakers = loadSpeakers().then(data => {
 //     speakers = data;
 // }).catch(err => {
 //     console.error("スピーカー情報初期化エラー:", err);
@@ -961,7 +894,7 @@ export function isVoiceClientConnected(guildId: string): boolean {
     return voiceClients[guildId].state.status === VoiceConnectionStatus.Ready;
 }
 
-// let autoJoinChannelsData: { [key: string]: any } = {};
+let autoJoinChannelsData: { [key: string]: any } = {};
 // 初期化時に既存のデータを読み込む
 autoJoinChannels = loadAutoJoinChannels();
 
@@ -1008,14 +941,14 @@ export function loadAutoJoinChannels() {
 //     }
 // }
 
-// 新規：特定のギルドの自動参加設定を更新/追加する関数
+// // 新規：特定のギルドの自動参加設定を更新/追加する関数
 // export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string, tempVoice?: boolean) {
 //     // 既存の設定を保持したまま特定のギルドの設定だけを更新
 //     autoJoinChannels[guildId] = { voiceChannelId, textChannelId, tempVoice };
 //     saveAutoJoinChannels();
 // }
 
-// 新規：特定のギルドの自動参加設定を削除する関数
+// // 新規：特定のギルドの自動参加設定を削除する関数
 // export function removeAutoJoinChannel(guildId: string) {
 //     if (autoJoinChannels[guildId]) {
 //         delete autoJoinChannels[guildId];
@@ -1097,7 +1030,7 @@ export function loadJoinChannels() {
     return {};
 }
 
-// 新規：取得したチャネル情報を保存する関数
+// // 新規：取得したチャネル情報を保存する関数
 // export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
 //     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
 //     try {
@@ -1120,7 +1053,7 @@ export function loadJoinChannels() {
 //     }
 // }
 
-// 新規：join_channels.json を保存する関数
+// // 新規：join_channels.json を保存する関数
 // export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
 //     try {
 //         ensureDirectoryExists(JOIN_CHANNELS_FILE);
@@ -1130,7 +1063,7 @@ export function loadJoinChannels() {
 //     }
 // }
 
-// 新規：チャンネル情報を削除する関数
+// // 新規：チャンネル情報を削除する関数
 // export function deleteJoinChannelsConfig(guildId: string) {
 //     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
 //     try {
@@ -1142,7 +1075,7 @@ export function loadJoinChannels() {
 //         console.error("参加チャンネル設定読み込みエラー:", error);
 //         joinChannels = {};
 //     }
-    
+
 //     delete joinChannels[guildId];
 //     try {
 //         ensureDirectoryExists(JOIN_CHANNELS_FILE);
