@@ -12,6 +12,10 @@ RUN npm install --production --no-audit --no-fund
 # Copy application files needed at runtime (avoid copying .git, node_modules etc.)
 COPY server.js sw.js ./
 COPY index.html ./
+COPY dashboard ./dashboard
+COPY manifest.json ./
+COPY robots.txt ./
+COPY nginx.conf ./
 COPY images ./images
 COPY voicelines ./voicelines
 COPY css ./css
