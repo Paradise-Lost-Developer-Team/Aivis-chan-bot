@@ -428,6 +428,17 @@ apiApp.get('/internal/info', async (req: Request, res: Response) => {
     }
 });
 
+// ボイス設定を取得するAPI
+apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
+    try {
+        const { voiceSettings } = await import('./utils/TTS-Engine');
+        return res.json({ voiceSettings });
+    } catch (e) {
+        console.error('voice-settings error:', e);
+        return res.status(500).json({ error: 'voice-settings-failed' });
+    }
+});
+
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId } = req.body || {};

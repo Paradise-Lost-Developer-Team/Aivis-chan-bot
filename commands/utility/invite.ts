@@ -20,7 +20,8 @@ module.exports = {
                     { name: 'Bot 3', value: '[招待リンク 3](https://discord.com/oauth2/authorize?client_id=1334734681656262770)' },
                     { name: 'Bot 4', value: '[招待リンク 4](https://discord.com/oauth2/authorize?client_id=1365633502988472352)' },
                     { name: 'Bot 5', value: '[招待リンク 5](https://discord.com/oauth2/authorize?client_id=1365633586123771934)' },
-                    { name: 'Bot 6', value: '[招待リンク 6](https://discord.com/oauth2/authorize?client_id=1365633656173101086)' }
+                    { name: 'Bot 6', value: '[招待リンク 6](https://discord.com/oauth2/authorize?client_id=1365633656173101086)' },
+                    { name: 'Bot Pro/Premium', value: '[招待リンク Pro/Premium](https://discord.com/oauth2/authorize?client_id=1415251855147008023)' }
                 )
         );
 
