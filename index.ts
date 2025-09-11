@@ -391,7 +391,8 @@ apiApp.get('/internal/settings/bundle', (req: Request, res: Response) => {
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 import { textChannels, voiceClients } from './utils/TTS-Engine';
-import { saveVoiceState, getTextChannelForGuild } from './utils/voiceStateManager';
+import { saveVoiceState, getTextChannelForGuild, setTextChannelForGuild } from './utils/voiceStateManager';
+import { cleanupAudioResources } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -441,12 +442,14 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             finalTextChannelId = (generalChannel && (generalChannel as any).id) || (guild.channels.cache.find(ch => ch.type === 0) as any)?.id || null;
         }
 
-        // テキストチャンネルが見つかった場合のみ設定
-        if (finalTextChannelId) {
+    // テキストチャンネルが見つかった場合のみ設定
+    if (finalTextChannelId) {
             const tc = guild.channels.cache.get(finalTextChannelId) as any;
             if (tc && tc.type === 0) {
                 (textChannels as any)[guildId] = tc;
                 console.log(`ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+        // 追加: voice_state.json にも保存できるように永続化
+        try { setTextChannelForGuild(guildId, finalTextChannelId); } catch {}
             } else {
                 console.warn(`ギルド ${guildId} のテキストチャンネルが見つからないか無効: ${finalTextChannelId}`);
             }
@@ -456,9 +459,18 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         const prev = getVoiceConnection(guildId);
         if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
-        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-        voiceClients[guildId] = connection;
-        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
+    const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+    voiceClients[guildId] = connection;
+    // Ready まで待機してから保存
+    await new Promise<void>((resolve)=>{
+        const onReady=()=>{cleanup();resolve();};
+        const onDisc=()=>{cleanup();resolve();};
+        const cleanup=()=>{connection.off(VoiceConnectionStatus.Ready,onReady);connection.off(VoiceConnectionStatus.Disconnected,onDisc);};
+        connection.once(VoiceConnectionStatus.Ready,onReady);
+        connection.once(VoiceConnectionStatus.Disconnected,onDisc);
+        setTimeout(()=>cleanup(),10000);
+    });
+    setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({
             ok: true,
             textChannelId: finalTextChannelId,
@@ -569,12 +581,10 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         const { guildId } = req.body || {};
         if (!guildId) return res.status(400).json({ error: 'guildId is required' });
 
-        const prev = getVoiceConnection(guildId);
-        if (prev) {
-            try { prev.destroy(); } catch {}
-        }
-        try { delete voiceClients[guildId]; } catch {}
-        try { delete (textChannels as any)[guildId]; } catch {}
+    // 音声リソースを完全クリーンアップ
+    try { cleanupAudioResources(guildId); } catch {}
+    try { delete voiceClients[guildId]; } catch {}
+    try { delete (textChannels as any)[guildId]; } catch {}
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
     } catch (e) {
