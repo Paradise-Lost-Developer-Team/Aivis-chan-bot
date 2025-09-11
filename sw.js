@@ -78,13 +78,17 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
+    // 認証判定APIは常にネットワーク直行（キャッシュ禁止）
+    if (url.pathname === '/api/session') {
+        return; // そのままブラウザに処理させる
+    }
     
     // リクエストタイプに応じて処理を分岐
     if (request.method === 'GET') {
         if (isStaticAsset(request)) {
             // 静的アセット: Cache First戦略
             event.respondWith(cacheFirst(request));
-        } else if (isAPIRequest(request)) {
+    } else if (isAPIRequest(request)) {
             // API リクエスト: Network First戦略
             event.respondWith(networkFirst(request));
         } else {

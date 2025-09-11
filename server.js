@@ -80,14 +80,17 @@ passport.deserializeUser((user, done) => {
 });
 
 // ミドルウェア設定
+// リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
+app.set('trust proxy', 1);
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false, // HTTPS環境ではtrueに設定
-        maxAge: 24 * 60 * 60 * 1000 // 24時間
-    }
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: 'auto',            // HTTPS時のみSecure付与
+    sameSite: 'lax',           // OAuthリダイレクトで送られる
+    maxAge: 24 * 60 * 60 * 1000 // 24時間
+  }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -449,6 +452,10 @@ app.get('/logout', (req, res) => {
 
 // クライアント用：現在のセッション状態を返す（フロントがlocalStorageではなくサーバーセッションを見るため）
 app.get('/api/session', (req, res) => {
+  // キャッシュさせない（SW/中継キャッシュ対策）
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   if (req.isAuthenticated && req.isAuthenticated()) {
     return res.json({ authenticated: true, user: req.user });
   }
