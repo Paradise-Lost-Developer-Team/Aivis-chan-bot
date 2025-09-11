@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, loadJoinChannels, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, textChannels } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { enqueueText, Priority } from './VoiceQueue';
 import { logError } from './errorLogger';

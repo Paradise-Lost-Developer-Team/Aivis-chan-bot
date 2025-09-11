@@ -965,24 +965,24 @@ export function isVoiceClientConnected(guildId: string): boolean {
 // 初期化時に既存のデータを読み込む
 // autoJoinChannels = loadAutoJoinChannels();
 
-// export function loadAutoJoinChannels() {
-//     try {
-//         if (fs.existsSync(AUTO_JOIN_FILE)) {
-//             console.log(`自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
-//             const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
-//             const loadedData = JSON.parse(data);
+export function loadAutoJoinChannels() {
+    try {
+        if (fs.existsSync(AUTO_JOIN_FILE)) {
+            console.log(`自動参加チャンネル設定を読み込みます: ${AUTO_JOIN_FILE}`);
+            const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
+            const loadedData = JSON.parse(data);
             
-//             // 読み込んだデータが有効なオブジェクトであることを確認
-//             if (loadedData && typeof loadedData === 'object') {
-//                 // 既存のautoJoinChannelsにデータをマージ
-//                 return loadedData;
-//             }
-//         }
-//     } catch (error) {
-//         console.error("自動参加チャンネル設定読み込みエラー:", error);
-//     }
-//     return {};
-// }
+            // 読み込んだデータが有効なオブジェクトであることを確認
+            if (loadedData && typeof loadedData === 'object') {
+                // 既存のautoJoinChannelsにデータをマージ
+                return loadedData;
+            }
+        }
+    } catch (error) {
+        console.error("自動参加チャンネル設定読み込みエラー:", error);
+    }
+    return {};
+}
 
 // export function saveAutoJoinChannels() {
 //     try {
@@ -1078,24 +1078,24 @@ export function getSpeakerOptions() {
 }
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
-// let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-// joinChannels = loadJoinChannels();
+export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+joinChannels = loadJoinChannels();
 
 // 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
-// export function loadJoinChannels() {
-//     try {
-//         if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-//             console.log(`参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
-//             const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-//             const parsed = JSON.parse(data);
-//             // 後方互換: tempVoiceがない場合はundefinedのまま
-//             return parsed;
-//         }
-//     } catch (error) {
-//         console.error("参加チャンネル設定読み込みエラー:", error);
-//     }
-//     return {};
-// }
+export function loadJoinChannels() {
+    try {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            console.log(`参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            const parsed = JSON.parse(data);
+            // 後方互換: tempVoiceがない場合はundefinedのまま
+            return parsed;
+        }
+    } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
+    }
+    return {};
+}
 
 // 新規：取得したチャネル情報を保存する関数
 // export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {

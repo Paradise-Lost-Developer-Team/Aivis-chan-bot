@@ -397,6 +397,63 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         if (existing && existing.state.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
             return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
         }
+
+        // テキストチャンネルの決定ロジックを改善
+        let finalTextChannelId = textChannelId;
+
+        if (!finalTextChannelId) {
+            // 1. 保存されたテキストチャンネルを取得
+            const { getTextChannelForGuild } = await import('./utils/voiceStateManager');
+            finalTextChannelId = getTextChannelForGuild(guildId);
+        }
+
+        if (!finalTextChannelId) {
+            // 2. 自動参加設定から取得
+            const { autoJoinChannels } = await import('./utils/TTS-Engine');
+            const autoJoinSetting = autoJoinChannels[guildId];
+            if (autoJoinSetting && autoJoinSetting.textChannelId) {
+                finalTextChannelId = autoJoinSetting.textChannelId;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 3. ギルドのシステムチャンネルを使用
+            if (guild.systemChannel && guild.systemChannel.type === 0) {
+                finalTextChannelId = guild.systemChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 4. 一般チャンネルを探す
+            const generalChannel = guild.channels.cache.find(ch =>
+                ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般'))
+            );
+            if (generalChannel) {
+                finalTextChannelId = generalChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 5. 最初のテキストチャンネルを使用
+            const firstTextChannel = guild.channels.cache.find(ch => ch.type === 0);
+            if (firstTextChannel) {
+                finalTextChannelId = firstTextChannel.id;
+            }
+        }
+
+        // テキストチャンネルが見つかった場合のみ設定
+        if (finalTextChannelId) {
+            const tc = guild.channels.cache.get(finalTextChannelId) as any;
+            if (tc && tc.type === 0) { // GuildText
+                (textChannels as any)[guildId] = tc;
+                console.log(`ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+            } else {
+                console.warn(`ギルド ${guildId} のテキストチャンネルが見つからないか無効: ${finalTextChannelId}`);
+            }
+        } else {
+            console.warn(`ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
+        }
+
         // 既存の不完全な接続を掃除
         const prev = getVoiceConnection(guildId);
         if (prev) {
@@ -411,12 +468,6 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             selfMute: false,
         });
         voiceClients[guildId] = connection;
-        if (textChannelId) {
-            const tc = guild.channels.cache.get(textChannelId) as any;
-            if (tc && tc.type === 0) { // GuildText
-                (textChannels as any)[guildId] = tc;
-            }
-        }
         // Ready まで待つ（最大10秒）
         await new Promise<void>((resolve) => {
             const onReady = () => { cleanup(); resolve(); };
@@ -430,7 +481,11 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             setTimeout(() => cleanup(), 10000);
         });
         try { saveVoiceState(client as any); } catch {}
-        return res.json({ ok: true });
+        return res.json({
+            ok: true,
+            textChannelId: finalTextChannelId,
+            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+        });
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
