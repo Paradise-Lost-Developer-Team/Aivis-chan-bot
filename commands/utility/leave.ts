@@ -11,6 +11,9 @@ module.exports = {
         .setName('leave')
         .setDescription('BOTをチャンネルから退出します'),
     async execute(interaction: CommandInteraction) {
+
+        await interaction.deferReply(); 
+
         const guildId = interaction.guildId!;
         const voiceClient = voiceClients[guildId];
 
@@ -53,32 +56,30 @@ module.exports = {
                         // instructLeave に BotInfo オブジェクトを渡す
                         await instructLeave(targetBot.bot, { guildId });
 
-                        await interaction.reply({
+                        await interaction.editReply({
                             embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('退出依頼を送信しました')
                                     .setDescription(`<@${candidateBotId}> にボイスチャンネルからの退出を依頼しました。反映まで少しお待ちください。`)
                                     .setColor(0x00bfff)
                             )],
-                            flags: MessageFlags.Ephemeral,
                             components: [getCommonLinksRow()]
                         });
                     } else {
                         // 該当するBotが見つからない場合
-                        await interaction.reply({
+                        await interaction.editReply({
                             embeds: [addCommonFooter(
                                 new EmbedBuilder()
                                     .setTitle('エラー')
                                     .setDescription('該当するBotが見つかりませんでした。')
                                     .setColor(0xffa500)
                             )],
-                            flags: MessageFlags.Ephemeral,
                             components: [getCommonLinksRow()]
                         });
                     }
                 } else {
                     // オーケストレーターに該当ボットが見つからない場合は従来のメッセージを返す
-                    await interaction.reply({
+                    await interaction.followUp({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('未接続')
@@ -91,7 +92,7 @@ module.exports = {
                 }
             } catch (err) {
                 console.error('orchestrator leave error:', err);
-                await interaction.reply({
+                await interaction.followUp({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
@@ -109,7 +110,7 @@ module.exports = {
             await voiceClient.disconnect();
             delete voiceClients[guildId];
             deleteJoinChannelsConfig(guildId);
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('切断完了')
@@ -129,15 +130,15 @@ module.exports = {
             loadJoinChannels();
         } catch (error) {
             console.error(error);
-            await interaction.reply({
+            await interaction.followUp({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('エラー')
                         .setDescription('ボイスチャンネルからの切断に失敗しました。')
                         .setColor(0xff0000)
                 )],
-                flags: MessageFlags.Ephemeral,
-                components: [getCommonLinksRow()]
+                components: [getCommonLinksRow()],
+                flags: MessageFlags.Ephemeral
             });
         }
     }

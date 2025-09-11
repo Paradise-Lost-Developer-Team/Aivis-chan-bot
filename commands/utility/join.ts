@@ -22,8 +22,11 @@ module.exports = {
                 .setRequired(false)
                 .addChannelTypes(ChannelType.GuildText)),
     async execute(interaction: CommandInteraction) {
-    let voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
-    let textChannel = (interaction as any).options.get("text_channel")?.channel as TextChannel;
+        // インタラクションをdeferしてタイムアウトを防ぐ
+        await interaction.deferReply();
+
+        let voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
+        let textChannel = (interaction as any).options.get("text_channel")?.channel as TextChannel;
 
         if (!voiceChannel) {
             // コマンド実行者が接続しているボイスチャンネルを取得
@@ -31,14 +34,15 @@ module.exports = {
             if (member?.voice.channel) {
                 voiceChannel = member.voice.channel as VoiceChannel;
             } else {
-                await interaction.reply({
+                await interaction.followUp({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
                             .setTitle('エラー')
                             .setDescription('ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。')
                             .setColor(0xff0000)
                     )],
-                    components: [getCommonLinksRow()]
+                    components: [getCommonLinksRow()],
+                    flags: MessageFlags.Ephemeral
                 });
                 return;
             }
@@ -62,21 +66,21 @@ module.exports = {
             if (currentVoiceChannel) {
                 // 既に接続しているチャンネルと指定されたチャンネルが異なる場合
                 if (currentVoiceChannel.id !== voiceChannel.id) {
-                    await interaction.reply({
+                    await interaction.followUp({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('既に接続中')
                                 .setDescription(`❌ 既に別のボイスチャンネル「${currentVoiceChannel.name}」に接続しています。\n他のチャンネルに移動させるには、まず \/leave コマンドで退出させてから再度呼んでください。`)
                                 .setColor(0xffa500)
                         )],
-                        flags: MessageFlags.Ephemeral,
-                        components: [getCommonLinksRow()]
+                        components: [getCommonLinksRow()],
+                        flags: MessageFlags.Ephemeral
                     });
                     return;
                 } else {
                     // 同じチャンネルの場合
                     textChannels[guildId] = textChannel; // テキストチャンネルの更新のみ
-                    await interaction.reply({
+                    await interaction.editReply({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('既に接続中')
@@ -93,9 +97,8 @@ module.exports = {
         textChannels[guildId] = textChannel;
 
         try {
-            // 全Botの状況を取得してプライマリ優先（pro/1st）で選択、同順位は最も空いているBot
+            // 全Botの状況を取得し、当該ギルドに在籍するBotの中から「最も空いている」個体を選択
             const infos = await getBotInfos();
-            // ギルドに参加しているBotの中から選択（該当がなければエラー）
             const guildBots = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
             if (guildBots.length === 0) throw new Error('no-bot-available');
             const picked = pickLeastBusyBot(guildBots);
@@ -106,7 +109,7 @@ module.exports = {
             // join_channels.json に保存（本Botの設定としても記録）
             updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
 
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('接続指示完了')
@@ -124,17 +127,20 @@ module.exports = {
             loadJoinChannels();
         } catch (error) {
             console.error(error);
-            if (!interaction.replied) {
-                await interaction.reply({
-                    embeds: [addCommonFooter(
-                        new EmbedBuilder()
-                            .setTitle('エラー')
-                            .setDescription('最も空いているBotへの接続指示に失敗しました。')
-                            .setColor(0xff0000)
-                    )],
-                    components: [getCommonLinksRow()]
-                });
-            }
+            // エラーメッセージを送信
+            const msg = (error as Error)?.message === 'no-bot-available'
+                ? 'このギルドに参加しているBotがいません。先にBotを招待してください。'
+                : '最も空いているBotへの接続指示に失敗しました。';
+            await interaction.followUp({
+                embeds: [addCommonFooter(
+                    new EmbedBuilder()
+                        .setTitle('エラー')
+                        .setDescription(msg)
+                        .setColor(0xff0000)
+                )],
+                components: [getCommonLinksRow()],
+                flags: MessageFlags.Ephemeral
+            });
         }
     }
 };
