@@ -36,12 +36,6 @@ export function listBots(): BotInfo[] {
     }
   }
 
-  // Proを単独運用にするフラグ（1なら自分のみを対象とする）
-  if (process.env.PRO_STANDALONE === '1') {
-    const selfUrl = process.env.PRO_PREMIUM_BASE_URL || 'http://aivis-chan-bot-pro-premium:3012';
-    return [{ name: 'pro-premium', baseUrl: selfUrl }];
-  }
-
   // PRO_PREMIUM_BASE_URL があれば pro-premium のURLを上書き
   const proUrl = process.env.PRO_PREMIUM_BASE_URL;
   if (proUrl) {
