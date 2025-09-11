@@ -70,6 +70,8 @@ function markTTSDown() {
 export const textChannels: { [key: string]: TextChannel } = {};
 export const voiceClients: { [key: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
+// joinコマンド実行チャンネルを記録するマップ
+export const joinCommandChannels: { [guildId: string]: string } = {};
 // ユーザーごとの話者設定
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [key: string]: AudioPlayer } = {};
@@ -159,7 +161,7 @@ console.log(`プロジェクトルートディレクトリ: ${PROJECT_ROOT}`);
 export const SPEAKERS_FILE = path.join(PROJECT_ROOT, "data", "speakers.json");
 export const DICTIONARY_FILE = path.join(PROJECT_ROOT, "data", "guild_dictionaries.json");
 export const AUTO_JOIN_FILE = path.join(PROJECT_ROOT, "data", "auto_join_channels.json");
-export const JOIN_CHANNELS_FILE = path.join(PROJECT_ROOT, "data", "join_channels.json");
+// JOIN_CHANNELS_FILE は動的判定により不要になったため削除
 
 // ユーザーごとの音声設定を永続化するファイル
 const USER_VOICE_SETTINGS_FILE = path.join(PROJECT_ROOT, 'data', 'voice_settings.json');
@@ -863,10 +865,10 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
     let vc = voiceClients[guildId];
     // VoiceConnectionがない or Readyでなければ再接続
     if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsやjoinChannelsから取得
+        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsから取得
         const auto = autoJoinChannels[guildId];
-        const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
-        const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+        // join_channels.jsonは動的判定により不要
+        const voiceChannelId = auto?.voiceChannelId;
         const guild = client?.guilds?.cache?.get(guildId);
         let voiceChannel = null;
         if (guild && voiceChannelId) {
@@ -1105,78 +1107,31 @@ export function getSpeakerOptions() {
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
 export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-let joinChannelsCache: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-let joinChannelsLastModified = 0;
+// join_channels関連のキャッシュは動的判定により不要
+// let joinChannelsCache: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+// let joinChannelsLastModified = 0;
 
-joinChannels = loadJoinChannels();
+// 新規：auto_join_channels.json を読み込む関数（キャッシュ付き）
+autoJoinChannels = loadAutoJoinChannels();
 
-// 新規：join_channels.json を読み込む関数（キャッシュ付き）
-export function loadJoinChannels() {
-    try {
-        if (!fs.existsSync(JOIN_CHANNELS_FILE)) {
-            return joinChannelsCache;
-        }
-
-        const stats = fs.statSync(JOIN_CHANNELS_FILE);
-        const lastModified = stats.mtime.getTime();
-
-        // ファイルが変更されていない場合はキャッシュを返す
-        if (lastModified === joinChannelsLastModified && Object.keys(joinChannelsCache).length > 0) {
-            return joinChannelsCache;
-        }
-
-        // ファイルが変更された場合のみ読み込み
-        console.log(`[Cache] 参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
-        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-        const parsed = JSON.parse(data);
-        
-        if (parsed && typeof parsed === 'object') {
-            joinChannelsCache = parsed;
-            joinChannelsLastModified = lastModified;
-            return parsed;
-        }
-    } catch (error) {
-        console.error("参加チャンネル設定読み込みエラー:", error);
-        // エラー時もキャッシュがあれば返す
-        if (Object.keys(joinChannelsCache).length > 0) {
-            return joinChannelsCache;
-        }
-    }
-    return {};
-}
-
-// 新規：取得したチャネル情報を保存する関数
-export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
-    joinChannels[guildId] = { voiceChannelId, textChannelId };
-    saveJoinChannels(joinChannels);
-}
-
-// 新規：join_channels.json を保存する関数
-export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
-    try {
-        ensureDirectoryExists(JOIN_CHANNELS_FILE);
-        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-    } catch (error) {
-        console.error("参加チャンネル設定保存エラー:", error);
-    }
-}
-
-// 新規：チャンネル情報を削除する関数
-export function deleteJoinChannelsConfig(guildId: string) {
-    delete joinChannels[guildId];
-    try {
-        ensureDirectoryExists(JOIN_CHANNELS_FILE);
-        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-    } catch (error) {
-        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
-    }
-}
+// auto_join_channels.json を読み込む関数（キャッシュ付き）
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
+}
+
+// joinコマンド実行チャンネルを記録する関数
+export function setJoinCommandChannel(guildId: string, channelId: string) {
+    joinCommandChannels[guildId] = channelId;
+    console.log(`[Join:pro] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
+}
+
+// joinコマンド実行チャンネルを取得する関数
+export function getJoinCommandChannel(guildId: string): string | undefined {
+    return joinCommandChannels[guildId];
 }
 
 /**
@@ -1246,7 +1201,7 @@ export function resetTTSEngine(): void {
         
         // 各種初期化関数を再実行
         loadAutoJoinChannels();
-        loadJoinChannels();
+        // loadJoinChannels() は動的判定により不要
         AivisAdapter();
         
         // 最終発話時刻をリセット

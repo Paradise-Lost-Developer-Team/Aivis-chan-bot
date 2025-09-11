@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, textChannels, voiceClients, updateJoinChannelsConfig, loadJoinChannels } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, textChannels, voiceClients, loadAutoJoinChannels, setJoinCommandChannel } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 
 module.exports = {
@@ -118,6 +118,8 @@ module.exports = {
         }
         
         textChannels[guildId] = textChannel;
+        // joinコマンド実行チャンネルを記録
+        setJoinCommandChannel(guildId, interaction.channelId);
 
         try {
             // 全Botの状況を取得し、当該ギルドに在籍するBotの中から「最も空いている」個体を選択
@@ -128,9 +130,6 @@ module.exports = {
             if (!picked) throw new Error('no-bot-available');
 
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
-
-            // join_channels.json に保存（本Botの設定としても記録）
-            updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
 
             await interaction.editReply({
                 embeds: [addCommonFooter(
@@ -147,7 +146,7 @@ module.exports = {
                 )],
                 components: [getCommonLinksRow()]
             });
-            loadJoinChannels();
+            loadAutoJoinChannels();
         } catch (error) {
             console.error(error);
             // エラーメッセージを送信
