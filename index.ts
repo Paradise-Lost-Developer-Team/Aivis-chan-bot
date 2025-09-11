@@ -440,15 +440,40 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
-            const tc = guild.channels.cache.get(finalTextChannelId) as any;
-            if (tc && tc.type === 0) {
-                (textChannels as any)[guildId] = tc;
-                console.log(`ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
-            } else {
-                console.warn(`ギルド ${guildId} のテキストチャンネルが見つからないか無効: ${finalTextChannelId}`);
+            console.log(`[internal/join:4th] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
+            
+            try {
+                // まずキャッシュから確認
+                let tc = guild.channels.cache.get(finalTextChannelId) as any;
+                
+                // キャッシュにない場合はフェッチを試行
+                if (!tc) {
+                    tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                }
+                
+                if (tc && tc.type === 0) {
+                    (textChannels as any)[guildId] = tc;
+                    console.log(`[internal/join:4th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                } else {
+                    console.warn(`[internal/join:4th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
+                    
+                    // フォールバック: 利用可能なテキストチャンネルを探す
+                    const fallbackChannel = guild.channels.cache.find(ch => 
+                        ch.type === 0 && 
+                        ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
+                    ) as any;
+                    
+                    if (fallbackChannel) {
+                        (textChannels as any)[guildId] = fallbackChannel;
+                        finalTextChannelId = fallbackChannel.id;
+                        console.log(`[internal/join:4th] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
+                    }
+                }
+            } catch (error) {
+                console.error(`[internal/join:4th] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);
             }
         } else {
-            console.warn(`ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
+            console.warn(`[internal/join:4th] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
         const prev = getVoiceConnection(guildId);
