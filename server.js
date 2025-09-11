@@ -294,7 +294,7 @@ app.get('/', (req, res) => {
 
 // ダッシュボードルート
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 // 追加: sitemap / robots / Google ping（末尾に追記）

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aivis chan Bot - ダッシュボード</title>
+    <meta name="description" content="Aivis chan Botの管理ダッシュボード">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Aivis chan Bot ダッシュボード</h1>
+            <nav class="dashboard-nav">
+                <button class="nav-tab active" data-tab="overview">概要</button>
+                <button class="nav-tab" data-tab="dictionary">辞書</button>
+                <button class="nav-tab" data-tab="auto-connect">自動接続</button>
+                <button class="nav-tab" data-tab="settings">設定</button>
+                <button class="nav-tab" data-tab="personal">個人の設定</button>
+            </nav>
+        </header>
+
+        <main class="dashboard-content">
+            <!-- 概要タブ -->
+            <section id="overview" class="tab-content active">
+                <h2>概要</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>総サーバー数</h3>
+                        <div class="stat-value" id="total-servers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>総ユーザー数</h3>
+                        <div class="stat-value" id="total-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>オンラインBot数</h3>
+                        <div class="stat-value" id="online-bots">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>VC接続数</h3>
+                        <div class="stat-value" id="vc-connections">0</div>
+                    </div>
+                </div>
+                <div class="bot-list">
+                    <h3>Botステータス</h3>
+                    <div id="bot-status-list"></div>
+                </div>
+            </section>
+
+            <!-- 辞書タブ -->
+            <section id="dictionary" class="tab-content">
+                <h2>辞書管理</h2>
+                <div class="dictionary-controls">
+                    <input type="text" id="dict-word" placeholder="単語">
+                    <input type="text" id="dict-reading" placeholder="読み方">
+                    <button id="add-dict-entry">追加</button>
+                </div>
+                <div class="dictionary-list">
+                    <h3>辞書エントリ</h3>
+                    <div id="dictionary-entries"></div>
+                </div>
+            </section>
+
+            <!-- 自動接続タブ -->
+            <section id="auto-connect" class="tab-content">
+                <h2>自動接続設定</h2>
+                <div class="auto-connect-settings">
+                    <div class="setting-item">
+                        <label for="auto-connect-enabled">自動接続を有効にする</label>
+                        <input type="checkbox" id="auto-connect-enabled">
+                    </div>
+                    <div class="setting-item">
+                        <label for="auto-connect-channel">デフォルトチャンネル</label>
+                        <select id="auto-connect-channel"></select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="auto-connect-delay">接続遅延（秒）</label>
+                        <input type="number" id="auto-connect-delay" min="0" max="300" value="5">
+                    </div>
+                    <button id="save-auto-connect">保存</button>
+                </div>
+            </section>
+
+            <!-- 設定タブ -->
+            <section id="settings" class="tab-content">
+                <h2>Bot設定</h2>
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <h3>音声設定</h3>
+                        <div class="setting-item">
+                            <label for="default-speaker">デフォルト話者</label>
+                            <select id="default-speaker">
+                                <option value="Anneli">Anneli</option>
+                                <option value="Anneli (Alt)">Anneli (Alt)</option>
+                                <option value="Anneli (Whisper)">Anneli (Whisper)</option>
+                                <option value="阿井田 茂">阿井田 茂</option>
+                                <option value="亜空マオ">亜空マオ</option>
+                                <option value="天深シノ">天深シノ</option>
+                                <option value="花音">花音</option>
+                                <option value="にせ">にせ</option>
+                                <option value="fumifumi">fumifumi</option>
+                                <option value="るな">るな</option>
+                                <option value="凛音エル">凛音エル</option>
+                                <option value="ろてじん (長老ボイス)">ろてじん (長老ボイス)</option>
+                                <option value="老当主">老当主</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-speed">デフォルト速度</label>
+                            <input type="range" id="default-speed" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="speed-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-pitch">デフォルトピッチ</label>
+                            <input type="range" id="default-pitch" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="pitch-value">1.0</span>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>動作設定</h3>
+                        <div class="setting-item">
+                            <label for="auto-leave">自動退出（分）</label>
+                            <input type="number" id="auto-leave" min="1" max="1440" value="30">
+                        </div>
+                        <div class="setting-item">
+                            <label for="max-queue">最大キュー数</label>
+                            <input type="number" id="max-queue" min="1" max="100" value="50">
+                        </div>
+                        <div class="setting-item">
+                            <label for="ignore-bots">Botメッセージを無視</label>
+                            <input type="checkbox" id="ignore-bots" checked>
+                        </div>
+                    </div>
+                </div>
+                <button id="save-settings">設定を保存</button>
+            </section>
+
+            <!-- 個人の設定タブ -->
+            <section id="personal" class="tab-content">
+                <h2>個人の設定</h2>
+                <div class="personal-settings">
+                    <div class="setting-group">
+                        <h3>音声設定</h3>
+                        <div class="setting-item">
+                            <label for="personal-speaker">個人話者</label>
+                            <select id="personal-speaker">
+                                <option value="Anneli">Anneli</option>
+                                <option value="Anneli (Alt)">Anneli (Alt)</option>
+                                <option value="Anneli (Whisper)">Anneli (Whisper)</option>
+                                <option value="阿井田 茂">阿井田 茂</option>
+                                <option value="亜空マオ">亜空マオ</option>
+                                <option value="天深シノ">天深シノ</option>
+                                <option value="花音">花音</option>
+                                <option value="にせ">にせ</option>
+                                <option value="fumifumi">fumifumi</option>
+                                <option value="るな">るな</option>
+                                <option value="凛音エル">凛音エル</option>
+                                <option value="ろてじん (長老ボイス)">ろてじん (長老ボイス)</option>
+                                <option value="老当主">老当主</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-speed">個人速度</label>
+                            <input type="range" id="personal-speed" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-speed-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-pitch">個人ピッチ</label>
+                            <input type="range" id="personal-pitch" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-pitch-value">1.0</span>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>通知設定</h3>
+                        <div class="setting-item">
+                            <label for="notify-joined">参加通知</label>
+                            <input type="checkbox" id="notify-joined" checked>
+                        </div>
+                        <div class="setting-item">
+                            <label for="notify-left">退出通知</label>
+                            <input type="checkbox" id="notify-left">
+                        </div>
+                        <div class="setting-item">
+                            <label for="notify-error">エラー通知</label>
+                            <input type="checkbox" id="notify-error" checked>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>プライバシー設定</h3>
+                        <div class="setting-item">
+                            <label for="log-messages">メッセージログ</label>
+                            <input type="checkbox" id="log-messages">
+                        </div>
+                        <div class="setting-item">
+                            <label for="public-stats">統計公開</label>
+                            <input type="checkbox" id="public-stats" checked>
+                        </div>
+                    </div>
+                </div>
+                <button id="save-personal">個人設定を保存</button>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
