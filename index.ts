@@ -339,7 +339,7 @@ apiApp.get('/internal/settings/bundle', (req: Request, res: Response) => {
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 import { textChannels, voiceClients } from './utils/TTS-Engine';
-import { saveVoiceState } from './utils/voiceStateManager';
+import { saveVoiceState, getTextChannelForGuild } from './utils/voiceStateManager';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -349,16 +349,81 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
         const voiceChannel = guild.channels.cache.get(voiceChannelId) as any;
         if (!voiceChannel || voiceChannel.type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
+
+        // テキストチャンネルの決定ロジックを改善
+        let finalTextChannelId = textChannelId;
+
+        if (!finalTextChannelId) {
+            // 1. 保存されたテキストチャンネルを取得
+            finalTextChannelId = getTextChannelForGuild(guildId);
+        }
+
+        if (!finalTextChannelId) {
+            // 2. 自動参加設定から取得
+            const { autoJoinChannels } = await import('./utils/TTS-Engine');
+            const autoJoinSetting = autoJoinChannels[guildId];
+            if (autoJoinSetting && autoJoinSetting.textChannelId) {
+                finalTextChannelId = autoJoinSetting.textChannelId;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 3. 参加チャンネル設定から取得
+            const { joinChannels } = await import('./utils/TTS-Engine');
+            const joinSetting = joinChannels[guildId];
+            if (joinSetting && joinSetting.textChannelId) {
+                finalTextChannelId = joinSetting.textChannelId;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 4. ギルドのシステムチャンネルを使用
+            if (guild.systemChannel && guild.systemChannel.type === 0) {
+                finalTextChannelId = guild.systemChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 5. 一般チャンネルを探す
+            const generalChannel = guild.channels.cache.find(ch =>
+                ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般'))
+            );
+            if (generalChannel) {
+                finalTextChannelId = generalChannel.id;
+            }
+        }
+
+        if (!finalTextChannelId) {
+            // 6. 最初のテキストチャンネルを使用
+            const firstTextChannel = guild.channels.cache.find(ch => ch.type === 0);
+            if (firstTextChannel) {
+                finalTextChannelId = firstTextChannel.id;
+            }
+        }
+
+        // テキストチャンネルが見つかった場合のみ設定
+        if (finalTextChannelId) {
+            const tc = guild.channels.cache.get(finalTextChannelId) as any;
+            if (tc && tc.type === 0) {
+                (textChannels as any)[guildId] = tc;
+                console.log(`ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+            } else {
+                console.warn(`ギルド ${guildId} のテキストチャンネルが見つからないか無効: ${finalTextChannelId}`);
+            }
+        } else {
+            console.warn(`ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
+        }
+
         const prev = getVoiceConnection(guildId);
         if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         voiceClients[guildId] = connection;
-        if (textChannelId) {
-            const tc = guild.channels.cache.get(textChannelId) as any;
-            if (tc && tc.type === 0) (textChannels as any)[guildId] = tc;
-        }
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
-        return res.json({ ok: true });
+        return res.json({
+            ok: true,
+            textChannelId: finalTextChannelId,
+            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+        });
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });

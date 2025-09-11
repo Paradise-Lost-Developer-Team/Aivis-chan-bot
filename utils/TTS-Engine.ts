@@ -1087,7 +1087,7 @@ export function getSpeakerOptions() {
 }
 
 // 新規：join_channels.json のパス設定を process.cwd() ベースに変更
-let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
 joinChannels = loadJoinChannels();
 
 // 新規：join_channels.json を読み込む関数  (ファイルが存在しない場合は空のオブジェクトを返す)
