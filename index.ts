@@ -607,12 +607,12 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
         if (voiceChannelId) {
-            // cleanupAudioResources is not exported from TTS-Engine; perform minimal manual cleanup
+            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
             try { delete (textChannels as any)[voiceChannelId]; } catch {}
             try { delete (global as any).players?.[voiceChannelId]; } catch {}
         } else if (guildId) {
-            // cleanupAudioResources is not exported from TTS-Engine; perform minimal manual cleanup
+            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
             try { delete (voiceClients as any)[guildId]; } catch {}
             try { delete (textChannels as any)[guildId]; } catch {}
             try { delete (global as any).players?.[guildId]; } catch {}
@@ -660,7 +660,48 @@ async function loadWebDashboardSettings() {
                     console.log(`辞書エントリ数: ${dictionaryResponse.data.dictionary.length}`);
                     console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました:`, dictionaryResponse.data.dictionary.length, '件');
                     // ここで辞書を適用する処理を追加
-                    applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                    // Apply dictionary entries: save to disk and try to update in-memory runtime if possible
+                    try {
+                        const dict = dictionaryResponse.data.dictionary;
+                        const dictDir = path.join(DATA_DIR, 'guild-dictionaries');
+                        if (!fs.existsSync(dictDir)) fs.mkdirSync(dictDir, { recursive: true });
+                        const dictFile = path.join(dictDir, `${guildId}.json`);
+                        fs.writeFileSync(dictFile, JSON.stringify(dict, null, 2), 'utf8');
+                        console.log(`ギルド ${guild.name} (${guildId}) の辞書を保存しました: ${dictFile}`);
+
+                        // ランタイムの辞書モジュールに反映できるなら反映する（柔軟に対応）
+                        try {
+                            const dictModule = await import('./utils/dictionaries');
+                            const dm: any = dictModule;
+
+                            if (typeof dm.applyGuildDictionary === 'function') {
+                                dm.applyGuildDictionary(guildId, dict);
+                                console.log(`ギルド ${guildId} の辞書をメモリに適用しました (applyGuildDictionary)`);
+                            } else if (typeof dm.setGuildDictionary === 'function') {
+                                dm.setGuildDictionary(guildId, dict);
+                                console.log(`ギルド ${guildId} の辞書をメモリに適用しました (setGuildDictionary)`);
+                            } else if (typeof dm.registerGuildDictionary === 'function') {
+                                dm.registerGuildDictionary(guildId, dict);
+                                console.log(`ギルド ${guildId} の辞書をメモリに適用しました (registerGuildDictionary)`);
+                            } else if (dm.guildDictionaries && typeof dm.guildDictionaries === 'object') {
+                                (dm.guildDictionaries as Record<string, any>)[guildId] = dict;
+                                console.log(`ギルド ${guildId} の辞書を guildDictionaries に格納しました`);
+                            } else if (dm.guildDictionary && typeof dm.guildDictionary === 'object') {
+                                // 一部モジュールでは単数形でエクスポートしている可能性があるため対応
+                                (dm.guildDictionary as Record<string, any>)[guildId] = dict;
+                                console.log(`ギルド ${guildId} の辞書を guildDictionary に格納しました`);
+                            } else {
+                                // グローバルキャッシュにも入れておく（他モジュールが参照する可能性に備える）
+                                (global as any).guildDictionaries = (global as any).guildDictionaries || {};
+                                (global as any).guildDictionaries[guildId] = dict;
+                                console.log(`ギルド ${guildId} の辞書を global.guildDictionaries に保存しました`);
+                            }
+                        } catch (e) {
+                            console.warn(`辞書のランタイム適用に失敗しました: ${guildId}`, e);
+                        }
+                    } catch (e) {
+                        console.error(`ギルド ${guildId} の辞書保存に失敗しました:`, e);
+                    }
                 } else {
                     console.warn(`辞書データが取得できませんでした: ${guild.name} (${guildId})`);
                 }
@@ -699,36 +740,98 @@ function applyGuildSettings(guildId: string, settings: any) {
 }
 
 // ギルド辞書を適用する関数
-function applyGuildDictionary(guildId: string, dictionary: any[]) {
+function cleanupAudioResources(target: any) {
     try {
-        // 既存の辞書ファイルを読み込み
-        const dictionariesPath = path.join(DATA_DIR, 'guild_dictionaries.json');
-        let guildDictionaries: Record<string, any> = {};
-        if (fs.existsSync(dictionariesPath)) {
-            try {
-                guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
-            } catch (e) {
-                console.warn('Failed to parse existing dictionaries:', e);
+        // 1) Voice connections
+        try {
+            // direct key match
+            if ((voiceClients as any)[target]) {
+                try { (voiceClients as any)[target].destroy?.(); } catch (e) { /* ignore */ }
+                delete (voiceClients as any)[target];
             }
+
+            // find by joinConfig.channelId or joinConfig.guildId
+            for (const [key, conn] of Object.entries(voiceClients as Record<string, any>)) {
+                try {
+                    if (!conn) { delete (voiceClients as any)[key]; continue; }
+                    const jc = conn.joinConfig || {};
+                    if (jc.channelId === target || jc.guildId === target || key === target) {
+                        try { conn.destroy?.(); } catch (e) { /* ignore */ }
+                        delete (voiceClients as any)[key];
+                    }
+                } catch (e) { /* ignore per-entry errors */ }
+            }
+        } catch (e) {
+            console.warn('cleanupAudioResources: voiceClients cleanup error', e);
         }
 
-        // 辞書エントリーを適切な形式に変換（TTS-Engine用のObject形式）
-        const convertedDictionary: Record<string, any> = {};
-        dictionary.forEach((entry: any) => {
-            if (entry.word && entry.pronunciation) {
-                convertedDictionary[entry.word] = {
-                    pronunciation: entry.pronunciation,
-                    accent: entry.accent || '',
-                    wordType: entry.wordType || ''
-                };
+        // 2) Audio players kept on global.players
+        try {
+            const players = (global as any).players || {};
+            // direct key
+            if (players[target]) {
+                try {
+                    const p = players[target];
+                    if (typeof p.stop === 'function') p.stop(true);
+                    else if (typeof p.destroy === 'function') p.destroy();
+                } catch (e) { /* ignore */ }
+                delete (global as any).players[target];
             }
-        });
+            // scan for players referencing this guild/channel
+            for (const key of Object.keys(players)) {
+                try {
+                    const p = players[key];
+                    if (!p) { delete (global as any).players[key]; continue; }
+                    if (p.voiceChannelId === target || p.guildId === target || key === target) {
+                        try {
+                            if (typeof p.stop === 'function') p.stop(true);
+                            else if (typeof p.destroy === 'function') p.destroy();
+                        } catch (e) { /* ignore */ }
+                        delete (global as any).players[key];
+                    }
+                } catch (e) { /* ignore */ }
+            }
+        } catch (e) {
+            console.warn('cleanupAudioResources: players cleanup error', e);
+        }
 
-        guildDictionaries[guildId] = convertedDictionary;
-        fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
-        
-        console.log(`ギルド ${guildId} の辞書を保存しました (${dictionary.length}件)`);
-    } catch (error) {
-        console.error(`ギルド ${guildId} の辞書適用に失敗:`, error);
+        // 3) textChannels mapping cleanup
+        try {
+            const tc = textChannels as Record<string, any>;
+            for (const key of Object.keys(tc)) {
+                try {
+                    const ch = tc[key];
+                    if (!ch) {
+                        delete tc[key];
+                        continue;
+                    }
+                    if (key === target || ch.id === target || ch.guild?.id === target) {
+                        delete tc[key];
+                    }
+                } catch (e) { /* ignore per-entry errors */ }
+            }
+        } catch (e) {
+            console.warn('cleanupAudioResources: textChannels cleanup error', e);
+        }
+
+        // 4) (Optional) remove any other temp resources keyed by target in data dir
+        try {
+            const tmpDir = path.join(DATA_DIR, 'temp-audio');
+            if (fs.existsSync(tmpDir)) {
+                for (const file of fs.readdirSync(tmpDir)) {
+                    try {
+                        if (file.includes(target)) {
+                            fs.unlinkSync(path.join(tmpDir, file));
+                        }
+                    } catch (e) { /* ignore file-level errors */ }
+                }
+            }
+        } catch (e) {
+            // not critical
+        }
+
+        console.log(`cleanupAudioResources: cleaned resources for ${String(target)}`);
+    } catch (err) {
+        console.warn('cleanupAudioResources: unexpected error', err);
     }
 }
