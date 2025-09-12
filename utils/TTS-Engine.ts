@@ -833,7 +833,20 @@ export function speakVoice(text: string, userId: string | number, guildId: strin
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-export function speakAnnounce(text: string, guildId: string, client?: any): Promise<void> {
+function resolveGuildIdFromVoiceOrGuildId_4th(id: string, client?: any): string | undefined {
+    try { const vc = (voiceClients as any)[id]; if (vc && vc.joinConfig && (vc.joinConfig as any).guildId) return (vc.joinConfig as any).guildId; } catch {}
+    try { const tc = (textChannels as any)[id]; if (tc && tc.guild) return tc.guild.id; } catch {}
+    if (client && client.guilds && client.guilds.cache) {
+        for (const [gid, g] of client.guilds.cache) {
+            try { if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(id)) return gid; } catch {}
+        }
+        if (client.guilds.cache.has(id)) return id;
+    }
+    return undefined;
+}
+
+export function speakAnnounce(text: string, voiceOrGuildId: string, client?: any): Promise<void> {
+    const guildId = resolveGuildIdFromVoiceOrGuildId_4th(voiceOrGuildId, client) ?? voiceOrGuildId;
     const queue = getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
 }
