@@ -706,6 +706,42 @@ app.get('/api/settings/:guildId', requireAuth, (req, res) => {
     }
 });
 
+// Bot内部アクセス用の設定読み込みAPI（認証不要）
+app.get('/internal/settings/:guildId', (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
+
+        if (!fs.existsSync(settingsFile)) {
+            return res.json({ settings: null });
+        }
+
+        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+        res.json(settingsData);
+    } catch (error) {
+        console.error('Settings load error:', error);
+        res.status(500).json({ error: '設定の読み込みに失敗しました' });
+    }
+});
+
+// Bot内部アクセス用の辞書読み込みAPI（認証不要）
+app.get('/internal/dictionary/:guildId', (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
+
+        if (!fs.existsSync(dictionaryFile)) {
+            return res.json({ dictionary: [] });
+        }
+
+        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
+        res.json(dictionaryData);
+    } catch (error) {
+        console.error('Dictionary load error:', error);
+        res.status(500).json({ error: '辞書の読み込みに失敗しました' });
+    }
+});
+
 // 個人設定保存・取得API
 app.post('/api/personal-settings', requireAuth, express.json(), async (req, res) => {
     try {
