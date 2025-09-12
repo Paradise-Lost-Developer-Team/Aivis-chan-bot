@@ -745,7 +745,7 @@ async function loadWebDashboardSettings() {
         for (const [guildId, guild] of guilds) {
             try {
                 // サーバー設定を読み込み（タイムアウト時間を15秒に延長）
-                const settingsResponse = await axios.get(`${webDashboardUrl}/api/settings/${guildId}`, {
+                const settingsResponse = await axios.get(`${webDashboardUrl}/internal/settings/${guildId}`, {
                     timeout: 15000
                 });
                 
@@ -756,7 +756,7 @@ async function loadWebDashboardSettings() {
                 }
                 
                 // 辞書設定を読み込み（タイムアウト時間を15秒に延長）
-                const dictionaryResponse = await axios.get(`${webDashboardUrl}/api/dictionary/${guildId}`, {
+                const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, {
                     timeout: 15000
                 });
                 
