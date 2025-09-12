@@ -6,7 +6,7 @@ import path from "path";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
-import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType, getGuildSubscriptionTier } from './subscription';
+import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
@@ -18,8 +18,6 @@ export const TTS_BASE_URL = process.env.TTS_SERVICE_URL || config.speechEngineUr
 const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
 const TTS_MAX_RETRIES = config.TTS_MAX_RETRIES || 3;
 const TTS_RETRY_DELAY = config.TTS_RETRY_DELAY || 1000;
-
-// (前方宣言を削除) 関数の順序を整理して型エラーを防ぎます
 
 // TTS自動復旧用フラグと設定
 export let ttsAvailable = true; // true = 利用可能、false = 利用不可（検知済み）
@@ -69,6 +67,7 @@ function markTTSDown() {
     startTTSHealthProbe();
 }
 
+// voiceChannelIdベースで管理
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
@@ -613,6 +612,7 @@ function getGuildDictionarySnapshot(): any {
             _dictMtimeMs = 0;
         }
     } catch (e) {
+        // 壊れた場合は空辞書として扱う
         _dictCache = {};
     }
     return _dictCache || {};
@@ -624,6 +624,7 @@ function applyGuildDictionary(guildId: string, text: string): string {
     if (!dict || typeof dict !== 'object') return text;
     const entries = Object.entries(dict) as Array<[string, any]>;
     if (entries.length === 0) return text;
+    // 長い単語から置換して重なりを回避
     entries.sort((a, b) => b[0].length - a[0].length);
     let out = text;
     for (const [word, details] of entries) {
@@ -669,8 +670,8 @@ export function adjustAudioQuery(audioQuery: any, guildId: string, userId?: stri
 export const MAX_TEXT_LENGTH = 200;
 
 // 最大読み上げ文字数の修正（サブスクリプションに基づく）
-export async function getMaxTextLength(guildId: string): Promise<number> {
-    return await getSubscriptionMaxTextLength(guildId);
+export function getMaxTextLength(guildId: string): number {
+    return getSubscriptionMaxTextLength(guildId);
 }
 
 // 追加：句点読点とコンマとピリオド、半角クエスチョンマークと改行で分割
@@ -702,11 +703,11 @@ let vcDisconnectTimers: { [guildId: string]: NodeJS.Timeout } = {};
 // export const DEFAULT_SPEAKER_ID = 888753760; // ← 既に上部で宣言済みのため削除
 
 async function speakBufferedChunks(text: string, speakerId: number, guildId: string, maxConcurrency?: number, userId?: string) {
-    const limit = await getMaxTextLength(guildId);
+    const limit = getMaxTextLength(guildId);
     if (text.length > limit) {
         text = text.slice(0, limit) + "以下省略";
     }
-    // ギルド辞書を適用
+    // ギルド辞書を適用してから分割
     text = applyGuildDictionary(guildId, text);
     const chunks = chunkText(text);
     if (chunks.length === 0) return;
@@ -849,28 +850,46 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
 
 // ギルドごとにVoiceConnectionを確保・再利用する関数
 export function ensureVoiceConnection(guildId: string, voiceChannel: any): VoiceConnection {
-    let connection = voiceClients[guildId];
-    if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed) {
-        connection = joinVoiceChannel({
-            channelId: voiceChannel.id,
-            guildId: guildId,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-            selfDeaf: false,
-        });
-        // ここでリスナー上限を増やす（デフォルト10→50）
-        connection.setMaxListeners(50);
-        voiceClients[guildId] = connection;
+    const vcId = voiceChannel && voiceChannel.id ? voiceChannel.id : undefined;
+
+    // try existing by voiceChannelId first, then guildId
+    let connection: VoiceConnection | undefined = vcId ? (voiceClients as any)[vcId] : undefined;
+    if (!connection) connection = (voiceClients as any)[guildId];
+
+    // drop destroyed connections
+    if (connection && connection.state && connection.state.status === VoiceConnectionStatus.Destroyed) {
+        connection = undefined;
     }
+
+    if (connection) return connection;
+
+    // validate voiceChannel
+    if (!voiceChannel || !vcId || !voiceChannel.guild || !voiceChannel.guild.voiceAdapterCreator) {
+        throw new Error(`ensureVoiceConnection: invalid voiceChannel provided for guild=${guildId}`);
+    }
+
+    connection = joinVoiceChannel({
+        channelId: vcId,
+        guildId: guildId,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        selfDeaf: false,
+    });
+    connection.setMaxListeners(50);
+
+    // store under both keys for compatibility
+    try { (voiceClients as any)[vcId] = connection; } catch {}
+    try { (voiceClients as any)[guildId] = connection; } catch {}
+
     return connection;
 }
 async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
     let vc = voiceClients[guildId];
     // VoiceConnectionがない or Readyでなければ再接続
     if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsから取得
+        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsやjoinChannelsから取得
         const auto = autoJoinChannels[guildId];
-        // join_channels.jsonは動的判定により不要
-        const voiceChannelId = auto?.voiceChannelId;
+        const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
+        const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
         const guild = client?.guilds?.cache?.get(guildId);
         let voiceChannel = null;
         if (guild && voiceChannelId) {
@@ -899,96 +918,52 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
     return;
 }
 
-// ユーザー／ギルドごとのキュー管理
-async function getQueueForUser(guildId: string): Promise<PQueue> {
-    const plan = await getGuildSubscriptionTier(guildId); // SubscriptionType を取得
-    const concurrency = plan === SubscriptionType.PREMIUM ? 4 :
-                        plan === SubscriptionType.PRO     ? 2 : 1;
-    if (!userQueues.has(guildId)) {
-        userQueues.set(guildId, new PQueue({ concurrency }));
-    }
-    // 動的に並列数を更新
-    const queue = userQueues.get(guildId)!;
-    queue.concurrency = concurrency;
-    return queue;
-}
-
 /**
  * メッセージ読み上げ: ユーザーごとの話者設定を参照
  */
-export async function speakVoice(text: string, userId: string | number, guildId: string, client?: any): Promise<void> {
+export function speakVoice(text: string, userId: string | number, guildId: string, client?: any): Promise<void> {
     // voiceSettings.speaker優先、なければcurrentSpeaker
     const speaker = (voiceSettings.speaker?.[String(userId)] ?? currentSpeaker[String(userId)]) ?? DEFAULT_SPEAKER_ID;
-    const queue = await getQueueForUser(guildId);
+    const queue = getQueueForUser(guildId);
     return queue.add(() => speakVoiceImpl(text, speaker, guildId, String(userId), client));
 }
 
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-export async function speakAnnounce(text: string, voiceChannelId: string, client?: any): Promise<void> {
-    // voiceChannelId を受け取り、関連する guildId を解決してキューに追加する
-    let guildId: string | undefined = undefined;
-    // 優先: voiceClients の接続情報から guildId を取得
-    try {
-        const vc = (voiceClients as any)[voiceChannelId] as VoiceConnection | undefined;
-        if (vc && vc.joinConfig && (vc.joinConfig as any).guildId) guildId = (vc.joinConfig as any).guildId;
-    } catch {}
-    // 次に textChannels マップから guild を解決
-    if (!guildId) {
-        try {
-            const tc = (textChannels as any)[voiceChannelId] as TextChannel | undefined;
-            if (tc && tc.guild) guildId = tc.guild.id;
-        } catch {}
+function resolveGuildIdFromVoiceOrGuildId(id: string, client?: any): string | undefined {
+    try { const vc = (voiceClients as any)[id]; if (vc && vc.joinConfig && (vc.joinConfig as any).guildId) return (vc.joinConfig as any).guildId; } catch {}
+    try { const tc = (textChannels as any)[id]; if (tc && tc.guild) return tc.guild.id; } catch {}
+    try { for (const gid of Object.keys(autoJoinChannels)) { if (autoJoinChannels[gid]?.voiceChannelId === id) return gid; } } catch {}
+    if (client && client.guilds && client.guilds.cache) {
+        for (const [gid, g] of client.guilds.cache) {
+            try { if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(id)) return gid; } catch {}
+        }
+        if (client.guilds.cache.has(id)) return id;
     }
-    // フォールバック: 近傍の autoJoinChannels から探す
-    if (!guildId) {
-        try {
-            const auto = autoJoinChannels && (Object.values(autoJoinChannels) as any[]).find(a => a.voiceChannelId === voiceChannelId);
-            if (auto && auto.voiceChannelId) {
-                // auto には guildId が含まれていない可能性があるので、ここでは不明のまま続行
-                // 多くの場合、呼び出し元が client を渡しているため、client から探索可能
-                if (client && client.guilds) {
-                    for (const [gid, g] of client.guilds.cache) {
-                        if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(voiceChannelId)) {
-                            guildId = gid;
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch {}
-    }
+    return undefined;
+}
 
-    if (!guildId) {
-        // 最低限の安全処理: 既存の実装互換のために空の guildId を設定し getQueueForUser を呼ばない
-        // ただし通常は guildId が解決されるはず
-        try {
-            // try to find guild via client
-            if (client && client.guilds) {
-                for (const g of client.guilds.cache.values()) {
-                    if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(voiceChannelId)) {
-                        guildId = (g as any).id;
-                        break;
-                    }
-                }
-            }
-        } catch {}
-    }
-
-    if (!guildId) {
-        // ギルドが特定できない場合は非同期で実行して失敗を抑える
-        const dummyQueue = new PQueue({ concurrency: 1 });
-        return dummyQueue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, '', undefined, client));
-    }
-
-    const queue = await getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId!, undefined, client));
+export function speakAnnounce(text: string, voiceOrGuildId: string, client?: any): Promise<void> {
+    const guildId = resolveGuildIdFromVoiceOrGuildId(voiceOrGuildId, client) ?? voiceOrGuildId;
+    const queue = getQueueForUser(guildId);
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理
 const userQueues = new Map<string, PQueue>();
-
+function getQueueForUser(userId: string): PQueue {
+    const plan = getSubscription(userId); // SubscriptionType を取得
+    const concurrency = plan === SubscriptionType.PREMIUM ? 4 :
+                        plan === SubscriptionType.PRO     ? 2 : 1;
+    if (!userQueues.has(userId)) {
+        userQueues.set(userId, new PQueue({ concurrency }));
+    }
+    // 動的に並列数を更新
+    const queue = userQueues.get(userId)!;
+    queue.concurrency = concurrency;
+    return queue;
+}
 
 // AudioPlayerごとのサブスクライブ状態を管理するWeakMap
 const playerSubscribedMap: WeakMap<AudioPlayer, boolean> = new WeakMap();
@@ -1021,13 +996,12 @@ export function uuidv4(): string {
 }
 
 // ボイスクライアント接続チェックを行う関数を追加
-export function isVoiceClientConnected(guildId: string): boolean {
-    if (!voiceClients[guildId]) {
+export function isVoiceClientConnected(voiceChannelId: string): boolean {
+    if (!voiceClients[voiceChannelId]) {
         return false;
     }
-    
     // VoiceConnectionStatusがReadyであるか確認
-    return voiceClients[guildId].state.status === VoiceConnectionStatus.Ready;
+    return voiceClients[voiceChannelId].state.status === VoiceConnectionStatus.Ready;
 }
 
 let autoJoinChannelsData: { [key: string]: any } = {};
@@ -1123,16 +1097,16 @@ function ensureDirectoryExists(filePath: string): void {
 
 export function getSpeakerOptions() {
     try {
-        if (!Array.isArray(speakers)) {
-            console.error("スピーカー情報が配列ではありません");
+        if (!Array.isArray(speakers) || speakers.length === 0) {
+            console.error("スピーカー情報が配列ではありません or 空です");
             return DEFAULT_SPEAKERS[0].styles.map(style => ({
                 label: `${DEFAULT_SPEAKERS[0].name} - ${style.name}`,
                 value: `${DEFAULT_SPEAKERS[0].name}-${style.name}-${style.id}`
             }));
         }
 
-        const options = [];
-        
+        const options: { label: string; value: string }[] = [];
+
         for (const speaker of speakers) {
             if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
                 for (const style of speaker.styles) {
@@ -1145,16 +1119,15 @@ export function getSpeakerOptions() {
                 }
             }
         }
-        
+
         if (options.length === 0) {
-            console.error("スピーカーオプションが生成できませんでした");
-            // デフォルトのオプションを追加
+            console.error("スピーカーオプションが生成できませんでした。デフォルトを返します。");
             return [{
                 label: "Anneli - ノーマル",
                 value: "Anneli-ノーマル-888753760"
             }];
         }
-        
+
         return options;
     } catch (error) {
         console.error("スピーカーオプション生成エラー:", error);
@@ -1174,7 +1147,95 @@ export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelI
 // 新規：auto_join_channels.json を読み込む関数（キャッシュ付き）
 autoJoinChannels = loadAutoJoinChannels();
 
-// auto_join_channels.json を読み込む関数（キャッシュ付き）
+// 新規：join_channels.json を読み込む関数（キャッシュ付き）
+export function loadJoinChannels() {
+    try {
+        if (!fs.existsSync(JOIN_CHANNELS_FILE)) {
+            return joinChannelsCache;
+        }
+
+        const stats = fs.statSync(JOIN_CHANNELS_FILE);
+        const lastModified = stats.mtime.getTime();
+
+        // ファイルが変更されていない場合はキャッシュを返す
+        if (lastModified === joinChannelsLastModified && Object.keys(joinChannelsCache).length > 0) {
+            return joinChannelsCache;
+        }
+
+        // ファイルが変更された場合のみ読み込み
+        console.log(`[Cache] 参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
+        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+        const parsed = JSON.parse(data);
+        
+        if (parsed && typeof parsed === 'object') {
+            joinChannelsCache = parsed;
+            joinChannelsLastModified = lastModified;
+            return parsed;
+        }
+    } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
+        // エラー時もキャッシュがあれば返す
+        if (Object.keys(joinChannelsCache).length > 0) {
+            return joinChannelsCache;
+        }
+    }
+    return {};
+}
+
+// 新規：取得したチャネル情報を保存する関数
+export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+    try {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            joinChannels = JSON.parse(data);
+        }
+    } catch (error) {
+        console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, error);
+        joinChannels = {};
+    }
+    // tempVoiceはundefinedでOK（従来型もサポート）
+    joinChannels[guildId] = { voiceChannelId, textChannelId };
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+        console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+    } catch (error) {
+        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+    }
+}
+
+// 新規：join_channels.json を保存する関数
+export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error("参加チャンネル設定保存エラー:", error);
+    }
+}
+
+// 新規：チャンネル情報を削除する関数
+export function deleteJoinChannelsConfig(guildId: string) {
+    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+    try {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            joinChannels = JSON.parse(data);
+        }
+    } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
+        joinChannels = {};
+    }
+    
+    delete joinChannels[guildId];
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+    }
+}
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
@@ -1186,7 +1247,7 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
 // joinコマンド実行チャンネルを記録する関数
 export function setJoinCommandChannel(guildId: string, channelId: string) {
     joinCommandChannels[guildId] = channelId;
-    console.log(`[Join:pro] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
+    console.log(`[Join:1st] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
 }
 
 // joinコマンド実行チャンネルを取得する関数
@@ -1261,7 +1322,7 @@ export function resetTTSEngine(): void {
         
         // 各種初期化関数を再実行
         loadAutoJoinChannels();
-        // loadJoinChannels() は動的判定により不要
+        // loadJoinChannels(); // 動的判定により不要
         AivisAdapter();
         
         // 最終発話時刻をリセット
@@ -1275,16 +1336,16 @@ export function resetTTSEngine(): void {
 }
 
 // 読み上げ優先度の確認関数
-export async function getTTSPriority(guildId: string): Promise<number> {
-    const subscriptionType = await getGuildSubscriptionTier(guildId);
+export function getTTSPriority(guildId: string): number {
+    const subscriptionType = getSubscription(guildId);
     // 優先度が高いほど、キュー内で先に処理される
     return subscriptionType === SubscriptionType.PREMIUM ? 2 :
     subscriptionType === SubscriptionType.PRO ? 1 : 0;
 }
 
 // 音声品質の確認関数
-export async function getVoiceQuality(guildId: string): Promise<string> {
-    return (await checkSubscriptionFeature(guildId, 'highQualityVoice')) ? 'high' : 'standard';
+export function getVoiceQuality(guildId: string): string {
+    return checkSubscriptionFeature(guildId, 'highQualityVoice') ? 'high' : 'standard';
 }
 
 // 全ての声優を取得する関数
@@ -1312,26 +1373,26 @@ function getAllVoices() {
 }
 
 // メッセージ長の確認
-export async function validateMessageLength(guildId: string, message: string): Promise<boolean> {
-    const maxLength = await getSubscriptionLimit(guildId, 'maxMessageLength');
+export function validateMessageLength(guildId: string, message: string): boolean {
+    const maxLength = getSubscriptionLimit(guildId, 'maxMessageLength');
     return message.length <= maxLength;
 }
 
 // 既存のTTS処理関数を拡張
-export async function processMessage(guildId: string, message: string, options: any) {
+export function processMessage(guildId: string, message: string, options: any) {
     // メッセージ長チェック
     if (!validateMessageLength(guildId, message)) {
         throw new Error(`メッセージが長すぎます。現在のプランでは${getSubscriptionLimit(guildId, 'maxMessageLength')}文字までです。`);
     }
     
     // 音声品質の設定
-    options.quality = await getVoiceQuality(guildId);
+    options.quality = getVoiceQuality(guildId);
     
     // 優先度の設定
-    options.priority = await getTTSPriority(guildId);
+    options.priority = getTTSPriority(guildId);
     
     // Premiumユーザー向けの特殊機能
-    if (await checkSubscriptionFeature(guildId, 'textTransformationEffects')) {
+    if (checkSubscriptionFeature(guildId, 'textTransformationEffects')) {
         message = applyTextTransformations(message, options);
     }
     

@@ -433,7 +433,73 @@ apiApp.get('/internal/settings/bundle', (req: Request, res: Response) => {
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 import { textChannels, voiceClients } from './utils/TTS-Engine';
 import { saveVoiceState, getTextChannelForGuild, setTextChannelForGuild } from './utils/voiceStateManager';
-import { cleanupAudioResources } from './utils/TTS-Engine';
+
+/**
+ * ローカル実装: voiceChannelId または guildId を受け取り、
+ * 関連する接続/マッピング/プレイヤーを破棄して削除します。
+ */
+function cleanupAudioResources(identifier: string) {
+    try {
+        // 直接のvoice接続があれば破棄
+        try {
+            const direct = getVoiceConnection(identifier);
+            if (direct) {
+                try { direct.destroy(); } catch (_) { /* ignore */ }
+            }
+        } catch (_) { /* ignore */ }
+
+        // voiceClientsに直接キーとして存在する場合の削除（voiceChannelIdケース）
+        try {
+            if ((voiceClients as any)[identifier]) {
+                try { (voiceClients as any)[identifier].destroy?.(); } catch (_) { /* ignore */ }
+                try { delete (voiceClients as any)[identifier]; } catch (_) { /* ignore */ }
+            }
+        } catch (_) { /* ignore */ }
+
+        // guildIdが渡された場合はvoiceClients内を探索してguildIdに紐づく接続を破棄
+        try {
+            for (const key of Object.keys(voiceClients)) {
+                const conn = (voiceClients as any)[key];
+                // joinConfigは @discordjs/voice の内部構造に依存するため存在確認を行う
+                const connGuildId = conn?.joinConfig?.guildId ?? conn?.guildId ?? null;
+                if (connGuildId && connGuildId === identifier) {
+                    try { conn.destroy?.(); } catch (_) { /* ignore */ }
+                    try { delete (voiceClients as any)[key]; } catch (_) { /* ignore */ }
+                }
+            }
+        } catch (_) { /* ignore */ }
+
+        // テキストチャンネルのマッピングを削除
+        try {
+            if ((textChannels as any)[identifier]) {
+                try { delete (textChannels as any)[identifier]; } catch (_) { /* ignore */ }
+            }
+            for (const key of Object.keys((textChannels as any) || {})) {
+                const tc = (textChannels as any)[key];
+                const tcGuildId = tc?.guild?.id ?? null;
+                if (tcGuildId && tcGuildId === identifier) {
+                    try { delete (textChannels as any)[key]; } catch (_) { /* ignore */ }
+                }
+            }
+        } catch (_) { /* ignore */ }
+
+        // グローバルプレイヤーがあれば削除
+        try {
+            if ((global as any).players) {
+                if ((global as any).players[identifier]) {
+                    try { delete (global as any).players[identifier]; } catch (_) { /* ignore */ }
+                }
+                for (const key of Object.keys((global as any).players)) {
+                    if (key === identifier) {
+                        try { delete (global as any).players[key]; } catch (_) { /* ignore */ }
+                    }
+                }
+            }
+        } catch (_) { /* ignore */ }
+    } catch (e) {
+        console.warn('cleanupAudioResources error:', e);
+    }
+}
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
