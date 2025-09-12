@@ -7,6 +7,28 @@ const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 
+// Redis セッションストア設定
+let RedisStore = null;
+let redisStoreInstance = null;
+
+// SESSION_STORE環境変数が'redis'の場合のみRedisストアを使用
+if (process.env.SESSION_STORE === 'redis') {
+  try {
+    RedisStore = require('connect-redis')(session);
+    const redis = require('redis');
+    const redisClient = redis.createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379'
+    });
+    redisClient.connect().catch(console.error);
+    redisStoreInstance = new RedisStore({ client: redisClient });
+    console.log('[SESSION] Using Redis session store');
+  } catch (err) {
+    console.error('[SESSION] Failed to setup Redis store, falling back to memory store:', err.message);
+  }
+} else {
+  console.log('[SESSION] Using memory store (not suitable for production)');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -82,7 +104,9 @@ passport.deserializeUser((user, done) => {
 // ミドルウェア設定
 // リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
 app.set('trust proxy', 1);
-app.use(session({
+
+// セッション設定（Redis or Memory）
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
@@ -91,7 +115,14 @@ app.use(session({
     sameSite: 'lax',           // OAuthリダイレクトで送られる
     maxAge: 24 * 60 * 60 * 1000 // 24時間
   }
-}));
+};
+
+// Redisストアが利用可能な場合は使用
+if (redisStoreInstance) {
+  sessionConfig.store = redisStoreInstance;
+}
+
+app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
