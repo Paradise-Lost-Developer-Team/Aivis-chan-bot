@@ -38,23 +38,44 @@ jobs:
           sudo mkdir -p /run/buildkit
           sudo chmod 755 /run/buildkit
           
-          # Start buildkitd daemon with proper permissions
-          sudo /usr/local/bin/buildkitd --oci-worker=false --containerd-worker=false --addr unix:///run/buildkit/buildkitd.sock --root /tmp/buildkit-root --oci-worker-no-process-sandbox &
+          # Ensure clean start - kill any existing buildkitd processes
+          sudo pkill -f buildkitd || true
           
-          # Wait for socket to be created and set permissions
-          timeout=30
-          while [ ! -S /run/buildkit/buildkitd.sock ] && [ $timeout -gt 0 ]; do
-            sleep 1
-            timeout=$((timeout - 1))
+          # Start buildkitd daemon with verbose logging
+          sudo /usr/local/bin/buildkitd \
+            --addr unix:///run/buildkit/buildkitd.sock \
+            --root /tmp/buildkit-root \
+            --oci-worker=true \
+            --containerd-worker=false \
+            --debug &
+          
+          # Wait for buildkitd to start and create socket
+          echo "Waiting for BuildKitd to start..."
+          timeout=60
+          while [ $timeout -gt 0 ]; do
+            if [ -S /run/buildkit/buildkitd.sock ]; then
+              echo "Socket file found, testing connection..."
+              if sudo /usr/local/bin/buildctl --addr unix:///run/buildkit/buildkitd.sock debug workers >/dev/null 2>&1; then
+                echo "BuildKitd is ready!"
+                break
+              fi
+            fi
+            sleep 2
+            timeout=$((timeout - 2))
+            echo "Waiting... (${timeout}s remaining)"
           done
           
-          if [ ! -S /run/buildkit/buildkitd.sock ]; then
-            echo "BuildKitd failed to start"
+          if [ $timeout -le 0 ]; then
+            echo "BuildKitd failed to start properly"
+            echo "Socket exists: $(test -S /run/buildkit/buildkitd.sock && echo yes || echo no)"
+            echo "Buildkitd processes:"
+            ps aux | grep buildkitd || echo "No buildkitd processes found"
             exit 1
           fi
           
           # Set proper permissions on socket
           sudo chmod 666 /run/buildkit/buildkitd.sock
+          echo "BuildKitd setup complete"
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
