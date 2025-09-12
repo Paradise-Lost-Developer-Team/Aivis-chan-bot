@@ -508,6 +508,32 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         setTimeout(()=>cleanup(),10000);
     });
     setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        
+        // 接続成功のアナウンスを送信
+        if (finalTextChannelId) {
+            try {
+                const textChannel = guild.channels.cache.get(finalTextChannelId) as any;
+                if (textChannel && textChannel.isTextBased()) {
+                    const { EmbedBuilder } = require('discord.js');
+                    const embed = new EmbedBuilder()
+                        .setTitle('✅ ボイスチャンネル接続完了')
+                        .setDescription(`<#${voiceChannelId}> に参加しました。`)
+                        .addFields(
+                            { name: '接続先', value: `<#${voiceChannelId}>`, inline: true },
+                            { name: 'テキストチャンネル', value: `<#${finalTextChannelId}>`, inline: true }
+                        )
+                        .setColor(0x00ff00)
+                        .setThumbnail(client.user?.displayAvatarURL() ?? null)
+                        .setTimestamp();
+                    
+                    await textChannel.send({ embeds: [embed] });
+                    console.log(`[internal/join] アナウンス送信完了: ギルド ${guildId} チャンネル ${finalTextChannelId}`);
+                }
+            } catch (announceError) {
+                console.error(`[internal/join] アナウンス送信エラー: ギルド ${guildId}:`, announceError);
+            }
+        }
+
         return res.json({
             ok: true,
             textChannelId: finalTextChannelId,

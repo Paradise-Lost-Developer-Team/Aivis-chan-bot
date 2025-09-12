@@ -13,18 +13,18 @@ async function sendAutoJoinEmbed(member: any, channel: any, client: Client, text
         if (!textChannel || !textChannel.isTextBased()) return;
         const botUser = client.user;
         const embed = new EmbedBuilder()
-            .setTitle('自動接続通知')
-            .setDescription(`最も空いているBotに <#${channel ? channel.id : '不明'}> への接続を指示しました。`)
+            .setTitle('🤖 自動接続通知')
+            .setDescription(`<@${member.id}> がボイスチャンネルに参加したため、自動接続を実行しました。`)
             .addFields(
                 { name: '接続先', value: `<#${channel ? channel.id : '不明'}>`, inline: true },
-                { name: 'テキストチャンネル', value: `<#${textChannelId}>`, inline: true }
+                { name: 'テキストチャンネル', value: `<#${textChannelId}>`, inline: true },
+                { name: '実行者', value: `<@${member.id}>`, inline: true }
             )
-            .addFields(
-                { name: '選択Bot', value: pickedBaseUrl ?? '不明', inline: true }
-            )
+            .setColor(0x00bfff)
             .setThumbnail(botUser?.displayAvatarURL() ?? null)
             .setTimestamp();
         await textChannel.send({ embeds: [embed] });
+        console.log(`[自動接続] アナウンス送信完了: ギルド ${member.guild.id} チャンネル ${textChannelId}`);
     } catch (err) {
         console.error('[自動接続Embed送信失敗]:', err);
     }
