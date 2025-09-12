@@ -508,6 +508,9 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         setTimeout(()=>cleanup(),10000);
     });
     setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+    
+    // Voice接続安定化のための短い遅延
+    await new Promise(resolve => setTimeout(resolve, 1000));
         
         // 接続成功のアナウンスを送信
         if (finalTextChannelId) {
@@ -536,11 +539,16 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // 音声アナウンスを再生
         try {
+            console.log(`[internal/join] 音声アナウンス開始: ギルド ${guildId}`);
             const { speakAnnounce } = await import('./utils/TTS-Engine');
+            console.log(`[internal/join] speakAnnounce関数インポート完了: ギルド ${guildId}`);
             await speakAnnounce('参加しました', guildId, client);
             console.log(`[internal/join] 音声アナウンス再生完了: ギルド ${guildId}`);
         } catch (voiceAnnounceError) {
             console.error(`[internal/join] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+            if (voiceAnnounceError instanceof Error) {
+                console.error(`[internal/join] エラースタック:`, voiceAnnounceError.stack);
+            }
         }
 
         return res.json({
