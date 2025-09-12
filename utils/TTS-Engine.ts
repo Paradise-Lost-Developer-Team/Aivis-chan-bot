@@ -833,9 +833,53 @@ export function speakVoice(text: string, userId: string | number, guildId: strin
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-export function speakAnnounce(text: string, guildId: string, client?: any): Promise<void> {
-    const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
+function resolveGuildIdFromVoiceChannel(voiceChannelId: string, client?: any): string | undefined {
+    // 1) voiceClients があれば joinConfig から guildId を取得
+    try {
+        const vc = voiceClients[voiceChannelId];
+        if (vc && (vc as any).joinConfig && (vc as any).joinConfig.guildId) return (vc as any).joinConfig.guildId;
+    } catch {}
+    // 2) textChannels にあれば guild を参照
+    try {
+        const tc = textChannels[voiceChannelId];
+        if (tc && (tc as any).guild && (tc as any).guild.id) return (tc as any).guild.id;
+    } catch {}
+    // 3) autoJoinChannels / joinChannels を検索（キーは guildId）
+    for (const gid of Object.keys(autoJoinChannels)) {
+        try { if (autoJoinChannels[gid]?.voiceChannelId === voiceChannelId) return gid; } catch {}
+    }
+    for (const gid of Object.keys(joinChannels)) {
+        try { if (joinChannels[gid]?.voiceChannelId === voiceChannelId) return gid; } catch {}
+    }
+    // 4) クライアント経由で探索（重いので最後に）
+    if (client && client.guilds && client.guilds.cache) {
+        for (const [gid, guild] of client.guilds.cache) {
+            try {
+                if (guild.channels.cache.has(voiceChannelId)) return gid;
+            } catch {}
+        }
+    }
+    return undefined;
+}
+
+export function speakAnnounce(text: string, voiceChannelId: string, client?: any): Promise<void> {
+    // voiceChannelId から guildId を解決して既存の speakVoiceImpl を再利用する
+    const guildId = resolveGuildIdFromVoiceChannel(voiceChannelId, client);
+    const queue = getQueueForUser(guildId ?? voiceChannelId);
+
+    // 既存ロジックは guildId ベースで voiceClients/players/textChannels を参照する場合があるため
+    // 必要に応じて一時的なエイリアスを作成して互換性を保つ
+    try {
+        if (guildId) {
+            if (!voiceClients[guildId] && voiceClients[voiceChannelId]) (voiceClients as any)[guildId] = voiceClients[voiceChannelId];
+            if (!players[guildId] && players[voiceChannelId]) (players as any)[guildId] = players[voiceChannelId];
+            if (!(textChannels as any)[guildId] && (textChannels as any)[voiceChannelId]) (textChannels as any)[guildId] = (textChannels as any)[voiceChannelId];
+        }
+    } catch (e) {
+        // エイリアス作成に失敗しても処理は継続
+    }
+
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId ?? voiceChannelId, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理

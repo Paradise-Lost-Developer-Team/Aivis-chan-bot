@@ -455,16 +455,17 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[guildId] = tc;
-                    console.log(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                    // voiceChannelId 単位でテキストチャンネルを紐づける
+                    (textChannels as any)[voiceChannelId] = tc;
+                    console.log(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルを設定 (voice:${voiceChannelId}): ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルが見つからないかテキストチャンネルではない: ${finalTextChannelId}`);
                     
                     // フォールバック: ギルドの最初のテキストチャンネルを使用
                     const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0) as any;
-                    if (fallbackChannel) {
-                        (textChannels as any)[guildId] = fallbackChannel;
-                        console.log(`[internal/join:6th] フォールバックチャンネルを使用: ${fallbackChannel.name} (${fallbackChannel.id})`);
+                        if (fallbackChannel) {
+                        (textChannels as any)[voiceChannelId] = fallbackChannel;
+                        console.log(`[internal/join:6th] フォールバックチャンネルを使用 (voice:${voiceChannelId}): ${fallbackChannel.name} (${fallbackChannel.id})`);
                     } else {
                         console.warn(`[internal/join:6th] ギルド ${guildId} でフォールバックテキストチャンネルも見つかりませんでした`);
                     }
@@ -476,10 +477,11 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             console.warn(`[internal/join:6th] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
-        const prev = getVoiceConnection(guildId);
-        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
-        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-        voiceClients[guildId] = connection;
+    const prev = getVoiceConnection(voiceChannelId) || getVoiceConnection(guildId);
+    if (prev) { try { prev.destroy(); } catch {} try { delete voiceClients[prev.joinConfig.channelId ?? guildId]; } catch {} }
+    const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+    // voiceClients は voiceChannelId をキーに保存
+    voiceClients[voiceChannelId] = connection;
         await new Promise<void>((resolve)=>{
             const onReady=()=>{cleanup();resolve();};
             const onDisc=()=>{cleanup();resolve();};
@@ -498,8 +500,9 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         try {
             console.log(`[internal/join:6th] 音声アナウンス開始: ギルド ${guildId}`);
             const { speakAnnounce } = await import('./utils/TTS-Engine');
-            console.log(`[internal/join:6th] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('接続しました', guildId, client);
+            console.log(`[internal/join:6th] speakAnnounce関数インポート完了: ギルド ${guildId} voice ${voiceChannelId}`);
+            // speakAnnounce を voiceChannelId ベースで呼び出す
+            await speakAnnounce('接続しました', voiceChannelId, client);
             console.log(`[internal/join:6th] 音声アナウンス再生完了: ギルド ${guildId}`);
         } catch (voiceAnnounceError) {
             console.error(`[internal/join:6th] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
@@ -556,12 +559,20 @@ client.login(TOKEN).catch(error => {
 
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
-        const { guildId } = req.body || {};
-        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+        const { guildId, voiceChannelId } = req.body || {};
+        if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
-        try { cleanupAudioResources(guildId); } catch {}
-        try { delete voiceClients[guildId]; } catch {}
-        try { delete (textChannels as any)[guildId]; } catch {}
+        if (voiceChannelId) {
+            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+            try { delete (textChannels as any)[voiceChannelId]; } catch {}
+            try { delete (global as any).players?.[voiceChannelId]; } catch {}
+        } else if (guildId) {
+            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+            try { delete (voiceClients as any)[guildId]; } catch {}
+            try { delete (textChannels as any)[guildId]; } catch {}
+            try { delete (global as any).players?.[guildId]; } catch {}
+        }
         return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
