@@ -5,6 +5,7 @@ on:
     branches: ["paid"]
   pull_request:
     branches: ["paid"]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
