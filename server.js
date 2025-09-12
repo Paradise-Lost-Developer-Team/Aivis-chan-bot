@@ -708,15 +708,18 @@ app.get('/api/settings/:guildId', requireAuth, (req, res) => {
 
 // Bot内部アクセス用の設定読み込みAPI（認証不要）
 app.get('/internal/settings/:guildId', (req, res) => {
+    console.log(`[INTERNAL] Settings request for guild: ${req.params.guildId} from ${req.ip}`);
     try {
         const guildId = req.params.guildId;
         const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
 
         if (!fs.existsSync(settingsFile)) {
+            console.log(`[INTERNAL] Settings file not found: ${settingsFile}`);
             return res.json({ settings: null });
         }
 
         const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+        console.log(`[INTERNAL] Settings loaded for guild ${guildId}:`, Object.keys(settingsData));
         res.json(settingsData);
     } catch (error) {
         console.error('Settings load error:', error);
@@ -726,15 +729,18 @@ app.get('/internal/settings/:guildId', (req, res) => {
 
 // Bot内部アクセス用の辞書読み込みAPI（認証不要）
 app.get('/internal/dictionary/:guildId', (req, res) => {
+    console.log(`[INTERNAL] Dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
     try {
         const guildId = req.params.guildId;
         const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
 
         if (!fs.existsSync(dictionaryFile)) {
+            console.log(`[INTERNAL] Dictionary file not found: ${dictionaryFile}`);
             return res.json({ dictionary: [] });
         }
 
         const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
+        console.log(`[INTERNAL] Dictionary loaded for guild ${guildId}: ${dictionaryData.dictionary ? dictionaryData.dictionary.length : 0} entries`);
         res.json(dictionaryData);
     } catch (error) {
         console.error('Dictionary load error:', error);
