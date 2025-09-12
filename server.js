@@ -86,7 +86,26 @@ if (DISCORD_CONFIG_FREE.clientId && DISCORD_CONFIG_FREE.clientSecret) {
   }, (accessToken, refreshToken, profile, done) => {
       // バージョン情報を追加
       profile.version = 'free';
-      return done(null, profile);
+      // Try to enrich profile with avatar/guild icon info like the default strategy
+      (async () => {
+        try {
+          const [userResp, guildsResp] = await Promise.all([
+            axios.get('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${accessToken}` } }),
+            axios.get('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bearer ${accessToken}` } })
+          ]);
+          if (userResp.status === 200) {
+            profile.avatarUrl = userResp.data.avatar ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` : null;
+            profile.nickname = userResp.data.username;
+          }
+          if (guildsResp.status === 200) {
+            profile.guilds = guildsResp.data.map(guild => ({ id: guild.id, name: guild.name, iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null }));
+          }
+        } catch (e) {
+          console.warn('[passport][discord-free] failed to enrich profile:', e.message || e);
+          // proceed without enrichment
+        }
+        return done(null, profile);
+      })();
   }));
 }
 
@@ -100,7 +119,25 @@ if (DISCORD_CONFIG_PRO.clientId && DISCORD_CONFIG_PRO.clientSecret) {
   }, (accessToken, refreshToken, profile, done) => {
       // バージョン情報を追加
       profile.version = 'pro';
-      return done(null, profile);
+      // Enrich profile with avatar/guild icon info when possible
+      (async () => {
+        try {
+          const [userResp, guildsResp] = await Promise.all([
+            axios.get('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${accessToken}` } }),
+            axios.get('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bearer ${accessToken}` } })
+          ]);
+          if (userResp.status === 200) {
+            profile.avatarUrl = userResp.data.avatar ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` : null;
+            profile.nickname = userResp.data.username;
+          }
+          if (guildsResp.status === 200) {
+            profile.guilds = guildsResp.data.map(guild => ({ id: guild.id, name: guild.name, iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null }));
+          }
+        } catch (e) {
+          console.warn('[passport][discord-pro] failed to enrich profile:', e.message || e);
+        }
+        return done(null, profile);
+      })();
   }));
 }
 
