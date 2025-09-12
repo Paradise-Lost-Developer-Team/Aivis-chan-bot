@@ -488,80 +488,87 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             console.log(`[internal/join] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
             
             try {
-                // まずキャッシュから確認
-                let tc = guild.channels.cache.get(finalTextChannelId) as any;
-                
-                // キャッシュにない場合はフェッチを試行
-                if (!tc) {
-                    tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
-                }
-                
-                if (tc && tc.type === 0) {
-                    (textChannels as any)[guildId] = tc;
-                    console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
-                    // 追加: voice_state.json にも保存できるように永続化
-                    try { setTextChannelForGuild(guildId, finalTextChannelId); } catch {}
-                } else {
-                    console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
-                    
-                    // フォールバック: 利用可能なテキストチャンネルを探す
-                    const fallbackChannel = guild.channels.cache.find(ch => 
-                        ch.type === 0 && 
-                        ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
-                    ) as any;
-                    
-                    if (fallbackChannel) {
-                        (textChannels as any)[guildId] = fallbackChannel;
-                        finalTextChannelId = fallbackChannel.id;
-                        console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
-                        try { setTextChannelForGuild(guildId, fallbackChannel.id); } catch {}
+                // テキストチャンネルが見つかった場合のみ設定
+                if (finalTextChannelId) {
+                    console.log(`[internal/join] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
+                    try {
+                        // まずキャッシュから確認
+                        let tc = guild.channels.cache.get(finalTextChannelId) as any;
+                        // キャッシュにない場合はフェッチを試行
+                        if (!tc) {
+                            tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                        }
+                        if (tc && tc.type === 0) {
+                            (textChannels as any)[voiceChannelId] = tc;
+                            console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                        } else {
+                            console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
+                            // フォールバック: 利用可能なテキストチャンネルを探す
+                            const fallbackChannel = guild.channels.cache.find(ch => 
+                                ch.type === 0 && 
+                                ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
+                            ) as any;
+                            if (fallbackChannel) {
+                                (textChannels as any)[voiceChannelId] = fallbackChannel;
+                                finalTextChannelId = fallbackChannel.id;
+                                console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`[internal/join] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);
                     }
+                } else {
+                    console.warn(`[internal/join] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
                 }
-            } catch (error) {
-                console.error(`[internal/join] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);
-            }
-        } else {
-            console.warn(`ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
-        }
 
-        const prev = getVoiceConnection(guildId);
-        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
-    const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-    voiceClients[guildId] = connection;
-    // Ready まで待機してから保存
-    await new Promise<void>((resolve)=>{
-        const onReady=()=>{cleanup();resolve();};
-        const onDisc=()=>{cleanup();resolve();};
-        const cleanup=()=>{connection.off(VoiceConnectionStatus.Ready,onReady);connection.off(VoiceConnectionStatus.Disconnected,onDisc);};
-        connection.once(VoiceConnectionStatus.Ready,onReady);
-        connection.once(VoiceConnectionStatus.Disconnected,onDisc);
-        setTimeout(()=>cleanup(),10000);
-    });
-    setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
-    
-    // Voice接続安定化のための短い遅延
-    await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 接続成功のアナウンスを送信
-        if (finalTextChannelId) {
-            try {
-                const textChannel = guild.channels.cache.get(finalTextChannelId) as any;
-                if (textChannel && textChannel.isTextBased()) {
-                    const { EmbedBuilder } = require('discord.js');
-                    const embed = new EmbedBuilder()
-                        .setTitle('✅ ボイスチャンネル接続完了')
-                        .setDescription(`<#${voiceChannelId}> に参加しました。`)
-                        .addFields(
-                            { name: '接続先', value: `<#${voiceChannelId}>`, inline: true },
-                            { name: 'テキストチャンネル', value: `<#${finalTextChannelId}>`, inline: true }
-                        )
-                        .setColor(0x00ff00)
-                        .setThumbnail(client.user?.displayAvatarURL() ?? null)
-                        .setTimestamp();
-                    
-                    await textChannel.send({ embeds: [embed] });
-                    console.log(`[internal/join] アナウンス送信完了: ギルド ${guildId} チャンネル ${finalTextChannelId}`);
+                // 既存のvoiceClientsをvoiceChannelIdで管理
+                const prev = getVoiceConnection(voiceChannelId);
+                if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+                const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+                voiceClients[voiceChannelId] = connection;
+                setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
+
+                // 音声アナウンスを再生
+                try {
+                    const { speakAnnounce } = await import('./utils/TTS-Engine');
+                    await speakAnnounce('接続しました', voiceChannelId, client);
+                    console.log(`[internal/join] 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
+                } catch (voiceAnnounceError) {
+                    console.error(`[internal/join] 音声アナウンスエラー: ギルド ${guildId} チャンネル ${voiceChannelId}:`, voiceAnnounceError);
                 }
+
+                return res.json({
+                    ok: true,
+                    textChannelId: finalTextChannelId,
+                    message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+                });
+                // テキストチャンネルを取得してアナウンス送信
+                                                let textChannel: any = null;
+                                                // await の間に client.guilds.cache の状態が変わるため、ここで改めてギルド参照を取得する
+                                                const guildRef = client.guilds.cache.get(guildId) || await client.guilds.fetch(guildId).catch(() => null);
+                                                if (finalTextChannelId && guildRef) {
+                                                    // guildRef が nullable の可能性があるため optional chaining / any キャストで安全にアクセスする
+                                                    textChannel = (guildRef as any).channels?.cache.get(finalTextChannelId) ?? null;
+                                                    if (!textChannel) {
+                                                        textChannel = await (guildRef as any).channels?.fetch(finalTextChannelId).catch(() => null);
+                                                    }
+                                                }
+                                                if (textChannel && textChannel.isTextBased && textChannel.isTextBased()) {
+                                                    const { EmbedBuilder } = require('discord.js');
+                                                    const embed = new EmbedBuilder()
+                                                        .setTitle('✅ ボイスチャンネル接続完了')
+                                                        .setDescription(`<#${voiceChannelId}> に参加しました。`)
+                                                        .addFields(
+                                                            { name: '接続先', value: `<#${voiceChannelId}>`, inline: true },
+                                                            { name: 'テキストチャンネル', value: `<#${finalTextChannelId}>`, inline: true }
+                                                        )
+                                                        .setColor(0x00ff00)
+                                                        .setThumbnail(client.user?.displayAvatarURL() ?? null)
+                                                        .setTimestamp();
+                                                    
+                                                    await textChannel.send({ embeds: [embed] });
+                                                    console.log(`[internal/join] アナウンス送信完了: ギルド ${guildId} チャンネル ${finalTextChannelId}`);
+                                                }
             } catch (announceError) {
                 console.error(`[internal/join] アナウンス送信エラー: ギルド ${guildId}:`, announceError);
             }
