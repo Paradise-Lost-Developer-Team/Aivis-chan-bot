@@ -82,17 +82,19 @@
                             <div class="add-entry">
                                 <input type="text" id="new-word" placeholder="単語を入力">
                                 <input type="text" id="new-pronunciation" placeholder="発音を入力">
-                                <select id="new-accent">
-                                    <option value="">アクセント指定（省略可）</option>
-                                    <!-- アクセントオプションは動的に読み込まれます -->
-                                </select>
+                                <input type="text" id="new-accent" placeholder="アクセント指定（省略可）">
                                 <select id="new-word-type">
                                     <option value="">品詞指定（省略可）</option>
                                     <option value="PROPER_NOUN">固有名詞</option>
+                                    <option value="LOCATION_NAME">地名</option>
+                                    <option value="ORGANIZATION_NAME">組織名</option>
+                                    <option value="PERSON_NAME">人名</option>
+                                    <option value="FAMILY_NAME">姓</option>
+                                    <option value="GIVEN_NAME">名</option>
                                     <option value="COMMON_NOUN">普通名詞</option>
                                     <option value="VERB">動詞</option>
                                     <option value="ADJECTIVE">形容詞</option>
-                                    <option value="ADVERB">副詞</option>
+                                    <option value="SUFFIX">語尾</option>
                                 </select>
                                 <button id="add-dictionary-entry">エントリー追加</button>
                             </div>

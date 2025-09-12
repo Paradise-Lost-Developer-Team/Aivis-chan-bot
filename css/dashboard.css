@@ -395,6 +395,23 @@
     font-size: 14px;
 }
 
+#dictionary-entries {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#dictionary-entries li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
 .dictionary-controls button {
     background: #38a169;
     color: white;
@@ -465,8 +482,26 @@
 }
 
 .dictionary-entry .reading {
-    color: #666;
+    color: #007bff;
     font-style: italic;
+}
+
+.dictionary-entry .accent {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.dictionary-entry .word-type {
+    color: #28a745;
+    font-size: 0.85em;
+    background: #e8f5e8;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-left: 5px;
+}
+
+.dictionary-entry .entry-info {
+    flex-grow: 1;
 }
 
 .dictionary-entry button {

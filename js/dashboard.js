@@ -444,6 +444,8 @@ class Dashboard {
     async addDictionaryEntry() {
         const word = document.getElementById('new-word').value.trim();
         const pronunciation = document.getElementById('new-pronunciation').value.trim();
+        const accent = document.getElementById('new-accent').value.trim();
+        const wordType = document.getElementById('new-word-type').value;
 
         if (!word || !pronunciation) {
             alert('単語と発音を入力してください。');
@@ -453,14 +455,28 @@ class Dashboard {
         try {
             // 辞書エントリを保存（実際のAPIがないのでローカルストレージを使用）
             const entries = this.getDictionaryEntries();
-            entries.push({ word, pronunciation, id: Date.now() });
+            const newEntry = { 
+                word, 
+                pronunciation, 
+                accent: accent || null,
+                wordType: wordType || null,
+                id: Date.now() 
+            };
+            entries.push(newEntry);
             localStorage.setItem('dictionary-entries', JSON.stringify(entries));
 
+            // フォームをクリア
             document.getElementById('new-word').value = '';
             document.getElementById('new-pronunciation').value = '';
+            document.getElementById('new-accent').value = '';
+            document.getElementById('new-word-type').value = '';
+            
             this.renderDictionaryEntries();
+            
+            alert('辞書エントリが追加されました。');
         } catch (error) {
             console.error('Failed to add dictionary entry:', error);
+            alert('辞書エントリの追加に失敗しました。');
         }
     }
 
@@ -477,19 +493,41 @@ class Dashboard {
         const container = document.getElementById('dictionary-entries');
         container.innerHTML = '';
 
-        entries.forEach(entry => {
-            const entryDiv = document.createElement('div');
-            entryDiv.className = 'dictionary-entry';
+        if (entries.length === 0) {
+            container.innerHTML = '<li style="color: #666; padding: 10px;">辞書エントリーがありません</li>';
+            return;
+        }
 
-            entryDiv.innerHTML = `
-                <div>
-                    <span class="word">${entry.word}</span> -
-                    <span class="reading">${entry.reading}</span>
+        entries.forEach(entry => {
+            const listItem = document.createElement('li');
+            listItem.className = 'dictionary-entry';
+
+            // 品詞の日本語表示
+            const wordTypeText = {
+                'PROPER_NOUN': '固有名詞',
+                'COMMON_NOUN': '普通名詞',
+                'VERB': '動詞',
+                'ADJECTIVE': '形容詞',
+                'ADVERB': '副詞'
+            }[entry.wordType] || '';
+
+            // エントリーの詳細情報を構築
+            let details = `<span class="reading">${entry.pronunciation}</span>`;
+            if (entry.accent) {
+                details += ` <span class="accent">[${entry.accent}]</span>`;
+            }
+            if (wordTypeText) {
+                details += ` <span class="word-type">(${wordTypeText})</span>`;
+            }
+
+            listItem.innerHTML = `
+                <div class="entry-info">
+                    <span class="word">${entry.word}</span> - ${details}
                 </div>
                 <button onclick="dashboard.deleteDictionaryEntry(${entry.id})">削除</button>
             `;
 
-            container.appendChild(entryDiv);
+            container.appendChild(listItem);
         });
     }
 
