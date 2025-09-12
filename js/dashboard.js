@@ -812,7 +812,7 @@ class Dashboard {
     }
 
     async saveSettings() {
-        this.setButtonLoading('save-settings', true);
+        this.setButtonLoading('save-settings', true, '音声設定を保存中');
         
         const settings = {
             defaultSpeaker: document.getElementById('default-speaker').value,
@@ -850,16 +850,21 @@ class Dashboard {
                     const result = await response.json();
                     console.log('Settings saved to server:', result);
                     logger.success('音声設定が正常に保存されました');
+                    this.showButtonSuccess('save-settings', '保存完了');
                 } else {
                     console.error('Failed to save settings to server:', response.statusText);
                     logger.error(`設定保存に失敗しました: ${response.statusText}`);
+                    this.showButtonError('save-settings', '保存失敗');
                 }
+            } else {
+                this.showButtonSuccess('save-settings', '保存完了');
             }
 
             alert('設定を保存しました。');
         } catch (error) {
             console.error('Failed to save settings:', error);
             logger.error('設定保存中にエラーが発生しました');
+            this.showButtonError('save-settings', 'エラー発生');
             alert('設定の保存中にエラーが発生しました。');
         } finally {
             this.setButtonLoading('save-settings', false);
@@ -889,7 +894,7 @@ class Dashboard {
 
     async savePersonalSettings() {
         // ローディング状態を開始
-        this.setButtonLoading('save-personal', true);
+        this.setButtonLoading('save-personal', true, '個人設定を保存中');
 
         const settings = {
             personalSpeaker: document.getElementById('personal-speaker').value,
@@ -922,16 +927,21 @@ class Dashboard {
                     const result = await response.json();
                     console.log('Personal settings saved to server:', result);
                     logger.success('個人設定が正常に保存されました');
+                    this.showButtonSuccess('save-personal', '保存完了');
                 } else {
                     console.error('Failed to save personal settings to server:', response.statusText);
                     logger.error(`個人設定保存に失敗しました: ${response.statusText}`);
+                    this.showButtonError('save-personal', '保存失敗');
                 }
+            } else {
+                this.showButtonSuccess('save-personal', '保存完了');
             }
 
             alert('個人設定を保存しました。');
         } catch (error) {
             console.error('Failed to save personal settings:', error);
             logger.error('個人設定保存中にエラーが発生しました');
+            this.showButtonError('save-personal', 'エラー発生');
             alert('個人設定の保存中にエラーが発生しました。');
         } finally {
             // ローディング状態を終了
@@ -963,7 +973,7 @@ class Dashboard {
     }
 
     async saveDictionarySettings() {
-        this.setButtonLoading('save-dictionary', true);
+        this.setButtonLoading('save-dictionary', true, '辞書設定を保存中');
         
         try {
             // 現在の辞書エントリーを取得
@@ -990,16 +1000,21 @@ class Dashboard {
                     const result = await response.json();
                     console.log('Dictionary saved to server:', result);
                     logger.success('辞書設定が正常に保存されました');
+                    this.showButtonSuccess('save-dictionary', '保存完了');
                 } else {
                     console.error('Failed to save dictionary to server:', response.statusText);
                     logger.error(`辞書設定保存に失敗しました: ${response.statusText}`);
+                    this.showButtonError('save-dictionary', '保存失敗');
                 }
+            } else {
+                this.showButtonSuccess('save-dictionary', '保存完了');
             }
 
             alert('辞書設定を保存しました。');
         } catch (error) {
             console.error('Failed to save dictionary settings:', error);
             logger.error('辞書設定保存中にエラーが発生しました');
+            this.showButtonError('save-dictionary', 'エラー発生');
             alert('辞書設定の保存に失敗しました。');
         } finally {
             this.setButtonLoading('save-dictionary', false);
