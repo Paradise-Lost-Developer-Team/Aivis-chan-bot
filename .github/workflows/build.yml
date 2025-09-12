@@ -102,6 +102,7 @@ jobs:
           
           # Build and push the image
           /usr/local/bin/buildctl build \
+            --no-cache \
             --frontend dockerfile.v0 \
             --local context=. \
             --local dockerfile=. \
