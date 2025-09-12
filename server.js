@@ -679,6 +679,9 @@ app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
 
         fs.writeFileSync(settingsFile, JSON.stringify(settingsData, null, 2));
 
+        // 全Botに即座に設定更新を通知
+        await notifyBotsSettingsUpdate(guildId, 'settings');
+
         res.json({ success: true, message: '設定を保存しました' });
     } catch (error) {
         console.error('Settings save error:', error);
@@ -729,6 +732,9 @@ app.post('/api/personal-settings', requireAuth, express.json(), async (req, res)
         };
 
         fs.writeFileSync(personalFile, JSON.stringify(personalData, null, 2));
+
+        // 全Botに即座に設定更新を通知
+        await notifyBotsSettingsUpdate(guildId, 'personal-settings');
 
         res.json({ success: true, message: '個人設定を保存しました' });
     } catch (error) {
@@ -782,6 +788,9 @@ app.post('/api/dictionary', requireAuth, express.json(), async (req, res) => {
 
         fs.writeFileSync(dictionaryFile, JSON.stringify(dictionaryData, null, 2));
 
+        // 全Botに即座に設定更新を通知
+        await notifyBotsSettingsUpdate(guildId, 'dictionary');
+
         res.json({ success: true, message: '辞書を保存しました' });
     } catch (error) {
         console.error('Dictionary save error:', error);
@@ -805,6 +814,46 @@ app.get('/api/dictionary/:guildId', requireAuth, (req, res) => {
         res.status(500).json({ error: '辞書の読み込みに失敗しました' });
     }
 });
+
+// 全Botに設定更新を通知する関数
+async function notifyBotsSettingsUpdate(guildId, settingsType) {
+    const botServices = [
+        'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
+        'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3001',
+        'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3001',
+        'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3001',
+        'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3001',
+        'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3001',
+        'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
+    ];
+
+    const notifications = botServices.map(async (botUrl) => {
+        try {
+            console.log(`通知送信中: ${botUrl} (Guild: ${guildId}, Type: ${settingsType})`);
+            const response = await axios.post(`${botUrl}/internal/reload-settings`, {
+                guildId: guildId,
+                settingsType: settingsType
+            }, {
+                timeout: 3000,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.status === 200) {
+                console.log(`✓ Bot通知成功: ${botUrl}`);
+            } else {
+                console.warn(`⚠ Bot通知失敗: ${botUrl} (Status: ${response.status})`);
+            }
+        } catch (error) {
+            console.warn(`⚠ Bot通知エラー: ${botUrl} - ${error.message}`);
+        }
+    });
+
+    // すべての通知を並行実行（エラーがあっても続行）
+    await Promise.allSettled(notifications);
+    console.log(`設定更新通知完了 (Guild: ${guildId}, Type: ${settingsType})`);
+}
 
 // Patreonリンク取得ヘルパー関数
 async function getPatreonLink(discordId) {
