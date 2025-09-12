@@ -103,9 +103,7 @@ process.on('SIGTERM', gracefulShutdown);
 async function gracefulShutdown() {
     console.log('シャットダウン中...');
     // voice connectionsはclient.destroy()で自動的に切断される
-    
-    // Discordクライアントからログアウト
-    await client.destroy();
+    // 必要なら追加のクリーンアップをここに入れる
     console.log('正常にシャットダウンしました');
     process.exit(0);
 }
@@ -126,13 +124,7 @@ client.once("ready", async () => {
             } catch (e) {
                 console.warn(`ギルド${guildId}のVoiceConnectionがReadyになりませんでした:`, e);
             }
-        };
-        for (const [guildId, vc] of Object.entries(voiceClients) as [string, VoiceConnection][]) {
-            if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
-                await waitForReady(vc, guildId);
-            }
-        }
-        
+    }
         // 会話統計トラッキングサービスの初期化
         console.log("会話分析サービスを初期化しています...");
         const conversationTrackingService = ConversationTrackingService.getInstance(client);
@@ -145,12 +137,11 @@ client.once("ready", async () => {
         setupVoiceStampEvents(client);
         console.log("ボイススタンプ機能の初期化が完了しました");
 
-        AivisAdapter();
+    AivisAdapter();
         console.log("AivisAdapter初期化完了");
 
         // Webダッシュボードから設定を読み込み
         await loadWebDashboardSettings();
-
         // 定期的に設定を再読み込み（30分ごと）
         setInterval(async () => {
             try {
