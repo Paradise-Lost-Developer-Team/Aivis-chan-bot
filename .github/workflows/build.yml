@@ -9,6 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  REGISTRY_OWNER: paradise-lost-developer-team
   IMAGE_NAME: aivis-chan-bot-web
 
 jobs:
@@ -88,7 +89,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/alexandergg-0520/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -105,5 +106,5 @@ jobs:
             --frontend dockerfile.v0 \
             --local context=. \
             --local dockerfile=. \
-            --output type=image,name=${{ env.REGISTRY }}/alexandergg-0520/${{ env.IMAGE_NAME }}:latest,push=true \
-            --output type=image,name=${{ env.REGISTRY }}/alexandergg-0520/${{ env.IMAGE_NAME }}:${{ github.sha }},push=true
+            --output type=image,name=${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}:latest,push=true \
+            --output type=image,name=${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }},push=true
