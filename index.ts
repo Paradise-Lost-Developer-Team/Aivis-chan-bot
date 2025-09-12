@@ -6,6 +6,7 @@ import * as path from "path";
 import { AivisAdapter } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
+import { setupVoiceStateUpdateHandlers } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
 import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
 import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
@@ -157,6 +158,7 @@ client.once("ready", async () => {
 
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
+        setupVoiceStateUpdateHandlers(client);
         console.log("起動完了");
         client.user!.setActivity("起動完了", { type: ActivityType.Playing });
         
