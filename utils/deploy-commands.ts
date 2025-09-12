@@ -1,10 +1,30 @@
 import { Routes } from 'discord-api-types/v9';
 import { REST } from '@discordjs/rest';
 import { ExtendedClient } from '../index';
-import { clientId, TOKEN } from '../data/config.json';
 import fs from 'node:fs';
 import path from 'node:path';
 import { logError } from './errorLogger';
+
+// ビルド時には設定ファイルが存在しないため、動的インポートを使用
+let clientId: string = '';
+let TOKEN: string = '';
+
+try {
+    if (fs.existsSync(path.join(__dirname, '..', 'data', 'config.json'))) {
+        const config = require('../data/config.json');
+        clientId = config.clientId;
+        TOKEN = config.TOKEN;
+    } else {
+        // ビルド時や設定ファイルが存在しない場合のフォールバック
+        console.log('設定ファイルが見つかりません。環境変数から読み込みます。');
+        clientId = process.env.CLIENT_ID || '';
+        TOKEN = process.env.DISCORD_TOKEN || '';
+    }
+} catch (error) {
+    console.log('設定ファイルの読み込みに失敗しました。環境変数から読み込みます。');
+    clientId = process.env.CLIENT_ID || '';
+    TOKEN = process.env.DISCORD_TOKEN || '';
+}
 console.log("deploy-commands.tsを開始します");
 // コマンドを読み込む共通関数
 const loadCommands = async (sourcePath: string, client?: ExtendedClient): Promise<any[]> => {
@@ -59,6 +79,14 @@ const registerCommands = async (commands: any[]) => {
         console.log('登録するコマンドがありません');
         return;
     }
+
+    // 設定値の検証
+    if (!clientId || !TOKEN) {
+        console.log('設定が不完全です。コマンド登録をスキップします。');
+        console.log(`clientId: ${clientId ? '設定済み' : '未設定'}, TOKEN: ${TOKEN ? '設定済み' : '未設定'}`);
+        return;
+    }
+
     const rest = new REST({ version: '9' }).setToken(TOKEN);
     try {
         console.log(`${commands.length}個のアプリケーション (/) コマンドの更新を開始しました。`);
