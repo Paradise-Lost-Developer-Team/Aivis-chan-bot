@@ -770,7 +770,8 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
 
 // ギルドごとにVoiceConnectionを確保・再利用する関数
 export function ensureVoiceConnection(guildId: string, voiceChannel: any): VoiceConnection {
-    let connection = voiceClients[guildId];
+    const vcId = voiceChannel?.id;
+    let connection = vcId ? voiceClients[vcId] : voiceClients[guildId];
     if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed) {
         connection = joinVoiceChannel({
             channelId: voiceChannel.id,
@@ -780,25 +781,30 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
         });
         // ここでリスナー上限を増やす（デフォルト10→50）
         connection.setMaxListeners(50);
-        voiceClients[guildId] = connection;
+        if (vcId) {
+            voiceClients[vcId] = connection;
+        } else {
+            voiceClients[guildId] = connection;
+        }
     }
     return connection;
 }
-async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
-    let vc = voiceClients[guildId];
+async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any, voiceChannelId?: string): Promise<void> {
+    // voiceClients is keyed by voiceChannelId in index.ts; prefer that if provided
+    let vc = voiceChannelId ? voiceClients[voiceChannelId] : voiceClients[guildId];
     // VoiceConnectionがない or Readyでなければ再接続
     if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsやjoinChannelsから取得
+        // 再接続にはvoiceChannel情報が必要なので、優先順位: explicit voiceChannelId -> autoJoinChannels -> joinChannels
         const auto = autoJoinChannels[guildId];
         const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
-        const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+        const resolvedVoiceChannelId = voiceChannelId || auto?.voiceChannelId || join?.voiceChannelId;
         const guild = client?.guilds?.cache?.get(guildId);
         let voiceChannel = null;
-        if (guild && voiceChannelId) {
-            voiceChannel = guild.channels.cache.get(voiceChannelId);
+        if (guild && resolvedVoiceChannelId) {
+            voiceChannel = guild.channels.cache.get(resolvedVoiceChannelId);
         }
         if (voiceChannel) {
-            console.log(`[VC DEBUG] ensureVoiceConnection: guildId=${guildId}, channelId=${voiceChannelId}`);
+            console.log(`[VC DEBUG] ensureVoiceConnection: guildId=${guildId}, channelId=${resolvedVoiceChannelId}`);
             vc = ensureVoiceConnection(guildId, voiceChannel);
             try {
                 console.log(`[VC DEBUG] entersState before: status=${vc.state.status}`);
@@ -809,7 +815,7 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
                 return;
             }
         } else {
-            console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${voiceChannelId}, guild=${!!guild}`);
+            console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${resolvedVoiceChannelId}, guild=${!!guild}`);
             return;
         }
     }
@@ -833,22 +839,24 @@ export function speakVoice(text: string, userId: string | number, guildId: strin
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-function resolveGuildIdFromVoiceOrGuildId_5th(id: string, client?: any): string | undefined {
-    try { const vc = (voiceClients as any)[id]; if (vc && vc.joinConfig && (vc.joinConfig as any).guildId) return (vc.joinConfig as any).guildId; } catch {}
-    try { const tc = (textChannels as any)[id]; if (tc && tc.guild) return tc.guild.id; } catch {}
+function resolveGuildAndVoiceChannel_5th(id: string, client?: any): { guildId?: string; voiceChannelId?: string } {
+    try { const vc = (voiceClients as any)[id]; if (vc && vc.joinConfig && (vc.joinConfig as any).guildId) return { guildId: (vc.joinConfig as any).guildId, voiceChannelId: id }; } catch {}
+    try { const tc = (textChannels as any)[id]; if (tc && tc.guild) return { guildId: tc.guild.id }; } catch {}
     if (client && client.guilds && client.guilds.cache) {
         for (const [gid, g] of client.guilds.cache) {
-            try { if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(id)) return gid; } catch {}
+            try { if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(id)) return { guildId: gid, voiceChannelId: id }; } catch {}
         }
-        if (client.guilds.cache.has(id)) return id;
+        if (client.guilds.cache.has(id)) return { guildId: id };
     }
-    return undefined;
+    return {};
 }
 
 export function speakAnnounce(text: string, voiceOrGuildId: string, client?: any): Promise<void> {
-    const guildId = resolveGuildIdFromVoiceOrGuildId_5th(voiceOrGuildId, client) ?? voiceOrGuildId;
+    const resolved = resolveGuildAndVoiceChannel_5th(voiceOrGuildId, client);
+    const guildId = resolved.guildId ?? voiceOrGuildId;
+    const voiceChannelId = resolved.voiceChannelId;
     const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client, voiceChannelId));
 }
 
 // ユーザー／ギルドごとのキュー管理
