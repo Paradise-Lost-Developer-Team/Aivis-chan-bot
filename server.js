@@ -1411,12 +1411,25 @@ app.get('/api/servers', async (req, res) => {
         const finalServers = DEBUG_MODE ? userGuilds : filteredServers;
         console.log(`[DEBUG] Debug mode: ${DEBUG_MODE}, Final servers count: ${finalServers.length}`);
         
-        // ユーザー情報を各サーバーに追加
-        const serversWithUserInfo = finalServers.map(server => ({
-            ...server,
-            nickname: req.user.nickname,
-            userIconUrl: req.user.avatarUrl
-        }));
+    // サーバーの iconUrl を正規化する（可能なら CDN の URL を組み立てる）
+    const normalizedServers = finalServers.map(s => {
+      // s may already contain iconUrl, or may include an 'icon' hash from Discord
+      let iconUrl = s.iconUrl || null;
+      if (!iconUrl) {
+        const iconHash = s.icon || s.iconHash || null;
+        if (iconHash) {
+          iconUrl = `https://cdn.discordapp.com/icons/${s.id}/${iconHash}.png`;
+        }
+      }
+      return Object.assign({}, s, { iconUrl });
+    });
+
+    // ユーザー情報を各サーバーに追加
+    const serversWithUserInfo = normalizedServers.map(server => ({
+      ...server,
+      nickname: req.user && req.user.nickname ? req.user.nickname : req.user && req.user.username ? req.user.username : null,
+      userIconUrl: req.user && req.user.avatarUrl ? req.user.avatarUrl : (req.user && req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` : null)
+    }));
 
         res.json(serversWithUserInfo);
     } catch (error) {
