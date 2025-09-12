@@ -748,7 +748,7 @@ class Dashboard {
     }
 
     // ローディング状態を管理する関数
-    setButtonLoading(buttonId, isLoading) {
+    setButtonLoading(buttonId, isLoading, message = null) {
         const button = document.getElementById(buttonId);
         if (!button) return;
         
@@ -757,13 +757,58 @@ class Dashboard {
         
         if (isLoading) {
             button.disabled = true;
+            button.classList.add('loading-button');
             if (textSpan) textSpan.style.display = 'none';
-            if (spinnerSpan) spinnerSpan.style.display = 'inline';
+            if (spinnerSpan) {
+                spinnerSpan.style.display = 'inline-flex';
+                if (message) {
+                    spinnerSpan.textContent = `⏳ ${message}...`;
+                }
+            }
         } else {
             button.disabled = false;
+            button.classList.remove('loading-button');
             if (textSpan) textSpan.style.display = 'inline';
             if (spinnerSpan) spinnerSpan.style.display = 'none';
         }
+    }
+
+    // 成功状態を表示する新しいメソッド
+    showButtonSuccess(buttonId, message = '完了', duration = 2000) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+        
+        const textSpan = button.querySelector('.button-text');
+        const originalText = textSpan ? textSpan.textContent : '';
+        
+        // 成功状態を表示
+        button.classList.add('success-animation');
+        if (textSpan) textSpan.textContent = `✅ ${message}`;
+        
+        // 一定時間後に元に戻す
+        setTimeout(() => {
+            button.classList.remove('success-animation');
+            if (textSpan) textSpan.textContent = originalText;
+        }, duration);
+    }
+
+    // エラー状態を表示する新しいメソッド
+    showButtonError(buttonId, message = 'エラー', duration = 3000) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+        
+        const textSpan = button.querySelector('.button-text');
+        const originalText = textSpan ? textSpan.textContent : '';
+        
+        // エラー状態を表示
+        button.classList.add('error-animation');
+        if (textSpan) textSpan.textContent = `❌ ${message}`;
+        
+        // 一定時間後に元に戻す
+        setTimeout(() => {
+            button.classList.remove('error-animation');
+            if (textSpan) textSpan.textContent = originalText;
+        }, duration);
     }
 
     async saveSettings() {

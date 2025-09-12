@@ -944,6 +944,212 @@ input:checked + .toggle-slider:before {
 }
 
 /* =================================
+   Enhanced Loading Animations
+   ================================= */
+
+/* Loading Spinner Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+/* Loading Spinner Styles */
+.loading-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #3182ce;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-spinner::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #3182ce;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 4px;
+}
+
+/* Button Loading States */
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: #e2e8f0 !important;
+    color: #a0aec0 !important;
+    transition: all 0.3s ease;
+}
+
+button:disabled:hover {
+    background-color: #e2e8f0 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Enhanced Button Loading */
+button .loading-spinner {
+    animation: bounce 1.2s ease-in-out infinite;
+}
+
+/* Shimmer Effect for Loading States */
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Progress Bar for Loading */
+.loading-progress {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: loading-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Loading Dots Animation */
+.loading-dots::after {
+    content: '';
+    animation: loading-dots 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+/* Card Loading State */
+.card-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.card-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+    border-radius: inherit;
+}
+
+.card-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #3182ce;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 11;
+}
+
+/* Loading Text Effects */
+.loading-text {
+    color: #64748b;
+    font-style: italic;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Loading Icon Rotation */
+.loading-icon {
+    animation: spin 2s linear infinite;
+    transform-origin: center;
+}
+
+/* Skeleton Loading for Text */
+.skeleton-text {
+    height: 1em;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+/* Loading States for Different Components */
+.loading-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-button .button-text {
+    opacity: 0.7;
+}
+
+.loading-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: loading-sweep 2s ease-in-out infinite;
+}
+
+/* Success/Error Animation */
+@keyframes checkmark {
+    0% { stroke-dashoffset: 50; }
+    100% { stroke-dashoffset: 0; }
+}
+
+@keyframes error-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.success-animation {
+    animation: bounce 0.6s ease-in-out;
+    color: #38a169;
+}
+
+.error-animation {
+    animation: error-shake 0.5s ease-in-out;
+    color: #e53e3e;
+}
+
+/* =================================
    Log Viewer Styles
    ================================= */
 .log-viewer {
