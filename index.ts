@@ -542,7 +542,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             console.log(`[internal/join] 音声アナウンス開始: ギルド ${guildId}`);
             const { speakAnnounce } = await import('./utils/TTS-Engine');
             console.log(`[internal/join] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('参加しました', guildId, client);
+            await speakAnnounce('接続しました', guildId, client);
             console.log(`[internal/join] 音声アナウンス再生完了: ギルド ${guildId}`);
         } catch (voiceAnnounceError) {
             console.error(`[internal/join] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
