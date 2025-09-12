@@ -5,7 +5,7 @@ import axios from 'axios';
 // 設定ファイルの読み込み
 const CONFIG_PATH = path.join(__dirname, '../data/config.json');
 const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-const { PATREON } = CONFIG;
+const { PATREON, DEVELOPER_IDS } = CONFIG;
 
 // Patreonの認証情報（環境変数優先）
 const CLIENT_ID = process.env.PATREON_CLIENT_ID || PATREON.CLIENT_ID;
@@ -150,6 +150,12 @@ export async function getGuildTier(guildId: string, client?: any): Promise<strin
       return 'free';
     }
 
+    // 開発者チェック：サーバー所有者が開発者なら自動的にプレミアム
+    if (isDeveloper(ownerId)) {
+      console.log(`${LOG_PREFIX} guild ${guildId} owner ${ownerId} is a developer - granting premium access`);
+      return 'premium';
+    }
+
     // サーバー所有者のティアを取得
     const ownerTier = await getUserTierByOwnership(ownerId, guildId);
     console.log(`${LOG_PREFIX} getGuildTier result for guild ${guildId}: ${ownerTier} (owner: ${ownerId})`);
@@ -161,9 +167,21 @@ export async function getGuildTier(guildId: string, client?: any): Promise<strin
   }
 }
 
-// ユーザーの所有権に基づくティア情報を取得
+// ユーザーが開発者かどうかをチェック
+export function isDeveloper(discordId: string): boolean {
+  return DEVELOPER_IDS && Array.isArray(DEVELOPER_IDS) && DEVELOPER_IDS.includes(discordId);
+}
+
+// ユーザーの所有権に基づくティア情報を取得（開発者特権含む）
 export async function getUserTierByOwnership(discordId: string, guildId?: string): Promise<string> {
   console.log(`${LOG_PREFIX} getUserTierByOwnership start for ${discordId}${guildId ? ` in guild ${guildId}` : ''}`);
+  
+  // 開発者チェック：開発者は自動的にプレミアム扱い
+  if (isDeveloper(discordId)) {
+    console.log(`${LOG_PREFIX} user ${discordId} is a developer - granting premium access`);
+    return 'premium';
+  }
+  
   console.log(`${LOG_PREFIX} current patreonUsers keys: ${Object.keys(patreonUsers)}`);
 
   // まず個人レベルのPatreon情報をチェック
@@ -611,5 +629,6 @@ export default {
   getUserTier: getUserTierByOwnership,
   getGuildTier,
   getPatreonMembershipDetails,
-  getPatreonDaysRemaining
+  getPatreonDaysRemaining,
+  isDeveloper
 };

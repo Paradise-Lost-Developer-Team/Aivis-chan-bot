@@ -117,10 +117,63 @@ async function handleLinkSubcommand(interaction: CommandInteraction) {
 
 async function handleStatusSubcommand(interaction: CommandInteraction) {
   // パトレオン連携からユーザー情報を取得
-  const { getUserTierByOwnership } = await import('../../utils/patreonIntegration');
-  const userTier = await getUserTierByOwnership(interaction.user.id);
+  const { getUserTierByOwnership, isDeveloper } = await import('../../utils/patreonIntegration');
+  
+  const userId = interaction.user.id;
+  const guildId = interaction.guildId;
+  const isUserDeveloper = isDeveloper(userId);
+  
+  // 開発者チェック
+  if (isUserDeveloper) {
+    // 開発者の場合の特別表示
+    const embed = addCommonFooter(
+      new EmbedBuilder()
+        .setTitle('🔧 開発者ステータス')
+        .setDescription('**開発者特権が適用されています**')
+        .setColor(0xFF0000)
+        .addFields(
+          { name: '🎯 ステータス', value: 'Developer (Premium Access)', inline: true },
+          { name: '💎 特典レベル', value: 'All Premium Features', inline: true },
+          { name: '🏢 このサーバー', value: guildId ? 'Premium Plan Active' : 'N/A', inline: true }
+        )
+    );
+
+    if (guildId) {
+      try {
+        // サーバー情報を取得
+        const guild = interaction.guild;
+        const isOwner = guild?.ownerId === userId;
+        
+        embed.addFields(
+          { name: '👑 サーバー所有権', value: isOwner ? 'あなたが所有者です' : 'あなたは所有者ではありません', inline: true },
+          { name: '🎁 開発者特典', value: '• 全プレミアム機能利用可能\n• 無制限の辞書エントリ\n• 優先サポート\n• 全ボイス利用可能', inline: false }
+        );
+
+        if (isOwner) {
+          embed.addFields({
+            name: '⚡ 自動付与',
+            value: 'あなたが所有するサーバーには自動的にプレミアムプランが付与されます。',
+            inline: false
+          });
+        }
+      } catch (error) {
+        console.error('開発者ステータス取得エラー:', error);
+      }
+    }
+
+    await interaction.reply({
+      embeds: [embed],
+      flags: MessageFlags.Ephemeral,
+      components: [getCommonLinksRow()]
+    });
+    return;
+  }
+
+  // 通常ユーザーのPatreon連携状況確認
+  const userTier = await getUserTierByOwnership(userId);
   let tierInfo = '連携されていません';
-  let color = 0x888888; // Using a gray color instead
+  let color = 0x888888;
+  
   if (userTier === 'free') {
     tierInfo = '連携済み (無料プラン)';
     color = 0x00AAFF;
@@ -131,21 +184,49 @@ async function handleStatusSubcommand(interaction: CommandInteraction) {
     tierInfo = '連携済み (Premium版)';
     color = 0xFF0000;
   }
+
   const embed = addCommonFooter(
     new EmbedBuilder()
       .setTitle('Patreon連携状況')
       .setDescription(`現在の連携状況: **${tierInfo}**`)
       .setColor(color)
   );
+
   if (userTier === 'free' || !userTier) {
     embed.addFields({
       name: 'アップグレード',
       value: 'Proまたはプレミアム特典を受けるには、Patreonで支援してください。\n`/patreon link` コマンドで連携できます。'
     });
+  } else {
+    // プレミアム/Proユーザーの場合、詳細情報を表示
+    embed.addFields({
+      name: '✨ 利用可能な特典',
+      value: userTier === 'premium' 
+        ? '• 全プレミアム機能\n• 無制限辞書\n• 独占ボイス\n• 優先サポート'
+        : '• 追加ボイス\n• 高品質音声\n• 拡張辞書',
+      inline: false
+    });
+
+    if (guildId) {
+      try {
+        const guild = interaction.guild;
+        const isOwner = guild?.ownerId === userId;
+        embed.addFields({
+          name: '🏢 このサーバーでの特典',
+          value: isOwner 
+            ? '✅ あなたが所有者のため、このサーバーで特典が利用できます'
+            : '❌ このサーバーの所有者ではないため、特典は利用できません',
+          inline: false
+        });
+      } catch (error) {
+        console.error('ギルド情報取得エラー:', error);
+      }
+    }
   }
+
   await interaction.reply({
     embeds: [embed],
-  flags: MessageFlags.Ephemeral,
+    flags: MessageFlags.Ephemeral,
     components: [getCommonLinksRow()]
   });
 }
