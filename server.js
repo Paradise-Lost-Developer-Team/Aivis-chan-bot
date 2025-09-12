@@ -1085,13 +1085,13 @@ app.get('/api/servers', async (req, res) => {
         // Botが参加しているギルドIDを取得
         const botGuildIds = new Set();
         const BOTS = [
-            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st:3002' },
-            { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd:3003' },
-            { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd:3004' },
-            { name: '4th', baseUrl: 'http://aivis-chan-bot-4th:3005' },
-            { name: '5th', baseUrl: 'http://aivis-chan-bot-5th:3006' },
-            { name: '6th', baseUrl: 'http://aivis-chan-bot-6th:3007' },
-            { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium:3008' }
+            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
+            { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
+            { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
+            { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
+            { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
+            { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
+            { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
         ];
 
         // 各Botインスタンスからギルド情報を取得
