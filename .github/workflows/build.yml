@@ -5,6 +5,7 @@ on:
     branches: ["web"]
   pull_request:
     branches: ["web"]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
