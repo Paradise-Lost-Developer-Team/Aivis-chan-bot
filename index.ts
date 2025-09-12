@@ -738,7 +738,7 @@ async function loadWebDashboardSettings() {
         console.log('Webダッシュボードから設定を読み込んでいます...');
         
         // Web ダッシュボードサービスのURL
-        const webDashboardUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:3001';
+        const webDashboardUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local';
         
         // 各ギルドの設定を読み込み
         const guilds = client.guilds.cache;
