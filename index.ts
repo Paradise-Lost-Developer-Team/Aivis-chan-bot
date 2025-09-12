@@ -91,15 +91,23 @@ async function loadWebDashboardSettings() {
                     }
 
                     // 空の辞書でも処理する（上書きする）
-                    guildDictionaries[guild.id] = dictionaryResponse.data.dictionary.map((entry: any) => ({
-                        word: entry.word,
-                        pronunciation: entry.pronunciation,
-                        accent: entry.accent || '',
-                        wordType: entry.wordType || ''
-                    }));
+                    // TTS-Engine用の形式に変換: Array -> Object
+                    const convertedDictionary: Record<string, any> = {};
+                    dictionaryResponse.data.dictionary.forEach((entry: any) => {
+                        if (entry.word && entry.pronunciation) {
+                            convertedDictionary[entry.word] = {
+                                pronunciation: entry.pronunciation,
+                                accent: entry.accent || '',
+                                wordType: entry.wordType || ''
+                            };
+                        }
+                    });
+                    
+                    guildDictionaries[guild.id] = convertedDictionary;
 
                     fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
                     console.log(`辞書ファイル更新完了: ${guild.name} (${guild.id}) - ${dictionaryResponse.data.dictionary.length}エントリ`);
+                    console.log(`変換後の辞書構造:`, JSON.stringify(convertedDictionary, null, 2));
                 } else {
                     console.warn(`辞書データが取得できませんでした: ${guild.name} (${guild.id})`);
                 }
