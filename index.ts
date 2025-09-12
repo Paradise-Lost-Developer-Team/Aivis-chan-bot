@@ -40,6 +40,76 @@ client.commands = new Collection(); // コマンド用の Collection を作成
 
 const rest = new REST({ version: '9' }).setToken(TOKEN);
 
+// Webダッシュボードの設定を読み込む関数
+async function loadWebDashboardSettings() {
+    const webBaseUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:3001';
+    
+    try {
+        // 全ギルドの設定を読み込み
+        for (const guild of client.guilds.cache.values()) {
+            try {
+                const settingsResponse = await axios.get(`${webBaseUrl}/api/settings/${guild.id}`);
+                const dictionaryResponse = await axios.get(`${webBaseUrl}/api/dictionary/${guild.id}`);
+
+                // 設定を適用
+                if (settingsResponse.data?.settings) {
+                    const { voiceSettings } = await import('./utils/TTS-Engine');
+                    const settings = settingsResponse.data.settings;
+                    
+                    if (!voiceSettings[guild.id]) {
+                        voiceSettings[guild.id] = {};
+                    }
+                    
+                    Object.assign(voiceSettings[guild.id], {
+                        defaultSpeaker: settings.defaultSpeaker,
+                        defaultSpeed: settings.defaultSpeed,
+                        defaultPitch: settings.defaultPitch,
+                        defaultTempo: settings.defaultTempo,
+                        defaultVolume: settings.defaultVolume,
+                        defaultIntonation: settings.defaultIntonation
+                    });
+                }
+
+                // 辞書を適用
+                if (dictionaryResponse.data?.dictionary && dictionaryResponse.data.dictionary.length > 0) {
+                    const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+                    
+                    let guildDictionaries: Record<string, any> = {};
+                    if (fs.existsSync(dictionariesPath)) {
+                        try {
+                            guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+                        } catch (e) {
+                            console.warn('Failed to parse existing dictionaries:', e);
+                        }
+                    }
+
+                    guildDictionaries[guild.id] = dictionaryResponse.data.dictionary.map((entry: any) => ({
+                        word: entry.word,
+                        pronunciation: entry.pronunciation,
+                        accent: entry.accent || '',
+                        wordType: entry.wordType || ''
+                    }));
+
+                    fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+                }
+
+                console.log(`Web設定読み込み完了: ${guild.name}`);
+            } catch (guildError: any) {
+                console.warn(`Guild ${guild.name} の設定読み込み失敗:`, guildError.message);
+            }
+        }
+
+        // 設定を保存
+        const { voiceSettings } = await import('./utils/TTS-Engine');
+        const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+        fs.writeFileSync(settingsPath, JSON.stringify(voiceSettings, null, 2));
+
+    } catch (error: any) {
+        console.warn('Webダッシュボードとの通信失敗:', error.message);
+        throw error;
+    }
+}
+
 // 未処理の例外をハンドリング
 process.on('uncaughtException', (error) => {
     console.error('未処理の例外が発生しました：', error);
@@ -123,6 +193,14 @@ client.once("ready", async () => {
 
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
+        
+        // Webダッシュボードの設定を読み込み
+        try {
+            await loadWebDashboardSettings();
+            console.log("Webダッシュボード設定読み込み完了");
+        } catch (webError) {
+            console.warn("Webダッシュボード設定読み込み失敗:", webError);
+        }
         
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
@@ -496,6 +574,104 @@ apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
     } catch (e) {
         console.error('voice-settings error:', e);
         return res.status(500).json({ error: 'voice-settings-failed' });
+    }
+});
+
+// Webダッシュボードの設定を読み込むAPI
+apiApp.get('/internal/web-settings/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+
+        // WebダッシュボードのAPIから設定を取得
+        const webBaseUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:3001';
+        
+        try {
+            // サーバー設定を取得
+            const settingsResponse = await axios.get(`${webBaseUrl}/api/settings/${guildId}`);
+            const personalResponse = await axios.get(`${webBaseUrl}/api/personal-settings/${guildId}`);
+            const dictionaryResponse = await axios.get(`${webBaseUrl}/api/dictionary/${guildId}`);
+
+            const result = {
+                settings: settingsResponse.data?.settings || null,
+                personalSettings: personalResponse.data?.settings || null,
+                dictionary: dictionaryResponse.data?.dictionary || []
+            };
+
+            return res.json(result);
+        } catch (webError: any) {
+            console.warn('Failed to fetch web dashboard settings:', webError.message);
+            return res.json({ 
+                settings: null, 
+                personalSettings: null, 
+                dictionary: [],
+                error: 'web-dashboard-unavailable'
+            });
+        }
+    } catch (e) {
+        console.error('web-settings error:', e);
+        return res.status(500).json({ error: 'web-settings-failed' });
+    }
+});
+
+// 設定をBotに適用するAPI
+apiApp.post('/internal/apply-web-settings/:guildId', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        const { settings, personalSettings, dictionary } = req.body;
+
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+
+        // TTS設定を適用
+        if (settings) {
+            const { voiceSettings } = await import('./utils/TTS-Engine');
+            
+            // デフォルト設定を適用
+            if (!voiceSettings[guildId]) {
+                voiceSettings[guildId] = {};
+            }
+            
+            voiceSettings[guildId].defaultSpeaker = settings.defaultSpeaker || voiceSettings[guildId].defaultSpeaker;
+            voiceSettings[guildId].defaultSpeed = settings.defaultSpeed || voiceSettings[guildId].defaultSpeed;
+            voiceSettings[guildId].defaultPitch = settings.defaultPitch || voiceSettings[guildId].defaultPitch;
+            voiceSettings[guildId].defaultTempo = settings.defaultTempo || voiceSettings[guildId].defaultTempo;
+            voiceSettings[guildId].defaultVolume = settings.defaultVolume || voiceSettings[guildId].defaultVolume;
+            voiceSettings[guildId].defaultIntonation = settings.defaultIntonation || voiceSettings[guildId].defaultIntonation;
+            
+            // 設定を保存
+            const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+            fs.writeFileSync(settingsPath, JSON.stringify(voiceSettings, null, 2));
+        }
+
+        // 辞書を適用
+        if (dictionary && dictionary.length > 0) {
+            const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+            
+            let guildDictionaries: Record<string, any> = {};
+            if (fs.existsSync(dictionariesPath)) {
+                try {
+                    guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+                } catch (e) {
+                    console.warn('Failed to parse existing dictionaries:', e);
+                }
+            }
+
+            // 辞書エントリーを適切な形式に変換
+            const convertedDictionary = dictionary.map((entry: any) => ({
+                word: entry.word,
+                pronunciation: entry.pronunciation,
+                accent: entry.accent || '',
+                wordType: entry.wordType || ''
+            }));
+
+            guildDictionaries[guildId] = convertedDictionary;
+            fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+        }
+
+        return res.json({ success: true, message: 'Settings applied successfully' });
+    } catch (e) {
+        console.error('apply-web-settings error:', e);
+        return res.status(500).json({ error: 'apply-settings-failed' });
     }
 });
 
