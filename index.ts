@@ -544,6 +544,24 @@ apiApp.get('/internal/info', async (req: Request, res: Response) => {
     }
 });
 
+// 即座に設定をリロードするエンドポイント
+apiApp.post('/internal/reload-settings', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, settingsType } = req.body;
+        
+        console.log(`即座に設定リロード要求受信 - Guild: ${guildId}, Type: ${settingsType}`);
+        
+        // 全ギルドの設定をリロード
+        await loadWebDashboardSettings();
+        
+        console.log(`設定リロード完了 - Guild: ${guildId || 'ALL'}`);
+        return res.json({ success: true, message: 'Settings reloaded successfully' });
+    } catch (error) {
+        console.error('設定リロードエラー:', error);
+        return res.status(500).json({ error: 'Failed to reload settings' });
+    }
+});
+
 client.login(TOKEN).catch(error => {
     console.error("ログインエラー:", error);
     logError('loginError', error);
