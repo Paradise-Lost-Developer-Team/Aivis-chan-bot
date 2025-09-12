@@ -798,14 +798,30 @@ function applyGuildSettings(guildId: string, settings: any) {
 // ギルド辞書を適用する関数
 function applyGuildDictionary(guildId: string, dictionary: any[]) {
     try {
-        // 辞書ファイルに保存
-        const dictionaryDir = path.join(DATA_DIR, 'guild-dictionaries');
-        if (!fs.existsSync(dictionaryDir)) {
-            fs.mkdirSync(dictionaryDir, { recursive: true });
+        const dictionariesPath = path.join(DATA_DIR, 'guild_dictionaries.json');
+        let guildDictionaries: Record<string, any> = {};
+        if (fs.existsSync(dictionariesPath)) {
+            try {
+                guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+            } catch (e) {
+                console.warn('Failed to parse existing dictionaries:', e);
+            }
         }
-        
-        const dictionaryFile = path.join(dictionaryDir, `${guildId}.json`);
-        fs.writeFileSync(dictionaryFile, JSON.stringify(dictionary, null, 2));
+
+        // 辞書エントリーを適切な形式に変換（TTS-Engine用のObject形式）
+        const convertedDictionary: Record<string, any> = {};
+        dictionary.forEach((entry: any) => {
+            if (entry.word && entry.pronunciation) {
+                convertedDictionary[entry.word] = {
+                    pronunciation: entry.pronunciation,
+                    accent: entry.accent || '',
+                    wordType: entry.wordType || ''
+                };
+            }
+        });
+
+        guildDictionaries[guildId] = convertedDictionary;
+        fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
         
         console.log(`ギルド ${guildId} の辞書を保存しました (${dictionary.length}件)`);
     } catch (error) {
