@@ -850,18 +850,36 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
 
 // ギルドごとにVoiceConnectionを確保・再利用する関数
 export function ensureVoiceConnection(guildId: string, voiceChannel: any): VoiceConnection {
-    let connection = voiceClients[guildId];
-    if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed) {
-        connection = joinVoiceChannel({
-            channelId: voiceChannel.id,
-            guildId: guildId,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-            selfDeaf: false,
-        });
-        // ここでリスナー上限を増やす（デフォルト10→50）
-        connection.setMaxListeners(50);
-        voiceClients[guildId] = connection;
+    const vcId = voiceChannel && voiceChannel.id ? voiceChannel.id : undefined;
+
+    // try existing by voiceChannelId first, then guildId
+    let connection: VoiceConnection | undefined = vcId ? (voiceClients as any)[vcId] : undefined;
+    if (!connection) connection = (voiceClients as any)[guildId];
+
+    // drop destroyed connections
+    if (connection && connection.state && connection.state.status === VoiceConnectionStatus.Destroyed) {
+        connection = undefined;
     }
+
+    if (connection) return connection;
+
+    // validate voiceChannel
+    if (!voiceChannel || !vcId || !voiceChannel.guild || !voiceChannel.guild.voiceAdapterCreator) {
+        throw new Error(`ensureVoiceConnection: invalid voiceChannel provided for guild=${guildId}`);
+    }
+
+    connection = joinVoiceChannel({
+        channelId: vcId,
+        guildId: guildId,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        selfDeaf: false,
+    });
+    connection.setMaxListeners(50);
+
+    // store under both keys for compatibility
+    try { (voiceClients as any)[vcId] = connection; } catch {}
+    try { (voiceClients as any)[guildId] = connection; } catch {}
+
     return connection;
 }
 async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
@@ -1079,16 +1097,16 @@ function ensureDirectoryExists(filePath: string): void {
 
 export function getSpeakerOptions() {
     try {
-        if (!Array.isArray(speakers)) {
-            console.error("スピーカー情報が配列ではありません");
+        if (!Array.isArray(speakers) || speakers.length === 0) {
+            console.error("スピーカー情報が配列ではありません or 空です");
             return DEFAULT_SPEAKERS[0].styles.map(style => ({
                 label: `${DEFAULT_SPEAKERS[0].name} - ${style.name}`,
                 value: `${DEFAULT_SPEAKERS[0].name}-${style.name}-${style.id}`
             }));
         }
 
-        const options = [];
-        
+        const options: { label: string; value: string }[] = [];
+
         for (const speaker of speakers) {
             if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
                 for (const style of speaker.styles) {
@@ -1101,16 +1119,15 @@ export function getSpeakerOptions() {
                 }
             }
         }
-        
+
         if (options.length === 0) {
-            console.error("スピーカーオプションが生成できませんでした");
-            // デフォルトのオプションを追加
+            console.error("スピーカーオプションが生成できませんでした。デフォルトを返します。");
             return [{
                 label: "Anneli - ノーマル",
                 value: "Anneli-ノーマル-888753760"
             }];
         }
-        
+
         return options;
     } catch (error) {
         console.error("スピーカーオプション生成エラー:", error);
