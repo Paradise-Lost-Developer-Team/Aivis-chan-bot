@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, textChannels } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, monitorMemoryUsage, textChannels } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -17,9 +17,8 @@ try {
     console.warn('VoiceQueue モジュールが見つかりません。直接読み上げ処理を使用します。');
 }
 
-// updateLastSpeechTime と monitorMemoryUsage を安全に取得（存在しない場合は no-op を定義）
+// updateLastSpeechTime を安全に取得（存在しない場合は no-op を定義）
 let updateLastSpeechTime: () => void = () => {};
-let monitorMemoryUsage: () => void = () => {};
 try {
     const TTS = require('./TTS-Engine');
     if (typeof TTS.updateLastSpeechTime === 'function') {
@@ -28,11 +27,8 @@ try {
         // もし似た名前のエクスポートがあればそれを使う
         updateLastSpeechTime = TTS.updateLastSpokenTime;
     }
-    if (typeof TTS.monitorMemoryUsage === 'function') {
-        monitorMemoryUsage = TTS.monitorMemoryUsage;
-    }
 } catch (err) {
-    console.warn('TTS-Engine の updateLastSpeechTime / monitorMemoryUsage を取得できませんでした。no-op を使用します。');
+    console.warn('TTS-Engine の updateLastSpeechTime を取得できませんでした。no-op を使用します。');
 }
 
 interface ExtendedClient extends Client {
