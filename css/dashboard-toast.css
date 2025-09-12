@@ -1,0 +1,47 @@
+/* Toast styles for dashboard.js
+   - Right-top stacked toasts
+   - Simple fade/slide in/out animations
+   - Color variants: success, error, warn, info
+*/
+
+#toast-container {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none; /* allow clicks to pass through container except toasts */
+}
+
+.toast {
+  pointer-events: auto; /* make individual toasts clickable */
+  min-width: 220px;
+  max-width: 360px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  transform: translateY(-8px);
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+/* visible state handled inline by JS animation; provide utility class fallback */
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-success { background: #28a745; }
+.toast-error   { background: #d9534f; }
+.toast-warn    { background: #ff9800; }
+.toast-info    { background: #333; }
+
+/* small responsive tweak */
+@media (max-width: 520px) {
+  #toast-container { right: 12px; left: 12px; top: 12px; }
+  .toast { width: auto; max-width: calc(100% - 24px); }
+}

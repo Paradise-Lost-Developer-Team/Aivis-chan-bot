@@ -425,13 +425,13 @@ class Dashboard {
             });
 
             if (response.ok) {
-                alert('プレミアム設定を保存しました。');
+                    this.showSuccessToast('プレミアム設定を保存しました。');
             } else {
-                alert('設定の保存に失敗しました。');
+                    this.showErrorToast('設定の保存に失敗しました。');
             }
         } catch (error) {
             console.error('Failed to save premium settings:', error);
-            alert('設定の保存中にエラーが発生しました。');
+            this.showErrorToast('設定の保存中にエラーが発生しました。');
         }
     }
 
@@ -652,7 +652,7 @@ class Dashboard {
         const wordType = document.getElementById('new-word-type').value;
 
         if (!word || !pronunciation) {
-            alert('単語と発音を入力してください。');
+            this.showToast('単語と発音を入力してください。', 'warn');
             return;
         }
 
@@ -678,11 +678,11 @@ class Dashboard {
             this.renderDictionaryEntries();
             
             logger.success(`辞書エントリが追加されました: ${word} → ${pronunciation}`);
-            alert('辞書エントリが追加されました。');
+            this.showSuccessToast('辞書エントリが追加されました。');
         } catch (error) {
             console.error('Failed to add dictionary entry:', error);
             logger.error('辞書エントリーの追加に失敗しました');
-            alert('辞書エントリの追加に失敗しました。');
+            this.showErrorToast('辞書エントリの追加に失敗しました。');
         }
     }
 
@@ -811,6 +811,80 @@ class Dashboard {
         }, duration);
     }
 
+    // 汎用トースト通知 (alert の代替)
+    showToast(message, type = 'info', duration = 3500) {
+        try {
+            // トーストコンテナを作成
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.position = 'fixed';
+                container.style.right = '20px';
+                container.style.top = '20px';
+                container.style.zIndex = 10000;
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '8px';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            toast.style.minWidth = '200px';
+            toast.style.padding = '10px 14px';
+            toast.style.borderRadius = '6px';
+            toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+            toast.style.color = '#fff';
+            toast.style.fontSize = '14px';
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 200ms ease, transform 200ms ease';
+
+            // 色分け
+            if (type === 'success') {
+                toast.style.background = '#28a745';
+            } else if (type === 'error') {
+                toast.style.background = '#d9534f';
+            } else if (type === 'warn' || type === 'warning') {
+                toast.style.background = '#ff9800';
+            } else {
+                toast.style.background = '#333';
+            }
+
+            container.appendChild(toast);
+
+            // 表示アニメーション
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+
+            // 自動消去
+            const timeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 220);
+            }, duration);
+
+            // クリックで即時閉じる
+            toast.addEventListener('click', () => {
+                clearTimeout(timeout);
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 160);
+            });
+        } catch (e) {
+            console.error('showToast error', e);
+        }
+    }
+
+    showSuccessToast(message, duration = 3000) { this.showToast(message, 'success', duration); }
+    showErrorToast(message, duration = 4000) { this.showToast(message, 'error', duration); }
+    showInfoToast(message, duration = 3000) { this.showToast(message, 'info', duration); }
+
     async saveSettings() {
         this.setButtonLoading('save-settings', true, '音声設定を保存中');
         
@@ -860,12 +934,12 @@ class Dashboard {
                 this.showButtonSuccess('save-settings', '保存完了');
             }
 
-            alert('設定を保存しました。');
+            this.showSuccessToast('設定を保存しました。');
         } catch (error) {
             console.error('Failed to save settings:', error);
             logger.error('設定保存中にエラーが発生しました');
             this.showButtonError('save-settings', 'エラー発生');
-            alert('設定の保存中にエラーが発生しました。');
+            this.showErrorToast('設定の保存中にエラーが発生しました。');
         } finally {
             this.setButtonLoading('save-settings', false);
         }
@@ -937,12 +1011,12 @@ class Dashboard {
                 this.showButtonSuccess('save-personal', '保存完了');
             }
 
-            alert('個人設定を保存しました。');
+            this.showSuccessToast('個人設定を保存しました。');
         } catch (error) {
             console.error('Failed to save personal settings:', error);
             logger.error('個人設定保存中にエラーが発生しました');
             this.showButtonError('save-personal', 'エラー発生');
-            alert('個人設定の保存中にエラーが発生しました。');
+            this.showErrorToast('個人設定の保存中にエラーが発生しました。');
         } finally {
             // ローディング状態を終了
             this.setButtonLoading('save-personal', false);
@@ -1010,12 +1084,12 @@ class Dashboard {
                 this.showButtonSuccess('save-dictionary', '保存完了');
             }
 
-            alert('辞書設定を保存しました。');
+            this.showSuccessToast('辞書設定を保存しました。');
         } catch (error) {
             console.error('Failed to save dictionary settings:', error);
             logger.error('辞書設定保存中にエラーが発生しました');
             this.showButtonError('save-dictionary', 'エラー発生');
-            alert('辞書設定の保存に失敗しました。');
+            this.showErrorToast('辞書設定の保存に失敗しました。');
         } finally {
             this.setButtonLoading('save-dictionary', false);
         }
@@ -1030,7 +1104,7 @@ class Dashboard {
 
         try {
             localStorage.setItem('auto-connect-settings', JSON.stringify(settings));
-            alert('自動接続設定を保存しました。');
+            this.showSuccessToast('自動接続設定を保存しました。');
         } catch (error) {
             console.error('Failed to save auto-connect settings:', error);
         }
