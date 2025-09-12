@@ -17,7 +17,9 @@ module.exports = {
 
         try {
             // まずオーケストレータでサブボットの切断を試行
-            const success = await instructLeaveConnectedBot(guildId);
+            // 実行者のボイスチャンネルIDがあればそれを渡し、特定のVCのみを切断させる
+            const voiceChannelId = (interaction.member as any)?.voice?.channelId as string | undefined;
+            const success = await instructLeaveConnectedBot(guildId, voiceChannelId);
             
             if (success) {
                 await interaction.editReply({

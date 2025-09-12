@@ -87,7 +87,7 @@ export function VoiceStateUpdate(client: Client) {
                             const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                             const picked = pickLeastBusyBot(eligible);
                             if (picked) {
-                                await instructLeave(picked.bot, { guildId });
+                                await instructLeave(picked.bot, { guildId, voiceChannelId });
                                 await sendAutoLeaveEmbed(member, voiceChannelId, client, textChannelId, picked.bot.baseUrl);
                             }
                         } catch (error) {

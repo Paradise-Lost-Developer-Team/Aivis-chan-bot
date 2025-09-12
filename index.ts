@@ -817,15 +817,23 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
 
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
-        const { guildId } = req.body || {};
-        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+        const { guildId, voiceChannelId } = req.body || {};
+        if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
-        const prev = getVoiceConnection(guildId);
-        if (prev) {
-            try { prev.destroy(); } catch {}
+        if (voiceChannelId) {
+            const prev = getVoiceConnection(voiceChannelId);
+            if (prev) { try { prev.destroy(); } catch {} }
+            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+            try { delete (textChannels as any)[voiceChannelId]; } catch {}
+            try { delete (global as any).players?.[voiceChannelId]; } catch {}
+        } else if (guildId) {
+            const prev = getVoiceConnection(guildId);
+            if (prev) { try { prev.destroy(); } catch {} }
+            try { delete (voiceClients as any)[guildId]; } catch {}
+            try { delete (textChannels as any)[guildId]; } catch {}
+            try { delete (global as any).players?.[guildId]; } catch {}
         }
-        try { delete voiceClients[guildId]; } catch {}
-        try { delete (textChannels as any)[guildId]; } catch {}
+
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
     } catch (e) {
