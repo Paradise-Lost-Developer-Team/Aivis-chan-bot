@@ -611,23 +611,73 @@ class Dashboard {
 
                 data.forEach(server => {
                     const listItem = document.createElement('li');
+                    listItem.className = 'server-item';
+                    listItem.setAttribute('data-server-id', server.id);
 
                     const icon = document.createElement('img');
                     icon.src = server.iconUrl || '/default-icon.png';
                     icon.alt = `${server.name} icon`;
                     icon.classList.add('server-icon');
 
-                    const name = document.createElement('span');
+                    const serverInfo = document.createElement('div');
+                    serverInfo.className = 'server-info';
+
+                    const name = document.createElement('div');
+                    name.className = 'server-name';
                     name.textContent = server.name;
 
+                    const status = document.createElement('div');
+                    status.className = 'server-status';
+                    const statusIndicator = document.createElement('span');
+                    statusIndicator.className = 'status-indicator';
+                    const statusText = document.createElement('span');
+                    statusText.textContent = 'オンライン';
+                    status.appendChild(statusIndicator);
+                    status.appendChild(statusText);
+
+                    serverInfo.appendChild(name);
+                    serverInfo.appendChild(status);
+
                     listItem.appendChild(icon);
-                    listItem.appendChild(name);
+                    listItem.appendChild(serverInfo);
                     serverListContainer.appendChild(listItem);
+
+                    // クリックイベントを追加
+                    listItem.addEventListener('click', () => {
+                        this.selectServer(server.id, server.name);
+                    });
                 });
             })
             .catch(error => {
                 console.error('Failed to load servers:', error);
+                serverListContainer.innerHTML = '<li style="padding: 12px; color: #f44336;">サーバーの読み込みに失敗しました</li>';
             });
+    }
+
+    // サーバー選択処理
+    selectServer(serverId, serverName) {
+        console.log(`Selected server: ${serverName} (${serverId})`);
+        
+        // 現在の選択を解除
+        document.querySelectorAll('.server-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+
+        // 新しい選択を設定
+        const selectedItem = document.querySelector(`[data-server-id="${serverId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+        }
+
+        // ここで選択されたサーバーの設定画面を表示する処理を追加
+        this.loadServerSettings(serverId, serverName);
+    }
+
+    // サーバー設定読み込み
+    loadServerSettings(serverId, serverName) {
+        console.log(`Loading settings for server: ${serverName}`);
+        // TODO: サーバー固有の設定を読み込み、UIに反映する処理を実装
+        // 例: 選択されたサーバーの設定タブを表示、設定値を読み込み等
     }
 
     // ギルド情報の定期更新を開始

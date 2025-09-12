@@ -73,10 +73,110 @@
 
 /* ダッシュボード用CSS */
 .dashboard-container {
-    max-width: 1200px;
+    display: flex;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
+    gap: 20px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.main-dashboard {
+    flex: 1;
+}
+
+/* サイドバー */
+#sidebar {
+    width: 300px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+#sidebar h2 {
+    color: #2b6cb0;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+#server-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.server-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.server-item:hover {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    transform: translateY(-2px);
+}
+
+.server-item.selected {
+    background: #2196f3;
+    color: white;
+    border-color: #1976d2;
+}
+
+.server-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+}
+
+.server-info {
+    flex: 1;
+}
+
+.server-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.server-status {
+    font-size: 0.8em;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.server-item.selected .server-status {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+}
+
+.status-indicator.offline {
+    background: #f44336;
 }
 
 .dashboard-header {
@@ -705,6 +805,16 @@ input:checked + .toggle-slider:before {
 
 /* レスポンシブ */
 @media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    #sidebar {
+        width: 100%;
+        order: -1;
+        position: static;
+    }
+
     .dashboard-nav {
         flex-direction: column;
     }
