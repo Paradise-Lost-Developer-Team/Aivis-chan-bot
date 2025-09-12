@@ -75,7 +75,10 @@ async function loadWebDashboardSettings() {
                 }
 
                 // 辞書を適用
-                if (dictionaryResponse.data?.dictionary && dictionaryResponse.data.dictionary.length > 0) {
+                console.log(`辞書データを確認中: ${guild.name} (${guild.id})`);
+                if (dictionaryResponse.data?.dictionary) {
+                    console.log(`辞書エントリ数: ${dictionaryResponse.data.dictionary.length}`);
+                    
                     const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
                     
                     let guildDictionaries: Record<string, any> = {};
@@ -87,6 +90,7 @@ async function loadWebDashboardSettings() {
                         }
                     }
 
+                    // 空の辞書でも処理する（上書きする）
                     guildDictionaries[guild.id] = dictionaryResponse.data.dictionary.map((entry: any) => ({
                         word: entry.word,
                         pronunciation: entry.pronunciation,
@@ -95,6 +99,9 @@ async function loadWebDashboardSettings() {
                     }));
 
                     fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+                    console.log(`辞書ファイル更新完了: ${guild.name} (${guild.id}) - ${dictionaryResponse.data.dictionary.length}エントリ`);
+                } else {
+                    console.warn(`辞書データが取得できませんでした: ${guild.name} (${guild.id})`);
                 }
 
                 console.log(`Web設定読み込み完了: ${guild.name} (${guild.id})`);
