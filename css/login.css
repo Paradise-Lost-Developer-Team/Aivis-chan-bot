@@ -103,3 +103,11 @@ button:hover {
     color: #777;
     font-size: 0.9em;
 }
+
+.login-option {
+    display: none; /* デフォルトで非表示 */
+}
+
+.login-option.active {
+    display: block; /* アクティブな場合のみ表示 */
+}
