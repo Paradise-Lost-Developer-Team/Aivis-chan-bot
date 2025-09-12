@@ -588,7 +588,7 @@ async function loadWebDashboardSettings() {
         const guilds = client.guilds.cache;
         for (const [guildId, guild] of guilds) {
             try {
-                const settingsResponse = await axios.get(`${webDashboardUrl}/api/settings/${guildId}`, {
+                const settingsResponse = await axios.get(`${webDashboardUrl}/internal/settings/${guildId}`, {
                     timeout: 15000
                 });
                 
@@ -597,7 +597,7 @@ async function loadWebDashboardSettings() {
                     applyGuildSettings(guildId, settingsResponse.data.settings);
                 }
                 
-                const dictionaryResponse = await axios.get(`${webDashboardUrl}/api/dictionary/${guildId}`, {
+                const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, {
                     timeout: 15000
                 });
                 
