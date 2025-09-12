@@ -16,12 +16,15 @@ Global Dictionary APIは、読み上げBOT向けの共有辞書サービスで�
 全てのAPIエンドポイントでAPIキー認証が必要です。以下のいずれかの方法でAPIキーを送信してください：
 
 ### 方法1: X-API-Keyヘッダー（推奨）
-```
+
+```yaml
 X-API-Key: your_api_key_here
+
 ```
 
 ### 方法2: Authorizationヘッダー
-```
+
+```yaml
 Authorization: Bearer your_api_key_here
 ```
 
@@ -44,14 +47,17 @@ Authorization: Bearer your_api_key_here
 ### 1. ヘルスチェック
 
 #### `GET /`
+
 基本的なヘルスチェック
 
 **リクエスト例:**
+
 ```bash
 curl -X GET "https://dictapi.libertasmc.xyz/"
 ```
 
 **レスポンス例:**
+
 ```json
 {
   "status": "healthy",
@@ -66,15 +72,18 @@ curl -X GET "https://dictapi.libertasmc.xyz/"
 ### 2. 辞書統計情報
 
 #### `GET /stats`
+
 辞書の統計情報を取得
 
 **リクエスト例:**
+
 ```bash
 curl -X GET "https://dictapi.libertasmc.xyz/stats" \
   -H "X-API-Key: your_api_key_here"
 ```
 
 **レスポンス例:**
+
 ```json
 {
   "total_entries": 1234,
@@ -87,9 +96,11 @@ curl -X GET "https://dictapi.libertasmc.xyz/stats" \
 ### 3. 辞書登録
 
 #### `POST /register`
+
 新しい単語をグローバル辞書に登録（AI判定付き）
 
 **リクエストボディ:**
+
 ```json
 {
   "word": "変換前の単語",
@@ -99,11 +110,13 @@ curl -X GET "https://dictapi.libertasmc.xyz/stats" \
 ```
 
 **フィールド仕様:**
+
 - `word`: 1-100文字、必須
 - `kana`: 1-100文字、必須
 - `reason`: 1-500文字、必須
 
 **リクエスト例:**
+
 ```bash
 curl -X POST "https://dictapi.libertasmc.xyz/register" \
   -H "Content-Type: application/json" \
@@ -116,6 +129,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/register" \
 ```
 
 **成功レスポンス例:**
+
 ```json
 {
   "success": true,
@@ -131,6 +145,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/register" \
 ```
 
 **AI判定により却下された場合:**
+
 ```json
 {
   "success": false,
@@ -145,9 +160,11 @@ curl -X POST "https://dictapi.libertasmc.xyz/register" \
 ### 4. 単語検索
 
 #### `POST /search`
+
 辞書から単語を検索し、変換結果を即座に取得
 
 **リクエストボディ:**
+
 ```json
 {
   "word": "検索する単語"
@@ -155,6 +172,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/register" \
 ```
 
 **リクエスト例:**
+
 ```bash
 curl -X POST "https://dictapi.libertasmc.xyz/search" \
   -H "Content-Type: application/json" \
@@ -165,6 +183,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/search" \
 ```
 
 **成功レスポンス例（見つかった場合）:**
+
 ```json
 {
   "found": true,
@@ -176,6 +195,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/search" \
 ```
 
 **レスポンス例（見つからなかった場合）:**
+
 ```json
 {
   "found": false,
@@ -197,15 +217,19 @@ curl -X POST "https://dictapi.libertasmc.xyz/search" \
 ### 5. 辞書一覧表示
 
 #### `GET /list`
+
 辞書の一覧をページネーション付きで取得
 
 **ヘッダーパラメータ:**
+
 - `X-Page`: ページ番号（1から開始、デフォルト: 1）
 
 **クエリパラメータ:**
+
 - `per_page`: 1ページあたりのエントリ数（1-50、デフォルト: 20）
 
 **リクエスト例:**
+
 ```bash
 # 1ページ目（デフォルト20件）
 curl -X GET "https://dictapi.libertasmc.xyz/list" \
@@ -219,6 +243,7 @@ curl -X GET "https://dictapi.libertasmc.xyz/list?per_page=30" \
 ```
 
 **レスポンス例:**
+
 ```json
 {
   "entries": [
@@ -251,9 +276,11 @@ curl -X GET "https://dictapi.libertasmc.xyz/list?per_page=30" \
 ### 6. 文章変換
 
 #### `POST /convert`
+
 文章を辞書に基づいて自動変換し、変換詳細と共に返す
 
 **リクエストボディ:**
+
 ```json
 {
   "text": "変換したい文章"
@@ -261,9 +288,11 @@ curl -X GET "https://dictapi.libertasmc.xyz/list?per_page=30" \
 ```
 
 **フィールド仕様:**
+
 - `text`: 1文字以上、必須（文字数制限なし）
 
 **リクエスト例:**
+
 ```bash
 curl -X POST "https://dictapi.libertasmc.xyz/convert" \
   -H "Content-Type: application/json" \
@@ -274,6 +303,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/convert" \
 ```
 
 **成功レスポンス例:**
+
 ```json
 {
   "original_text": "こんにちはVocalis！今日は機動力のテストをします。",
@@ -295,6 +325,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/convert" \
 ```
 
 **変換が0件の場合:**
+
 ```json
 {
   "original_text": "普通の文章です。",
@@ -339,6 +370,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/convert" \
 ### エラーレスポンス例
 
 **認証エラー:**
+
 ```json
 {
   "success": false,
@@ -350,6 +382,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/convert" \
 ```
 
 **バリデーションエラー:**
+
 ```json
 {
   "success": false,
@@ -363,6 +396,7 @@ curl -X POST "https://dictapi.libertasmc.xyz/convert" \
 ```
 
 **レート制限エラー:**
+
 ```json
 {
   "success": false,
@@ -564,12 +598,11 @@ curl -X GET "https://dictapi.libertasmc.xyz/list" \
 |--------------|------|
 | 全てのエンドポイント | なし（無効化済み） |
 
-
 ## その他の注意事項
 
 1. **文字エンコーディング**: 全てのリクエスト・レスポンスはUTF-8エンコーディングを使用
 2. **大文字小文字**: 単語の検索・登録時は自動的に小文字に変換されます
-5. **タイムアウト**: APIリクエストのタイムアウトは30秒です
+3. **タイムアウト**: APIリクエストのタイムアウトは30秒です
 
 ---
 
