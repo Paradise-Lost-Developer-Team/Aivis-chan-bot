@@ -14,7 +14,7 @@ import PQueue from 'p-queue';
 import fetch from 'node-fetch';
 // config.jsonを使う
 
-export const TTS_BASE_URL = config.speechEngineUrl;
+export const TTS_BASE_URL = process.env.TTS_SERVICE_URL || config.speechEngineUrl;
 const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
 const TTS_MAX_RETRIES = config.TTS_MAX_RETRIES || 3;
 const TTS_RETRY_DELAY = config.TTS_RETRY_DELAY || 1000;
