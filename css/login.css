@@ -30,3 +30,76 @@ body {
     margin-bottom: 20px;
     line-height: 1.5;
 }
+
+button {
+    background-color: #4CAF50; /* 緑色 */
+    color: white; /* テキストの色 */
+    padding: 10px 20px; /* 内側の余白 */
+    border: none; /* 枠線を削除 */
+    border-radius: 5px; /* 角丸 */
+    cursor: pointer; /* カーソルをポインターに変更 */
+    font-size: 1em; /* フォントサイズ */
+    transition: background-color 0.3s ease; /* ホバー時のアニメーション */
+}
+
+button:hover {
+    background-color: #45a049; /* ホバー時の色 */
+}
+
+.version-btn {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.version-btn.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.version-btn:hover {
+    background-color: #d5d5d5;
+}
+
+.discord-login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #5865F2;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.discord-login-btn:hover {
+    background-color: #4752C4;
+}
+
+.free-badge, .pro-badge {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-left: 10px;
+}
+
+.pro-badge {
+    background-color: #FF9800;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #777;
+    font-size: 0.9em;
+}

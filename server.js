@@ -1030,6 +1030,69 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
   }
 });
 
+// サーバーリストを返すエンドポイント
+app.get('/api/servers', async (req, res) => {
+    try {
+        if (!req.isAuthenticated || !req.isAuthenticated()) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // ユーザー情報に基づいてサーバーリストを取得
+        const userId = req.user.id; // req.user は Passport によって設定される
+
+        // 実際のデータベースや外部APIからサーバーリストを取得するロジックをここに実装
+        const servers = await fetchServersForUser(userId, req.user.accessToken); // Discord OAuth2を使用
+
+        res.json(servers);
+    } catch (error) {
+        console.error('Failed to fetch servers:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Discord OAuth2を使用してユーザーに関連するサーバーリストを取得する関数
+async function fetchServersForUser(accessToken) {
+    try {
+        // Discord APIを使用してユーザーのサーバーリストを取得
+        const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        if (guildsResponse.status !== 200) {
+            throw new Error(`Failed to fetch servers: ${guildsResponse.statusText}`);
+        }
+
+        const userResponse = await axios.get('https://discord.com/api/users/@me', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        if (userResponse.status !== 200) {
+            throw new Error(`Failed to fetch user info: ${userResponse.statusText}`);
+        }
+
+        const userIconUrl = userResponse.data.avatar
+            ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.png`
+            : null;
+
+        const userNickname = userResponse.data.username;
+
+        return guildsResponse.data.map(guild => ({
+            id: guild.id,
+            name: guild.name,
+            iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null,
+            nickname: userNickname, // ユーザーニックネームを追加
+            userIconUrl // ユーザーアイコンを追加
+        }));
+    } catch (error) {
+        console.error('Error fetching servers for user:', error);
+        throw new Error('Failed to fetch servers');
+    }
+}
+
 // Redisヘルスチェックエンドポイント
 app.get('/health/redis', async (req, res) => {
   if (!redisStoreInstance) {
