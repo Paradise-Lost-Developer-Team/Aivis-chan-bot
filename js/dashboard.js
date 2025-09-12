@@ -33,15 +33,35 @@ class Dashboard {
 
     // ログインページを表示
     showLoginPage() {
-        document.getElementById('login-page').style.display = 'flex';
-        document.getElementById('main-dashboard').style.display = 'none';
+        const loginPage = document.getElementById('login-page');
+        const mainDashboard = document.getElementById('main-dashboard');
+        if (loginPage) {
+            loginPage.style.display = 'flex';
+        } else {
+            console.error("Element 'login-page' not found.");
+        }
+        if (mainDashboard) {
+            mainDashboard.style.display = 'none';
+        } else {
+            console.error("Element 'main-dashboard' not found.");
+        }
     }
 
     // ダッシュボードを表示
     showDashboard() {
-        document.getElementById('login-page').style.display = 'none';
-        document.getElementById('main-dashboard').style.display = 'block';
-        document.getElementById('main-dashboard').classList.add('logged-in');
+        const loginPage = document.getElementById('login-page');
+        const mainDashboard = document.getElementById('main-dashboard');
+        if (loginPage) {
+            loginPage.style.display = 'none';
+        } else {
+            console.error("Element 'login-page' not found.");
+        }
+        if (mainDashboard) {
+            mainDashboard.style.display = 'block';
+            mainDashboard.classList.add('logged-in');
+        } else {
+            console.error("Element 'main-dashboard' not found.");
+        }
 
         // ダッシュボードの初期化
         this.setupTabNavigation();
