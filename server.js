@@ -1077,13 +1077,17 @@ app.get('/api/servers', async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // ユーザー情報に基づいてサーバーリストを取得
-        const userId = req.user.id; // req.user は Passport によって設定される
+        // ログイン時に取得したギルド情報を直接返す
+        const servers = req.user.guilds || [];
+        
+        // ユーザー情報を各サーバーに追加
+        const serversWithUserInfo = servers.map(server => ({
+            ...server,
+            nickname: req.user.nickname,
+            userIconUrl: req.user.avatarUrl
+        }));
 
-        // 実際のデータベースや外部APIからサーバーリストを取得するロジックをここに実装
-        const servers = await fetchServersForUser(userId, req.user.accessToken); // Discord OAuth2を使用
-
-        res.json(servers);
+        res.json(serversWithUserInfo);
     } catch (error) {
         console.error('Failed to fetch servers:', error);
         res.status(500).json({ error: 'Internal Server Error' });
