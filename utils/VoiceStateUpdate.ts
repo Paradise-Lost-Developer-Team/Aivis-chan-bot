@@ -19,6 +19,7 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
 
             // 現在のボイス接続を確認
             let voiceClient = voiceClients[guildId];
+            const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
             if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
                 return; // ボイス接続がない場合は何もしない
             }
@@ -42,7 +43,7 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                 const message = `${member.displayName}さんが入室しました`;
                 console.log(`[3rd Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
-                    await speakAnnounce(message, guildId);
+                    await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
                     console.error(`[3rd Bot] 入室アナウンスエラー:`, error);
@@ -52,7 +53,7 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                 const message = `${member.displayName}さんが退室しました`;
                 console.log(`[3rd Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
-                    await speakAnnounce(message, guildId);
+                    await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
                     console.error(`[3rd Bot] 退室アナウンスエラー:`, error);

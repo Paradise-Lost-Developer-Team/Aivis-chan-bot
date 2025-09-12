@@ -95,6 +95,7 @@ export function MessageCreate(client: ExtendedClient) {
             const guildId = message.guildId!;
             let messageContent = message.content;
             let voiceClient = voiceClients[guildId];
+            const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
 
             // 動的テキストチャンネル判定システムを使用
             const { shouldTTS, reason } = await shouldPerformTTS(message);
@@ -279,7 +280,7 @@ export function MessageCreate(client: ExtendedClient) {
                         priority = Priority?.HIGH || 'high';
                         // システム通知はspeakAnnounceで処理
                         try {
-                            await speakAnnounce(messageContent, guildId, client);
+                            await speakAnnounce(messageContent, speakTargetVoiceChannelId, client);
                             updateLastSpeechTime();
                             console.log(`システム通知を読み上げ処理: "${messageContent.substring(0, 30)}..."`);
                         } catch (error) {
@@ -329,7 +330,7 @@ export function MessageCreate(client: ExtendedClient) {
                             const audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
                             // カスタム応答はアナウンス形式で読み上げ
-                            await speakAnnounce(replyText, guildId);
+                            await speakAnnounce(replyText, speakTargetVoiceChannelId);
                         }
                         updateLastSpeechTime();
                     } catch (error) {
