@@ -843,6 +843,9 @@ class Dashboard {
     }
 
     async savePersonalSettings() {
+        // ローディング状態を開始
+        this.setButtonLoading('save-personal', true);
+
         const settings = {
             personalSpeaker: document.getElementById('personal-speaker').value,
             personalSpeed: parseFloat(document.getElementById('personal-speed').value),
@@ -885,6 +888,9 @@ class Dashboard {
             console.error('Failed to save personal settings:', error);
             logger.error('個人設定保存中にエラーが発生しました');
             alert('個人設定の保存中にエラーが発生しました。');
+        } finally {
+            // ローディング状態を終了
+            this.setButtonLoading('save-personal', false);
         }
     }
 
