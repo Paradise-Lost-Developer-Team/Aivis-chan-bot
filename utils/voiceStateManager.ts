@@ -151,29 +151,16 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
           guildTextChannels[guildId] = state.textChannelId;
           console.log(`${guild.name}のテキストチャンネル${textChannel.name}を関連付けしました`);
         } else {
-          // 保存されたテキストチャンネルが無効な場合はフォールバック
+          // 保存されたテキストチャンネルが無効な場合はスキップ
           finalTextChannelId = undefined;
         }
       }
       
-      // テキストチャンネルが未設定の場合のフォールバック
+      // テキストチャンネルが未設定の場合はスキップ（自動選択しない）
       if (!finalTextChannelId) {
-        if (guild.systemChannelId) {
-          finalTextChannelId = guild.systemChannelId;
-          console.log(`[Reconnect:1st] システムチャンネルを使用: ${guild.systemChannelId} (guild: ${guild.name})`);
-        } else {
-          const firstTextChannel = guild.channels.cache
-            .filter(ch => ch.type === ChannelType.GuildText)
-            .first() as TextChannel;
-          if (firstTextChannel) {
-            finalTextChannelId = firstTextChannel.id;
-            console.log(`[Reconnect:1st] 最初のテキストチャンネルを使用: ${firstTextChannel.name} (guild: ${guild.name})`);
-          } else {
-            console.warn(`[Reconnect:1st] 適切なテキストチャンネルが見つからないためスキップ: guildId=${guildId}`);
-            skipped++;
-            continue;
-          }
-        }
+        console.warn(`[Reconnect:1st] テキストチャンネルが設定されていないためスキップ: guildId=${guildId} guild=${guild.name}`);
+        skipped++;
+        continue;
       }
 
       // オーケストレーション: 当該ギルドに在籍する中で最も空いているBotへ join を指示
