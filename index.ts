@@ -603,12 +603,21 @@ client.login(TOKEN).catch(error => {
 
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
-        const { guildId } = req.body || {};
-        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+        const { guildId, voiceChannelId } = req.body || {};
+        if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
-    try { cleanupAudioResources(guildId); } catch {}
-    try { delete voiceClients[guildId]; } catch {}
-    try { delete (textChannels as any)[guildId]; } catch {}
+        if (voiceChannelId) {
+            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+            try { delete (textChannels as any)[voiceChannelId]; } catch {}
+            try { delete (global as any).players?.[voiceChannelId]; } catch {}
+        } else if (guildId) {
+            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+            try { delete (voiceClients as any)[guildId]; } catch {}
+            try { delete (textChannels as any)[guildId]; } catch {}
+            try { delete (global as any).players?.[guildId]; } catch {}
+        }
+
         // 2nd Botではボイス状態の保存をスキップ（1st Botが管理）
         // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
