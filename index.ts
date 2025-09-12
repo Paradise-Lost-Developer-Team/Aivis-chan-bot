@@ -466,7 +466,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[guildId] = tc;
+                    (textChannels as any)[voiceChannelId] = tc;
                     console.log(`[internal/join:4th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:4th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -490,10 +490,10 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             console.warn(`[internal/join:4th] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
-        const prev = getVoiceConnection(guildId);
-        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[guildId]; }
-        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-        voiceClients[guildId] = connection;
+    const prev = getVoiceConnection(voiceChannelId);
+    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+    const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+    voiceClients[voiceChannelId] = connection;
         await new Promise<void>((resolve)=>{
             const onReady=()=>{cleanup();resolve();};
             const onDisc=()=>{cleanup();resolve();};
@@ -513,7 +513,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             console.log(`[internal/join:4th] 音声アナウンス開始: ギルド ${guildId}`);
             const { speakAnnounce } = await import('./utils/TTS-Engine');
             console.log(`[internal/join:4th] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('接続しました', guildId, client);
+            await speakAnnounce('接続しました', voiceChannelId, client);
             console.log(`[internal/join:4th] 音声アナウンス再生完了: ギルド ${guildId}`);
         } catch (voiceAnnounceError) {
             console.error(`[internal/join:4th] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
