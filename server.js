@@ -1079,6 +1079,8 @@ app.get('/api/servers', async (req, res) => {
 
         // ユーザーが参加している全ギルド
         const userGuilds = req.user.guilds || [];
+        console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
+        console.log(`[DEBUG] User guilds:`, userGuilds.map(g => ({ id: g.id, name: g.name })));
         
         // Botが参加しているギルドIDを取得
         const botGuildIds = new Set();
@@ -1095,28 +1097,40 @@ app.get('/api/servers', async (req, res) => {
         // 各Botインスタンスからギルド情報を取得
         const botInfoPromises = BOTS.map(async (bot) => {
             try {
+                console.log(`[DEBUG] Fetching info from ${bot.name} at ${bot.baseUrl}`);
                 const response = await axios.get(`${bot.baseUrl}/internal/info`, {
                     timeout: 5000
                 });
+                console.log(`[DEBUG] ${bot.name} response:`, response.data);
                 return { bot: bot.name, guildIds: response.data.guildIds || [] };
             } catch (error) {
-                console.warn(`Failed to fetch info from ${bot.name}:`, error.message);
+                console.warn(`[DEBUG] Failed to fetch info from ${bot.name}:`, error.message);
                 return { bot: bot.name, guildIds: [] };
             }
         });
 
         const botResults = await Promise.all(botInfoPromises);
+        console.log(`[DEBUG] Bot results:`, botResults);
         
         // 全BotインスタンスのギルドIDを統合
         botResults.forEach(result => {
             result.guildIds.forEach(guildId => botGuildIds.add(guildId));
         });
 
+        console.log(`[DEBUG] Bot guild IDs:`, Array.from(botGuildIds));
+
         // ユーザーのギルドの中で、Botが参加しているもののみをフィルタリング
         const filteredServers = userGuilds.filter(guild => botGuildIds.has(guild.id));
+        console.log(`[DEBUG] Filtered servers count: ${filteredServers.length}`);
+        console.log(`[DEBUG] Filtered servers:`, filteredServers.map(g => ({ id: g.id, name: g.name })));
+        
+        // デバッグモード: フィルタリングせずにすべてのユーザーギルドを返す（一時的）
+        const DEBUG_MODE = process.env.DEBUG_SERVERS === 'true';
+        const finalServers = DEBUG_MODE ? userGuilds : filteredServers;
+        console.log(`[DEBUG] Debug mode: ${DEBUG_MODE}, Final servers count: ${finalServers.length}`);
         
         // ユーザー情報を各サーバーに追加
-        const serversWithUserInfo = filteredServers.map(server => ({
+        const serversWithUserInfo = finalServers.map(server => ({
             ...server,
             nickname: req.user.nickname,
             userIconUrl: req.user.avatarUrl
