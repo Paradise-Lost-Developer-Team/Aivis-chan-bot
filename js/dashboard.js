@@ -598,24 +598,25 @@ class Dashboard {
             return;
         }
 
-        // サーバー情報を取得するためのAPI呼び出し
         fetch('/api/servers', { credentials: 'include' })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 console.log('Servers loaded:', data);
-                serverListContainer.innerHTML = ''; // リストをクリア
+                serverListContainer.innerHTML = '';
 
-                // サーバー情報をリストに追加
                 data.forEach(server => {
                     const listItem = document.createElement('li');
 
-                    // サーバーアイコン
                     const icon = document.createElement('img');
-                    icon.src = server.iconUrl || '/default-icon.png'; // デフォルトアイコンを設定
+                    icon.src = server.iconUrl || '/default-icon.png';
                     icon.alt = `${server.name} icon`;
                     icon.classList.add('server-icon');
 
-                    // サーバー名
                     const name = document.createElement('span');
                     name.textContent = server.name;
 
@@ -627,6 +628,14 @@ class Dashboard {
             .catch(error => {
                 console.error('Failed to load servers:', error);
             });
+    }
+
+    // ギルド情報の定期更新を開始
+    startGuildUpdates() {
+        console.log('Starting periodic guild updates...');
+        setInterval(() => {
+            this.loadGuilds(); // 定期的にギルド情報を再取得
+        }, 60000); // 60秒ごとに更新
     }
 }
 
