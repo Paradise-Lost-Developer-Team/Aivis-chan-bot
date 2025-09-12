@@ -616,7 +616,7 @@ async function loadWebDashboardSettings() {
         for (const [guildId, guild] of guilds) {
             try {
                 const settingsResponse = await axios.get(`${webDashboardUrl}/api/settings/${guildId}`, {
-                    timeout: 5000
+                    timeout: 15000
                 });
                 
                 if (settingsResponse.data && settingsResponse.data.settings) {
@@ -625,7 +625,7 @@ async function loadWebDashboardSettings() {
                 }
                 
                 const dictionaryResponse = await axios.get(`${webDashboardUrl}/api/dictionary/${guildId}`, {
-                    timeout: 5000
+                    timeout: 15000
                 });
                 
                 if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
