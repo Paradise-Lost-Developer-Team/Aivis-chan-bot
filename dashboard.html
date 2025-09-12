@@ -36,6 +36,7 @@
                     <button class="nav-tab" data-tab="dictionary">辞書</button>
                     <button class="nav-tab" data-tab="settings">設定</button>
                     <button class="nav-tab" data-tab="personal">個人の設定</button>
+                    <button class="nav-tab" data-tab="logs">ログ</button>
                     <button class="nav-tab premium-tab" data-tab="premium" id="premium-tab" style="display: none;">プレミアム</button>
                 </nav>
             </header>
@@ -107,7 +108,10 @@
                         </div>
                     </div>
                 </div>
-                <button id="save-dictionary">辞書設定を保存</button>
+                <button id="save-dictionary">
+                    <span class="button-text">辞書設定を保存</span>
+                    <span class="loading-spinner" style="display: none;">💫 保存中...</span>
+                </button>
             </section>
 
             <!-- 設定タブ -->
@@ -186,7 +190,38 @@
                         </div>
                     </div>
                 </div>
-                <button id="save-settings">設定を保存</button>
+                <button id="save-settings">
+                    <span class="button-text">設定を保存</span>
+                    <span class="loading-spinner" style="display: none;">💫 保存中...</span>
+                </button>
+            </section>
+
+            <!-- ログタブ -->
+            <section id="logs" class="tab-content">
+                <h2>システムログ</h2>
+                <div class="log-viewer">
+                    <div class="log-controls">
+                        <div class="log-filters">
+                            <button class="log-filter active" data-level="all">All</button>
+                            <button class="log-filter" data-level="info">Info</button>
+                            <button class="log-filter" data-level="warn">Warning</button>
+                            <button class="log-filter" data-level="error">Error</button>
+                            <button class="log-filter" data-level="success">Success</button>
+                        </div>
+                        <div class="log-actions">
+                            <input type="text" id="log-search" placeholder="ログを検索..." class="log-search">
+                            <button id="clear-logs" class="clear-logs-btn">🗑️ クリア</button>
+                            <button id="download-logs" class="download-logs-btn">📥 ダウンロード</button>
+                        </div>
+                    </div>
+                    <div class="log-container" id="log-container">
+                        <div class="log-entry info" data-level="info">
+                            <span class="log-timestamp">2024-01-01 00:00:00</span>
+                            <span class="log-level">INFO</span>
+                            <span class="log-message">ダッシュボードが初期化されました</span>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- 個人の設定タブ -->
@@ -228,7 +263,10 @@
                         </div>
                     </div>
                 </div>
-                <button id="save-personal">個人設定を保存</button>
+                <button id="save-personal">
+                    <span class="button-text">個人設定を保存</span>
+                    <span class="loading-spinner" style="display: none;">💫 保存中...</span>
+                </button>
             </section>
 
             <!-- プレミアムタブ -->

@@ -1,4 +1,205 @@
 // ダッシュボード用JavaScript
+
+// Custom Logger Class
+class CustomLogger {
+    constructor() {
+        this.logs = [];
+        this.maxLogs = 1000;
+        this.currentFilter = 'all';
+        this.isInitialized = false;
+    }
+
+    init() {
+        if (this.isInitialized) return;
+        
+        // Override console methods
+        this.originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        console.log = (...args) => {
+            this.addLog('info', args.join(' '));
+            this.originalConsole.log(...args);
+        };
+
+        console.error = (...args) => {
+            this.addLog('error', args.join(' '));
+            this.originalConsole.error(...args);
+        };
+
+        console.warn = (...args) => {
+            this.addLog('warn', args.join(' '));
+            this.originalConsole.warn(...args);
+        };
+
+        console.info = (...args) => {
+            this.addLog('info', args.join(' '));
+            this.originalConsole.info(...args);
+        };
+
+        this.setupLogViewer();
+        this.isInitialized = true;
+        
+        // Add initial welcome log
+        this.addLog('success', 'カスタムログシステムが初期化されました');
+    }
+
+    addLog(level, message, source = null) {
+        const logEntry = {
+            id: Date.now() + Math.random(),
+            timestamp: new Date(),
+            level: level,
+            message: message,
+            source: source
+        };
+
+        this.logs.unshift(logEntry);
+        
+        // Limit log count
+        if (this.logs.length > this.maxLogs) {
+            this.logs = this.logs.slice(0, this.maxLogs);
+        }
+
+        this.renderLogs();
+    }
+
+    setupLogViewer() {
+        // Setup filter buttons
+        const filterButtons = document.querySelectorAll('.log-filter');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                this.currentFilter = button.dataset.level;
+                this.renderLogs();
+            });
+        });
+
+        // Setup search
+        const searchInput = document.getElementById('log-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                this.renderLogs();
+            });
+        }
+
+        // Setup clear button
+        const clearButton = document.getElementById('clear-logs');
+        if (clearButton) {
+            clearButton.addEventListener('click', () => {
+                this.logs = [];
+                this.renderLogs();
+                this.addLog('info', 'ログがクリアされました');
+            });
+        }
+
+        // Setup download button
+        const downloadButton = document.getElementById('download-logs');
+        if (downloadButton) {
+            downloadButton.addEventListener('click', () => {
+                this.downloadLogs();
+            });
+        }
+    }
+
+    renderLogs() {
+        const container = document.getElementById('log-container');
+        if (!container) return;
+
+        const searchTerm = document.getElementById('log-search')?.value.toLowerCase() || '';
+        
+        let filteredLogs = this.logs;
+        
+        // Apply level filter
+        if (this.currentFilter !== 'all') {
+            filteredLogs = filteredLogs.filter(log => log.level === this.currentFilter);
+        }
+        
+        // Apply search filter
+        if (searchTerm) {
+            filteredLogs = filteredLogs.filter(log => 
+                log.message.toLowerCase().includes(searchTerm) ||
+                log.level.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (filteredLogs.length === 0) {
+            container.innerHTML = '<div class="log-empty">ログがありません</div>';
+            return;
+        }
+
+        container.innerHTML = filteredLogs.map(log => this.renderLogEntry(log)).join('');
+    }
+
+    renderLogEntry(log) {
+        const timestamp = log.timestamp.toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        return `
+            <div class="log-entry ${log.level}" data-level="${log.level}">
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="log-level">${log.level.toUpperCase()}</span>
+                <span class="log-message">${this.escapeHtml(log.message)}</span>
+            </div>
+        `;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    downloadLogs() {
+        const data = this.logs.map(log => ({
+            timestamp: log.timestamp.toISOString(),
+            level: log.level,
+            message: log.message
+        }));
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `aivis-dashboard-logs-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.addLog('success', 'ログファイルをダウンロードしました');
+    }
+
+    // Public methods for external use
+    success(message) {
+        this.addLog('success', message);
+    }
+
+    info(message) {
+        this.addLog('info', message);
+    }
+
+    warn(message) {
+        this.addLog('warn', message);
+    }
+
+    error(message) {
+        this.addLog('error', message);
+    }
+}
+
+// Global logger instance
+const logger = new CustomLogger();
+
 class Dashboard {
     constructor() {
         this.currentTab = 'overview';
@@ -39,6 +240,9 @@ class Dashboard {
         } else {
             console.error("Element 'main-dashboard' not found. Unable to display dashboard.");
         }
+
+        // カスタムログシステムを初期化
+        logger.init();
 
         // ダッシュボードの初期化
         this.setupTabNavigation();
@@ -473,9 +677,11 @@ class Dashboard {
             
             this.renderDictionaryEntries();
             
+            logger.success(`辞書エントリが追加されました: ${word} → ${pronunciation}`);
             alert('辞書エントリが追加されました。');
         } catch (error) {
             console.error('Failed to add dictionary entry:', error);
+            logger.error('辞書エントリーの追加に失敗しました');
             alert('辞書エントリの追加に失敗しました。');
         }
     }
@@ -541,7 +747,28 @@ class Dashboard {
         this.renderDictionaryEntries();
     }
 
+    // ローディング状態を管理する関数
+    setButtonLoading(buttonId, isLoading) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+        
+        const textSpan = button.querySelector('.button-text');
+        const spinnerSpan = button.querySelector('.loading-spinner');
+        
+        if (isLoading) {
+            button.disabled = true;
+            if (textSpan) textSpan.style.display = 'none';
+            if (spinnerSpan) spinnerSpan.style.display = 'inline';
+        } else {
+            button.disabled = false;
+            if (textSpan) textSpan.style.display = 'inline';
+            if (spinnerSpan) spinnerSpan.style.display = 'none';
+        }
+    }
+
     async saveSettings() {
+        this.setButtonLoading('save-settings', true);
+        
         const settings = {
             defaultSpeaker: document.getElementById('default-speaker').value,
             defaultSpeed: parseFloat(document.getElementById('default-speed').value),
@@ -577,15 +804,20 @@ class Dashboard {
                 if (response.ok) {
                     const result = await response.json();
                     console.log('Settings saved to server:', result);
+                    logger.success('音声設定が正常に保存されました');
                 } else {
                     console.error('Failed to save settings to server:', response.statusText);
+                    logger.error(`設定保存に失敗しました: ${response.statusText}`);
                 }
             }
 
             alert('設定を保存しました。');
         } catch (error) {
             console.error('Failed to save settings:', error);
+            logger.error('設定保存中にエラーが発生しました');
             alert('設定の保存中にエラーが発生しました。');
+        } finally {
+            this.setButtonLoading('save-settings', false);
         }
     }
 
@@ -641,14 +873,17 @@ class Dashboard {
                 if (response.ok) {
                     const result = await response.json();
                     console.log('Personal settings saved to server:', result);
+                    logger.success('個人設定が正常に保存されました');
                 } else {
                     console.error('Failed to save personal settings to server:', response.statusText);
+                    logger.error(`個人設定保存に失敗しました: ${response.statusText}`);
                 }
             }
 
             alert('個人設定を保存しました。');
         } catch (error) {
             console.error('Failed to save personal settings:', error);
+            logger.error('個人設定保存中にエラーが発生しました');
             alert('個人設定の保存中にエラーが発生しました。');
         }
     }
@@ -677,6 +912,8 @@ class Dashboard {
     }
 
     async saveDictionarySettings() {
+        this.setButtonLoading('save-dictionary', true);
+        
         try {
             // 現在の辞書エントリーを取得
             const entries = this.getDictionaryEntries();
@@ -701,15 +938,20 @@ class Dashboard {
                 if (response.ok) {
                     const result = await response.json();
                     console.log('Dictionary saved to server:', result);
+                    logger.success('辞書設定が正常に保存されました');
                 } else {
                     console.error('Failed to save dictionary to server:', response.statusText);
+                    logger.error(`辞書設定保存に失敗しました: ${response.statusText}`);
                 }
             }
 
             alert('辞書設定を保存しました。');
         } catch (error) {
             console.error('Failed to save dictionary settings:', error);
+            logger.error('辞書設定保存中にエラーが発生しました');
             alert('辞書設定の保存に失敗しました。');
+        } finally {
+            this.setButtonLoading('save-dictionary', false);
         }
     }
 

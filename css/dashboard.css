@@ -942,3 +942,266 @@ input:checked + .toggle-slider:before {
         min-width: auto;
     }
 }
+
+/* =================================
+   Log Viewer Styles
+   ================================= */
+.log-viewer {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.log-controls {
+    background: #f8fafc;
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.log-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.log-filter {
+    padding: 8px 16px;
+    border: 1px solid #cbd5e0;
+    background: #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.log-filter:hover {
+    background: #f7fafc;
+    border-color: #a0aec0;
+}
+
+.log-filter.active {
+    background: #3182ce;
+    color: white;
+    border-color: #3182ce;
+}
+
+.log-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.log-search {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    min-width: 200px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.log-search:focus {
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.clear-logs-btn,
+.download-logs-btn {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e0;
+    background: #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.clear-logs-btn:hover {
+    background: #feb2b2;
+    border-color: #fc8181;
+    color: #c53030;
+}
+
+.download-logs-btn:hover {
+    background: #bee3f8;
+    border-color: #63b3ed;
+    color: #2b6cb0;
+}
+
+.log-container {
+    max-height: 500px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+.log-entry {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    transition: background-color 0.2s ease;
+    animation: logEntrySlide 0.3s ease-out;
+}
+
+.log-entry:hover {
+    background: #f8fafc;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-timestamp {
+    color: #64748b;
+    font-weight: 500;
+    min-width: 160px;
+    margin-right: 12px;
+    font-size: 0.8rem;
+}
+
+.log-level {
+    font-weight: 700;
+    text-transform: uppercase;
+    min-width: 80px;
+    margin-right: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.log-message {
+    flex: 1;
+    word-wrap: break-word;
+    color: #1a202c;
+}
+
+/* Log Level Colors */
+.log-entry.info .log-level {
+    background: #bee3f8;
+    color: #2b6cb0;
+}
+
+.log-entry.warn .log-level {
+    background: #faf089;
+    color: #d69e2e;
+}
+
+.log-entry.error .log-level {
+    background: #fed7d7;
+    color: #e53e3e;
+}
+
+.log-entry.success .log-level {
+    background: #c6f6d5;
+    color: #38a169;
+}
+
+/* Log Entry Border Left Accents */
+.log-entry.info {
+    border-left: 4px solid #3182ce;
+}
+
+.log-entry.warn {
+    border-left: 4px solid #d69e2e;
+}
+
+.log-entry.error {
+    border-left: 4px solid #e53e3e;
+}
+
+.log-entry.success {
+    border-left: 4px solid #38a169;
+}
+
+/* Animations */
+@keyframes logEntrySlide {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Empty State */
+.log-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+}
+
+.log-empty::before {
+    content: "📋";
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 16px;
+}
+
+/* Scrollbar Styling */
+.log-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.log-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Responsive Design for Log Viewer */
+@media (max-width: 768px) {
+    .log-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .log-filters {
+        justify-content: center;
+    }
+    
+    .log-actions {
+        justify-content: center;
+    }
+    
+    .log-search {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .log-entry {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .log-timestamp,
+    .log-level {
+        min-width: auto;
+        margin-right: 0;
+    }
+}
