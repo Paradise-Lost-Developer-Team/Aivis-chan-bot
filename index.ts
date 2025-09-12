@@ -456,6 +456,16 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         voiceClients[guildId] = connection;
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
+
+        // 音声アナウンスを再生
+        try {
+            const { speakAnnounce } = await import('./utils/TTS-Engine');
+            await speakAnnounce('参加しました', guildId, client);
+            console.log(`[internal/join] 音声アナウンス再生完了: ギルド ${guildId}`);
+        } catch (voiceAnnounceError) {
+            console.error(`[internal/join] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+        }
+
         return res.json({
             ok: true,
             textChannelId: finalTextChannelId,
