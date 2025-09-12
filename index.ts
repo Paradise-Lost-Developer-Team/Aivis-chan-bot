@@ -646,10 +646,14 @@ async function loadWebDashboardSettings() {
                     timeout: 15000
                 });
                 
+                console.log(`辞書データを確認中: ${guild.name} (${guildId})`);
                 if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
+                    console.log(`辞書エントリ数: ${dictionaryResponse.data.dictionary.length}`);
                     console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました:`, dictionaryResponse.data.dictionary.length, '件');
                     // ここで辞書を適用する処理を追加
                     applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                } else {
+                    console.warn(`辞書データが取得できませんでした: ${guild.name} (${guildId})`);
                 }
                 
             } catch (guildError: any) {
