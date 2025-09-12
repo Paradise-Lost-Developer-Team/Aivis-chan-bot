@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, textChannels } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, textChannels } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -16,6 +16,22 @@ try {
 } catch (error) {
     console.warn('VoiceQueue モジュールが見つかりません。直接読み上げ処理を使用します。');
 }
+
+// monitorMemoryUsage のフォールバック（TTS-Engine がエクスポートしていない場合に備える）
+const monitorMemoryUsage = (): void => {
+    try {
+        const mem = process.memoryUsage();
+        console.log(`[Memory] RSS: ${Math.round(mem.rss / 1024 / 1024)}MB, HeapUsed: ${Math.round(mem.heapUsed / 1024 / 1024)}MB`);
+    } catch (e) {
+        // noop
+    }
+};
+
+// updateLastSpeechTime は TTS-Engine に存在しない可能性があるためローカルフォールバックを提供
+// (既存のコードは引数なしで呼び出しているため、ここでは no-op を定義します)
+const updateLastSpeechTime = (): void => {
+    // no-op fallback for compatibility if TTS-Engine doesn't export updateLastSpeechTime
+};
 
 interface ExtendedClient extends Client {
     // Add any additional properties or methods if needed

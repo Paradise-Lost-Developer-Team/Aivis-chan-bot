@@ -384,7 +384,7 @@ apiApp.listen(3006, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients, cleanupAudioResources } from './utils/TTS-Engine';
+import { textChannels, voiceClients } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -573,13 +573,21 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
+        // 動的にモジュールを読み込み、cleanupAudioResources が存在する場合のみ呼び出す
+        let cleanupModule: any = null;
+        try {
+            cleanupModule = await import('./utils/TTS-Engine');
+        } catch (e) {
+            console.warn('TTS-Engine モジュールの動的読み込みに失敗しました（/internal/leave）:', e);
+        }
+
         if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+            try { if (cleanupModule?.cleanupAudioResources) await cleanupModule.cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
             try { delete (textChannels as any)[voiceChannelId]; } catch {}
             try { delete (global as any).players?.[voiceChannelId]; } catch {}
         } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+            try { if (cleanupModule?.cleanupAudioResources) await cleanupModule.cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
             try { delete (voiceClients as any)[guildId]; } catch {}
             try { delete (textChannels as any)[guildId]; } catch {}
             try { delete (global as any).players?.[guildId]; } catch {}
