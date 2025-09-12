@@ -631,7 +631,7 @@ async function loadWebDashboardSettings() {
         for (const [guildId, guild] of guilds) {
             try {
                 // サーバー設定を読み込み（タイムアウト時間を15秒に延長）
-                const settingsResponse = await axios.get(`${webDashboardUrl}/api/settings/${guildId}`, {
+                const settingsResponse = await axios.get(`${webDashboardUrl}/internal/settings/${guildId}`, {
                     timeout: 15000
                 });
                 
@@ -642,7 +642,7 @@ async function loadWebDashboardSettings() {
                 }
                 
                 // 辞書設定を読み込み（タイムアウト時間を15秒に延長）
-                const dictionaryResponse = await axios.get(`${webDashboardUrl}/api/dictionary/${guildId}`, {
+                const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, {
                     timeout: 15000
                 });
                 
@@ -654,7 +654,7 @@ async function loadWebDashboardSettings() {
                 
             } catch (guildError: any) {
                 if (guildError.code === 'ECONNABORTED' || guildError.message.includes('timeout')) {
-                    console.log(`ギルド ${guild.name} (${guildId}) の設定読み込みをスキップ: timeout of ${guildError.timeout || 'unknown'}ms exceeded`);
+                    console.log(`ギルド ${guild.name} (${guildId}) の設定読み込みをスキップ: timeout of 15000ms exceeded`);
                 } else {
                     console.log(`ギルド ${guild.name} (${guildId}) の設定読み込みをスキップ: ${guildError?.message || guildError}`);
                 }
