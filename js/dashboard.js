@@ -32,18 +32,12 @@ class Dashboard {
 
     // ダッシュボードを表示
     showDashboard() {
-        const loginPage = document.getElementById('login-page');
         const mainDashboard = document.getElementById('main-dashboard');
-        if (loginPage) {
-            loginPage.style.display = 'none';
-        } else {
-            console.error("Element 'login-page' not found.");
-        }
         if (mainDashboard) {
             mainDashboard.style.display = 'block';
             mainDashboard.classList.add('logged-in');
         } else {
-            console.error("Element 'main-dashboard' not found.");
+            console.error("Element 'main-dashboard' not found. Unable to display dashboard.");
         }
 
         // ダッシュボードの初期化
@@ -593,6 +587,46 @@ class Dashboard {
     async loadUserInfo() {
         // このメソッドはもはや使用されないため、空の実装にしておく
         // ユーザー情報はログイン時に設定される
+    }
+
+    // ギルド情報を読み込む
+    loadGuilds() {
+        console.log('Loading server information...');
+        const serverListContainer = document.getElementById('server-list');
+        if (!serverListContainer) {
+            console.error("Element 'server-list' not found. Unable to display servers.");
+            return;
+        }
+
+        // サーバー情報を取得するためのAPI呼び出し
+        fetch('/api/servers', { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Servers loaded:', data);
+                serverListContainer.innerHTML = ''; // リストをクリア
+
+                // サーバー情報をリストに追加
+                data.forEach(server => {
+                    const listItem = document.createElement('li');
+
+                    // サーバーアイコン
+                    const icon = document.createElement('img');
+                    icon.src = server.iconUrl || '/default-icon.png'; // デフォルトアイコンを設定
+                    icon.alt = `${server.name} icon`;
+                    icon.classList.add('server-icon');
+
+                    // サーバー名
+                    const name = document.createElement('span');
+                    name.textContent = server.name;
+
+                    listItem.appendChild(icon);
+                    listItem.appendChild(name);
+                    serverListContainer.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Failed to load servers:', error);
+            });
     }
 }
 
