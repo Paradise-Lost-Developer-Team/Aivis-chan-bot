@@ -164,10 +164,12 @@ export async function getGuildTier(guildId: string, client?: any): Promise<strin
 // ユーザーの所有権に基づくティア情報を取得
 export async function getUserTierByOwnership(discordId: string, guildId?: string): Promise<string> {
   console.log(`${LOG_PREFIX} getUserTierByOwnership start for ${discordId}${guildId ? ` in guild ${guildId}` : ''}`);
+  console.log(`${LOG_PREFIX} current patreonUsers keys: ${Object.keys(patreonUsers)}`);
 
   // まず個人レベルのPatreon情報をチェック
   let user = patreonUsers[discordId];
   let tier = 'free';
+  console.log(`${LOG_PREFIX} local user found: ${!!user}`);
 
   // ローカルに情報がなければ中央サーバを問い合わせて同期を試みる
   if (!user) {
