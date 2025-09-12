@@ -364,24 +364,44 @@ class Dashboard {
 
     setupEventListeners() {
         // 辞書機能
-        document.getElementById('add-dict-entry').addEventListener('click', () => {
-            this.addDictionaryEntry();
-        });
+        const addDictButton = document.getElementById('add-dictionary-entry');
+        if (addDictButton) {
+            addDictButton.addEventListener('click', () => {
+                this.addDictionaryEntry();
+            });
+        }
 
         // 設定保存
-        document.getElementById('save-settings').addEventListener('click', () => {
-            this.saveSettings();
-        });
+        const saveSettingsButton = document.getElementById('save-settings');
+        if (saveSettingsButton) {
+            saveSettingsButton.addEventListener('click', () => {
+                this.saveSettings();
+            });
+        }
 
         // 個人設定保存
-        document.getElementById('save-personal').addEventListener('click', () => {
-            this.savePersonalSettings();
-        });
+        const savePersonalButton = document.getElementById('save-personal');
+        if (savePersonalButton) {
+            savePersonalButton.addEventListener('click', () => {
+                this.savePersonalSettings();
+            });
+        }
 
-        // 自動接続設定保存
-        document.getElementById('save-auto-connect').addEventListener('click', () => {
-            this.saveAutoConnectSettings();
-        });
+        // 辞書設定保存
+        const saveDictionaryButton = document.getElementById('save-dictionary');
+        if (saveDictionaryButton) {
+            saveDictionaryButton.addEventListener('click', () => {
+                this.saveDictionarySettings();
+            });
+        }
+
+        // 自動接続設定保存（存在しない場合はスキップ）
+        const saveAutoConnectButton = document.getElementById('save-auto-connect');
+        if (saveAutoConnectButton) {
+            saveAutoConnectButton.addEventListener('click', () => {
+                this.saveAutoConnectSettings();
+            });
+        }
 
         // プレミアム設定保存
         const premiumSaveBtn = document.getElementById('save-premium-settings');
@@ -399,37 +419,45 @@ class Dashboard {
         const sliders = [
             { id: 'default-speed', valueId: 'speed-value' },
             { id: 'default-pitch', valueId: 'pitch-value' },
+            { id: 'default-tempo', valueId: 'tempo-value' },
+            { id: 'default-volume', valueId: 'volume-value' },
+            { id: 'default-intonation', valueId: 'intonation-value' },
             { id: 'personal-speed', valueId: 'personal-speed-value' },
-            { id: 'personal-pitch', valueId: 'personal-pitch-value' }
+            { id: 'personal-pitch', valueId: 'personal-pitch-value' },
+            { id: 'personal-tempo', valueId: 'personal-tempo-value' },
+            { id: 'personal-volume', valueId: 'personal-volume-value' },
+            { id: 'personal-intonation', valueId: 'personal-intonation-value' }
         ];
 
         sliders.forEach(({ id, valueId }) => {
             const slider = document.getElementById(id);
             const valueDisplay = document.getElementById(valueId);
 
-            slider.addEventListener('input', () => {
-                valueDisplay.textContent = slider.value;
-            });
+            if (slider && valueDisplay) {
+                slider.addEventListener('input', () => {
+                    valueDisplay.textContent = slider.value;
+                });
+            }
         });
     }
 
     async addDictionaryEntry() {
-        const word = document.getElementById('dict-word').value.trim();
-        const reading = document.getElementById('dict-reading').value.trim();
+        const word = document.getElementById('new-word').value.trim();
+        const pronunciation = document.getElementById('new-pronunciation').value.trim();
 
-        if (!word || !reading) {
-            alert('単語と読み方を入力してください。');
+        if (!word || !pronunciation) {
+            alert('単語と発音を入力してください。');
             return;
         }
 
         try {
             // 辞書エントリを保存（実際のAPIがないのでローカルストレージを使用）
             const entries = this.getDictionaryEntries();
-            entries.push({ word, reading, id: Date.now() });
+            entries.push({ word, pronunciation, id: Date.now() });
             localStorage.setItem('dictionary-entries', JSON.stringify(entries));
 
-            document.getElementById('dict-word').value = '';
-            document.getElementById('dict-reading').value = '';
+            document.getElementById('new-word').value = '';
+            document.getElementById('new-pronunciation').value = '';
             this.renderDictionaryEntries();
         } catch (error) {
             console.error('Failed to add dictionary entry:', error);
@@ -554,6 +582,18 @@ class Dashboard {
             if (settings.publicStats !== undefined) document.getElementById('public-stats').checked = settings.publicStats;
         } catch (error) {
             console.error('Failed to load personal settings:', error);
+        }
+    }
+
+    async saveDictionarySettings() {
+        try {
+            // 現在の辞書エントリーを保存
+            const entries = this.getDictionaryEntries();
+            localStorage.setItem('dictionary-entries', JSON.stringify(entries));
+            alert('辞書設定を保存しました。');
+        } catch (error) {
+            console.error('Failed to save dictionary settings:', error);
+            alert('辞書設定の保存に失敗しました。');
         }
     }
 
