@@ -13,7 +13,7 @@ const CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || PATREON.CLIENT_SECRET
 const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
 // 中央サーバ（web）のURL（フォールバック）。クラスタ内では web サービス名を既定にします。
 // デプロイ時は BASE_URL または config PATREON.FALLBACK_SERVER を設定してください
-const FALLBACK_SERVER = PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:80';
+const FALLBACK_SERVER = process.env.PATREON_FALLBACK_SERVER || PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:80';
 
 // ログプレフィックス
 const LOG_PREFIX = '[patreon]';
