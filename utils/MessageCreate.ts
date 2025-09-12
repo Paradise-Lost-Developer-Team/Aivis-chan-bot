@@ -91,6 +91,7 @@ export function MessageCreate(client: ExtendedClient) {
             const guildId = message.guildId!;
             let messageContent = message.content;
             let voiceClient = voiceClients[guildId];
+            const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
 
             // 動的テキストチャンネル判定システムを使用
             const { shouldTTS, reason } = await shouldPerformTTS(message);
@@ -269,7 +270,7 @@ export function MessageCreate(client: ExtendedClient) {
                     messageContent.includes('退室しました')) {
                     priority = Priority.HIGH;
                     // システム通知はspeakAnnounceで処理
-                    speakAnnounce(messageContent, guildId);
+                    speakAnnounce(messageContent, speakTargetVoiceChannelId, client);
                     updateLastSpeechTime();
                     console.log(`システム通知をspeakAnnounceで処理: "${messageContent.substring(0, 30)}..."`);
                     return; // 通常のキュー処理はスキップ
@@ -308,7 +309,7 @@ export function MessageCreate(client: ExtendedClient) {
                             const audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
                             // カスタム応答はアナウンス形式で読み上げ
-                            await speakAnnounce(replyText, guildId);
+                            await speakAnnounce(replyText, speakTargetVoiceChannelId, client);
                         }
                         updateLastSpeechTime();
                     } catch (error) {

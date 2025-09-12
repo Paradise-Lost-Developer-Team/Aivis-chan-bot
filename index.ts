@@ -661,13 +661,23 @@ apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
 
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
-        const { guildId } = req.body || {};
-        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+        const { guildId, voiceChannelId } = req.body || {};
+        if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
-    // 音声リソースを完全クリーンアップ
-    try { cleanupAudioResources(guildId); } catch {}
-    try { delete voiceClients[guildId]; } catch {}
-    try { delete (textChannels as any)[guildId]; } catch {}
+        // voiceChannelId が指定されていればそれを優先してクリーンアップを行う
+        if (voiceChannelId) {
+            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+            try { delete (voiceClients as any)[voiceChannelId]; } catch (e) { /* ignore */ }
+            try { delete (textChannels as any)[voiceChannelId]; } catch (e) { /* ignore */ }
+            try { delete (global as any).players?.[voiceChannelId]; } catch (e) { /* ignore */ }
+        } else if (guildId) {
+            // 従来互換性のため guildId ベースのクリーンアップも保持
+            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+            try { delete (voiceClients as any)[guildId]; } catch (e) { /* ignore */ }
+            try { delete (textChannels as any)[guildId]; } catch (e) { /* ignore */ }
+            try { delete (global as any).players?.[guildId]; } catch (e) { /* ignore */ }
+        }
+
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
     } catch (e) {

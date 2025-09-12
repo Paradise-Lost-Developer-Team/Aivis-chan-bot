@@ -58,8 +58,9 @@ async function sendAutoLeaveEmbed(member: any, channel: any, client: Client, tex
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         const member = newState.member!;
-        const guildId = member.guild.id;
-        const voiceClient = voiceClients[guildId];
+    const guildId = member.guild.id;
+    const voiceClient = voiceClients[guildId];
+    const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
     
         if (member.user.bot) return;
 
@@ -87,7 +88,7 @@ export function VoiceStateUpdate(client: Client) {
                             const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                             const picked = pickLeastBusyBot(eligible);
                             if (picked) {
-                                await instructLeave(picked.bot, { guildId });
+                                await instructLeave(picked.bot, { guildId, voiceChannelId });
                                 await sendAutoLeaveEmbed(member, voiceChannelId, client, textChannelId, picked.bot.baseUrl);
                             }
                         } catch (error) {
@@ -184,14 +185,14 @@ export function VoiceStateUpdate(client: Client) {
                 // ユーザーがボイスチャンネルに参加したとき
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
-                    await speakAnnounce(`${nickname} さんが入室しました。`, guildId, client);
+                    await speakAnnounce(`${nickname} さんが入室しました。`, speakTargetVoiceChannelId, client);
                     updateLastSpeechTime(); // 発話時刻を更新
                 }
             } else if (oldState.channel && !newState.channel) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
-                    await speakAnnounce(`${nickname} さんが退室しました。`, guildId, client);
+                    await speakAnnounce(`${nickname} さんが退室しました。`, speakTargetVoiceChannelId, client);
                     updateLastSpeechTime(); // 発話時刻を更新
     
                     // ボイスチャンネルに誰もいなくなったら退室

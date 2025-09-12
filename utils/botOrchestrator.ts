@@ -185,9 +185,10 @@ export async function instructJoin(bot: BotInfo, payload: { guildId: string; voi
   }
 }
 
-export async function instructLeave(bot: BotInfo, payload: { guildId: string }, timeoutMs = 6000) {
+export async function instructLeave(bot: BotInfo, payload: { guildId: string; voiceChannelId?: string }, timeoutMs = 6000) {
   const url = `${bot.baseUrl.replace(/\/$/, '')}/internal/leave`;
   try {
+    console.log(`[botOrchestrator:pro] leave指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId || 'none'}`);
     await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
     const msg = `[botOrchestrator:pro] leave指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
@@ -202,11 +203,11 @@ export async function findBotConnectedToGuild(guildId: string, infoTimeoutMs = 2
   return infos.find(i => i.ok && i.connectedGuildIds.includes(guildId)) || null;
 }
 
-export async function instructLeaveConnectedBot(guildId: string, infoTimeoutMs = 2000, leaveTimeoutMs = 5000): Promise<boolean> {
+export async function instructLeaveConnectedBot(guildId: string, voiceChannelId?: string, infoTimeoutMs = 2000, leaveTimeoutMs = 5000): Promise<boolean> {
   const info = await findBotConnectedToGuild(guildId, infoTimeoutMs);
   if (!info) return false;
   try {
-    await instructLeave(info.bot, { guildId }, leaveTimeoutMs);
+    await instructLeave(info.bot, { guildId, voiceChannelId }, leaveTimeoutMs);
     return true;
   } catch {
     return false;
