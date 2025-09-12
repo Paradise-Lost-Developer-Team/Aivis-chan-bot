@@ -373,12 +373,26 @@
     flex-wrap: wrap;
 }
 
-.dictionary-controls input {
+.add-entry {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.dictionary-controls input,
+.dictionary-controls select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     flex: 1;
     min-width: 150px;
+    font-size: 14px;
 }
 
 .dictionary-controls button {
@@ -388,10 +402,48 @@
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
 }
 
 .dictionary-controls button:hover {
     background: #2f855a;
+}
+
+/* 特定の辞書ボタンのスタイリング */
+#add-dictionary-entry {
+    background: #38a169;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+#add-dictionary-entry:hover {
+    background: #2f855a;
+}
+
+#save-dictionary {
+    background: #2b6cb0;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+#save-dictionary:hover {
+    background: #2c5282;
 }
 
 .dictionary-list {
