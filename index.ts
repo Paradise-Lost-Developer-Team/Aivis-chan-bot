@@ -42,7 +42,7 @@ const rest = new REST({ version: '9' }).setToken(TOKEN);
 
 // Webダッシュボードの設定を読み込む関数
 async function loadWebDashboardSettings() {
-    const webBaseUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:3001';
+    const webBaseUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local';
     
     try {
         // 全ギルドの設定を読み込み
