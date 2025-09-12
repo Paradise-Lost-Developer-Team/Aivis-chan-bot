@@ -1,0 +1,97 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+}
+const { title = 'Dashboard', description = 'Aivis-chan Bot web dashboard' } = Astro.props as Props;
+---
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <header>
+      <nav aria-label="メイン">
+        <a href="/dashboard" aria-current="page">概要</a>
+        <a href="/dashboard/dictionary">辞書</a>
+        <a href="/dashboard/auto-join">自動接続</a>
+        <a href="/dashboard/settings">設定</a>
+        <a href="/dashboard/personal">個人の設定</a>
+        <a href="/api/auth/logout">ログアウト</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <small>&copy; Aivis-chan Bot</small>
+    </footer>
+  </body>
+  <style>
+    :root {
+      /* Theme: bright + light blue */
+      --bg: #ffffff;
+      --text: #0b2239;              /* 濃紺系: 白背景で高コントラスト */
+      --muted: #4a5b6b;
+      --border: #d0e7f8;            /* 明るい水色の枠線 */
+      --primary: #00a3ff;           /* 水色系のテーマカラー */
+      --primary-700: #0077cc;       /* コントラスト確保用の濃い水色 */
+      --link: #005a99;              /* 4.5:1 以上を満たす濃色リンク */
+      --hover-bg: #e6f5ff;          /* ホバー時の淡い水色 */
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      line-height: 1.6;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header { border-bottom: 1px solid var(--border); background: var(--bg); }
+    nav { display: flex; gap: .75rem; padding: .75rem 1rem; flex-wrap: wrap; }
+    nav a {
+      color: var(--link);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 2px;
+      padding: .25rem .5rem;
+      border-radius: .375rem;
+      outline: none;
+    }
+    nav a[aria-current="page"], nav a:hover { background: var(--hover-bg); color: var(--primary-700); }
+    nav a:focus-visible { outline: 3px solid var(--primary-700); outline-offset: 2px; }
+
+    main { padding: 1rem; max-width: 1000px; margin: 0 auto; }
+    footer { border-top: 1px solid var(--border); padding: 1rem; color: var(--muted); }
+
+    /* ボタン/入力の基本スタイル（コントラスト配慮） */
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button {
+      background: var(--primary);
+      color: #ffffff;
+      border: 1px solid var(--primary-700);
+      border-radius: .375rem;
+      padding: .5rem .75rem;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(0.98); }
+    button:focus-visible { outline: 3px solid var(--primary-700); outline-offset: 2px; }
+
+    label { display: grid; gap: .25rem; margin-block: .5rem; color: var(--text); }
+    fieldset { border: 1px solid var(--border); border-radius: .5rem; padding: 1rem; }
+    legend { padding: 0 .25rem; color: var(--primary-700); font-weight: 600; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</html>

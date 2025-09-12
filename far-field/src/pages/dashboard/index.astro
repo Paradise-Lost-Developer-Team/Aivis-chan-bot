@@ -1,0 +1,32 @@
+---
+import Layout from '../../layouts/DashboardLayout.astro';
+import { getSessionFromRequest } from '../../lib/session';
+
+const sess = getSessionFromRequest(Astro.request);
+if (!sess) {
+  return Astro.redirect('/api/auth/login');
+}
+const premium = !!sess.premium;
+---
+<Layout title="ダッシュボード | 概要" description="Aivis-chan Bot のダッシュボード（概要）">
+  <h1>概要</h1>
+  <p>ようこそ、{sess.username} さん。</p>
+  {premium ? (
+    <section aria-labelledby="premium-overview">
+      <h2 id="premium-overview">有料版の概要</h2>
+      <ul>
+        <li>優先度の高い接続</li>
+        <li>高度な辞書管理</li>
+        <li>拡張設定項目</li>
+      </ul>
+    </section>
+  ) : (
+    <section aria-labelledby="free-overview">
+      <h2 id="free-overview">無料版の概要</h2>
+      <ul>
+        <li>基本的な読み上げ機能</li>
+        <li>簡易的な辞書登録</li>
+      </ul>
+    </section>
+  )}
+</Layout>

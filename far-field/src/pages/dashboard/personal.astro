@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/DashboardLayout.astro';
+import { getSessionFromRequest } from '../../lib/session';
+const sess = getSessionFromRequest(Astro.request);
+if (!sess) return Astro.redirect('/api/auth/login');
+---
+<Layout title="ダッシュボード | 個人の設定" description="ユーザーごとの設定">
+  <h1>個人の設定</h1>
+  <p>ログイン中: {sess.username}</p>
+  <form method="post" action="/api/personal/save">
+    <fieldset>
+      <legend>音声</legend>
+      <label>話者ID<input name="speakerId" type="number" min="1" step="1" /></label>
+      <label>読み上げスピード<input name="speed" type="number" min="0.5" max="2" step="0.1" value="1" /></label>
+    </fieldset>
+    <button type="submit">保存</button>
+  </form>
+</Layout>

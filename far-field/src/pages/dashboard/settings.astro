@@ -1,0 +1,17 @@
+---
+import Layout from '../../layouts/DashboardLayout.astro';
+import { getSessionFromRequest } from '../../lib/session';
+const sess = getSessionFromRequest(Astro.request);
+if (!sess) return Astro.redirect('/api/auth/login');
+---
+<Layout title="ダッシュボード | 設定" description="Botの全体設定">
+  <h1>設定</h1>
+  <form method="post" action="/api/settings/save">
+    <fieldset>
+      <legend>読み上げ</legend>
+      <label>最大テキスト長<input type="number" min="10" max="3000" name="maxText" value="500" /></label>
+      <label>同時合成数<input type="number" min="1" max="8" name="concurrency" value="2" /></label>
+    </fieldset>
+    <button type="submit">保存</button>
+  </form>
+</Layout>

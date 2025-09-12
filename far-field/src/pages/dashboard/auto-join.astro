@@ -1,0 +1,21 @@
+---
+import Layout from '../../layouts/DashboardLayout.astro';
+import { getSessionFromRequest } from '../../lib/session';
+const sess = getSessionFromRequest(Astro.request);
+if (!sess) return Astro.redirect('/api/auth/login');
+---
+<Layout title="ダッシュボード | 自動接続" description="自動接続のターゲットやポリシー設定">
+  <h1>自動接続</h1>
+  <form method="post" action="/api/auto-join/save">
+    <fieldset>
+      <legend>自動接続ポリシー</legend>
+      <label>ギルドID<input name="guildId" required /></label>
+      <label>ボイスチャンネルID<input name="voiceChannelId" required /></label>
+      <label>
+        在籍Botから最も空いているBotを選ぶ
+        <input type="checkbox" name="policyLeastBusy" checked />
+      </label>
+      <button type="submit">保存</button>
+    </fieldset>
+  </form>
+</Layout>

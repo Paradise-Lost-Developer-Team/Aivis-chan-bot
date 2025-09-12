@@ -1,0 +1,21 @@
+---
+import Layout from '../../layouts/DashboardLayout.astro';
+import { getSessionFromRequest } from '../../lib/session';
+
+const sess = getSessionFromRequest(Astro.request);
+if (!sess) return Astro.redirect('/api/auth/login');
+---
+<Layout title="ダッシュボード | 辞書" description="ギルドごとの辞書を編集">
+  <h1>辞書</h1>
+  <p>ギルドごとの読み替えを管理します。発音はテキスト読み上げに直接反映されます。</p>
+  <form aria-describedby="dict-help" method="post" action="/api/dictionary/save">
+    <fieldset>
+      <legend>エントリ追加</legend>
+      <label>ギルドID<input name="guildId" required aria-required="true" /></label>
+      <label>単語<input name="word" required aria-required="true" /></label>
+      <label>発音<input name="pronunciation" required aria-required="true" /></label>
+      <button type="submit">追加</button>
+    </fieldset>
+  </form>
+  <p id="dict-help">長い語から置換されます。重複に注意してください。</p>
+</Layout>
