@@ -8,7 +8,6 @@ import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { setupVoiceStateUpdateHandlers } from "./utils/VoiceStateUpdate";
 import { logError } from "./utils/errorLogger";
-import './utils/patreonIntegration'; // Patreon連携モジュールをインポート
 import { ConversationTrackingService } from "./utils/conversation-tracking-service"; // 会話分析サービス
 import { VoiceStampManager, setupVoiceStampEvents } from "./utils/voiceStamp"; // ボイススタンプ機能をインポート
 import { initSentry } from './utils/sentry';
@@ -615,7 +614,7 @@ async function loadWebDashboardSettings() {
         const guilds = client.guilds.cache;
         for (const [guildId, guild] of guilds) {
             try {
-                const settingsResponse = await axios.get(`${webDashboardUrl}/api/settings/${guildId}`, {
+                const settingsResponse = await axios.get(`${webDashboardUrl}/internal/settings/${guildId}`, {
                     timeout: 15000
                 });
                 
@@ -624,7 +623,7 @@ async function loadWebDashboardSettings() {
                     applyGuildSettings(guildId, settingsResponse.data.settings);
                 }
                 
-                const dictionaryResponse = await axios.get(`${webDashboardUrl}/api/dictionary/${guildId}`, {
+                const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, {
                     timeout: 15000
                 });
                 
