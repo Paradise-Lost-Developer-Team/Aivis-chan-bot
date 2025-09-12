@@ -586,3 +586,86 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'leave-failed' });
     }
 });
+
+// Webダッシュボードから設定を読み込む関数
+async function loadWebDashboardSettings() {
+    try {
+        console.log('Webダッシュボードから設定を読み込んでいます...');
+        
+        const webDashboardUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:3001';
+        
+        const guilds = client.guilds.cache;
+        for (const [guildId, guild] of guilds) {
+            try {
+                const settingsResponse = await axios.get(`${webDashboardUrl}/api/settings/${guildId}`, {
+                    timeout: 5000
+                });
+                
+                if (settingsResponse.data && settingsResponse.data.settings) {
+                    console.log(`ギルド ${guild.name} (${guildId}) の設定を読み込みました`);
+                    applyGuildSettings(guildId, settingsResponse.data.settings);
+                }
+                
+                const dictionaryResponse = await axios.get(`${webDashboardUrl}/api/dictionary/${guildId}`, {
+                    timeout: 5000
+                });
+                
+                if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
+                    console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました (${dictionaryResponse.data.dictionary.length}件)`);
+                    applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                }
+                
+            } catch (guildError: any) {
+                console.log(`ギルド ${guildId} の設定読み込みをスキップ: ${guildError?.message || guildError}`);
+            }
+        }
+        
+        console.log('Webダッシュボード設定の読み込みが完了しました');
+    } catch (error: any) {
+        console.error('Webダッシュボード設定の読み込みに失敗:', error?.message || error);
+    }
+}
+
+function applyGuildSettings(guildId: string, settings: any) {
+    try {
+        const settingsDir = path.join(DATA_DIR, 'guild-settings');
+        if (!fs.existsSync(settingsDir)) {
+            fs.mkdirSync(settingsDir, { recursive: true });
+        }
+        
+        const settingsFile = path.join(settingsDir, `${guildId}.json`);
+        fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+        
+        console.log(`ギルド ${guildId} の設定を保存しました`);
+    } catch (error) {
+        console.error(`ギルド ${guildId} の設定適用に失敗:`, error);
+    }
+}
+
+function applyGuildDictionary(guildId: string, dictionary: any[]) {
+    try {
+        const dictionariesPath = path.join(DATA_DIR, 'guild_dictionaries.json');
+        let guildDictionaries: Record<string, any> = {};
+        if (fs.existsSync(dictionariesPath)) {
+            try {
+                guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+            } catch (e) {
+                console.warn('Failed to parse existing dictionaries:', e);
+            }
+        }
+
+        const convertedDictionary = dictionary.map((entry: any) => ({
+            word: entry.word,
+            pronunciation: entry.pronunciation,
+            accent: entry.accent || '',
+            wordType: entry.wordType || ''
+        }));
+
+        guildDictionaries[guildId] = convertedDictionary;
+        fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+        
+        console.log(`ギルド ${guildId} の辞書を保存しました (${dictionary.length}件)`);
+    } catch (error) {
+        console.error(`ギルド ${guildId} の辞書適用に失敗:`, error);
+    }
+}
