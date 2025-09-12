@@ -11,7 +11,6 @@ import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
-import fetch from 'node-fetch';
 
 export const TTS_BASE_URL = process.env.TTS_SERVICE_URL || config.speechEngineUrl;
 const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
