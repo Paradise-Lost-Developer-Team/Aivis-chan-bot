@@ -8,13 +8,12 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 
 // Redis セッションストア設定
-let RedisStore = null;
 let redisStoreInstance = null;
 
 // SESSION_STORE環境変数が'redis'の場合のみRedisストアを使用
 if (process.env.SESSION_STORE === 'redis') {
   try {
-    RedisStore = require('connect-redis')(session);
+    const RedisStore = require('connect-redis');
     const redis = require('redis');
     const redisClient = redis.createClient({
       url: process.env.REDIS_URL || 'redis://localhost:6379'
