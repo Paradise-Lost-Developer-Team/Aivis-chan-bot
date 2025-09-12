@@ -24,7 +24,6 @@
                 <nav class="dashboard-nav">
                     <button class="nav-tab active" data-tab="overview">概要</button>
                     <button class="nav-tab" data-tab="dictionary">辞書</button>
-                    <button class="nav-tab" data-tab="auto-connect">自動接続</button>
                     <button class="nav-tab" data-tab="settings">設定</button>
                     <button class="nav-tab" data-tab="personal">個人の設定</button>
                     <button class="nav-tab premium-tab" data-tab="premium" id="premium-tab" style="display: none;">プレミアム</button>
@@ -66,85 +65,112 @@
             <!-- 辞書タブ -->
             <section id="dictionary" class="tab-content">
                 <h2>辞書管理</h2>
-                <div class="dictionary-controls">
-                    <input type="text" id="dict-word" placeholder="単語">
-                    <input type="text" id="dict-reading" placeholder="読み方">
-                    <button id="add-dict-entry">追加</button>
-                </div>
-                <div class="dictionary-list">
-                    <h3>辞書エントリ</h3>
-                    <div id="dictionary-entries"></div>
-                </div>
-            </section>
-
-            <!-- 自動接続タブ -->
-            <section id="auto-connect" class="tab-content">
-                <h2>自動接続設定</h2>
-                <div class="auto-connect-settings">
-                    <div class="setting-item">
-                        <label for="auto-connect-enabled">自動接続を有効にする</label>
-                        <input type="checkbox" id="auto-connect-enabled">
+                <div class="dictionary-settings">
+                    <div class="setting-group">
+                        <h3>辞書エントリー管理</h3>
+                        <div class="dictionary-controls">
+                            <div class="add-entry">
+                                <input type="text" id="new-word" placeholder="単語を入力">
+                                <input type="text" id="new-pronunciation" placeholder="発音を入力">
+                                <select id="new-accent">
+                                    <option value="">アクセント指定（省略可）</option>
+                                    <!-- アクセントオプションは動的に読み込まれます -->
+                                </select>
+                                <select id="new-word-type">
+                                    <option value="">品詞指定（省略可）</option>
+                                    <option value="PROPER_NOUN">固有名詞</option>
+                                    <option value="COMMON_NOUN">普通名詞</option>
+                                    <option value="VERB">動詞</option>
+                                    <option value="ADJECTIVE">形容詞</option>
+                                    <option value="ADVERB">副詞</option>
+                                </select>
+                                <button id="add-dictionary-entry">エントリー追加</button>
+                            </div>
+                            <div class="dictionary-list">
+                                <h4>現在の辞書エントリー</h4>
+                                <ul id="dictionary-entries">
+                                    <!-- 辞書エントリーは動的に読み込まれます -->
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="setting-item">
-                        <label for="auto-connect-channel">デフォルトチャンネル</label>
-                        <select id="auto-connect-channel"></select>
-                    </div>
-                    <div class="setting-item">
-                        <label for="auto-connect-delay">接続遅延（秒）</label>
-                        <input type="number" id="auto-connect-delay" min="0" max="300" value="5">
-                    </div>
-                    <button id="save-auto-connect">保存</button>
                 </div>
+                <button id="save-dictionary">辞書設定を保存</button>
             </section>
 
             <!-- 設定タブ -->
             <section id="settings" class="tab-content">
-                <h2>Bot設定</h2>
+                <h2>音声設定</h2>
                 <div class="settings-grid">
                     <div class="setting-group">
-                        <h3>音声設定</h3>
+                        <h3>基本音声設定</h3>
                         <div class="setting-item">
                             <label for="default-speaker">デフォルト話者</label>
                             <select id="default-speaker">
-                                <option value="Anneli">Anneli</option>
-                                <option value="Anneli (Alt)">Anneli (Alt)</option>
-                                <option value="Anneli (Whisper)">Anneli (Whisper)</option>
-                                <option value="阿井田 茂">阿井田 茂</option>
-                                <option value="亜空マオ">亜空マオ</option>
-                                <option value="天深シノ">天深シノ</option>
-                                <option value="花音">花音</option>
-                                <option value="にせ">にせ</option>
-                                <option value="fumifumi">fumifumi</option>
-                                <option value="るな">るな</option>
-                                <option value="凛音エル">凛音エル</option>
-                                <option value="ろてじん (長老ボイス)">ろてじん (長老ボイス)</option>
-                                <option value="老当主">老当主</option>
+                                <!-- 話者オプションは動的に読み込まれます -->
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label for="default-speed">デフォルト速度</label>
+                            <label for="default-speed">話速</label>
                             <input type="range" id="default-speed" min="0.5" max="2.0" step="0.1" value="1.0">
                             <span id="speed-value">1.0</span>
                         </div>
                         <div class="setting-item">
-                            <label for="default-pitch">デフォルトピッチ</label>
-                            <input type="range" id="default-pitch" min="0.5" max="2.0" step="0.1" value="1.0">
-                            <span id="pitch-value">1.0</span>
+                            <label for="default-pitch">音高</label>
+                            <input type="range" id="default-pitch" min="-0.15" max="0.15" step="0.01" value="0.0">
+                            <span id="pitch-value">0.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-tempo">テンポ</label>
+                            <input type="range" id="default-tempo" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="tempo-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-volume">音量</label>
+                            <input type="range" id="default-volume" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="volume-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-intonation">感情表現の強さ</label>
+                            <input type="range" id="default-intonation" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="intonation-value">1.0</span>
                         </div>
                     </div>
                     <div class="setting-group">
-                        <h3>動作設定</h3>
+                        <h3>自動接続設定</h3>
                         <div class="setting-item">
-                            <label for="auto-leave">自動退出（分）</label>
-                            <input type="number" id="auto-leave" min="1" max="1440" value="30">
+                            <label for="auto-join-voice">自動接続ボイスチャンネル</label>
+                            <select id="auto-join-voice">
+                                <option value="">選択してください</option>
+                                <!-- ボイスチャンネルオプションは動的に読み込まれます -->
+                            </select>
                         </div>
                         <div class="setting-item">
-                            <label for="max-queue">最大キュー数</label>
-                            <input type="number" id="max-queue" min="1" max="100" value="50">
+                            <label for="auto-join-text">自動接続テキストチャンネル</label>
+                            <select id="auto-join-text">
+                                <option value="">選択してください</option>
+                                <!-- テキストチャンネルオプションは動的に読み込まれます -->
+                            </select>
                         </div>
                         <div class="setting-item">
-                            <label for="ignore-bots">Botメッセージを無視</label>
+                            <label for="temp-voice">一時ボイス機能</label>
+                            <input type="checkbox" id="temp-voice">
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>自動退出設定</h3>
+                        <div class="setting-item">
+                            <label for="auto-leave">自動退出機能</label>
+                            <input type="checkbox" id="auto-leave">
+                            <span class="setting-description">ボイスチャンネルに誰もいなくなったら自動的に退出します</span>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>メッセージフィルタ設定</h3>
+                        <div class="setting-item">
+                            <label for="ignore-bots">Botメッセージ無視</label>
                             <input type="checkbox" id="ignore-bots" checked>
+                            <span class="setting-description">他のBotからのメッセージを読み上げません</span>
                         </div>
                     </div>
                 </div>
@@ -153,63 +179,40 @@
 
             <!-- 個人の設定タブ -->
             <section id="personal" class="tab-content">
-                <h2>個人の設定</h2>
+                <h2>個人の音声設定</h2>
                 <div class="personal-settings">
                     <div class="setting-group">
-                        <h3>音声設定</h3>
+                        <h3>個人音声設定</h3>
                         <div class="setting-item">
                             <label for="personal-speaker">個人話者</label>
                             <select id="personal-speaker">
-                                <option value="Anneli">Anneli</option>
-                                <option value="Anneli (Alt)">Anneli (Alt)</option>
-                                <option value="Anneli (Whisper)">Anneli (Whisper)</option>
-                                <option value="阿井田 茂">阿井田 茂</option>
-                                <option value="亜空マオ">亜空マオ</option>
-                                <option value="天深シノ">天深シノ</option>
-                                <option value="花音">花音</option>
-                                <option value="にせ">にせ</option>
-                                <option value="fumifumi">fumifumi</option>
-                                <option value="るな">るな</option>
-                                <option value="凛音エル">凛音エル</option>
-                                <option value="ろてじん (長老ボイス)">ろてじん (長老ボイス)</option>
-                                <option value="老当主">老当主</option>
+                                <!-- 話者オプションは動的に読み込まれます -->
                             </select>
                         </div>
                         <div class="setting-item">
-                            <label for="personal-speed">個人速度</label>
+                            <label for="personal-speed">話速</label>
                             <input type="range" id="personal-speed" min="0.5" max="2.0" step="0.1" value="1.0">
                             <span id="personal-speed-value">1.0</span>
                         </div>
                         <div class="setting-item">
-                            <label for="personal-pitch">個人ピッチ</label>
-                            <input type="range" id="personal-pitch" min="0.5" max="2.0" step="0.1" value="1.0">
-                            <span id="personal-pitch-value">1.0</span>
-                        </div>
-                    </div>
-                    <div class="setting-group">
-                        <h3>通知設定</h3>
-                        <div class="setting-item">
-                            <label for="notify-joined">参加通知</label>
-                            <input type="checkbox" id="notify-joined" checked>
+                            <label for="personal-pitch">音高</label>
+                            <input type="range" id="personal-pitch" min="-0.15" max="0.15" step="0.01" value="0.0">
+                            <span id="personal-pitch-value">0.0</span>
                         </div>
                         <div class="setting-item">
-                            <label for="notify-left">退出通知</label>
-                            <input type="checkbox" id="notify-left">
+                            <label for="personal-tempo">テンポ</label>
+                            <input type="range" id="personal-tempo" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-tempo-value">1.0</span>
                         </div>
                         <div class="setting-item">
-                            <label for="notify-error">エラー通知</label>
-                            <input type="checkbox" id="notify-error" checked>
-                        </div>
-                    </div>
-                    <div class="setting-group">
-                        <h3>プライバシー設定</h3>
-                        <div class="setting-item">
-                            <label for="log-messages">メッセージログ</label>
-                            <input type="checkbox" id="log-messages">
+                            <label for="personal-volume">音量</label>
+                            <input type="range" id="personal-volume" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-volume-value">1.0</span>
                         </div>
                         <div class="setting-item">
-                            <label for="public-stats">統計公開</label>
-                            <input type="checkbox" id="public-stats" checked>
+                            <label for="personal-intonation">感情表現の強さ</label>
+                            <input type="range" id="personal-intonation" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-intonation-value">1.0</span>
                         </div>
                     </div>
                 </div>
