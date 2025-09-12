@@ -1,0 +1,77 @@
+name: Build and Push Bot Image
+
+on:
+  push:
+    branches: [ master, main, 3rd ]
+    paths:
+      - '**'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - '**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  REGISTRY_USER: alexandergg-0520
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up BuildKit
+      run: |
+        # BuildKitの最新バイナリをダウンロード
+        wget -q -O- https://github.com/moby/buildkit/releases/download/v0.12.5/buildkit-v0.12.5.linux-amd64.tar.gz | sudo tar -xz -C /usr/local
+        sudo mv /usr/local/bin/buildctl /usr/local/bin/buildctl
+        sudo mv /usr/local/bin/buildkitd /usr/local/bin/buildkitd
+
+    - name: Start BuildKitd
+      run: |
+        # BuildKitdをバックグラウンドで起動
+        sudo buildkitd --addr unix:///run/buildkit/buildkitd.sock --root /tmp/buildkit-root --oci-worker-no-process-sandbox &
+        # ソケットファイルが作成されるまで待機
+        timeout=30
+        while [ ! -S /run/buildkit/buildkitd.sock ] && [ $timeout -gt 0 ]; do
+          sleep 1
+          timeout=$((timeout - 1))
+        done
+        if [ ! -S /run/buildkit/buildkitd.sock ]; then
+          echo "BuildKitd failed to start"
+          exit 1
+        fi
+
+    - name: Login to GitHub Container Registry
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Build and Push aivis-chan-bot-1st
+      run: |
+        # レジストリ認証情報を設定
+        export BUILDKIT_HOST=unix:///run/buildkit/buildkitd.sock
+        
+        buildctl build \
+          --frontend dockerfile.v0 \
+          --local context=. \
+          --local dockerfile=. \
+          --output type=image,name=${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/aivis-chan-bot-1st:latest,push=true \
+          --output type=image,name=${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/aivis-chan-bot-1st:${{ github.sha }},push=true \
+          --export-cache type=gha,mode=max \
+          --import-cache type=gha
+      env:
+        BUILDKIT_HOST: unix:///run/buildkit/buildkitd.sock
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Image digest
+      run: |
+        echo "Image pushed to ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/aivis-chan-bot-1st:latest"
