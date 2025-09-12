@@ -1077,11 +1077,46 @@ app.get('/api/servers', async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // ログイン時に取得したギルド情報を直接返す
-        const servers = req.user.guilds || [];
+        // ユーザーが参加している全ギルド
+        const userGuilds = req.user.guilds || [];
+        
+        // Botが参加しているギルドIDを取得
+        const botGuildIds = new Set();
+        const BOTS = [
+            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st:3002' },
+            { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd:3003' },
+            { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd:3004' },
+            { name: '4th', baseUrl: 'http://aivis-chan-bot-4th:3005' },
+            { name: '5th', baseUrl: 'http://aivis-chan-bot-5th:3006' },
+            { name: '6th', baseUrl: 'http://aivis-chan-bot-6th:3007' },
+            { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium:3008' }
+        ];
+
+        // 各Botインスタンスからギルド情報を取得
+        const botInfoPromises = BOTS.map(async (bot) => {
+            try {
+                const response = await axios.get(`${bot.baseUrl}/internal/info`, {
+                    timeout: 5000
+                });
+                return { bot: bot.name, guildIds: response.data.guildIds || [] };
+            } catch (error) {
+                console.warn(`Failed to fetch info from ${bot.name}:`, error.message);
+                return { bot: bot.name, guildIds: [] };
+            }
+        });
+
+        const botResults = await Promise.all(botInfoPromises);
+        
+        // 全BotインスタンスのギルドIDを統合
+        botResults.forEach(result => {
+            result.guildIds.forEach(guildId => botGuildIds.add(guildId));
+        });
+
+        // ユーザーのギルドの中で、Botが参加しているもののみをフィルタリング
+        const filteredServers = userGuilds.filter(guild => botGuildIds.has(guild.id));
         
         // ユーザー情報を各サーバーに追加
-        const serversWithUserInfo = servers.map(server => ({
+        const serversWithUserInfo = filteredServers.map(server => ({
             ...server,
             nickname: req.user.nickname,
             userIconUrl: req.user.avatarUrl
