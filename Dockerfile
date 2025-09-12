@@ -7,7 +7,7 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 # ビルド時のためにダミーのconfig.jsonを作成
-RUN mkdir -p data && echo '{"clientId":"build_dummy","TOKEN":"build_dummy","guildId":"build_dummy"}' > data/config.json
+RUN mkdir -p data && echo '{"clientId":"build_dummy","TOKEN":"build_dummy","guildId":"build_dummy","PATREON":{"CLIENT_ID":"build_dummy","CLIENT_SECRET":"build_dummy","REDIRECT_URI":"http://localhost/auth/patreon/callback","FALLBACK_SERVER":"http://aivis-chan-bot-web:80"}}' > data/config.json
 RUN npm run compile
 FROM node:current-alpine3.22
 # Use the latest slim image for security updates
