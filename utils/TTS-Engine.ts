@@ -67,14 +67,15 @@ function markTTSDown() {
     startTTSHealthProbe();
 }
 
-export const textChannels: { [key: string]: TextChannel } = {};
-export const voiceClients: { [key: string]: VoiceConnection } = {};
+// voiceChannelIdベースで管理
+export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
+export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // joinコマンド実行チャンネルを記録するマップ
 export const joinCommandChannels: { [guildId: string]: string } = {};
 // ユーザーごとの話者設定
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
-export const players: { [key: string]: AudioPlayer } = {};
+export const players: { [voiceChannelId: string]: AudioPlayer } = {};
 
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
@@ -963,13 +964,12 @@ export function uuidv4(): string {
 }
 
 // ボイスクライアント接続チェックを行う関数を追加
-export function isVoiceClientConnected(guildId: string): boolean {
-    if (!voiceClients[guildId]) {
+export function isVoiceClientConnected(voiceChannelId: string): boolean {
+    if (!voiceClients[voiceChannelId]) {
         return false;
     }
-    
     // VoiceConnectionStatusがReadyであるか確認
-    return voiceClients[guildId].state.status === VoiceConnectionStatus.Ready;
+    return voiceClients[voiceChannelId].state.status === VoiceConnectionStatus.Ready;
 }
 
 let autoJoinChannelsData: { [key: string]: any } = {};
