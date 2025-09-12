@@ -52,8 +52,8 @@ async function loadWebDashboardSettings() {
                 const timeout = 15000;
                 const axiosConfig = { timeout };
                 
-                const settingsResponse = await axios.get(`${webBaseUrl}/api/settings/${guild.id}`, axiosConfig);
-                const dictionaryResponse = await axios.get(`${webBaseUrl}/api/dictionary/${guild.id}`, axiosConfig);
+                const settingsResponse = await axios.get(`${webBaseUrl}/internal/settings/${guild.id}`, axiosConfig);
+                const dictionaryResponse = await axios.get(`${webBaseUrl}/internal/dictionary/${guild.id}`, axiosConfig);
 
                 // 設定を適用
                 if (settingsResponse.data?.settings) {
@@ -100,7 +100,7 @@ async function loadWebDashboardSettings() {
                 console.log(`Web設定読み込み完了: ${guild.name} (${guild.id})`);
             } catch (guildError: any) {
                 if (guildError.code === 'ECONNABORTED' || guildError.message.includes('timeout')) {
-                    console.warn(`ギルド ${guild.name} (${guild.id}) の設定読み込みをスキップ: timeout of ${guildError.timeout || 'unknown'}ms exceeded`);
+                    console.warn(`ギルド ${guild.name} (${guild.id}) の設定読み込みをスキップ: timeout of 15000ms exceeded`);
                 } else {
                     console.warn(`ギルド ${guild.name} (${guild.id}) の設定読み込みエラー:`, guildError.message);
                 }
