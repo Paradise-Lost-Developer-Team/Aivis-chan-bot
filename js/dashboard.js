@@ -655,9 +655,19 @@ class Dashboard {
                     listItem.setAttribute('data-server-id', server.id);
 
                     const icon = document.createElement('img');
-                    icon.src = server.iconUrl || '/default-icon.png';
+                    icon.src = server.iconUrl || '/default-icon.svg';
                     icon.alt = `${server.name} icon`;
                     icon.classList.add('server-icon');
+                    
+                    // アイコンの読み込みエラー時のフォールバック
+                    icon.onerror = function() {
+                        // SVGアイコンの代わりにテキストベースのアイコンを使用
+                        const fallbackIcon = document.createElement('div');
+                        fallbackIcon.className = 'server-icon server-icon-fallback';
+                        fallbackIcon.textContent = server.name.charAt(0).toUpperCase();
+                        fallbackIcon.title = server.name;
+                        this.parentNode.replaceChild(fallbackIcon, this);
+                    };
 
                     const serverInfo = document.createElement('div');
                     serverInfo.className = 'server-info';

@@ -145,6 +145,21 @@
     border: 2px solid #e9ecef;
 }
 
+.server-icon-fallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+}
+
 .server-info {
     flex: 1;
 }
