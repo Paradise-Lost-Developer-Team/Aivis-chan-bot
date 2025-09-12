@@ -19,6 +19,12 @@ const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
 const TTS_MAX_RETRIES = config.TTS_MAX_RETRIES || 3;
 const TTS_RETRY_DELAY = config.TTS_RETRY_DELAY || 1000;
 
+// 前方宣言: 一部の関数はファイル内で後方に定義されるため、
+// 型チェック時に参照エラーが出る場合に備えて宣言しておく
+declare function getLastSpeechTime(): number;
+declare function updateLastSpeechTime(): void;
+declare function getQueueForUser(guildId: string): Promise<PQueue>;
+
 // TTS自動復旧用フラグと設定
 export let ttsAvailable = true; // true = 利用可能、false = 利用不可（検知済み）
 let _ttsHealthProbeTimer: NodeJS.Timeout | null = null;
