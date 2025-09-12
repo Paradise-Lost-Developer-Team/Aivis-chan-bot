@@ -48,8 +48,12 @@ async function loadWebDashboardSettings() {
         // 全ギルドの設定を読み込み
         for (const guild of client.guilds.cache.values()) {
             try {
-                const settingsResponse = await axios.get(`${webBaseUrl}/api/settings/${guild.id}`);
-                const dictionaryResponse = await axios.get(`${webBaseUrl}/api/dictionary/${guild.id}`);
+                // タイムアウト時間を15秒に延長し、エラーハンドリングを改善
+                const timeout = 15000;
+                const axiosConfig = { timeout };
+                
+                const settingsResponse = await axios.get(`${webBaseUrl}/api/settings/${guild.id}`, axiosConfig);
+                const dictionaryResponse = await axios.get(`${webBaseUrl}/api/dictionary/${guild.id}`, axiosConfig);
 
                 // 設定を適用
                 if (settingsResponse.data?.settings) {
@@ -93,9 +97,13 @@ async function loadWebDashboardSettings() {
                     fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
                 }
 
-                console.log(`Web設定読み込み完了: ${guild.name}`);
+                console.log(`Web設定読み込み完了: ${guild.name} (${guild.id})`);
             } catch (guildError: any) {
-                console.warn(`Guild ${guild.name} の設定読み込み失敗:`, guildError.message);
+                if (guildError.code === 'ECONNABORTED' || guildError.message.includes('timeout')) {
+                    console.warn(`ギルド ${guild.name} (${guild.id}) の設定読み込みをスキップ: timeout of ${guildError.timeout || 'unknown'}ms exceeded`);
+                } else {
+                    console.warn(`ギルド ${guild.name} (${guild.id}) の設定読み込みエラー:`, guildError.message);
+                }
             }
         }
 
