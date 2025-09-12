@@ -671,12 +671,17 @@ function applyGuildDictionary(guildId: string, dictionary: any[]) {
             }
         }
 
-        const convertedDictionary = dictionary.map((entry: any) => ({
-            word: entry.word,
-            pronunciation: entry.pronunciation,
-            accent: entry.accent || '',
-            wordType: entry.wordType || ''
-        }));
+        // 辞書エントリーを適切な形式に変換（TTS-Engine用のObject形式）
+        const convertedDictionary: Record<string, any> = {};
+        dictionary.forEach((entry: any) => {
+            if (entry.word && entry.pronunciation) {
+                convertedDictionary[entry.word] = {
+                    pronunciation: entry.pronunciation,
+                    accent: entry.accent || '',
+                    wordType: entry.wordType || ''
+                };
+            }
+        });
 
         guildDictionaries[guildId] = convertedDictionary;
         fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
