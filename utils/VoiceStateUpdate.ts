@@ -42,7 +42,8 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                 const message = `${member.displayName}さんが入室しました`;
                 console.log(`[5th Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
-                    await speakAnnounce(message, guildId);
+                        const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
+                        await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
                     console.error(`[5th Bot] 入室アナウンスエラー:`, error);
@@ -52,7 +53,8 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                 const message = `${member.displayName}さんが退室しました`;
                 console.log(`[5th Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
-                    await speakAnnounce(message, guildId);
+                        const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
+                        await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
                     console.error(`[5th Bot] 退室アナウンスエラー:`, error);
