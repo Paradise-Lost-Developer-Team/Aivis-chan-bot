@@ -567,18 +567,8 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
             }
         }
 
-        if (!finalTextChannelId) {
-            // 4. ギルドのシステムチャンネルを使用
-            if (guild.systemChannel && guild.systemChannel.type === 0) {
-                finalTextChannelId = guild.systemChannel.id;
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // 5. 一般チャンネル → なければ最初のテキストチャンネル
-            const generalChannel = guild.channels.cache.find(ch => ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般')));
-            finalTextChannelId = (generalChannel && (generalChannel as any).id) || (guild.channels.cache.find(ch => ch.type === 0) as any)?.id || null;
-        }
+        // 明示的なテキストチャンネル設定がない場合はエラーを返す
+        // 自動的に「一般」チャンネルを選択しない
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
@@ -610,19 +600,8 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
                     } else {
                         console.warn(`[text-channel API] テキストチャンネル無効: ギルド ${guildId} チャンネル ${finalTextChannelId} - フェッチ結果: ${!!tc}, タイプ: ${tc?.type}, キャッシュ結果: ${!!cachedChannel}, キャッシュタイプ: ${cachedChannel?.type}`);
                         
-                        // フォールバック: ギルドのデフォルトチャンネルを探す
-                        const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0 && ch.permissionsFor(guild.members.me!)?.has('SendMessages'));
-                        if (fallbackChannel) {
-                            console.log(`[text-channel API] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id})`);
-                            return res.json({
-                                ok: true,
-                                textChannelId: fallbackChannel.id,
-                                textChannelName: fallbackChannel.name,
-                                guildTier: guildTier,
-                                fallback: true
-                            });
-                        }
-                        
+                        // 明示的なテキストチャンネル設定が無効な場合はエラーを返す
+                        // フォールバック処理は行わない
                         return res.status(404).json({ 
                             error: 'text-channel-invalid',
                             details: {

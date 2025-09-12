@@ -6,6 +6,7 @@ import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, textChannels, voiceClients, loadAutoJoinChannels, setJoinCommandChannel } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
+import { setTextChannelForGuild } from '../../utils/voiceStateManager';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -120,6 +121,8 @@ module.exports = {
         textChannels[guildId] = textChannel;
         // joinコマンド実行チャンネルを記録
         setJoinCommandChannel(guildId, interaction.channelId);
+        // テキストチャンネルをvoiceStateManagerに保存
+        setTextChannelForGuild(guildId, textChannel.id);
 
         try {
             // 全Botの状況を取得し、当該ギルドに在籍するBotの中から「最も空いている」個体を選択
