@@ -111,9 +111,49 @@ if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
       clientSecret: DISCORD_CLIENT_SECRET,
       callbackURL: DISCORD_REDIRECT_URI,
       scope: ['identify', 'guilds']
-  }, (accessToken, refreshToken, profile, done) => {
-      return done(null, profile);
-  }));
+  }, async (accessToken, refreshToken, profile, done) => {
+      try {
+          // Discord APIからユーザー情報を取得
+          const userResponse = await axios.get('https://discord.com/api/users/@me', {
+              headers: {
+                  Authorization: `Bearer ${accessToken}`
+              }
+          });
+
+          if (userResponse.status !== 200) {
+              throw new Error(`Failed to fetch user info: ${userResponse.statusText}`);
+          }
+
+          // Discord APIからギルド情報を取得
+          const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
+              headers: {
+                  Authorization: `Bearer ${accessToken}`
+              }
+          });
+
+          if (guildsResponse.status !== 200) {
+              throw new Error(`Failed to fetch guilds info: ${guildsResponse.statusText}`);
+          }
+
+          // ユーザーアイコンとニックネームをプロファイルに追加
+          profile.avatarUrl = userResponse.data.avatar
+              ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.png`
+              : null;
+          profile.nickname = userResponse.data.username;
+
+          // ギルド情報をプロファイルに追加
+          profile.guilds = guildsResponse.data.map(guild => ({
+              id: guild.id,
+              name: guild.name,
+              iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null
+          }));
+
+          return done(null, profile);
+      } catch (error) {
+          console.error('Error during Discord login:', error);
+          return done(error);
+      }
+}));
 }
 
 passport.serializeUser((user, done) => {
