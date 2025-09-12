@@ -675,6 +675,29 @@ apiApp.post('/internal/apply-web-settings/:guildId', express.json(), async (req:
     }
 });
 
+// 即座に設定をリロードするエンドポイント
+apiApp.post('/internal/reload-settings', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, settingsType } = req.body;
+        
+        console.log(`即座に設定リロード要求受信 - Guild: ${guildId}, Type: ${settingsType}`);
+        
+        if (guildId) {
+            // 特定ギルドの設定のみリロード（全設定リロードを実行）
+            await loadWebDashboardSettings();
+        } else {
+            // 全ギルドの設定をリロード
+            await loadWebDashboardSettings();
+        }
+        
+        console.log(`設定リロード完了 - Guild: ${guildId || 'ALL'}`);
+        return res.json({ success: true, message: 'Settings reloaded successfully' });
+    } catch (error) {
+        console.error('設定リロードエラー:', error);
+        return res.status(500).json({ error: 'Failed to reload settings' });
+    }
+});
+
 // テキストチャンネル決定API（他のBotが使用）
 apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response) => {
     try {
