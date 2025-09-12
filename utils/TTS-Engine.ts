@@ -910,9 +910,64 @@ export async function speakVoice(text: string, userId: string | number, guildId:
 /**
  * アナウンス用: 必ずデフォルト話者で再生
  */
-export async function speakAnnounce(text: string, guildId: string, client?: any): Promise<void> {
+export async function speakAnnounce(text: string, voiceChannelId: string, client?: any): Promise<void> {
+    // voiceChannelId を受け取り、関連する guildId を解決してキューに追加する
+    let guildId: string | undefined = undefined;
+    // 優先: voiceClients の接続情報から guildId を取得
+    try {
+        const vc = (voiceClients as any)[voiceChannelId] as VoiceConnection | undefined;
+        if (vc && vc.joinConfig && (vc.joinConfig as any).guildId) guildId = (vc.joinConfig as any).guildId;
+    } catch {}
+    // 次に textChannels マップから guild を解決
+    if (!guildId) {
+        try {
+            const tc = (textChannels as any)[voiceChannelId] as TextChannel | undefined;
+            if (tc && tc.guild) guildId = tc.guild.id;
+        } catch {}
+    }
+    // フォールバック: 近傍の autoJoinChannels から探す
+    if (!guildId) {
+        try {
+            const auto = autoJoinChannels && (Object.values(autoJoinChannels) as any[]).find(a => a.voiceChannelId === voiceChannelId);
+            if (auto && auto.voiceChannelId) {
+                // auto には guildId が含まれていない可能性があるので、ここでは不明のまま続行
+                // 多くの場合、呼び出し元が client を渡しているため、client から探索可能
+                if (client && client.guilds) {
+                    for (const [gid, g] of client.guilds.cache) {
+                        if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(voiceChannelId)) {
+                            guildId = gid;
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch {}
+    }
+
+    if (!guildId) {
+        // 最低限の安全処理: 既存の実装互換のために空の guildId を設定し getQueueForUser を呼ばない
+        // ただし通常は guildId が解決されるはず
+        try {
+            // try to find guild via client
+            if (client && client.guilds) {
+                for (const g of client.guilds.cache.values()) {
+                    if ((g as any).channels?.cache?.has && (g as any).channels.cache.has(voiceChannelId)) {
+                        guildId = (g as any).id;
+                        break;
+                    }
+                }
+            }
+        } catch {}
+    }
+
+    if (!guildId) {
+        // ギルドが特定できない場合は非同期で実行して失敗を抑える
+        const dummyQueue = new PQueue({ concurrency: 1 });
+        return dummyQueue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, '', undefined, client));
+    }
+
     const queue = await getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId!, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理
