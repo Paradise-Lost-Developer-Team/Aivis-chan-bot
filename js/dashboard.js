@@ -18,34 +18,17 @@ class Dashboard {
                 // 認証済みのみプレミアム状態を確認
                 this.checkPremiumStatus();
             } else {
-                this.showLoginPage();
+                console.warn('User not authenticated.');
             }
         } catch (e) {
             console.error('Failed to check session:', e);
-            this.showLoginPage();
         }
 
         this.setupDiscordLogin();
         this.setupLogout();
     }
 
-    // ログイン状態はサーバーセッションで確認するため、localStorageは使用しない
-
-    // ログインページを表示
-    showLoginPage() {
-        const loginPage = document.getElementById('login-page');
-        const mainDashboard = document.getElementById('main-dashboard');
-        if (loginPage) {
-            loginPage.style.display = 'flex';
-        } else {
-            console.error("Element 'login-page' not found.");
-        }
-        if (mainDashboard) {
-            mainDashboard.style.display = 'none';
-        } else {
-            console.error("Element 'main-dashboard' not found.");
-        }
-    }
+    // ログインページを表示する処理は不要になったため削除しました
 
     // ダッシュボードを表示
     showDashboard() {
