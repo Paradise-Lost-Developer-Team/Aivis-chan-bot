@@ -652,6 +652,160 @@ app.get('/api/premium-stats', requireAuth, (req, res) => {
     }
 });
 
+// Bot設定保存・取得API
+app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const guildId = req.body.guildId;
+        const settings = req.body.settings;
+
+        if (!guildId || !settings) {
+            return res.status(400).json({ error: 'guildId and settings are required' });
+        }
+
+        // 設定をファイルに保存
+        const settingsDir = path.join(__dirname, 'data', 'settings');
+        if (!fs.existsSync(settingsDir)) {
+            fs.mkdirSync(settingsDir, { recursive: true });
+        }
+
+        const settingsFile = path.join(settingsDir, `${guildId}.json`);
+        const settingsData = {
+            guildId,
+            userId,
+            settings,
+            lastUpdated: new Date().toISOString()
+        };
+
+        fs.writeFileSync(settingsFile, JSON.stringify(settingsData, null, 2));
+
+        res.json({ success: true, message: '設定を保存しました' });
+    } catch (error) {
+        console.error('Settings save error:', error);
+        res.status(500).json({ error: '設定の保存に失敗しました' });
+    }
+});
+
+app.get('/api/settings/:guildId', requireAuth, (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const settingsFile = path.join(__dirname, 'data', 'settings', `${guildId}.json`);
+
+        if (!fs.existsSync(settingsFile)) {
+            return res.json({ settings: null });
+        }
+
+        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+        res.json(settingsData);
+    } catch (error) {
+        console.error('Settings load error:', error);
+        res.status(500).json({ error: '設定の読み込みに失敗しました' });
+    }
+});
+
+// 個人設定保存・取得API
+app.post('/api/personal-settings', requireAuth, express.json(), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const guildId = req.body.guildId;
+        const settings = req.body.settings;
+
+        if (!guildId || !settings) {
+            return res.status(400).json({ error: 'guildId and settings are required' });
+        }
+
+        // 個人設定をファイルに保存
+        const personalDir = path.join(__dirname, 'data', 'personal');
+        if (!fs.existsSync(personalDir)) {
+            fs.mkdirSync(personalDir, { recursive: true });
+        }
+
+        const personalFile = path.join(personalDir, `${guildId}_${userId}.json`);
+        const personalData = {
+            guildId,
+            userId,
+            settings,
+            lastUpdated: new Date().toISOString()
+        };
+
+        fs.writeFileSync(personalFile, JSON.stringify(personalData, null, 2));
+
+        res.json({ success: true, message: '個人設定を保存しました' });
+    } catch (error) {
+        console.error('Personal settings save error:', error);
+        res.status(500).json({ error: '個人設定の保存に失敗しました' });
+    }
+});
+
+app.get('/api/personal-settings/:guildId', requireAuth, (req, res) => {
+    try {
+        const userId = req.user.id;
+        const guildId = req.params.guildId;
+        const personalFile = path.join(__dirname, 'data', 'personal', `${guildId}_${userId}.json`);
+
+        if (!fs.existsSync(personalFile)) {
+            return res.json({ settings: null });
+        }
+
+        const personalData = JSON.parse(fs.readFileSync(personalFile, 'utf8'));
+        res.json(personalData);
+    } catch (error) {
+        console.error('Personal settings load error:', error);
+        res.status(500).json({ error: '個人設定の読み込みに失敗しました' });
+    }
+});
+
+// 辞書設定保存・取得API
+app.post('/api/dictionary', requireAuth, express.json(), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const guildId = req.body.guildId;
+        const dictionary = req.body.dictionary;
+
+        if (!guildId || !dictionary) {
+            return res.status(400).json({ error: 'guildId and dictionary are required' });
+        }
+
+        // 辞書をファイルに保存
+        const dictionaryDir = path.join(__dirname, 'data', 'dictionary');
+        if (!fs.existsSync(dictionaryDir)) {
+            fs.mkdirSync(dictionaryDir, { recursive: true });
+        }
+
+        const dictionaryFile = path.join(dictionaryDir, `${guildId}.json`);
+        const dictionaryData = {
+            guildId,
+            userId,
+            dictionary,
+            lastUpdated: new Date().toISOString()
+        };
+
+        fs.writeFileSync(dictionaryFile, JSON.stringify(dictionaryData, null, 2));
+
+        res.json({ success: true, message: '辞書を保存しました' });
+    } catch (error) {
+        console.error('Dictionary save error:', error);
+        res.status(500).json({ error: '辞書の保存に失敗しました' });
+    }
+});
+
+app.get('/api/dictionary/:guildId', requireAuth, (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const dictionaryFile = path.join(__dirname, 'data', 'dictionary', `${guildId}.json`);
+
+        if (!fs.existsSync(dictionaryFile)) {
+            return res.json({ dictionary: [] });
+        }
+
+        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
+        res.json(dictionaryData);
+    } catch (error) {
+        console.error('Dictionary load error:', error);
+        res.status(500).json({ error: '辞書の読み込みに失敗しました' });
+    }
+});
+
 // Patreonリンク取得ヘルパー関数
 async function getPatreonLink(discordId) {
     try {

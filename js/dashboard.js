@@ -544,18 +544,48 @@ class Dashboard {
     async saveSettings() {
         const settings = {
             defaultSpeaker: document.getElementById('default-speaker').value,
-            defaultSpeed: document.getElementById('default-speed').value,
-            defaultPitch: document.getElementById('default-pitch').value,
-            autoLeave: document.getElementById('auto-leave').value,
-            maxQueue: document.getElementById('max-queue').value,
+            defaultSpeed: parseFloat(document.getElementById('default-speed').value),
+            defaultPitch: parseFloat(document.getElementById('default-pitch').value),
+            defaultTempo: parseFloat(document.getElementById('default-tempo').value),
+            defaultVolume: parseFloat(document.getElementById('default-volume').value),
+            defaultIntonation: parseFloat(document.getElementById('default-intonation').value),
+            autoJoinVoice: document.getElementById('auto-join-voice').value,
+            autoJoinText: document.getElementById('auto-join-text').value,
+            tempVoice: document.getElementById('temp-voice').checked,
+            autoLeave: document.getElementById('auto-leave').checked,
             ignoreBots: document.getElementById('ignore-bots').checked
         };
 
         try {
+            // ローカルストレージに保存（バックアップ用）
             localStorage.setItem('bot-settings', JSON.stringify(settings));
+
+            // サーバーに保存（現在選択されているギルドID）
+            const guildId = this.getCurrentGuildId();
+            if (guildId) {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        guildId: guildId,
+                        settings: settings
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Settings saved to server:', result);
+                } else {
+                    console.error('Failed to save settings to server:', response.statusText);
+                }
+            }
+
             alert('設定を保存しました。');
         } catch (error) {
             console.error('Failed to save settings:', error);
+            alert('設定の保存中にエラーが発生しました。');
         }
     }
 
@@ -583,20 +613,43 @@ class Dashboard {
     async savePersonalSettings() {
         const settings = {
             personalSpeaker: document.getElementById('personal-speaker').value,
-            personalSpeed: document.getElementById('personal-speed').value,
-            personalPitch: document.getElementById('personal-pitch').value,
-            notifyJoined: document.getElementById('notify-joined').checked,
-            notifyLeft: document.getElementById('notify-left').checked,
-            notifyError: document.getElementById('notify-error').checked,
-            logMessages: document.getElementById('log-messages').checked,
-            publicStats: document.getElementById('public-stats').checked
+            personalSpeed: parseFloat(document.getElementById('personal-speed').value),
+            personalPitch: parseFloat(document.getElementById('personal-pitch').value),
+            personalTempo: parseFloat(document.getElementById('personal-tempo').value),
+            personalVolume: parseFloat(document.getElementById('personal-volume').value),
+            personalIntonation: parseFloat(document.getElementById('personal-intonation').value)
         };
 
         try {
+            // ローカルストレージに保存（バックアップ用）
             localStorage.setItem('personal-settings', JSON.stringify(settings));
+
+            // サーバーに保存（現在選択されているギルドID）
+            const guildId = this.getCurrentGuildId();
+            if (guildId) {
+                const response = await fetch('/api/personal-settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        guildId: guildId,
+                        settings: settings
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Personal settings saved to server:', result);
+                } else {
+                    console.error('Failed to save personal settings to server:', response.statusText);
+                }
+            }
+
             alert('個人設定を保存しました。');
         } catch (error) {
             console.error('Failed to save personal settings:', error);
+            alert('個人設定の保存中にエラーが発生しました。');
         }
     }
 
@@ -625,9 +678,34 @@ class Dashboard {
 
     async saveDictionarySettings() {
         try {
-            // 現在の辞書エントリーを保存
+            // 現在の辞書エントリーを取得
             const entries = this.getDictionaryEntries();
+            
+            // ローカルストレージに保存（バックアップ用）
             localStorage.setItem('dictionary-entries', JSON.stringify(entries));
+
+            // サーバーに保存（現在選択されているギルドID）
+            const guildId = this.getCurrentGuildId();
+            if (guildId) {
+                const response = await fetch('/api/dictionary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        guildId: guildId,
+                        dictionary: entries
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Dictionary saved to server:', result);
+                } else {
+                    console.error('Failed to save dictionary to server:', response.statusText);
+                }
+            }
+
             alert('辞書設定を保存しました。');
         } catch (error) {
             console.error('Failed to save dictionary settings:', error);
@@ -732,7 +810,7 @@ class Dashboard {
 
                     // クリックイベントを追加
                     listItem.addEventListener('click', () => {
-                        this.selectServer(server.id, server.name);
+                        this.selectServer(server.id);
                     });
                 });
             })
@@ -761,11 +839,120 @@ class Dashboard {
         this.loadServerSettings(serverId, serverName);
     }
 
+    // 現在選択されているサーバーのIDを取得
+    getCurrentGuildId() {
+        const selectedServer = document.querySelector('.server-item.selected');
+        if (selectedServer) {
+            return selectedServer.getAttribute('data-server-id');
+        }
+        
+        // デフォルトで最初のサーバーを選択
+        const firstServer = document.querySelector('.server-item');
+        if (firstServer) {
+            firstServer.classList.add('selected');
+            return firstServer.getAttribute('data-server-id');
+        }
+        
+        return null;
+    }
+
+    // サーバーを選択
+    selectServer(serverId) {
+        // 既存の選択を解除
+        document.querySelectorAll('.server-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // 新しいサーバーを選択
+        const serverElement = document.querySelector(`[data-server-id="${serverId}"]`);
+        if (serverElement) {
+            serverElement.classList.add('selected');
+            this.loadServerSettings(serverId);
+        }
+    }
+
     // サーバー設定読み込み
+    async loadServerSettings(serverId) {
+        if (!serverId) return;
+        
+        console.log(`Loading settings for server: ${serverId}`);
+        
+        try {
+            // サーバー設定を読み込み
+            const settingsResponse = await fetch(`/api/settings/${serverId}`);
+            if (settingsResponse.ok) {
+                const settingsData = await settingsResponse.json();
+                if (settingsData.settings) {
+                    this.applySettings(settingsData.settings);
+                }
+            }
+
+            // 個人設定を読み込み
+            const personalResponse = await fetch(`/api/personal-settings/${serverId}`);
+            if (personalResponse.ok) {
+                const personalData = await personalResponse.json();
+                if (personalData.settings) {
+                    this.applyPersonalSettings(personalData.settings);
+                }
+            }
+
+            // 辞書を読み込み
+            const dictionaryResponse = await fetch(`/api/dictionary/${serverId}`);
+            if (dictionaryResponse.ok) {
+                const dictionaryData = await dictionaryResponse.json();
+                if (dictionaryData.dictionary) {
+                    localStorage.setItem('dictionary-entries', JSON.stringify(dictionaryData.dictionary));
+                    this.renderDictionaryEntries();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load server settings:', error);
+        }
+    }
+
+    // 設定をUIに適用
+    applySettings(settings) {
+        Object.keys(settings).forEach(key => {
+            const element = document.getElementById(`default-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = settings[key];
+                } else if (element.type === 'range') {
+                    element.value = settings[key];
+                    const valueElement = document.getElementById(element.id.replace('default-', '') + '-value');
+                    if (valueElement) {
+                        valueElement.textContent = settings[key];
+                    }
+                } else {
+                    element.value = settings[key];
+                }
+            }
+        });
+    }
+
+    // 個人設定をUIに適用
+    applyPersonalSettings(settings) {
+        Object.keys(settings).forEach(key => {
+            const element = document.getElementById(`personal-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = settings[key];
+                } else if (element.type === 'range') {
+                    element.value = settings[key];
+                    const valueElement = document.getElementById(element.id + '-value');
+                    if (valueElement) {
+                        valueElement.textContent = settings[key];
+                    }
+                } else {
+                    element.value = settings[key];
+                }
+            }
+        });
+    }
+
+    // サーバー設定読み込み（旧メソッド - 互換性のため残す）
     loadServerSettings(serverId, serverName) {
-        console.log(`Loading settings for server: ${serverName}`);
-        // TODO: サーバー固有の設定を読み込み、UIに反映する処理を実装
-        // 例: 選択されたサーバーの設定タブを表示、設定値を読み込み等
+        this.loadServerSettings(serverId);
     }
 
     // ギルド情報の定期更新を開始
