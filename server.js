@@ -13,13 +13,37 @@ let redisStoreInstance = null;
 // SESSION_STORE環境変数が'redis'の場合のみRedisストアを使用
 if (process.env.SESSION_STORE === 'redis') {
   try {
-    const RedisStore = require('connect-redis');
+    const RedisStore = require('connect-redis').default;
     const redis = require('redis');
     const redisClient = redis.createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      socket: {
+        connectTimeout: 60000,
+        lazyConnect: true
+      }
     });
-    redisClient.connect().catch(console.error);
-    redisStoreInstance = new RedisStore({ client: redisClient });
+
+    redisClient.on('error', (err) => {
+      console.error('[REDIS] Client Error:', err);
+    });
+
+    redisClient.on('connect', () => {
+      console.log('[REDIS] Client Connected');
+    });
+
+    redisClient.on('ready', () => {
+      console.log('[REDIS] Client Ready');
+    });
+
+    redisClient.connect().catch((err) => {
+      console.error('[REDIS] Connection failed:', err);
+    });
+
+    redisStoreInstance = new RedisStore({
+      client: redisClient,
+      prefix: 'aivis:sess:',
+      ttl: 24 * 60 * 60 // 24時間（秒単位）
+    });
     console.log('[SESSION] Using Redis session store');
   } catch (err) {
     console.error('[SESSION] Failed to setup Redis store, falling back to memory store:', err.message);
@@ -1003,5 +1027,19 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
   } catch (e) {
     console.error('Patreon callback error', e?.response?.data || e.message || e);
     return res.status(500).send('Failed to exchange token');
+  }
+});
+
+// Redisヘルスチェックエンドポイント
+app.get('/health/redis', async (req, res) => {
+  if (!redisStoreInstance) {
+    return res.status(503).json({ status: 'Redis not configured' });
+  }
+
+  try {
+    await redisStoreInstance.client.ping();
+    res.json({ status: 'Redis connected' });
+  } catch (error) {
+    res.status(503).json({ status: 'Redis connection failed', error: error.message });
   }
 });
