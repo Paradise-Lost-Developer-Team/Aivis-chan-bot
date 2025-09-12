@@ -799,18 +799,32 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
 
 // ギルドごとにVoiceConnectionを確保・再利用する関数
 export function ensureVoiceConnection(guildId: string, voiceChannel: any): VoiceConnection {
-    let connection = voiceClients[guildId];
-    if (!connection || connection.state.status === VoiceConnectionStatus.Destroyed) {
-        connection = joinVoiceChannel({
-            channelId: voiceChannel.id,
-            guildId: guildId,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-            selfDeaf: false,
-        });
-        // ここでリスナー上限を増やす（デフォルト10→50）
-        connection.setMaxListeners(50);
-        voiceClients[guildId] = connection;
+    const vcId = voiceChannel && voiceChannel.id ? voiceChannel.id : undefined;
+
+    let connection: VoiceConnection | undefined = vcId ? (voiceClients as any)[vcId] : undefined;
+    if (!connection) connection = (voiceClients as any)[guildId];
+
+    if (connection && connection.state && connection.state.status === VoiceConnectionStatus.Destroyed) {
+        connection = undefined;
     }
+
+    if (connection) return connection;
+
+    if (!voiceChannel || !vcId || !voiceChannel.guild || !voiceChannel.guild.voiceAdapterCreator) {
+        throw new Error(`ensureVoiceConnection: invalid voiceChannel provided for guild=${guildId}`);
+    }
+
+    connection = joinVoiceChannel({
+        channelId: vcId,
+        guildId: guildId,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        selfDeaf: false,
+    });
+    connection.setMaxListeners(50);
+
+    try { (voiceClients as any)[vcId] = connection; } catch {}
+    try { (voiceClients as any)[guildId] = connection; } catch {}
+
     return connection;
 }
 async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
@@ -1049,8 +1063,8 @@ export function getSpeakerOptions() {
                     }
                 }
             }
-        }
         
+        }
         if (options.length === 0) {
             console.error("スピーカーオプションが生成できませんでした");
             // デフォルトのオプションを追加

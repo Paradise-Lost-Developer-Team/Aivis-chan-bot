@@ -410,7 +410,7 @@ apiApp.listen(3003, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients, cleanupAudioResources } from './utils/TTS-Engine';
+import { textChannels, voiceClients } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -607,12 +607,12 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
         if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+            // cleanupAudioResources is not exported from TTS-Engine; perform minimal manual cleanup
             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
             try { delete (textChannels as any)[voiceChannelId]; } catch {}
             try { delete (global as any).players?.[voiceChannelId]; } catch {}
         } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+            // cleanupAudioResources is not exported from TTS-Engine; perform minimal manual cleanup
             try { delete (voiceClients as any)[guildId]; } catch {}
             try { delete (textChannels as any)[guildId]; } catch {}
             try { delete (global as any).players?.[guildId]; } catch {}
