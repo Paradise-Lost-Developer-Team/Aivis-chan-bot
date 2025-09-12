@@ -664,7 +664,7 @@ app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
         }
 
         // 設定をファイルに保存
-        const settingsDir = path.join(__dirname, 'data', 'settings');
+        const settingsDir = path.join('/tmp', 'data', 'settings');
         if (!fs.existsSync(settingsDir)) {
             fs.mkdirSync(settingsDir, { recursive: true });
         }
@@ -692,7 +692,7 @@ app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
 app.get('/api/settings/:guildId', requireAuth, (req, res) => {
     try {
         const guildId = req.params.guildId;
-        const settingsFile = path.join(__dirname, 'data', 'settings', `${guildId}.json`);
+        const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
 
         if (!fs.existsSync(settingsFile)) {
             return res.json({ settings: null });
@@ -718,7 +718,7 @@ app.post('/api/personal-settings', requireAuth, express.json(), async (req, res)
         }
 
         // 個人設定をファイルに保存
-        const personalDir = path.join(__dirname, 'data', 'personal');
+        const personalDir = path.join('/tmp', 'data', 'personal');
         if (!fs.existsSync(personalDir)) {
             fs.mkdirSync(personalDir, { recursive: true });
         }
@@ -747,7 +747,7 @@ app.get('/api/personal-settings/:guildId', requireAuth, (req, res) => {
     try {
         const userId = req.user.id;
         const guildId = req.params.guildId;
-        const personalFile = path.join(__dirname, 'data', 'personal', `${guildId}_${userId}.json`);
+        const personalFile = path.join('/tmp', 'data', 'personal', `${guildId}_${userId}.json`);
 
         if (!fs.existsSync(personalFile)) {
             return res.json({ settings: null });
@@ -773,7 +773,7 @@ app.post('/api/dictionary', requireAuth, express.json(), async (req, res) => {
         }
 
         // 辞書をファイルに保存
-        const dictionaryDir = path.join(__dirname, 'data', 'dictionary');
+        const dictionaryDir = path.join('/tmp', 'data', 'dictionary');
         if (!fs.existsSync(dictionaryDir)) {
             fs.mkdirSync(dictionaryDir, { recursive: true });
         }
@@ -801,7 +801,7 @@ app.post('/api/dictionary', requireAuth, express.json(), async (req, res) => {
 app.get('/api/dictionary/:guildId', requireAuth, (req, res) => {
     try {
         const guildId = req.params.guildId;
-        const dictionaryFile = path.join(__dirname, 'data', 'dictionary', `${guildId}.json`);
+        const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
 
         if (!fs.existsSync(dictionaryFile)) {
             return res.json({ dictionary: [] });
