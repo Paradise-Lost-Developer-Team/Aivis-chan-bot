@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
 import { speakVoice, currentSpeaker, voiceClients, updateLastSpeechTime, chunkText } from './TTS-Engine';
+import { VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceHistoryItem, saveVoiceHistoryItem } from './voiceHistory';
 import { isProFeatureAvailable } from './subscription';
 import { logError } from './errorLogger';
@@ -109,7 +110,7 @@ async function processQueue(guildId: string): Promise<void> {
 
             // ボイスクライアントのチェック
             const voiceClient = voiceClients[guildId];
-            if (!voiceClient || voiceClient.state.status !== 'ready') {
+            if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
                 console.log(`ボイスクライアントが利用できないため、キュー処理をスキップします: ${guildId}`);
                 continue;
             }
