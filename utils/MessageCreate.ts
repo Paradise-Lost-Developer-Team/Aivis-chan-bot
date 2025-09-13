@@ -240,7 +240,7 @@ export function MessageCreate(client: ExtendedClient) {
             if (!voiceInitMap[guildId]) {
                 if (voiceClient) {
                     // 接続状態を確認し、接続が切れていたら再取得
-                    if (voiceClient.state.status !== 'ready') {
+                    if (voiceClient.state.status !== VoiceConnectionStatus.Ready) {
                         const reconnectedClient = getVoiceConnection(guildId);
                         if (reconnectedClient) {
                             voiceClients[guildId] = reconnectedClient;
