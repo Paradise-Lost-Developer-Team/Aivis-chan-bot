@@ -1642,21 +1642,47 @@ class Dashboard {
                 s.disabled = true;
             });
         } else {
-            channels.forEach(ch => {
-                // 一般的に type 2 = voice in Discord v12/13, but we accept any shape
+            // Filter channels into voice/text by type. Discord may return numeric
+            // types (0=text, 2=voice) or string constants like 'GUILD_VOICE'.
+            const isVoice = t => {
+                if (t === null || t === undefined) return false;
+                if (typeof t === 'number') return t === 2 || t === 13; // 2=voice, 13=stage? (defensive)
+                if (typeof t === 'string') return t.toLowerCase().includes('voice');
+                return false;
+            };
+            const isText = t => {
+                if (t === null || t === undefined) return false;
+                if (typeof t === 'number') return t === 0 || t === 5; // 0=text, 5=announcement? (defensive)
+                if (typeof t === 'string') return t.toLowerCase().includes('text') || t.toLowerCase().includes('forum');
+                return false;
+            };
+
+            const voiceChannels = channels.filter(c => isVoice(c.type));
+            const textChannels = channels.filter(c => isText(c.type));
+
+            // If no explicit voice/text types found, fallback to best-effort by name
+            if (voiceChannels.length === 0 && textChannels.length === 0) {
+                // As a fallback, include channels where names contain 'voice' or 'vc'
+                voiceChannels.push(...channels.filter(c => /voice|vc|ボイス|ボイチャ/i.test(c.name)));
+                textChannels.push(...channels.filter(c => !voiceChannels.includes(c)));
+            }
+
+            voiceChannels.forEach(ch => {
                 const optV = document.createElement('option');
                 optV.value = ch.id;
                 optV.textContent = `🔈 ${ch.name}`;
                 if (voiceSel) voiceSel.appendChild(optV);
+            });
 
+            textChannels.forEach(ch => {
                 const optT = document.createElement('option');
                 optT.value = ch.id;
                 optT.textContent = `💬 ${ch.name}`;
                 if (textSel) textSel.appendChild(optT);
             });
 
-            if (voiceSel) voiceSel.disabled = false;
-            if (textSel) textSel.disabled = false;
+            if (voiceSel) voiceSel.disabled = voiceChannels.length === 0;
+            if (textSel) textSel.disabled = textChannels.length === 0;
         }
 
         return { speakers, channels };
