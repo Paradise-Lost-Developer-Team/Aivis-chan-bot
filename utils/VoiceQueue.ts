@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
 import { speakVoice, currentSpeaker, voiceClients, updateLastSpeechTime, chunkText } from './TTS-Engine';
+import { VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceHistoryItem, saveVoiceHistoryItem } from './voiceHistory';
 import { isProFeatureAvailable } from './subscription';
 import { logError } from './errorLogger';
