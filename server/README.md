@@ -17,7 +17,7 @@ npm install
 PORT=3001 node index.js
 ```
 
-1. In production, run this as a sidecar or as part of your web deployment so that the frontend can call `/api/tts/speakers` 
+1. In production, run this as a sidecar or as part of your web deployment so that the frontend can call `/api/tts/speakers`  
 over HTTPS and the proxy can reach the cluster-internal service by DNS.
 
 Notes:
