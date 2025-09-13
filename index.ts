@@ -554,25 +554,26 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         // Voice接続安定化のための短い遅延
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // 音声アナウンスを再生
+        // 即時応答してアナウンスは非同期で実行
         try {
-            console.log(`[internal/join:3rd] 音声アナウンス開始: ギルド ${guildId}`);
-            const { speakAnnounce } = await import('./utils/TTS-Engine');
-            console.log(`[internal/join:3rd] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('接続しました', voiceChannelId, client);
-            console.log(`[internal/join:3rd] 音声アナウンス再生完了: ギルド ${guildId}`);
-        } catch (voiceAnnounceError) {
-            console.error(`[internal/join:3rd] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
-            if (voiceAnnounceError instanceof Error) {
-                console.error(`[internal/join:3rd] エラースタック:`, voiceAnnounceError.stack);
-            }
+            res.json({
+                ok: true,
+                textChannelId: finalTextChannelId,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+            });
+        } catch (e) {
+            console.warn('[internal/join] 応答送信エラー:', e);
         }
-        
-        return res.json({
-            ok: true,
-            textChannelId: finalTextChannelId,
-            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
-        });
+
+        (async () => {
+            try {
+                const { speakAnnounce } = await import('./utils/TTS-Engine');
+                await speakAnnounce('接続しました', voiceChannelId, client);
+                console.log(`[internal/join] (async) 音声アナウンス再生完了: ギルド ${guildId}`);
+            } catch (voiceAnnounceError) {
+                console.error(`[internal/join] (async) 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+            }
+        })();
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
