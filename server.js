@@ -1492,13 +1492,17 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
 
 // サーバーリストを返すエンドポイント
 app.get('/api/servers', async (req, res) => {
-    try {
-        if (!req.isAuthenticated || !req.isAuthenticated()) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+  try {
+    // Allow anonymous access: if not authenticated, treat as empty guild list
+    let userGuilds = [];
+    const isAuth = req.isAuthenticated && req.isAuthenticated();
+    if (isAuth) {
+      userGuilds = req.user && Array.isArray(req.user.guilds) ? req.user.guilds : [];
+    }
 
-        // ユーザーが参加している全ギルド
-        const userGuilds = req.user.guilds || [];
+    console.log(`[DEBUG] Authenticated: ${isAuth}`);
+    console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
+    console.log(`[DEBUG] User guilds:`, userGuilds.map(g => ({ id: g.id, name: g.name })));
         console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
         console.log(`[DEBUG] User guilds:`, userGuilds.map(g => ({ id: g.id, name: g.name })));
         
