@@ -556,10 +556,16 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
         // 既存のvoiceClientsをvoiceChannelIdで管理
-        const prev = getVoiceConnection(voiceChannelId);
-        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
-        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-        voiceClients[voiceChannelId] = connection;
+            const prev = getVoiceConnection(voiceChannelId);
+            if (prev) {
+                try { prev.destroy(); } catch {}
+                try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+                try { delete (voiceClients as any)[guildId]; } catch {}
+            }
+            const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+            // Store under both voiceChannelId and guildId for compatibility with VoiceStateUpdate and other modules
+            try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
+            try { (voiceClients as any)[guildId] = connection; } catch {}
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
 
         // 即時応答: 後続の announce と埋め込み送信は非同期で実行
