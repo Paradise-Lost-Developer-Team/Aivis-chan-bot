@@ -106,3 +106,25 @@ export const deployCommands = async (client: ExtendedClient) => {
     const commands = await loadCommands(path.join(__dirname, '..', 'commands'), client);
     await registerCommands(commands);
 };
+
+// API経由でグローバルコマンドをすべて削除する関数
+const clearGlobalCommands = async () => {
+    if (!clientId || !TOKEN) {
+        console.log('設定が不完全です。グローバルコマンド削除をスキップします。');
+        console.log(`clientId: ${clientId ? '設定済み' : '未設定'}, TOKEN: ${TOKEN ? '設定済み' : '未設定'}`);
+        return;
+    }
+    const rest = new REST({ version: '9' }).setToken(TOKEN);
+    try {
+        console.log('グローバルコマンドの全削除を開始します。');
+        const data: any = await rest.put(
+            Routes.applicationCommands(clientId),
+            { body: [] },
+        );
+        console.log('グローバルコマンドをクリアしました。現在のコマンド数:', Array.isArray(data) ? data.length : 'unknown');
+    } catch (error) {
+        console.error('グローバルコマンド削除エラー:', error);
+    }
+};
+
+export { clearGlobalCommands };
