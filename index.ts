@@ -74,42 +74,50 @@ async function loadWebDashboardSettings() {
                     });
                 }
 
-                // 辞書を適用
+                // 辞書を適用（global-dictionary を優先して取得、空なら従来のエンドポイントへフォールバック）
                 console.log(`辞書データを確認中: ${guild.name} (${guild.id})`);
-                if (dictionaryResponse.data?.dictionary) {
-                    console.log(`辞書エントリ数: ${dictionaryResponse.data.dictionary.length}`);
-                    
-                    const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
-                    
-                    let guildDictionaries: Record<string, any> = {};
-                    if (fs.existsSync(dictionariesPath)) {
-                        try {
-                            guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
-                        } catch (e) {
-                            console.warn('Failed to parse existing dictionaries:', e);
+                try {
+                    const dictClient = await import('./utils/global-dictionary-client');
+                    const merged = await dictClient.fetchAndMergeGlobalDictionary(guild.id, webBaseUrl);
+                    if (merged && merged.length) {
+                        // 変換して保存（既存の処理を再利用）
+                        const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+                        let guildDictionaries: Record<string, any> = {};
+                        if (fs.existsSync(dictionariesPath)) {
+                            try { guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8')); } catch (e) { console.warn('Failed to parse existing dictionaries:', e); }
+                        }
+                        const convertedDictionary: Record<string, any> = {};
+                        merged.forEach((entry: any) => {
+                            if (entry.word && entry.pronunciation) {
+                                convertedDictionary[entry.word] = { pronunciation: entry.pronunciation, accent: entry.accent || '', wordType: entry.wordType || '' };
+                            }
+                        });
+                        guildDictionaries[guild.id] = convertedDictionary;
+                        fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+                        console.log(`辞書ファイル更新完了 (merged): ${guild.name} (${guild.id}) - ${merged.length}エントリ`);
+                    } else {
+                        // フォールバック: 従来の配列を使って上書き
+                        if (dictionaryResponse.data?.dictionary) {
+                            const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+                            let guildDictionaries: Record<string, any> = {};
+                            if (fs.existsSync(dictionariesPath)) {
+                                try { guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8')); } catch (e) { console.warn('Failed to parse existing dictionaries:', e); }
+                            }
+                            const convertedDictionary: Record<string, any> = {};
+                            dictionaryResponse.data.dictionary.forEach((entry: any) => {
+                                if (entry.word && entry.pronunciation) {
+                                    convertedDictionary[entry.word] = { pronunciation: entry.pronunciation, accent: entry.accent || '', wordType: entry.wordType || '' };
+                                }
+                            });
+                            guildDictionaries[guild.id] = convertedDictionary;
+                            fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+                            console.log(`辞書ファイル更新完了 (fallback): ${guild.name} (${guild.id}) - ${dictionaryResponse.data.dictionary.length}エントリ`);
+                        } else {
+                            console.warn(`辞書データが取得できませんでした: ${guild.name} (${guild.id})`);
                         }
                     }
-
-                    // 空の辞書でも処理する（上書きする）
-                    // TTS-Engine用の形式に変換: Array -> Object
-                    const convertedDictionary: Record<string, any> = {};
-                    dictionaryResponse.data.dictionary.forEach((entry: any) => {
-                        if (entry.word && entry.pronunciation) {
-                            convertedDictionary[entry.word] = {
-                                pronunciation: entry.pronunciation,
-                                accent: entry.accent || '',
-                                wordType: entry.wordType || ''
-                            };
-                        }
-                    });
-                    
-                    guildDictionaries[guild.id] = convertedDictionary;
-
-                    fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
-                    console.log(`辞書ファイル更新完了: ${guild.name} (${guild.id}) - ${dictionaryResponse.data.dictionary.length}エントリ`);
-                    console.log(`変換後の辞書構造:`, JSON.stringify(convertedDictionary, null, 2));
-                } else {
-                    console.warn(`辞書データが取得できませんでした: ${guild.name} (${guild.id})`);
+                } catch (e) {
+                    console.warn('global-dictionary client error, falling back to legacy dictionary handling:', e);
                 }
 
                 console.log(`Web設定読み込み完了: ${guild.name} (${guild.id})`);
