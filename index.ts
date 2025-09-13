@@ -775,15 +775,31 @@ async function loadWebDashboardSettings() {
                     applyGuildSettings(guildId, settingsResponse.data.settings);
                 }
                 
-                // 辞書設定を読み込み（タイムアウト時間を15秒に延長）
-                const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, {
-                    timeout: 15000
-                });
-                
-                if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
-                    console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました:`, dictionaryResponse.data.dictionary.length, '件');
-                    // ここで辞書を適用する処理を追加
-                    applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                // 辞書設定を読み込み（global-dictionary エンドポイントを使用）
+                try {
+                    const fetcher = await import('./utils/global-dictionary-client');
+                    const merged = await fetcher.fetchAndMergeGlobalDictionary(guildId, webDashboardUrl);
+                    if (merged && merged.length) {
+                        console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました (merged):`, merged.length, '件');
+                        applyGuildDictionary(guildId, merged);
+                    } else {
+                        // 空の場合は従来のエンドポイントを試す（後方互換）
+                        const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, { timeout: 15000 });
+                        if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
+                            console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました (fallback):`, dictionaryResponse.data.dictionary.length, '件');
+                            applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                        }
+                    }
+                } catch (dictClientErr) {
+                    console.warn('global-dictionary client error, falling back to legacy dictionary endpoint:', dictClientErr);
+                    try {
+                        const dictionaryResponse = await axios.get(`${webDashboardUrl}/internal/dictionary/${guildId}`, { timeout: 15000 });
+                        if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
+                            applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                        }
+                    } catch (e) {
+                        console.warn('fallback dictionary fetch failed:', e);
+                    }
                 }
                 
             } catch (guildError: any) {
