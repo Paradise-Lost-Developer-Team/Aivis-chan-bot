@@ -785,6 +785,56 @@ app.get('/internal/dictionary/:guildId', (req, res) => {
     }
 });
 
+// Bot内部アクセス用のグローバル辞書取得API（認証不要）
+// 返却フォーマット: { local: [...], global: [...] }
+app.get('/internal/global-dictionary/:guildId', async (req, res) => {
+  console.log(`[INTERNAL] Global dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
+  try {
+    const guildId = req.params.guildId;
+    const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
+
+    // ローカル辞書をロード
+    let localEntries = [];
+    if (fs.existsSync(dictionaryFile)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8')) || {};
+        localEntries = Array.isArray(data.dictionary) ? data.dictionary : [];
+      } catch (e) {
+        console.warn(`[INTERNAL] Failed to parse local dictionary for ${guildId}:`, e.message || e);
+        localEntries = [];
+      }
+    } else {
+      console.log(`[INTERNAL] Local dictionary file not found: ${dictionaryFile}`);
+    }
+
+    // オプション: 外部グローバル辞書サービスから一覧を取得する（環境変数で有効化）
+    const GLOBAL_DICT_API_URL = process.env.GLOBAL_DICT_API_URL || 'https://dictapi.libertasmc.xyz';
+    const GLOBAL_DICT_API_KEY = process.env.GLOBAL_DICT_API_KEY;
+    let globalEntries = [];
+    if (GLOBAL_DICT_API_URL && GLOBAL_DICT_API_KEY) {
+      try {
+        const listUrl = `${GLOBAL_DICT_API_URL.replace(/\/$/, '')}/list?per_page=200`;
+        const r = await axios.get(listUrl, { headers: { 'X-API-Key': GLOBAL_DICT_API_KEY }, timeout: 7000 });
+        if (r && r.data && Array.isArray(r.data.entries)) {
+          globalEntries = r.data.entries;
+          console.log(`[INTERNAL] Fetched ${globalEntries.length} global dictionary entries from ${GLOBAL_DICT_API_URL}`);
+        } else {
+          console.log('[INTERNAL] Global dictionary service returned unexpected shape, ignoring');
+        }
+      } catch (e) {
+        console.warn('[INTERNAL] failed to fetch global dictionary:', e.message || e);
+      }
+    } else {
+      console.log('[INTERNAL] GLOBAL_DICT_API_URL or GLOBAL_DICT_API_KEY not configured; skipping external fetch');
+    }
+
+    return res.json({ local: localEntries, global: globalEntries });
+  } catch (error) {
+    console.error('Global dictionary load error:', error);
+    res.status(500).json({ error: 'グローバル辞書の読み込みに失敗しました' });
+  }
+});
+
 // 個人設定保存・取得API
 app.post('/api/personal-settings', requireAuth, express.json(), async (req, res) => {
     try {
