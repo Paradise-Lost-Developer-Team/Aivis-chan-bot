@@ -554,25 +554,33 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         // Voice接続安定化のための短い遅延
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // 音声アナウンスを再生
+        // 音声アナウンスを非同期で実行し、HTTP応答は即時に返す
         try {
-            console.log(`[internal/join:5th] 音声アナウンス開始: ギルド ${guildId}`);
-            const { speakAnnounce } = await import('./utils/TTS-Engine');
-            console.log(`[internal/join:5th] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('接続しました', voiceChannelId, client);
-            console.log(`[internal/join:5th] 音声アナウンス再生完了: ギルド ${guildId}`);
-        } catch (voiceAnnounceError) {
-            console.error(`[internal/join:5th] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
-            if (voiceAnnounceError instanceof Error) {
-                console.error(`[internal/join:5th] エラースタック:`, voiceAnnounceError.stack);
-            }
+            res.json({
+                ok: true,
+                textChannelId: finalTextChannelId,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+            });
+        } catch (e) {
+            // 応答に失敗した場合でも後続処理は続行
+            console.warn(`[internal/join:5th] 応答送信エラー:`, e);
         }
-        
-        return res.json({
-            ok: true,
-            textChannelId: finalTextChannelId,
-            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
-        });
+
+        // 非同期: アナウンスを実行（エラーはログに残す）
+        (async () => {
+            try {
+                console.log(`[internal/join:5th] (async) 音声アナウンス開始: ギルド ${guildId}`);
+                const { speakAnnounce } = await import('./utils/TTS-Engine');
+                console.log(`[internal/join:5th] (async) speakAnnounce関数インポート完了: ギルド ${guildId}`);
+                await speakAnnounce('接続しました', voiceChannelId, client);
+                console.log(`[internal/join:5th] (async) 音声アナウンス再生完了: ギルド ${guildId}`);
+            } catch (voiceAnnounceError) {
+                console.error(`[internal/join:5th] (async) 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+                if (voiceAnnounceError instanceof Error) {
+                    console.error(`[internal/join:5th] (async) エラースタック:`, voiceAnnounceError.stack);
+                }
+            }
+        })();
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
@@ -618,22 +626,34 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
-
-        if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
-            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { delete (textChannels as any)[voiceChannelId]; } catch {}
-            try { delete (global as any).players?.[voiceChannelId]; } catch {}
-        } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
-            try { delete (voiceClients as any)[guildId]; } catch {}
-            try { delete (textChannels as any)[guildId]; } catch {}
-            try { delete (global as any).players?.[guildId]; } catch {}
+        // 即時応答（クリーンアップは非同期で実行）
+        try {
+            res.json({ ok: true });
+        } catch (e) {
+            console.warn('[internal/leave:5th] 応答送信エラー:', e);
         }
+
+        (async () => {
+            try {
+                if (voiceChannelId) {
+                    try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+                    try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+                    try { delete (textChannels as any)[voiceChannelId]; } catch {}
+                    try { delete (global as any).players?.[voiceChannelId]; } catch {}
+                } else if (guildId) {
+                    try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+                    try { delete (voiceClients as any)[guildId]; } catch {}
+                    try { delete (textChannels as any)[guildId]; } catch {}
+                    try { delete (global as any).players?.[guildId]; } catch {}
+                }
+            } catch (err) {
+                console.warn('[internal/leave:5th] 非同期クリーンアップ中にエラー:', err);
+            }
+        })();
 
         // 5th Botではボイス状態の保存をスキップ（1st Botが管理）
         // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
-        return res.json({ ok: true });
+        return; 
     } catch (e) {
         console.error('internal/leave error:', e);
         return res.status(500).json({ error: 'leave-failed' });
