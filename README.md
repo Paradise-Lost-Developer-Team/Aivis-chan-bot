@@ -67,4 +67,23 @@ Aivis-chan-botには有料の「Pro版」と「Premium版」があります。
 5. スラッシュコマンドを登録  
    npm run deploy-commands  
 6. ボットを起動  
-   npm start  
+   npm start
+
+## 内部 API: ギルドのチャンネル一覧
+
+このリポジトリはクラスタ内部向けにいくつかの内部 API を公開しています。今回追加されたエンドポイント:
+
+- GET /internal/guilds/:guildId/channels
+
+返却内容: ギルドが持つチャンネル配列（id, name, type, isText, isVoice）
+
+セキュリティ: 簡易な内部シークレット `INTERNAL_API_SECRET` を環境変数に設定できます。設定されている場合は、呼び出し時にヘッダ `x-internal-secret: <secret>` が必須になります。クラスタ内通信のみで利用する場合は空にできますが、可能であればシークレットを設定してください。
+
+簡易テスト例:
+
+```bash
+export INTERNAL_API_SECRET=supersecret
+curl -s -H "x-internal-secret: $INTERNAL_API_SECRET" http://localhost:3002/internal/guilds/<GUILD_ID>/channels | jq '.'
+```
+
+このコマンドはローカルで bot が稼働していることを前提とします。

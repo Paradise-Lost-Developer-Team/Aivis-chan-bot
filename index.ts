@@ -849,3 +849,48 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'leave-failed' });
     }
 });
+
+// 内部: ギルドのチャンネル一覧を返すエンドポイント
+// 呼び出しは同一クラスタ内のサービス（web dashboard /主サーバ）向けを想定
+apiApp.get('/internal/guilds/:guildId/channels', async (req: Request, res: Response) => {
+    try {
+        // 簡易認証: 内部シークレットを要求（環境変数 INTERNAL_API_SECRET）
+        const secret = process.env.INTERNAL_API_SECRET;
+        if (secret) {
+            const provided = (req.headers['x-internal-secret'] || '').toString();
+            if (!provided || provided !== secret) {
+                return res.status(403).json({ error: 'forbidden' });
+            }
+        }
+
+        const { guildId } = req.params;
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return res.status(404).json({ error: 'guild-not-found' });
+
+        // 最新情報を取得するために fetch を試みる（存在しない場合はキャッシュを使う）
+        let channels = [] as any[];
+        try {
+            const fetched = await guild.channels.fetch();
+            channels = Array.from(fetched.values());
+        } catch (e) {
+            // fetch に失敗したらキャッシュを利用
+            channels = Array.from(guild.channels.cache.values());
+        }
+
+        // 必要なフィールドのみ返す
+        const mapped = channels.map(ch => ({
+            id: ch.id,
+            name: (ch as any).name || '',
+            type: (ch as any).type,
+            isText: (ch as any).type === 0,
+            isVoice: (ch as any).type === 2,
+        }));
+
+        return res.json(mapped);
+    } catch (e) {
+        console.error('internal/guilds/:guildId/channels error:', e);
+        return res.status(500).json({ error: 'channels-failed' });
+    }
+});
