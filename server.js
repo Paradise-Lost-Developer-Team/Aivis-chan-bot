@@ -1161,6 +1161,8 @@ const os = require('os');
 // store patreon links in a writable folder. Prefer explicit DATA_DIR env, otherwise use system tmpdir.
 const DATA_DIR = process.env.DATA_DIR || path.join(os.tmpdir(), 'aivis-data');
 const PATREON_LINKS_FILE = path.join(DATA_DIR, 'patreon_links.json');
+// A simple JSONL logfile for callback debug (do NOT store secrets here)
+const PATREON_CALLBACK_LOG = path.join(DATA_DIR, 'patreon_callbacks.log');
 
 function ensurePatreonLinksFile() {
   try {
@@ -1170,6 +1172,26 @@ function ensurePatreonLinksFile() {
       fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify([]));
     }
   } catch (e) { console.error('ensurePatreonLinksFile error', e); }
+}
+
+function appendPatreonCallbackLog(obj) {
+  try {
+    // ensure directory exists
+    const dir = path.dirname(PATREON_CALLBACK_LOG);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    // Prepare a safe object: strip or mask potentially sensitive fields
+    const safe = Object.assign({}, obj);
+    if (safe.tokenData) {
+      // Do not persist access/refresh tokens; keep only non-sensitive metadata
+      safe.tokenData = {
+        hasAccessToken: !!safe.tokenData.access_token,
+        expires_in: safe.tokenData.expires_in || null
+      };
+    }
+    fs.appendFileSync(PATREON_CALLBACK_LOG, JSON.stringify(safe) + '\n');
+  } catch (e) {
+    console.error('appendPatreonCallbackLog error', e);
+  }
 }
 
 // run migration once at startup
@@ -1356,11 +1378,22 @@ app.get('/auth/patreon/start', (req, res) => {
 
 app.get(PATREON_REDIRECT_PATH, async (req, res) => {
   const { code, state } = req.query;
-  if (!code || !state) return res.status(400).send('missing code or state');
-  if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) return res.status(500).send('Patreon client not configured');
-
+  // Log basic arrival information (mask code)
   try {
-    // exchange code for token
+    appendPatreonCallbackLog({ ts: new Date().toISOString(), ip: req.ip, ua: req.headers['user-agent'], event: 'callback_received', code: code ? ('***' + String(code).slice(-4)) : null, state: state || null });
+  } catch (e) { /* non-fatal */ }
+
+  if (!code || !state) {
+    appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_missing_params', state: state || null });
+    return res.status(400).send('missing code or state');
+  }
+  if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) {
+    appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_not_configured' });
+    return res.status(500).send('Patreon client not configured');
+  }
+
+  // exchange code for token
+  try {
     const tokenResp = await axios.post('https://www.patreon.com/api/oauth2/token', new URLSearchParams({
       grant_type: 'authorization_code',
       code: String(code),
@@ -1389,14 +1422,20 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
       // Not base64 JSON, use simple format
     }
 
+    // Save the link and persist
     savePatreonLink({ discordId, patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
 
-  // Optionally notify Discord user via bot API - not implemented here
-  // Redirect to a static success page (auth/patreon/success.html) and pass dynamic parts via query params
-  const successPath = `/auth/patreon/success.html?discordId=${encodeURIComponent(discordId)}&patreonId=${encodeURIComponent(patreonId || '')}&ts=${Date.now()}`;
-  return res.redirect(successPath);
+    // record success (do not include tokens)
+    appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_success', discordId: String(discordId), patreonId: patreonId || null });
+
+    // Redirect to a static success page and include minimal data
+    const successPath = `/auth/patreon/success.html?discordId=${encodeURIComponent(discordId)}&patreonId=${encodeURIComponent(patreonId || '')}&ts=${Date.now()}`;
+    return res.redirect(successPath);
   } catch (e) {
-    console.error('Patreon callback error', e?.response?.data || e.message || e);
+    // Log error details safely
+    const errBody = e?.response?.data ? (typeof e.response.data === 'string' ? e.response.data.slice(0,1000) : JSON.stringify(e.response.data).slice(0,1000)) : (e.message || String(e));
+    console.error('Patreon callback error', errBody);
+    appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_error', error: errBody, state: state || null });
     return res.status(500).send('Failed to exchange token');
   }
 });
