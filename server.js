@@ -1209,12 +1209,30 @@ function savePatreonLink(link) {
     // like {"discordId":"12345"} decode it and store the plain id. Also
     // ensure createdAt is set to server time to avoid trusting client timestamps.
     const incoming = Object.assign({}, link);
+    // Normalize incoming.discordId so we never persist a base64-encoded value
     const storedVal = String(incoming.discordId || '');
-    const decoded = tryDecodeBase64Json(storedVal);
+    let decoded = tryDecodeBase64Json(storedVal);
     if (decoded) {
       // keep original encoded value for audit
       incoming.originalState = incoming.originalState || storedVal;
       incoming.discordId = decoded;
+    } else {
+      // If value looks like "<left>:<rand>", try decode left-part too (legacy state format)
+      if (storedVal && storedVal.includes(':')) {
+        const left = storedVal.split(':', 1)[0];
+        const leftDecoded = tryDecodeBase64Json(left);
+        if (leftDecoded) {
+          incoming.originalState = incoming.originalState || left;
+          incoming.discordId = leftDecoded;
+        } else if (/^\d{5,22}$/.test(left)) {
+          // plain numeric left-side
+          incoming.discordId = left;
+        }
+      }
+      // If it's already a plain numeric id, leave it as-is
+      if (!incoming.discordId && /^\d{5,22}$/.test(storedVal)) {
+        incoming.discordId = storedVal;
+      }
     }
 
     // Use server time for createdAt to avoid stale client timestamps
