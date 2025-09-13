@@ -554,31 +554,36 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         // Voice接続安定化のための短い遅延
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // 音声アナウンスを再生
+        // respond immediately to avoid blocking caller; run announce asynchronously
         try {
-            console.log(`[internal/join:4th] 音声アナウンス開始: ギルド ${guildId}`);
-            const { speakAnnounce } = await import('./utils/TTS-Engine');
-            console.log(`[internal/join:4th] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('接続しました', voiceChannelId, client);
-            console.log(`[internal/join:4th] 音声アナウンス再生完了: ギルド ${guildId}`);
-        } catch (voiceAnnounceError) {
-            console.error(`[internal/join:4th] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
-            if (voiceAnnounceError instanceof Error) {
-                console.error(`[internal/join:4th] エラースタック:`, voiceAnnounceError.stack);
-            }
+            res.json({
+                ok: true,
+                textChannelId: finalTextChannelId,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+            });
+        } catch (e) {
+            console.warn(`[internal/join:4th] response send failed:`, e);
         }
-        
-        return res.json({
-            ok: true,
-            textChannelId: finalTextChannelId,
-            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
-        });
+
+        (async () => {
+            try {
+                console.log(`[internal/join:4th] (async) 音声アナウンス開始: ギルド ${guildId}`);
+                const { speakAnnounce } = await import('./utils/TTS-Engine');
+                console.log(`[internal/join:4th] (async) speakAnnounce関数インポート完了: ギルド ${guildId}`);
+                await speakAnnounce('接続しました', voiceChannelId, client);
+                console.log(`[internal/join:4th] (async) 音声アナウンス再生完了: ギルド ${guildId}`);
+            } catch (voiceAnnounceError) {
+                console.error(`[internal/join:4th] (async) 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+                if (voiceAnnounceError instanceof Error) {
+                    console.error(`[internal/join:4th] (async) エラースタック:`, voiceAnnounceError.stack);
+                }
+            }
+        })();
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
     }
 });
-
 apiApp.get('/internal/info', async (req: Request, res: Response) => {
     try {
         const guildIds = Array.from(client.guilds.cache.keys());
