@@ -528,9 +528,14 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
     const prev = getVoiceConnection(voiceChannelId);
-    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+    if (prev) {
+        try { prev.destroy(); } catch {}
+        try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { delete (voiceClients as any)[guildId]; } catch {}
+    }
     const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-    voiceClients[voiceChannelId] = connection;
+    (voiceClients as any)[voiceChannelId] = connection;
+    (voiceClients as any)[guildId] = connection;
         // wait for the connection to become Ready or Disconnected, but don't hang forever
         const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => {
             return new Promise<void>((resolve) => {
