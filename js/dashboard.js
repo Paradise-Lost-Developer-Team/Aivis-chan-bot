@@ -252,9 +252,11 @@ class Dashboard {
         this.setupTabNavigation();
         this.loadOverviewData();
         this.setupEventListeners();
-        this.loadSettings();
-        this.loadPersonalSettings();
-        this.loadDictionary();
+        // Do not load or show server-specific settings until a server is selected.
+        // This keeps the UI clean and avoids showing per-server data from localStorage
+        // before the user chooses a server.
+        this.disableServerSpecificUI();
+        // Note: loadAutoConnectSettings is global-ish and can remain.
         this.loadAutoConnectSettings();
         this.loadGuilds(); // ギルド情報を読み込む
         this.startGuildUpdates(); // 定期更新を開始
@@ -621,6 +623,77 @@ class Dashboard {
 
         // スライダーの値表示
         this.setupSliderValues();
+    }
+
+    // Disable inputs/buttons/areas that are specific to a selected server
+    // until the user explicitly selects a server. This prevents showing
+    // settings/dictionary/personal settings content prematurely.
+    disableServerSpecificUI() {
+        // IDs referenced across settings/personal/dictionary handlers
+        const ids = [
+            // settings
+            'default-speaker','default-speed','default-pitch','default-tempo','default-volume','default-intonation',
+            'auto-join-voice','auto-join-text','temp-voice','auto-leave','ignore-bots','max-queue','save-settings',
+            // personal
+            'personal-speaker','personal-speed','personal-pitch','personal-tempo','personal-volume','personal-intonation',
+            'notify-joined','notify-left','notify-error','log-messages','public-stats','save-personal',
+            // dictionary
+            'dictionary-entries','new-word','new-pronunciation','new-accent','new-word-type','add-dictionary-entry','save-dictionary'
+        ];
+
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            try {
+                if ('disabled' in el) el.disabled = true;
+                // For container elements (like ul for dictionary entries) hide contents
+                if (el.tagName === 'UL' || el.tagName === 'DIV' || el.tagName === 'SECTION') {
+                    // show a placeholder message
+                    const placeholderId = `${id}-placeholder`;
+                    // avoid duplicating placeholders
+                    if (!document.getElementById(placeholderId)) {
+                        const ph = document.createElement('div');
+                        ph.id = placeholderId;
+                        ph.className = 'server-placeholder';
+                        ph.textContent = 'サーバーを選択してください';
+                        ph.style.color = '#666';
+                        ph.style.padding = '8px 10px';
+                        ph.style.fontStyle = 'italic';
+                        el.style.display = 'none';
+                        el.parentNode && el.parentNode.insertBefore(ph, el);
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+    }
+
+    // Re-enable server-specific UI after a server has been selected and
+    // settings/dictionary/personal settings have been (attempted) loaded.
+    enableServerSpecificUI() {
+        const ids = [
+            'default-speaker','default-speed','default-pitch','default-tempo','default-volume','default-intonation',
+            'auto-join-voice','auto-join-text','temp-voice','auto-leave','ignore-bots','max-queue','save-settings',
+            'personal-speaker','personal-speed','personal-pitch','personal-tempo','personal-volume','personal-intonation',
+            'notify-joined','notify-left','notify-error','log-messages','public-stats','save-personal',
+            'dictionary-entries','new-word','new-pronunciation','new-accent','new-word-type','add-dictionary-entry','save-dictionary'
+        ];
+
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            try {
+                if ('disabled' in el) el.disabled = false;
+                if (el.tagName === 'UL' || el.tagName === 'DIV' || el.tagName === 'SECTION') {
+                    const placeholder = document.getElementById(`${id}-placeholder`);
+                    if (placeholder) placeholder.parentNode.removeChild(placeholder);
+                    el.style.display = '';
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
     }
 
     setupSliderValues() {
@@ -1358,6 +1431,9 @@ class Dashboard {
             // サーバー関連の補助データ（話者リストやチャンネル）を読み込み/反映
             try {
                 await this.populateSpeakersAndChannels(serverId);
+                // Enable server-specific UI after attempting to populate speakers/channels
+                // so that settings, personal settings and dictionary become interactive.
+                this.enableServerSpecificUI();
             } catch (e) {
                 console.warn('populateSpeakersAndChannels failed', e);
             }
