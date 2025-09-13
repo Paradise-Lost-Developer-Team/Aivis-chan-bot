@@ -554,25 +554,27 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         // Voice接続安定化のための短い遅延
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // 音声アナウンスを再生
         try {
-            console.log(`[internal/join:2nd] 音声アナウンス開始: ギルド ${guildId}`);
-            const { speakAnnounce } = await import('./utils/TTS-Engine');
-            console.log(`[internal/join:2nd] speakAnnounce関数インポート完了: ギルド ${guildId}`);
-            await speakAnnounce('接続しました', voiceChannelId, client);
-            console.log(`[internal/join:2nd] 音声アナウンス再生完了: ギルド ${guildId}`);
-        } catch (voiceAnnounceError) {
-            console.error(`[internal/join:2nd] 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
-            if (voiceAnnounceError instanceof Error) {
-                console.error(`[internal/join:2nd] エラースタック:`, voiceAnnounceError.stack);
-            }
+            res.json({
+                ok: true,
+                textChannelId: finalTextChannelId,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+            });
+        } catch (e) {
+            console.warn('[internal/join] 応答送信エラー:', e);
         }
-        
-        return res.json({
-            ok: true,
-            textChannelId: finalTextChannelId,
-            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
-        });
+
+        (async () => {
+            try {
+                console.log(`[internal/join:2nd] (async) 音声アナウンス開始: ギルド ${guildId}`);
+                const { speakAnnounce } = await import('./utils/TTS-Engine');
+                console.log(`[internal/join:2nd] (async) speakAnnounce関数インポート完了: ギルド ${guildId}`);
+                await speakAnnounce('接続しました', voiceChannelId, client);
+                console.log(`[internal/join:2nd] (async) 音声アナウンス再生完了: ギルド ${guildId}`);
+            } catch (voiceAnnounceError) {
+                console.error(`[internal/join:2nd] (async) 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+            }
+        })();
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
@@ -596,24 +598,20 @@ apiApp.post('/internal/reload-settings', express.json(), async (req: Request, re
         const { guildId, settingsType } = req.body;
         
         console.log(`即座に設定リロード要求受信 - Guild: ${guildId}, Type: ${settingsType}`);
-        
-        // 全ギルドの設定をリロード
-        await loadWebDashboardSettings();
-        
-        console.log(`設定リロード完了 - Guild: ${guildId || 'ALL'}`);
-        return res.json({ success: true, message: 'Settings reloaded successfully' });
-    } catch (error) {
-        console.error('設定リロードエラー:', error);
-        return res.status(500).json({ error: 'Failed to reload settings' });
+        try {
+            await loadWebDashboardSettings();
+            return res.json({ success: true });
+        } catch (err) {
+            console.error('reload-settings error:', err);
+            return res.status(500).json({ error: 'reload-failed' });
+        }
+    } catch (e) {
+        console.error('reload-settings top-level error:', e);
+        return res.status(500).json({ error: 'reload-failed' });
     }
 });
 
-client.login(TOKEN).catch(error => {
-    console.error("ログインエラー:", error);
-    logError('loginError', error);
-    process.exit(1);
-});
-
+// leave endpoint
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
@@ -638,6 +636,12 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         console.error('internal/leave error:', e);
         return res.status(500).json({ error: 'leave-failed' });
     }
+});
+
+client.login(TOKEN).catch(error => {
+    console.error("ログインエラー:", error);
+    logError('loginError', error);
+    process.exit(1);
 });
 
 // Webダッシュボードから設定を読み込む関数
