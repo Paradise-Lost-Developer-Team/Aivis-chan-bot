@@ -1245,6 +1245,12 @@ class Dashboard {
                         this.selectServer(server.id);
                     });
                 });
+                // 自動で最初のサーバーを選択して設定を読み込む
+                if (data.length > 0) {
+                    const firstId = data[0].id;
+                    // defer によって DOM が安定してから選択処理を行う
+                    setTimeout(() => this.selectServer(firstId), 0);
+                }
             })
             .catch(error => {
                 console.error('Failed to load servers:', error);
@@ -1350,11 +1356,33 @@ class Dashboard {
 
     // 話者候補やチャンネル候補を取得して select に反映する
     async populateSpeakersAndChannels(guildId) {
-        // 1) 話者一覧を取得（いくつかの一般的なエンドポイントを試行）
+        console.log(`populateSpeakersAndChannels called for guildId=${guildId}`);
+        // 1) 話者一覧を取得（まずはギルド/ボット固有のエンドポイントを試行し、フォールバックで一般的なエンドポイントへ）
         const speakerSelectIds = ['default-speaker', 'personal-speaker'];
         let speakers = [];
 
+        // 保存されている選択値を保持
+        const previousValues = {};
+        speakerSelectIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) previousValues[id] = el.value;
+        });
+
+        // UI に読み込みプレースホルダを表示
+        speakerSelectIds.forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            sel.innerHTML = '';
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '読み込み中...';
+            sel.appendChild(opt);
+            sel.disabled = true;
+        });
+
         const tryUrls = [
+            `/api/guilds/${guildId}/speakers`,
+            `/api/bots/${guildId}/speakers`,
             '/api/tts/speakers', // まずはアプリ内プロキシを期待
             '/speakers',         // 直接 TTS エンジンのルートに向ける可能性
             'http://localhost:10101/speakers'
@@ -1362,35 +1390,65 @@ class Dashboard {
 
         for (const url of tryUrls) {
             try {
+                console.log(`Trying speaker URL: ${url}`);
                 const resp = await fetch(url, { credentials: 'include' });
+                if (resp) console.log(`Response status for ${url}:`, resp.status);
                 if (resp && resp.ok) {
                     const body = await resp.json();
                     // 期待フォーマット: array of strings or objects { id, name }
-                    if (Array.isArray(body)) {
+                    if (Array.isArray(body) && body.length > 0) {
                         speakers = body.map(s => typeof s === 'string' ? { id: s, name: s } : { id: s.id || s.name, name: s.name || s.id });
                         console.log(`Loaded speakers from ${url}`, speakers.length);
+                        // mark source for UI tooltip
+                        speakerSelectIds.forEach(id => {
+                            const sel = document.getElementById(id);
+                            if (sel) sel.title = `Loaded from: ${url}`;
+                        });
                         break;
+                    } else {
+                        console.log(`Speaker endpoint ${url} returned empty or non-array body`);
                     }
                 }
             } catch (e) {
                 // ignore and try next
-                console.debug(`Speaker fetch failed for ${url}:`, e.message || e);
+                console.log(`Speaker fetch failed for ${url}:`, e && e.message ? e.message : e);
             }
         }
 
         // 2) チャンネル一覧を取得（サーバー内の bot が保持しているチャンネル一覧を提供する内部APIがある場合を想定）
-        // 優先: /api/guilds/:guildId/channels → フォールバック: none
+        // 優先: /api/guilds/:guildId/channels, /api/bots/:guildId/channels → フォールバック: none
         let channels = [];
-        try {
-            const chResp = await fetch(`/api/guilds/${guildId}/channels`, { credentials: 'include' });
-            if (chResp && chResp.ok) {
-                const chBody = await chResp.json();
-                if (Array.isArray(chBody)) {
-                    channels = chBody.map(c => ({ id: c.id, name: c.name, type: c.type }));
+
+    // (チャンネルの select 要素は後で取得してプレースホルダ処理を行います)
+
+        const channelUrls = [
+            `/api/guilds/${guildId}/channels`,
+            `/api/bots/${guildId}/channels`,
+        ];
+
+        for (const url of channelUrls) {
+            try {
+                console.log(`Trying channel URL: ${url}`);
+                const chResp = await fetch(url, { credentials: 'include' });
+                if (chResp) console.log(`Channel response status for ${url}:`, chResp.status);
+                if (chResp && chResp.ok) {
+                    const chBody = await chResp.json();
+                    if (Array.isArray(chBody) && chBody.length > 0) {
+                        channels = chBody.map(c => ({ id: c.id, name: c.name, type: c.type }));
+                        console.log(`Loaded channels from ${url}`, channels.length);
+                        // annotate UI selects with source
+                        [ 'auto-join-voice', 'auto-join-text' ].forEach(id => {
+                            const sel = document.getElementById(id);
+                            if (sel) sel.title = `Loaded from: ${url}`;
+                        });
+                        break;
+                    } else {
+                        console.log(`Channel endpoint ${url} returned empty or non-array body`);
+                    }
                 }
+            } catch (e) {
+                console.log(`Guild channels fetch failed for ${url}:`, e && e.message ? e.message : e);
             }
-        } catch (e) {
-            console.debug('Guild channels fetch failed:', e.message || e);
         }
 
         // 3) DOM に反映
@@ -1502,10 +1560,8 @@ class Dashboard {
         });
     }
 
-    // サーバー設定読み込み（旧メソッド - 互換性のため残す）
-    loadServerSettings(serverId, serverName) {
-        this.loadServerSettings(serverId);
-    }
+    // NOTE: old wrapper removed to avoid accidental recursion. The real async
+    // loadServerSettings(serverId) is implemented above and will be used.
 
     // ギルド情報の定期更新を開始
     startGuildUpdates() {
