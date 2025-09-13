@@ -785,29 +785,12 @@ app.get('/internal/dictionary/:guildId', (req, res) => {
     }
 });
 
-// Bot内部アクセス用のグローバル辞書取得API（認証不要）
+// Bot内部アクセス用のグローバル辞書取得API
 // 返却フォーマット: { local: [...], global: [...] }
 app.get('/internal/global-dictionary/:guildId', async (req, res) => {
   console.log(`[INTERNAL] Global dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
   try {
-    const guildId = req.params.guildId;
-    const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
-
-    // ローカル辞書をロード
-    let localEntries = [];
-    if (fs.existsSync(dictionaryFile)) {
-      try {
-        const data = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8')) || {};
-        localEntries = Array.isArray(data.dictionary) ? data.dictionary : [];
-      } catch (e) {
-        console.warn(`[INTERNAL] Failed to parse local dictionary for ${guildId}:`, e.message || e);
-        localEntries = [];
-      }
-    } else {
-      console.log(`[INTERNAL] Local dictionary file not found: ${dictionaryFile}`);
-    }
-
-    // オプション: 外部グローバル辞書サービスから一覧を取得する（環境変数で有効化）
+    // 外部グローバル辞書サービスから一覧を取得する（環境変数で有効化）
     const GLOBAL_DICT_API_URL = process.env.GLOBAL_DICT_API_URL || 'https://dictapi.libertasmc.xyz';
     const GLOBAL_DICT_API_KEY = process.env.GLOBAL_DICT_API_KEY;
     let globalEntries = [];
@@ -1530,6 +1513,84 @@ async function fetchServersForUser(accessToken) {
         throw new Error('Failed to fetch servers');
     }
 }
+
+// TTS エンジンの話者一覧をプロキシするエンドポイント
+// フロントは CORS やネットワーク制約を避けるためこのエンドポイントを優先して叩きます
+app.get('/api/tts/speakers', async (req, res) => {
+  const ttsBase = process.env.TTS_ENGINE_URL || process.env.AIVIS_TTS_URL || 'http://localhost:10101';
+  const url = `${String(ttsBase).replace(/\/$/, '')}/speakers`;
+  try {
+    const r = await axios.get(url, { timeout: 5000 });
+    if (r && r.data) {
+      // 期待は配列（文字列またはオブジェクト）
+      return res.json(r.data);
+    }
+    return res.json([]);
+  } catch (e) {
+    console.warn('[api/tts/speakers] fetch failed:', e.message || e);
+    return res.status(502).json({ error: 'Failed to fetch speakers from TTS engine' });
+  }
+});
+
+// ギルドのチャンネル一覧を返す（最良努力）
+// 実装方針:
+// 1) req.user.guilds に channels 情報が含まれていればそれを返す
+// 2) 各 Bot インスタンスの内部 API に /internal/guilds/:guildId/channels を問い合わせ
+// 3) Discord widget を使って最低限の情報を取得
+// 認証必須（requireAuth）
+app.get('/api/guilds/:guildId/channels', requireAuth, async (req, res) => {
+  const guildId = req.params.guildId;
+  try {
+    // 1) req.user.guilds に channels 情報があるか確認
+    if (req.user && Array.isArray(req.user.guilds)) {
+      const g = req.user.guilds.find(x => String(x.id) === String(guildId));
+      if (g && Array.isArray(g.channels) && g.channels.length > 0) {
+        return res.json(g.channels);
+      }
+    }
+
+    // 2) Bot インスタンスに問い合わせ（同じ BOTS 配列形式を使用）
+    const BOTS = [
+      { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
+      { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
+      { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
+      { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
+      { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
+      { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
+      { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+    ];
+
+    for (const bot of BOTS) {
+      try {
+        const r = await axios.get(`${bot.baseUrl}/internal/guilds/${guildId}/channels`, { timeout: 3000 });
+        if (r && Array.isArray(r.data) && r.data.length > 0) {
+          return res.json(r.data);
+        }
+      } catch (e) {
+        // ignore and try next
+        console.debug(`[api/guilds/${guildId}/channels] bot ${bot.name} failed:`, e.message || e);
+      }
+    }
+
+    // 3) Discord widget fallback
+    try {
+      const widget = await axios.get(`https://discord.com/api/guilds/${guildId}/widget.json`, { timeout: 3000 });
+      if (widget && widget.data) {
+        // widget.channels might exist; map to simple shape
+        const chs = (widget.data.channels || []).map(c => ({ id: c.id, name: c.name, type: c.type || null }));
+        if (chs.length > 0) return res.json(chs);
+      }
+    } catch (e) {
+      console.debug(`[api/guilds/${guildId}/channels] discord widget failed:`, e.message || e);
+    }
+
+    // 最終フォールバック: 空配列
+    return res.json([]);
+  } catch (error) {
+    console.error(`[api/guilds/${guildId}/channels] error:`, error);
+    return res.status(500).json({ error: 'Failed to fetch guild channels' });
+  }
+});
 
 // Redisヘルスチェックエンドポイント
 app.get('/health/redis', async (req, res) => {

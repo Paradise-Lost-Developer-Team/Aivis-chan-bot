@@ -227,6 +227,10 @@ class Dashboard {
 
         this.setupDiscordLogin();
         this.setupLogout();
+
+        // Update user UI regardless of authenticated state
+        // (fills #user-display, #user-avatar, shows/hides logout button)
+        this.loadUserInfo();
     }
 
     // ログインページを表示する処理は不要になったため削除しました
@@ -1123,8 +1127,54 @@ class Dashboard {
     }
 
     async loadUserInfo() {
-        // このメソッドはもはや使用されないため、空の実装にしておく
-        // ユーザー情報はログイン時に設定される
+        try {
+            const displayEl = document.getElementById('user-display');
+            const avatarEl = document.getElementById('user-avatar');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginBtn = document.getElementById('discord-login-btn');
+
+            if (!displayEl) return;
+
+            if (this.isLoggedIn && this.user) {
+                // Determine a friendly display name
+                const name = this.user.displayName || this.user.username || this.user.name || this.user.tag || 'ユーザー';
+                displayEl.textContent = name;
+
+                // Avatar handling (support common shapes)
+                if (avatarEl) {
+                    let avatarSrc = '';
+                    if (this.user.avatarUrl) avatarSrc = this.user.avatarUrl;
+                    else if (this.user.avatar && this.user.id) avatarSrc = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
+                    else if (this.user.avatarPath) avatarSrc = this.user.avatarPath;
+
+                    if (avatarSrc) {
+                        avatarEl.src = avatarSrc;
+                        avatarEl.style.display = '';
+                        avatarEl.alt = `${name} avatar`;
+                    } else {
+                        avatarEl.style.display = 'none';
+                    }
+                }
+
+                if (logoutBtn) logoutBtn.style.display = '';
+                if (loginBtn) loginBtn.style.display = 'none';
+
+                logger.info(`User info loaded: ${name}`);
+            } else {
+                // Not logged in
+                displayEl.textContent = '未ログイン';
+                if (avatarEl) {
+                    avatarEl.style.display = 'none';
+                    avatarEl.src = '';
+                }
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (loginBtn) loginBtn.style.display = '';
+
+                logger.info('User not authenticated (UI updated)');
+            }
+        } catch (e) {
+            console.error('Error updating user UI:', e);
+        }
     }
 
     // ギルド情報を読み込む
@@ -1287,9 +1337,129 @@ class Dashboard {
                     this.renderDictionaryEntries();
                 }
             }
+            // サーバー関連の補助データ（話者リストやチャンネル）を読み込み/反映
+            try {
+                await this.populateSpeakersAndChannels(serverId);
+            } catch (e) {
+                console.warn('populateSpeakersAndChannels failed', e);
+            }
         } catch (error) {
             console.error('Failed to load server settings:', error);
         }
+    }
+
+    // 話者候補やチャンネル候補を取得して select に反映する
+    async populateSpeakersAndChannels(guildId) {
+        // 1) 話者一覧を取得（いくつかの一般的なエンドポイントを試行）
+        const speakerSelectIds = ['default-speaker', 'personal-speaker'];
+        let speakers = [];
+
+        const tryUrls = [
+            '/api/tts/speakers', // まずはアプリ内プロキシを期待
+            '/speakers',         // 直接 TTS エンジンのルートに向ける可能性
+            'http://localhost:10101/speakers'
+        ];
+
+        for (const url of tryUrls) {
+            try {
+                const resp = await fetch(url, { credentials: 'include' });
+                if (resp && resp.ok) {
+                    const body = await resp.json();
+                    // 期待フォーマット: array of strings or objects { id, name }
+                    if (Array.isArray(body)) {
+                        speakers = body.map(s => typeof s === 'string' ? { id: s, name: s } : { id: s.id || s.name, name: s.name || s.id });
+                        console.log(`Loaded speakers from ${url}`, speakers.length);
+                        break;
+                    }
+                }
+            } catch (e) {
+                // ignore and try next
+                console.debug(`Speaker fetch failed for ${url}:`, e.message || e);
+            }
+        }
+
+        // 2) チャンネル一覧を取得（サーバー内の bot が保持しているチャンネル一覧を提供する内部APIがある場合を想定）
+        // 優先: /api/guilds/:guildId/channels → フォールバック: none
+        let channels = [];
+        try {
+            const chResp = await fetch(`/api/guilds/${guildId}/channels`, { credentials: 'include' });
+            if (chResp && chResp.ok) {
+                const chBody = await chResp.json();
+                if (Array.isArray(chBody)) {
+                    channels = chBody.map(c => ({ id: c.id, name: c.name, type: c.type }));
+                }
+            }
+        } catch (e) {
+            console.debug('Guild channels fetch failed:', e.message || e);
+        }
+
+        // 3) DOM に反映
+        speakerSelectIds.forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            // 既存オプションを保存してクリア
+            const previous = sel.value;
+            sel.innerHTML = '';
+
+            if (speakers.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '利用可能な話者が見つかりません';
+                sel.appendChild(opt);
+                sel.disabled = true;
+            } else {
+                sel.disabled = false;
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = '（選択してください）';
+                sel.appendChild(placeholder);
+
+                speakers.forEach(sp => {
+                    const opt = document.createElement('option');
+                    opt.value = sp.id;
+                    opt.textContent = sp.name || sp.id;
+                    sel.appendChild(opt);
+                });
+
+                // 以前の設定があれば選択
+                if (previous) sel.value = previous;
+            }
+        });
+
+        // auto-join の voice/text チャンネル select
+        const voiceSel = document.getElementById('auto-join-voice');
+        const textSel = document.getElementById('auto-join-text');
+        [voiceSel, textSel].forEach(s => { if (s) s.innerHTML = ''; });
+
+        if (!channels || channels.length === 0) {
+            // フォールバック表示
+            [voiceSel, textSel].forEach(s => {
+                if (!s) return;
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'チャンネル情報がありません';
+                s.appendChild(opt);
+                s.disabled = true;
+            });
+        } else {
+            channels.forEach(ch => {
+                // 一般的に type 2 = voice in Discord v12/13, but we accept any shape
+                const optV = document.createElement('option');
+                optV.value = ch.id;
+                optV.textContent = `🔈 ${ch.name}`;
+                if (voiceSel) voiceSel.appendChild(optV);
+
+                const optT = document.createElement('option');
+                optT.value = ch.id;
+                optT.textContent = `💬 ${ch.name}`;
+                if (textSel) textSel.appendChild(optT);
+            });
+
+            if (voiceSel) voiceSel.disabled = false;
+            if (textSel) textSel.disabled = false;
+        }
+
+        return { speakers, channels };
     }
 
     // 設定をUIに適用
