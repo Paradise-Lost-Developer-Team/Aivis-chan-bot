@@ -148,8 +148,8 @@ client.once("ready", async () => {
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
 
-        // Webダッシュボードから設定を読み込み
-        await loadWebDashboardSettings();
+    // Webダッシュボードから設定を読み込み
+    await loadWebDashboardSettings();
 
         // 定期的に設定を再読み込み（30分ごと）
         setInterval(async () => {
@@ -615,9 +615,21 @@ async function loadWebDashboardSettings() {
                     timeout: 15000
                 });
                 
-                if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
-                    console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました (${dictionaryResponse.data.dictionary.length}件)`);
-                    applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                // Try merged global-dictionary first, fallback to legacy endpoint
+                try {
+                    const dictClient = await import('./utils/global-dictionary-client');
+                    const merged = await dictClient.fetchAndMergeGlobalDictionary(guildId, webDashboardUrl);
+                    if (merged && merged.length) {
+                        console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました (merged): ${merged.length}件`);
+                        applyGuildDictionary(guildId, merged);
+                    } else {
+                        if (dictionaryResponse.data && dictionaryResponse.data.dictionary) {
+                            console.log(`ギルド ${guild.name} (${guildId}) の辞書を読み込みました (fallback): ${dictionaryResponse.data.dictionary.length}件`);
+                            applyGuildDictionary(guildId, dictionaryResponse.data.dictionary);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('global-dictionary client error, falling back to legacy dictionary handling:', e);
                 }
                 
             } catch (guildError: any) {
