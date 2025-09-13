@@ -95,26 +95,6 @@ async function loadWebDashboardSettings() {
                         guildDictionaries[guild.id] = convertedDictionary;
                         fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
                         console.log(`辞書ファイル更新完了 (merged): ${guild.name} (${guild.id}) - ${merged.length}エントリ`);
-                    } else {
-                        // フォールバック: 従来の配列を使って上書き
-                        if (dictionaryResponse.data?.dictionary) {
-                            const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
-                            let guildDictionaries: Record<string, any> = {};
-                            if (fs.existsSync(dictionariesPath)) {
-                                try { guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8')); } catch (e) { console.warn('Failed to parse existing dictionaries:', e); }
-                            }
-                            const convertedDictionary: Record<string, any> = {};
-                            dictionaryResponse.data.dictionary.forEach((entry: any) => {
-                                if (entry.word && entry.pronunciation) {
-                                    convertedDictionary[entry.word] = { pronunciation: entry.pronunciation, accent: entry.accent || '', wordType: entry.wordType || '' };
-                                }
-                            });
-                            guildDictionaries[guild.id] = convertedDictionary;
-                            fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
-                            console.log(`辞書ファイル更新完了 (fallback): ${guild.name} (${guild.id}) - ${dictionaryResponse.data.dictionary.length}エントリ`);
-                        } else {
-                            console.warn(`辞書データが取得できませんでした: ${guild.name} (${guild.id})`);
-                        }
                     }
                 } catch (e) {
                     console.warn('global-dictionary client error, falling back to legacy dictionary handling:', e);
@@ -562,20 +542,26 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         voiceClients[voiceChannelId] = connection;
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
 
-        // 音声アナウンスを再生
+        // 即時応答してアナウンスは非同期で実行
         try {
-            const { speakAnnounce } = await import('./utils/TTS-Engine');
-            await speakAnnounce('接続しました', voiceChannelId, client);
-            console.log(`[internal/join] 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
-        } catch (voiceAnnounceError) {
-            console.error(`[internal/join] 音声アナウンスエラー: ギルド ${guildId} チャンネル ${voiceChannelId}:`, voiceAnnounceError);
+            res.json({
+                ok: true,
+                textChannelId: finalTextChannelId,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+            });
+        } catch (e) {
+            console.warn('[internal/join] 応答送信エラー:', e);
         }
 
-        return res.json({
-            ok: true,
-            textChannelId: finalTextChannelId,
-            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
-        });
+        (async () => {
+            try {
+                const { speakAnnounce } = await import('./utils/TTS-Engine');
+                await speakAnnounce('接続しました', voiceChannelId, client);
+                console.log(`[internal/join] (async) 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
+            } catch (voiceAnnounceError) {
+                console.error(`[internal/join] (async) 音声アナウンスエラー: ギルド ${guildId} チャンネル ${voiceChannelId}:`, voiceAnnounceError);
+            }
+        })();
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
