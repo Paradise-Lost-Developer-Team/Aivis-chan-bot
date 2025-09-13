@@ -491,7 +491,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
-            console.log(`[internal/join:4th] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
+            console.log(`[internal/join:5th] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
             
             try {
                 // まずキャッシュから確認
