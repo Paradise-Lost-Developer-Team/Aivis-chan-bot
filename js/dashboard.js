@@ -1479,7 +1479,9 @@ class Dashboard {
             `/api/bots/${guildId}/speakers`,
             '/api/tts/speakers', // まずはアプリ内プロキシを期待
             '/speakers',         // 直接 TTS エンジンのルートに向ける可能性
-            'http://localhost:10101/speakers'
+            'http://localhost:10101/speakers',
+            // Kubernetes service DNS for the speech engine (works inside cluster)
+            'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101/speakers'
         ];
 
         for (const url of tryUrls) {
@@ -1488,24 +1490,70 @@ class Dashboard {
                 const resp = await fetch(url, { credentials: 'include' });
                 if (resp) console.log(`Response status for ${url}:`, resp.status);
                 if (resp && resp.ok) {
-                    const body = await resp.json();
-                    // 期待フォーマット: array of strings or objects { id, name }
+                    let body;
+                    try {
+                        body = await resp.json();
+                    } catch (e) {
+                        console.log(`Failed to parse JSON from ${url}:`, e && e.message ? e.message : e);
+                        body = null;
+                    }
+
+                    // Normalize several possible response shapes:
+                    //  - Array of strings or objects => use directly
+                    //  - { speakers: [...] } => use body.speakers
+                    //  - Object map { id: name, ... } => convert to array
+                    let candidate = [];
                     if (Array.isArray(body) && body.length > 0) {
-                        speakers = body.map(s => typeof s === 'string' ? { id: s, name: s } : { id: s.id || s.name, name: s.name || s.id });
+                        candidate = body;
+                    } else if (body && Array.isArray(body.speakers) && body.speakers.length > 0) {
+                        candidate = body.speakers;
+                    } else if (body && typeof body === 'object' && !Array.isArray(body)) {
+                        // if object keys map to speaker names, convert
+                        const entries = Object.entries(body);
+                        if (entries.length > 0 && entries.every(([k, v]) => typeof v === 'string' || typeof v === 'object')) {
+                            candidate = entries.map(([k, v]) => (typeof v === 'string' ? { id: k, name: v } : (v && (v.id || v.name) ? { id: v.id || k, name: v.name || k } : null))).filter(Boolean);
+                        }
+                    }
+
+                    if (candidate.length > 0) {
+                        speakers = candidate.map(s => typeof s === 'string' ? { id: s, name: s } : { id: s.id || s.name, name: s.name || s.id });
                         console.log(`Loaded speakers from ${url}`, speakers.length);
                         // mark source for UI tooltip
                         speakerSelectIds.forEach(id => {
                             const sel = document.getElementById(id);
                             if (sel) sel.title = `Loaded from: ${url}`;
                         });
+                        try {
+                            // cache for offline/fallback use
+                            localStorage.setItem('cached-speakers', JSON.stringify(speakers));
+                        } catch (e) {
+                            // ignore storage failures
+                        }
                         break;
                     } else {
-                        console.log(`Speaker endpoint ${url} returned empty or non-array body`);
+                        console.log(`Speaker endpoint ${url} returned empty or unsupported body shape`);
                     }
                 }
             } catch (e) {
                 // ignore and try next
                 console.log(`Speaker fetch failed for ${url}:`, e && e.message ? e.message : e);
+            }
+        }
+
+        // If no speakers were loaded from remote endpoints, try cached speakers
+        if ((!speakers || speakers.length === 0)) {
+            try {
+                const cached = JSON.parse(localStorage.getItem('cached-speakers') || 'null');
+                if (Array.isArray(cached) && cached.length > 0) {
+                    speakers = cached;
+                    console.log('Using cached speakers from localStorage', speakers.length);
+                    speakerSelectIds.forEach(id => {
+                        const sel = document.getElementById(id);
+                        if (sel) sel.title = 'Loaded from local cache';
+                    });
+                }
+            } catch (e) {
+                // ignore cache errors
             }
         }
 
