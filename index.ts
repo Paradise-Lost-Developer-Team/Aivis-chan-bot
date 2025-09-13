@@ -562,40 +562,52 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         voiceClients[voiceChannelId] = connection;
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
 
-        // 音声アナウンスを再生（voiceChannelIdベース）
+        // 即時応答: 後続の announce と埋め込み送信は非同期で実行
         try {
-            const { speakAnnounce } = await import('./utils/TTS-Engine');
-            await speakAnnounce('接続しました', voiceChannelId, client);
-            console.log(`[internal/join] 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
-        } catch (voiceAnnounceError) {
-            console.error(`[internal/join] 音声アナウンスエラー: ギルド ${guildId} チャンネル ${voiceChannelId}:`, voiceAnnounceError);
+            res.json({
+                ok: true,
+                textChannelId: finalTextChannelId,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+            });
+        } catch (e) {
+            console.warn('[internal/join:pro-premium] 応答送信エラー:', e);
         }
 
-        // テキストチャンネルに接続完了の埋め込みを送信
-        try {
-            if (tc && tc.isTextBased && tc.isTextBased()) {
-                const embed = new EmbedBuilder()
-                    .setTitle('✅ ボイスチャンネル接続完了')
-                    .setDescription(`<#${voiceChannelId}> に参加しました。`)
-                    .addFields(
-                        { name: '接続先', value: `<#${voiceChannelId}>`, inline: true },
-                        { name: 'テキストチャンネル', value: `<#${finalTextChannelId}>`, inline: true }
-                    )
-                    .setColor(0x00ff00)
-                    .setThumbnail(client.user?.displayAvatarURL() ?? null)
-                    .setTimestamp();
-                await tc.send({ embeds: [embed] }).catch(() => {});
-                console.log(`[internal/join] アナウンス送信完了: ギルド ${guildId} チャンネル ${finalTextChannelId}`);
+        (async () => {
+            try {
+                const { speakAnnounce } = await import('./utils/TTS-Engine');
+                try {
+                    console.log(`[internal/join:pro-premium] (async) 音声アナウンス開始: ギルド ${guildId}`);
+                    await speakAnnounce('接続しました', voiceChannelId, client);
+                    console.log(`[internal/join:pro-premium] (async) 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
+                } catch (voiceAnnounceError) {
+                    console.error(`[internal/join:pro-premium] (async) 音声アナウンスエラー: ギルド ${guildId} チャンネル ${voiceChannelId}:`, voiceAnnounceError);
+                }
+
+                // embed送信も非同期で行う
+                try {
+                    if (tc && tc.isTextBased && tc.isTextBased()) {
+                        const embed = new EmbedBuilder()
+                            .setTitle('✅ ボイスチャンネル接続完了')
+                            .setDescription(`<#${voiceChannelId}> に参加しました。`)
+                            .addFields(
+                                { name: '接続先', value: `<#${voiceChannelId}>`, inline: true },
+                                { name: 'テキストチャンネル', value: `<#${finalTextChannelId}>`, inline: true }
+                            )
+                            .setColor(0x00ff00)
+                            .setThumbnail(client.user?.displayAvatarURL() ?? null)
+                            .setTimestamp();
+                        await tc.send({ embeds: [embed] }).catch(() => {});
+                        console.log(`[internal/join:pro-premium] (async) アナウンス送信完了: ギルド ${guildId} チャンネル ${finalTextChannelId}`);
+                    }
+                } catch (announceError) {
+                    console.error(`[internal/join:pro-premium] (async) アナウンス送信エラー: ギルド ${guildId}:`, announceError);
+                }
+            } catch (e) {
+                console.error('[internal/join:pro-premium] (async) エラー:', e);
             }
-        } catch (announceError) {
-            console.error(`[internal/join] アナウンス送信エラー: ギルド ${guildId}:`, announceError);
-        }
-
-        return res.json({
-            ok: true,
-            textChannelId: finalTextChannelId,
-            message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
-        });
+        })();
+        return;
     } catch (e) {
         console.error('internal/join error:', e);
         return res.status(500).json({ error: 'join-failed' });
