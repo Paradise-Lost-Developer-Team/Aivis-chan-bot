@@ -1261,16 +1261,25 @@ function tryDecodeBase64Json(s) {
     const buf = Buffer.from(String(s), 'base64');
     const txt = buf.toString('utf8');
     if (!txt) return null;
-    // Try to parse as JSON first (legacy: base64 of JSON like {"discordId":"12345"})
-    try {
-      const obj = JSON.parse(txt);
-      return obj && obj.discordId ? String(obj.discordId) : null;
-    } catch (e) {
-      // If it's not JSON, it may be a plain base64-encoded numeric discordId string
-      const plain = String(txt).trim();
-      if (/^\d{5,22}$/.test(plain)) return plain; // plausible discord id length
-      return null;
+    // If decoded text is likely JSON (object, array or quoted string), parse it.
+    const trimmed = String(txt).trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[') || trimmed.startsWith('"')) {
+      try {
+        const parsed = JSON.parse(txt);
+        if (parsed && typeof parsed === 'object' && parsed.discordId) return String(parsed.discordId);
+        if (typeof parsed === 'number' || typeof parsed === 'string') {
+          const plain = String(parsed).trim();
+          if (/^\d{5,22}$/.test(plain)) return plain;
+        }
+        return null;
+      } catch (e) {
+        // fall through to plain handling
+      }
     }
+    // Not JSON-like: treat decoded text as plain string and check for numeric discordId
+    const plain = trimmed;
+    if (/^\d{5,22}$/.test(plain)) return plain; // plausible discord id length
+    return null;
   } catch (e) {
     return null;
   }
@@ -1423,23 +1432,48 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
     const meResp = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', { headers: { Authorization: `Bearer ${tokenData.access_token}` } });
     const patreonId = meResp.data?.data?.id || null;
 
-    // save link: state contains discordId and possibly guildId
-    const stateParts = String(state).split(':');
-    const discordId = stateParts[0];
+    // save link: state may be one of:
+    // - plain: "<discordId>:<rand>"
+    // - legacy: "<base64-or-plain-left>:<rand>"
+    // - base64 JSON: base64(JSON.stringify({ discordId, guildId }))
+    // Normalize aggressively so we never persist base64 values.
+    let discordId = null;
     let guildId = undefined;
 
-    // Try to decode state as base64 JSON (for server owner links)
+    // 1) Try base64 JSON decode (most explicit form)
     try {
-      const decodedState = JSON.parse(Buffer.from(String(state), 'base64').toString('utf8'));
-      if (decodedState.discordId && decodedState.guildId) {
-        guildId = decodedState.guildId;
+      const txt = Buffer.from(String(state), 'base64').toString('utf8');
+      const parsed = JSON.parse(txt);
+      if (parsed && parsed.discordId) {
+        discordId = String(parsed.discordId);
+        if (parsed.guildId) guildId = String(parsed.guildId);
       }
     } catch (e) {
-      // Not base64 JSON, use simple format
+      // not base64-json, fall through
     }
 
-    // Save the link and persist
-    savePatreonLink({ discordId, patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
+    // 2) If not decoded yet, handle colon-delimited forms
+    if (!discordId && String(state).includes(':')) {
+      const left = String(state).split(':', 1)[0];
+      // left might be plain numeric, base64 numeric, or base64 JSON (rare)
+      // try our helper which decodes base64 JSON or plain-base64 numeric IDs
+      const tryDecoded = tryDecodeBase64Json(left);
+      if (tryDecoded) {
+        discordId = tryDecoded;
+      } else if (/^\d{5,22}$/.test(left)) {
+        discordId = left;
+      }
+    }
+
+    // 3) If still not found, maybe state is directly base64-encoded numeric or plain numeric
+    if (!discordId) {
+      const directDecoded = tryDecodeBase64Json(state);
+      if (directDecoded) discordId = directDecoded;
+      else if (/^\d{5,22}$/.test(String(state))) discordId = String(state);
+    }
+
+    // Save the link and persist; ensure discordId is string or null
+    savePatreonLink({ discordId: discordId || '', patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
 
     // record success (do not include tokens)
     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_success', discordId: String(discordId), patreonId: patreonId || null });
