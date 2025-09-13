@@ -1,5 +1,5 @@
 {
-  "name": "aivis-tts-proxy",
+  "name": "tts-proxy-server",
   "version": "0.1.0",
   "description": "Simple proxy for aivisspeech-engine to allow secure frontend access to speakers/channels",
   "main": "index.js",

@@ -1,7 +1,13 @@
 FROM node:current-alpine3.22 AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+# Use npm ci when a lockfile exists for reproducible installs; otherwise fall back to npm install.
+# npm ci fails if package-lock.json is missing, which caused the build error seen in the log.
+RUN if [ -f package-lock.json ]; then \
+			npm ci --omit=dev; \
+		else \
+			npm install --omit=dev; \
+		fi
 COPY . .
 
 FROM node:current-alpine3.22
