@@ -235,6 +235,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// SEO: ダッシュボードは認証後のみ表示されるため、検索エンジンにインデックスさせない
+// HTTP レベルでも保証するため、X-Robots-Tag: noindex を /dashboard 以下に追加するミドルウェア
+app.use((req, res, next) => {
+  try {
+    const u = req.url || req.path || '';
+    // ダッシュボードのルートおよびその静的アセット（/dashboard/*, /dashboard.html 等）に対して付与
+    if (u === '/dashboard' || u.startsWith('/dashboard') || u === '/dashboard.html' || u.startsWith('/dashboard/')) {
+      res.set('X-Robots-Tag', 'noindex');
+    }
+  } catch (e) {
+    // ヘッダー付与失敗でも処理は継続
+    console.warn('[SEO] failed to set X-Robots-Tag', e && e.message);
+  }
+  next();
+});
+
 // Bot APIから統計データを取得して返すエンドポイント
 // デフォルトではクラスタ内部DNS（FQDN）を使うようにする。
 // 必要であれば環境変数で個別に上書き可能。

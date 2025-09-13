@@ -12,7 +12,8 @@ const { title = 'Dashboard', description = 'Aivis-chan Bot web dashboard' } = As
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="robots" content="index,follow" />
+  <!-- Dashboard is behind authentication — prevent search engines indexing -->
+  <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#ffffff" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" href="/favicon.ico" />
