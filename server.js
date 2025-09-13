@@ -1243,8 +1243,16 @@ function tryDecodeBase64Json(s) {
     const buf = Buffer.from(String(s), 'base64');
     const txt = buf.toString('utf8');
     if (!txt) return null;
-    const obj = JSON.parse(txt);
-    return obj && obj.discordId ? String(obj.discordId) : null;
+    // Try to parse as JSON first (legacy: base64 of JSON like {"discordId":"12345"})
+    try {
+      const obj = JSON.parse(txt);
+      return obj && obj.discordId ? String(obj.discordId) : null;
+    } catch (e) {
+      // If it's not JSON, it may be a plain base64-encoded numeric discordId string
+      const plain = String(txt).trim();
+      if (/^\d{5,22}$/.test(plain)) return plain; // plausible discord id length
+      return null;
+    }
   } catch (e) {
     return null;
   }
@@ -1307,18 +1315,8 @@ app.get('/api/patreon/link/:discordId', (req, res) => {
     const arr = JSON.parse(raw);
     // direct match
     let found = arr.find(x => String(x.discordId) === String(discordId));
-    // helper: try to decode base64-encoded JSON like {"discordId":"12345"}
-    const tryDecodeBase64Json = (s) => {
-      try {
-        const buf = Buffer.from(String(s), 'base64');
-        const txt = buf.toString('utf8');
-        if (!txt) return null;
-        const obj = JSON.parse(txt);
-        return obj && obj.discordId ? String(obj.discordId) : null;
-      } catch (e) {
-        return null;
-      }
-    };
+    // reuse global tryDecodeBase64Json which now also handles plain base64-encoded numeric IDs
+    const tryDecodeBase64JsonLocal = tryDecodeBase64Json;
 
     if (!found) {
       // if stored entries contain base64-encoded states, decode them and compare
