@@ -1312,7 +1312,19 @@ class Dashboard {
     // サーバー設定読み込み
     async loadServerSettings(serverId) {
         if (!serverId) return;
-        
+
+        // Reentrancy guard: prevent infinite recursion if this function is triggered
+        // again while already loading the same server.
+        if (!this._loadingServerState) this._loadingServerState = { active: false, id: null };
+        if (this._loadingServerState.active && this._loadingServerState.id === serverId) {
+            console.warn(`Re-entrant call to loadServerSettings(${serverId}) detected — skipping to avoid recursion`);
+            console.trace();
+            return;
+        }
+
+        this._loadingServerState.active = true;
+        this._loadingServerState.id = serverId;
+
         console.log(`Loading settings for server: ${serverId}`);
         
         try {
@@ -1351,6 +1363,12 @@ class Dashboard {
             }
         } catch (error) {
             console.error('Failed to load server settings:', error);
+        } finally {
+            // clear guard
+            if (this._loadingServerState) {
+                this._loadingServerState.active = false;
+                this._loadingServerState.id = null;
+            }
         }
     }
 
