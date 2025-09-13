@@ -148,8 +148,8 @@ client.once("ready", async () => {
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
 
-        // Webダッシュボードから設定を読み込み
-        await loadWebDashboardSettings();
+    // Webダッシュボードから設定を読み込み
+    await loadWebDashboardSettings();
 
         // 定期的に設定を再読み込み（30分ごと）
         setInterval(async () => {
@@ -174,9 +174,13 @@ client.once("ready", async () => {
         console.log("起動完了");
         client.user!.setActivity("起動完了", { type: ActivityType.Playing });
         
-        // 辞書データ関連の処理を後で行う（エラーがあっても再接続には影響しない）
+        // 辞書データ関連の処理を後で行う（global-dictionary を優先して取得、空なら従来のエンドポイントへフォールバック）
         try {
+            const webBaseUrl = process.env.WEB_DASHBOARD_URL || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local';
+            const { fetchAndMergeGlobalDictionary } = await import('./utils/global-dictionary-client');
+            const { fetchUUIDsPeriodically } = await import('./utils/dictionaries');
             fetchUUIDsPeriodically();
+            // loadWebDashboardSettings will already have applied legacy dictionary handling for now; additional logic could be added here if needed.
         } catch (dictError) {
             console.error("辞書データ取得エラー:", dictError);
             logError('dictionaryError', dictError instanceof Error ? dictError : new Error(String(dictError)));
