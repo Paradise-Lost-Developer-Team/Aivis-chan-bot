@@ -30,6 +30,7 @@ COPY blog ./blog
 COPY auth/patreon ./auth/patreon
 COPY far-field ./far-field	
 COPY sitemap.xml ./
+COPY server ./server
 
 FROM node:current-alpine3.22 AS runtime
 WORKDIR /app

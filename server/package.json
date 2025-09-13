@@ -1,0 +1,14 @@
+{
+  "name": "aivis-tts-proxy",
+  "version": "0.1.0",
+  "description": "Simple proxy for aivisspeech-engine to allow secure frontend access to speakers/channels",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.9"
+  }
+}

@@ -1474,15 +1474,25 @@ class Dashboard {
             sel.disabled = true;
         });
 
+        // Avoid Mixed Content: if the page is served over HTTPS, do not attempt
+        // to fetch insecure http:// cluster addresses from the browser.
+        const isSecure = window.location.protocol === 'https:';
+        const insecureDirectUrls = [
+            'http://localhost:10101/speakers',
+            'http://aivisspeech-engine:10101/speakers',
+            'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101/speakers'
+        ];
+
+        if (isSecure) {
+            console.log('HTTPS page: skipping direct http:// engine endpoints to avoid mixed-content blocking');
+        }
+
         const tryUrls = [
             `/api/guilds/${guildId}/speakers`,
             `/api/bots/${guildId}/speakers`,
-            '/api/tts/speakers', // まずはアプリ内プロキシを期待
-            '/speakers',         // 直接 TTS エンジンのルートに向ける可能性
-            'http://localhost:10101/speakers',
-            // Kubernetes service DNS for the speech engine (works inside cluster)
-            'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101/speakers'
-        ];
+            '/api/tts/speakers', // server-side proxy preferred
+            '/speakers'         // may be blocked by CORS or mixed-content
+        ].concat(isSecure ? [] : insecureDirectUrls);
 
         for (const url of tryUrls) {
             try {
