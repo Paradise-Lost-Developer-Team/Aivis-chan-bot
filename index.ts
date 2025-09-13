@@ -494,15 +494,24 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
     if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
     const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
     voiceClients[voiceChannelId] = connection;
-        await new Promise<void>((resolve)=>{
-            const onReady=()=>{cleanup();resolve();};
-            const onDisc=()=>{cleanup();resolve();};
-            const cleanup=()=>{connection.off(VoiceConnectionStatus.Ready,onReady);connection.off(VoiceConnectionStatus.Disconnected,onDisc);};
-            connection.once(VoiceConnectionStatus.Ready,onReady);
-            connection.once(VoiceConnectionStatus.Disconnected,onDisc);
-            setTimeout(()=>cleanup(),10000);
-        });
-        // 2nd Botではボイス状態の保存をスキップ（1st Botが管理）
+        // wait for the connection to become Ready or Disconnected, but don't hang forever
+        const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => {
+            return new Promise<void>((resolve) => {
+                let finished = false;
+                const cleanup = () => {
+                    try { conn.off(VoiceConnectionStatus.Ready, onReady); } catch {}
+                    try { conn.off(VoiceConnectionStatus.Disconnected, onDisc); } catch {}
+                };
+                const onReady = () => { if (finished) return; finished = true; cleanup(); resolve(); };
+                const onDisc = () => { if (finished) return; finished = true; cleanup(); resolve(); };
+                conn.once(VoiceConnectionStatus.Ready, onReady);
+                conn.once(VoiceConnectionStatus.Disconnected, onDisc);
+                // fallback timeout to ensure resolution even if events never fire
+                setTimeout(() => { if (finished) return; finished = true; cleanup(); resolve(); }, timeoutMs);
+            });
+        };
+        await waitReady(connection, 10000);
+        // 5th Botではボイス状態の保存をスキップ（1st Botが管理）
         // try { saveVoiceState(client as any); } catch {}
         
         // Voice接続安定化のための短い遅延
