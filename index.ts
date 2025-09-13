@@ -429,42 +429,9 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
         }
 
-        // テキストチャンネルの決定ロジックを改善
-        let finalTextChannelId = textChannelId;
+    let finalTextChannelId = textChannelId;
 
-        // 1stまたはProのBotからテキストチャンネル情報を取得
-        if (!finalTextChannelId) {
-            try {
-                console.log(`[4th Bot] 1st Botからテキストチャンネル情報を取得: ${PRIMARY_URL}/internal/text-channel/${guildId}`);
-                const response = await axios.get(`${PRIMARY_URL.replace(/\/$/, '')}/internal/text-channel/${guildId}`, { timeout: 5000 });
-                const data = response.data as { ok?: boolean; textChannelId?: string; textChannelName?: string; guildTier?: string; error?: string };
-                if (data && data.ok && data.textChannelId) {
-                    finalTextChannelId = data.textChannelId;
-                    console.log(`[5th Bot] 1st Botからテキストチャンネルを取得: ${data.textChannelName} (${finalTextChannelId})`);
-                    
-                    // ギルドのTier情報に基づいてPro/Premium機能を有効化
-                    if (data.guildTier === 'pro' || data.guildTier === 'premium') {
-                        console.log(`[5th Bot] Pro/Premiumギルド(${data.guildTier})のため、Pro/Premium機能を有効化: ${guildId}`);
-                        // Pro/Premium機能の有効化処理をここに追加
-                        // 例: 優先度設定、追加機能の有効化など
-                    }
-                }
-            } catch (error) {
-                const err = error as any;
-                console.warn(`[5th Bot] 1st Botからのテキストチャンネル取得に失敗:`, err?.message || String(error));
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // フォールバック: 自動参加設定から取得
-            const { autoJoinChannels } = await import('./utils/TTS-Engine');
-            const autoJoinSetting = autoJoinChannels[guildId];
-            if (autoJoinSetting && autoJoinSetting.textChannelId) {
-                finalTextChannelId = autoJoinSetting.textChannelId;
-            }
-        }
-
-        if (!finalTextChannelId) {
+    if (!finalTextChannelId) {
             // 3. ギルドのシステムチャンネルを使用
             if (guild.systemChannel && guild.systemChannel.type === 0) {
                 finalTextChannelId = guild.systemChannel.id;
@@ -619,21 +586,27 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
-        if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
-            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { delete (textChannels as any)[voiceChannelId]; } catch {}
-            try { delete (global as any).players?.[voiceChannelId]; } catch {}
-        } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
-            try { delete (voiceClients as any)[guildId]; } catch {}
-            try { delete (textChannels as any)[guildId]; } catch {}
-            try { delete (global as any).players?.[guildId]; } catch {}
-        }
+        // respond immediately
+        try { res.json({ ok: true }); } catch (e) { console.warn('[internal/leave:6th] response send failed:', e); }
 
-        // 6th Botではボイス状態の保存をスキップ（1st Botが管理）
-        // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
-        return res.json({ ok: true });
+        (async () => {
+            try {
+                if (voiceChannelId) {
+                    try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+                    try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+                    try { delete (textChannels as any)[voiceChannelId]; } catch {}
+                    try { delete (global as any).players?.[voiceChannelId]; } catch {}
+                } else if (guildId) {
+                    try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+                    try { delete (voiceClients as any)[guildId]; } catch {}
+                    try { delete (textChannels as any)[guildId]; } catch {}
+                    try { delete (global as any).players?.[guildId]; } catch {}
+                }
+            } catch (err) {
+                console.warn('[internal/leave:6th] async cleanup error:', err);
+            }
+        })();
+        return;
     } catch (e) {
         console.error('internal/leave error:', e);
         return res.status(500).json({ error: 'leave-failed' });
