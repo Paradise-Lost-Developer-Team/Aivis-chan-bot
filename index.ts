@@ -503,7 +503,8 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[voiceChannelId] = tc;
+                    try { (textChannels as any)[voiceChannelId] = tc; } catch {}
+                    try { (textChannels as any)[guildId] = tc; } catch {}
                     console.log(`[internal/join:5th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:5th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -515,7 +516,8 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     ) as any;
                     
                     if (fallbackChannel) {
-                        (textChannels as any)[guildId] = fallbackChannel;
+                        try { (textChannels as any)[guildId] = fallbackChannel; } catch {}
+                        try { (textChannels as any)[voiceChannelId] = fallbackChannel; } catch {}
                         finalTextChannelId = fallbackChannel.id;
                         console.log(`[internal/join:5th] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }
@@ -528,9 +530,14 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
     const prev = getVoiceConnection(voiceChannelId);
-    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+    if (prev) {
+        try { prev.destroy(); } catch {}
+        try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { delete (voiceClients as any)[guildId]; } catch {}
+    }
     const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-    voiceClients[voiceChannelId] = connection;
+    try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
+    try { (voiceClients as any)[guildId] = connection; } catch {}
         // wait for the connection to become Ready or Disconnected, but don't hang forever
         const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => {
             return new Promise<void>((resolve) => {
