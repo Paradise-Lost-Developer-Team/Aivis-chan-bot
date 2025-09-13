@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io/paradise-lost-developer-team
+  IMAGE_NAME: tts-proxy-server
 
 jobs:
   build:
@@ -101,7 +102,7 @@ jobs:
           # Build and push the image
           /usr/local/bin/buildctl build \
             --frontend dockerfile.v0 \
-            --local context=. \
-            --local dockerfile=. \
+            --local context=./server \
+            --local dockerfile=./server \
             --output type=image,name=${{ env.REGISTRY }}/paradise-lost-developer-team/${{ env.IMAGE_NAME }}:latest,push=true \
             --output type=image,name=${{ env.REGISTRY }}/paradise-lost-developer-team/${{ env.IMAGE_NAME }}:${{ github.sha }},push=true
