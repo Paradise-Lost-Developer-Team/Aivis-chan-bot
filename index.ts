@@ -103,7 +103,9 @@ process.on('SIGTERM', gracefulShutdown);
 async function gracefulShutdown() {
     console.log('シャットダウン中...');
     // voice connectionsはclient.destroy()で自動的に切断される
-    // 必要なら追加のクリーンアップをここに入れる
+    
+    // Discordクライアントからログアウト
+    await client.destroy();
     console.log('正常にシャットダウンしました');
     process.exit(0);
 }
@@ -124,7 +126,13 @@ client.once("ready", async () => {
             } catch (e) {
                 console.warn(`ギルド${guildId}のVoiceConnectionがReadyになりませんでした:`, e);
             }
-    }
+        };
+        for (const [guildId, vc] of Object.entries(voiceClients) as [string, VoiceConnection][]) {
+            if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
+                await waitForReady(vc, guildId);
+            }
+        }
+        
         // 会話統計トラッキングサービスの初期化
         console.log("会話分析サービスを初期化しています...");
         const conversationTrackingService = ConversationTrackingService.getInstance(client);
@@ -137,11 +145,12 @@ client.once("ready", async () => {
         setupVoiceStampEvents(client);
         console.log("ボイススタンプ機能の初期化が完了しました");
 
-    AivisAdapter();
+        AivisAdapter();
         console.log("AivisAdapter初期化完了");
 
         // Webダッシュボードから設定を読み込み
         await loadWebDashboardSettings();
+
         // 定期的に設定を再読み込み（30分ごと）
         setInterval(async () => {
             try {
@@ -375,7 +384,7 @@ apiApp.listen(3007, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients, cleanupAudioResources } from './utils/TTS-Engine';
+import { textChannels, voiceClients } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -445,52 +454,64 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
+            console.log(`[internal/join:5th] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
+            
             try {
+                // まずキャッシュから確認
                 let tc = guild.channels.cache.get(finalTextChannelId) as any;
                 
-                // キャッシュに存在しない場合はフェッチを試行
+                // キャッシュにない場合はフェッチを試行
                 if (!tc) {
-                    console.log(`[internal/join:6th] チャンネル ${finalTextChannelId} がキャッシュにないため、フェッチを試行中...`);
                     tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 }
                 
                 if (tc && tc.type === 0) {
-                    // voiceChannelId 単位でテキストチャンネルを紐づける
                     (textChannels as any)[voiceChannelId] = tc;
-                    console.log(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルを設定 (voice:${voiceChannelId}): ${tc.name} (${finalTextChannelId})`);
+                    console.log(`[internal/join:5th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
-                    console.warn(`[internal/join:6th] ギルド ${guildId} のテキストチャンネルが見つからないかテキストチャンネルではない: ${finalTextChannelId}`);
+                    console.warn(`[internal/join:5th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
                     
-                    // フォールバック: ギルドの最初のテキストチャンネルを使用
-                    const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0) as any;
-                        if (fallbackChannel) {
-                        (textChannels as any)[voiceChannelId] = fallbackChannel;
-                        console.log(`[internal/join:6th] フォールバックチャンネルを使用 (voice:${voiceChannelId}): ${fallbackChannel.name} (${fallbackChannel.id})`);
-                    } else {
-                        console.warn(`[internal/join:6th] ギルド ${guildId} でフォールバックテキストチャンネルも見つかりませんでした`);
+                    // フォールバック: 利用可能なテキストチャンネルを探す
+                    const fallbackChannel = guild.channels.cache.find(ch => 
+                        ch.type === 0 && 
+                        ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
+                    ) as any;
+                    
+                    if (fallbackChannel) {
+                        (textChannels as any)[guildId] = fallbackChannel;
+                        finalTextChannelId = fallbackChannel.id;
+                        console.log(`[internal/join:5th] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }
                 }
             } catch (error) {
-                console.error(`[internal/join:6th] テキストチャンネル設定エラー:`, error);
+                console.error(`[internal/join:6th] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);
             }
         } else {
             console.warn(`[internal/join:6th] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
-    const prev = getVoiceConnection(voiceChannelId) || getVoiceConnection(guildId);
-    if (prev) { try { prev.destroy(); } catch {} try { delete voiceClients[prev.joinConfig.channelId ?? guildId]; } catch {} }
+    const prev = getVoiceConnection(voiceChannelId);
+    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
     const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-    // voiceClients は voiceChannelId をキーに保存
     voiceClients[voiceChannelId] = connection;
-        await new Promise<void>((resolve)=>{
-            const onReady=()=>{cleanup();resolve();};
-            const onDisc=()=>{cleanup();resolve();};
-            const cleanup=()=>{connection.off(VoiceConnectionStatus.Ready,onReady);connection.off(VoiceConnectionStatus.Disconnected,onDisc);};
-            connection.once(VoiceConnectionStatus.Ready,onReady);
-            connection.once(VoiceConnectionStatus.Disconnected,onDisc);
-            setTimeout(()=>cleanup(),10000);
-        });
-        // 2nd Botではボイス状態の保存をスキップ（1st Botが管理）
+        // wait for the connection to become Ready or Disconnected, but don't hang forever
+        const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => {
+            return new Promise<void>((resolve) => {
+                let finished = false;
+                const cleanup = () => {
+                    try { conn.off(VoiceConnectionStatus.Ready, onReady); } catch {}
+                    try { conn.off(VoiceConnectionStatus.Disconnected, onDisc); } catch {}
+                };
+                const onReady = () => { if (finished) return; finished = true; cleanup(); resolve(); };
+                const onDisc = () => { if (finished) return; finished = true; cleanup(); resolve(); };
+                conn.once(VoiceConnectionStatus.Ready, onReady);
+                conn.once(VoiceConnectionStatus.Disconnected, onDisc);
+                // fallback timeout to ensure resolution even if events never fire
+                setTimeout(() => { if (finished) return; finished = true; cleanup(); resolve(); }, timeoutMs);
+            });
+        };
+        await waitReady(connection, 10000);
+        // 6th Botではボイス状態の保存をスキップ（1st Botが管理）
         // try { saveVoiceState(client as any); } catch {}
         
         // Voice接続安定化のための短い遅延
@@ -500,8 +521,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         try {
             console.log(`[internal/join:6th] 音声アナウンス開始: ギルド ${guildId}`);
             const { speakAnnounce } = await import('./utils/TTS-Engine');
-            console.log(`[internal/join:6th] speakAnnounce関数インポート完了: ギルド ${guildId} voice ${voiceChannelId}`);
-            // speakAnnounce を voiceChannelId ベースで呼び出す
+            console.log(`[internal/join:6th] speakAnnounce関数インポート完了: ギルド ${guildId}`);
             await speakAnnounce('接続しました', voiceChannelId, client);
             console.log(`[internal/join:6th] 音声アナウンス再生完了: ギルド ${guildId}`);
         } catch (voiceAnnounceError) {
@@ -562,17 +582,26 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
+        // 動的にモジュールを読み込み、cleanupAudioResources が存在する場合のみ呼び出す
+        let cleanupModule: any = null;
+        try {
+            cleanupModule = await import('./utils/TTS-Engine');
+        } catch (e) {
+            console.warn('TTS-Engine モジュールの動的読み込みに失敗しました（/internal/leave）:', e);
+        }
+
         if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
+            try { if (cleanupModule?.cleanupAudioResources) await cleanupModule.cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
             try { delete (textChannels as any)[voiceChannelId]; } catch {}
             try { delete (global as any).players?.[voiceChannelId]; } catch {}
         } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
+            try { if (cleanupModule?.cleanupAudioResources) await cleanupModule.cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
             try { delete (voiceClients as any)[guildId]; } catch {}
             try { delete (textChannels as any)[guildId]; } catch {}
             try { delete (global as any).players?.[guildId]; } catch {}
         }
+
         return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
