@@ -32,8 +32,10 @@ function showPayInfo(message, timeout = 5000) {
 }
 
 function parseAmount(value) {
-  if (!value && value !== 0) return NaN;
-  const n = Number(String(value).trim());
+  if (value === null || value === undefined) return NaN;
+  const s = String(value).trim().replace(/,/g, '');
+  if (s === '') return NaN;
+  const n = Number(s);
   return Number.isFinite(n) ? n : NaN;
 }
 
@@ -82,6 +84,15 @@ function handlePaymentsFormSubmit() {
 document.addEventListener('DOMContentLoaded', () => {
   const presets = document.querySelectorAll('.pay-presets .preset');
   presets.forEach(p => p.addEventListener('click', handlePresetClick));
+  // currency selection UI: show/hide mint input
+  const radios = document.querySelectorAll('input[name="pay-currency"]');
+  const mintWrap = document.getElementById('pay-mint-wrap');
+  if (radios && radios.length && mintWrap) {
+    radios.forEach(r => r.addEventListener('change', () => {
+      const cur = (document.querySelector('input[name="pay-currency"]:checked') || {}).value;
+      mintWrap.style.display = cur === 'spl' ? 'block' : 'none';
+    }));
+  }
 });
 const PRO_PREMIUM_BASE = (window?.API_CONFIG?.baseURL && window.API_CONFIG.baseURL.includes('aivisspeech')) ? 'http://aivis-chan-bot-pro-premium:3012' : (window?.PRO_PREMIUM_BASE || 'http://aivis-chan-bot-pro-premium:3012');
 
