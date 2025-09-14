@@ -21,6 +21,32 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css">
+    <!-- Docs-specific overrides: reduce heading sizes for readability -->
+    <style>
+        /* Scoped to docs pages to avoid affecting main site */
+        .docs-content h1, .docs-content .hero-title, .docs-content h1#docs-title {
+            font-size: 1.75rem !important;
+            line-height: 1.2;
+        }
+        .docs-content h2 {
+            font-size: 1.15rem !important;
+            margin-top: 1rem;
+            margin-bottom: .5rem;
+        }
+        .docs-content h3 {
+            font-size: 1rem !important;
+            margin-top: .75rem;
+            margin-bottom: .35rem;
+        }
+        /* Slightly tone down section-title usage */
+        .docs-content .section-title {
+            font-size: 1.15rem !important;
+        }
+        /* Improve spacing for docs layout */
+        .docs-content p, .docs-content li {
+            font-size: 0.98rem;
+        }
+    </style>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BN8XJ4M3L0"></script>
