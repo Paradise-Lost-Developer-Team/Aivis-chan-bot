@@ -1100,17 +1100,21 @@ app.post('/submit-sitemap', async (req, res) => {
 // --- Solana invoice endpoints (web handles creation & confirmation) ---
 app.post('/internal/solana/create-invoice', express.json(), async (req, res) => {
   try {
-    const { amountLamports } = req.body || {};
+    const { amountLamports, currency, mint } = req.body || {};
     if (!amountLamports || typeof amountLamports !== 'number') return res.status(400).json({ error: 'invalid-amount' });
+    const allowedCurrencies = ['sol', 'spl'];
+    const cur = allowedCurrencies.includes(currency) ? currency : 'sol';
+    if (cur === 'spl' && (!mint || typeof mint !== 'string')) return res.status(400).json({ error: 'invalid-mint' });
+
     ensureSolanaInvoicesFile();
     const invoices = loadSolanaInvoices();
     const invoiceId = `inv_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
     const receiver = process.env.SOLANA_RECEIVER_PUBKEY || '';
     const rpc = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-    const entry = { invoiceId, amountLamports, receiver, rpc, createdAt: new Date().toISOString(), status: 'pending' };
+    const entry = { invoiceId, amountLamports, currency: cur, mint: cur === 'spl' ? mint : null, receiver, rpc, createdAt: new Date().toISOString(), status: 'pending' };
     invoices.push(entry);
     saveSolanaInvoices(invoices);
-    return res.json({ invoiceId, receiver, rpc });
+    return res.json({ invoiceId, receiver, rpc, currency: cur, mint: entry.mint });
   } catch (e) {
     console.error('web create-invoice error', e);
     return res.status(500).json({ error: 'create-invoice-failed' });

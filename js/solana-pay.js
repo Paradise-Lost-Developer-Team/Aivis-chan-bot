@@ -58,8 +58,24 @@ function handlePaymentsFormSubmit() {
   // Format to 6 decimal places for SOL display
   inp.value = String(Number(val.toFixed(6)));
 
-  // For now the form only shows help; in future we can call web API to create invoice
-  showPayInfo(`支払いリンクはBotのコマンドで生成されます。例: 支払額 ${inp.value} SOL`);
+  // Read currency selection
+  const currency = (document.querySelector('input[name="pay-currency"]:checked') || {}).value || 'sol';
+  const mint = document.getElementById('pay-mint') ? document.getElementById('pay-mint').value.trim() : '';
+
+  // For now call createInvoice to persist invoice metadata (server currently accepts amountLamports)
+  // Convert SOL to lamports if currency is 'sol'
+  const amountLamports = currency === 'sol' ? Math.round(Number(inp.value) * 1e9) : Math.round(Number(inp.value) * 1e6); // for SPL assume 6 decimals by default
+
+  createInvoice({ amountLamports, currency, mint }).then(resp => {
+    if (resp && resp.invoiceId) {
+      showPayInfo(`請求書を作成しました。Invoice ID: ${resp.invoiceId}`);
+    } else {
+      showPayError('請求書の作成に失敗しました');
+    }
+  }).catch(err => {
+    console.error('createInvoice failed', err);
+    showPayError('請求書の作成に失敗しました');
+  });
   return false;
 }
 

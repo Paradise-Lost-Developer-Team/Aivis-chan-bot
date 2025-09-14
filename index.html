@@ -375,13 +375,23 @@
                             <form id="payments-form" class="payments-form" aria-describedby="payments-help" onsubmit="event.preventDefault(); return handlePaymentsFormSubmit();">
                                 <label for="pay-amount">支払額（SOL）</label>
                                 <div class="pay-input-group">
-                                    <input id="pay-amount" name="pay-amount" type="number" step="0.0000001" min="0" inputmode="decimal" aria-label="支払額（SOL）" placeholder="例: 0.1" />
+                                    <input id="pay-amount" name="pay-amount" type="number" step="0.0000001" min="0" inputmode="decimal" aria-label="支払額" placeholder="例: 0.1" />
                                     <div class="pay-presets" aria-hidden="true">
                                         <button type="button" class="btn btn-ghost preset" data-value="0.01">0.01</button>
                                         <button type="button" class="btn btn-ghost preset" data-value="0.1">0.1</button>
                                         <button type="button" class="btn btn-ghost preset" data-value="1">1</button>
                                     </div>
                                 </div>
+
+                                <fieldset class="payment-currency" style="margin-top:8px">
+                                    <legend>支払い通貨</legend>
+                                    <label><input type="radio" name="pay-currency" value="sol" checked /> SOL</label>
+                                    <label style="margin-left:12px"><input type="radio" name="pay-currency" value="spl" /> SPL Token</label>
+                                    <div id="pay-mint-wrap" style="display:none; margin-top:6px">
+                                        <label for="pay-mint">Token mint</label>
+                                        <input id="pay-mint" name="pay-mint" type="text" placeholder="mint address (例: EPjFWdd5...)" />
+                                    </div>
+                                </fieldset>
                                 <div id="pay-error" class="form-error" role="alert" aria-live="assertive" style="display:none"></div>
                                 <button type="submit" class="btn btn-primary" aria-describedby="payments-help">支払いリンクの取得方法を表示</button>
                             </form>
