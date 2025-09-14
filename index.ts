@@ -508,7 +508,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[voiceChannelId] = tc;
+                    try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any); } catch (_) { /* ignore */ }
                     console.log(`[internal/join:6th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:6th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -520,7 +520,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     ) as any;
                     
                     if (fallbackChannel) {
-                        (textChannels as any)[guildId] = fallbackChannel;
+                        try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, fallbackChannel as any); } catch (_) { /* ignore */ }
                         finalTextChannelId = fallbackChannel.id;
                         console.log(`[internal/join:6th] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }
