@@ -466,7 +466,7 @@ apiApp.get('/internal/settings/bundle', (req: Request, res: Response) => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { voiceClients, setTextChannelForGuildInMap, removeTextChannelForGuildInMap, removeTextChannelByVoiceChannelId } from './utils/TTS-Engine';
 import { saveVoiceState, getTextChannelForGuild } from './utils/voiceStateManager';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
@@ -540,7 +540,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 }
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[voiceChannelId] = tc;
+                    setTextChannelForGuildInMap(guildId, tc);
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -550,7 +550,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                         ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
                     ) as any;
                     if (fallbackChannel) {
-                        (textChannels as any)[voiceChannelId] = fallbackChannel;
+                        setTextChannelForGuildInMap(guildId, fallbackChannel);
                         finalTextChannelId = fallbackChannel.id;
                         console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }
@@ -564,7 +564,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // 既存のvoiceClientsをvoiceChannelIdで管理
         const prev = getVoiceConnection(voiceChannelId);
-        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         voiceClients[voiceChannelId] = connection;
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
@@ -845,13 +845,13 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
             const prev = getVoiceConnection(voiceChannelId);
             if (prev) { try { prev.destroy(); } catch {} }
             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { delete (textChannels as any)[voiceChannelId]; } catch {}
+            try { removeTextChannelByVoiceChannelId(voiceChannelId); } catch {}
             try { delete (global as any).players?.[voiceChannelId]; } catch {}
         } else if (guildId) {
             const prev = getVoiceConnection(guildId);
             if (prev) { try { prev.destroy(); } catch {} }
             try { delete (voiceClients as any)[guildId]; } catch {}
-            try { delete (textChannels as any)[guildId]; } catch {}
+            try { removeTextChannelForGuildInMap(guildId); } catch {}
             try { delete (global as any).players?.[guildId]; } catch {}
         }
 

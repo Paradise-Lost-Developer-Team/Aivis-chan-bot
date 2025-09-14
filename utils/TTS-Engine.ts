@@ -77,6 +77,89 @@ export const joinCommandChannels: { [guildId: string]: string } = {};
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [voiceChannelId: string]: AudioPlayer } = {};
 
+// --- Compatibility helpers: allow guildId-keyed access while keeping legacy voiceChannelId keys ---
+/**
+ * Normalize existing textChannels map: if entries are stored under voiceChannelId keys,
+ * try to populate equivalent guildId keys (non-destructive).
+ */
+export function normalizeTextChannelsMap() {
+    try {
+        for (const key of Object.keys(textChannels)) {
+            const tc = (textChannels as any)[key] as TextChannel | undefined;
+            if (!tc) continue;
+            try {
+                const gid = tc.guild?.id;
+                if (gid && !(textChannels as any)[gid]) {
+                    (textChannels as any)[gid] = tc;
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+}
+
+export function getTextChannelFromMapByGuild(guildId: string): TextChannel | undefined {
+    try {
+        // direct guildId key
+        if ((textChannels as any)[guildId]) return (textChannels as any)[guildId];
+        // fallback: find by value whose guild.id matches
+        for (const k of Object.keys(textChannels)) {
+            const tc = (textChannels as any)[k] as TextChannel | undefined;
+            if (!tc) continue;
+            try {
+                if (tc.guild && tc.guild.id === guildId) return tc;
+            } catch (e) {
+                continue;
+            }
+        }
+    } catch (e) {}
+    return undefined;
+}
+
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel | null | undefined) {
+    try {
+        if (!channel) {
+            delete (textChannels as any)[guildId];
+            return;
+        }
+        (textChannels as any)[guildId] = channel;
+    } catch (e) {}
+}
+
+export function removeTextChannelForGuildInMap(guildId: string) {
+    try {
+        delete (textChannels as any)[guildId];
+    } catch (e) {}
+}
+
+// run normalization at module load to populate guildId keys where possible
+try { normalizeTextChannelsMap(); } catch (e) {}
+
+/**
+ * Remove text channel entries keyed by voiceChannelId. Also remove any guildId keys that reference the same channel id.
+ */
+export function removeTextChannelByVoiceChannelId(voiceChannelId: string) {
+    try {
+        const tc = (textChannels as any)[voiceChannelId] as TextChannel | undefined;
+        if (tc && tc.id) {
+            // remove all keys that reference this channel id
+            for (const k of Object.keys(textChannels)) {
+                try {
+                    const v = (textChannels as any)[k] as TextChannel | undefined;
+                    if (v && v.id === tc.id) {
+                        delete (textChannels as any)[k];
+                    }
+                } catch (e) { continue; }
+            }
+        } else {
+            try { delete (textChannels as any)[voiceChannelId]; } catch (e) {}
+        }
+    } catch (e) {}
+}
+
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
   {
