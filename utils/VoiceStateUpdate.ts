@@ -1,7 +1,7 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
 import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine';
-import { saveVoiceState, setTextChannelForGuild } from './voiceStateManager';
+import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
 import { getBotInfos, pickLeastBusyBot, instructJoin, instructLeave } from './botOrchestrator';
 
@@ -311,8 +311,41 @@ export function VoiceStateUpdate(client: Client) {
             // ...既存のjoinChannelsData判定ロジック...
         }
         if (allow) {
-            setTextChannelForGuild(guild.id, message.channel.id);
-            saveVoiceState(client);
+            // Only persist if the channel is explicitly allowed by the auto-join configuration
+            // or if it matches the stored textChannelId. Prevent broad unconditional allow.
+            const storedTextChannelId = getTextChannelForGuild(guildId);
+            const isStoredChannel = storedTextChannelId && storedTextChannelId === message.channel.id;
+
+            // When autoJoinData.tempVoice && no textChannelId, we previously set allow = true unconditionally
+            // for any message. Change behavior: only accept messages that are either the stored channel,
+            // or inside the same category as the bot's connected VC (if available). As a last resort,
+            // accept the channel if the bot is connected to a VC and the message author is in that VC.
+            let shouldPersist = false;
+
+            if (isStoredChannel) {
+                shouldPersist = true;
+            } else if (autoJoinData && autoJoinData.tempVoice && !autoJoinData.textChannelId) {
+                const me = guild.members.cache.get(client.user?.id || '');
+                if (me?.voice.channel && me.voice.channel.parent) {
+                    const categoryId = me.voice.channel.parentId || (me.voice.channel.parent && (me.voice.channel.parent as any).id);
+                    if (categoryId && message.channel && (message.channel as any).parentId === categoryId) {
+                        shouldPersist = true;
+                    }
+                }
+
+                // Last-resort: if message author is currently in the same voice channel as the bot,
+                // allow persisting. This is stricter than unconditional true for any message.
+                if (!shouldPersist && message.member && message.member.voice && message.member.voice.channel && me?.voice.channel) {
+                    if (message.member.voice.channel.id === me.voice.channel.id) {
+                        shouldPersist = true;
+                    }
+                }
+            }
+
+            if (shouldPersist) {
+                setTextChannelForGuild(guild.id, message.channel.id);
+                saveVoiceState(client);
+            }
         }
     });
 
