@@ -4,7 +4,7 @@ import { REST } from "@discordjs/rest";
 import { getUserTierByOwnership, getGuildTier } from "./utils/patreonIntegration";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings } from "./utils/TTS-Engine";
+import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings, setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -495,18 +495,9 @@ function cleanupAudioResources(identifier: string) {
             }
         } catch (_) { /* ignore */ }
 
-        // テキストチャンネルのマッピングを削除
+        // テキストチャンネルのマッピングを削除 (互換ヘルパ経由)
         try {
-            if ((textChannels as any)[identifier]) {
-                try { delete (textChannels as any)[identifier]; } catch (_) { /* ignore */ }
-            }
-            for (const key of Object.keys((textChannels as any) || {})) {
-                const tc = (textChannels as any)[key];
-                const tcGuildId = tc?.guild?.id ?? null;
-                if (tcGuildId && tcGuildId === identifier) {
-                    try { delete (textChannels as any)[key]; } catch (_) { /* ignore */ }
-                }
-            }
+            try { removeTextChannelForGuildInMap(identifier); } catch (_) { /* ignore */ }
         } catch (_) { /* ignore */ }
 
         // グローバルプレイヤーがあれば削除
@@ -564,13 +555,13 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 tc = guild.channels.cache.get(finalTextChannelId) as any;
                 if (!tc) tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[voiceChannelId] = tc;
+                    try { setTextChannelForGuildInMap(guildId, tc as any); } catch (_) { /* ignore */ }
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
                     const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0 && ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])) as any;
                     if (fallbackChannel) {
-                        (textChannels as any)[voiceChannelId] = fallbackChannel;
+                        try { setTextChannelForGuildInMap(guildId, fallbackChannel as any); } catch (_) { /* ignore */ }
                         finalTextChannelId = fallbackChannel.id;
                         tc = fallbackChannel;
                         console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
@@ -807,13 +798,13 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         if (voiceChannelId) {
             try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
             try { delete (voiceClients as any)[voiceChannelId]; } catch (e) { /* ignore */ }
-            try { delete (textChannels as any)[voiceChannelId]; } catch (e) { /* ignore */ }
+            try { removeTextChannelForGuildInMap(voiceChannelId); } catch (e) { /* ignore */ }
             try { delete (global as any).players?.[voiceChannelId]; } catch (e) { /* ignore */ }
         } else if (guildId) {
             // 従来互換性のため guildId ベースのクリーンアップも保持
             try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
             try { delete (voiceClients as any)[guildId]; } catch (e) { /* ignore */ }
-            try { delete (textChannels as any)[guildId]; } catch (e) { /* ignore */ }
+            try { removeTextChannelForGuildInMap(guildId); } catch (e) { /* ignore */ }
             try { delete (global as any).players?.[guildId]; } catch (e) { /* ignore */ }
         }
 

@@ -6,6 +6,7 @@ import path from "path";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
 import { getTextChannelForGuild } from './voiceStateManager';
+import { ChannelType, TextChannel as DjTextChannel } from 'discord.js';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
@@ -76,6 +77,77 @@ export const joinCommandChannels: { [guildId: string]: string } = {};
 // ユーザーごとの話者設定
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [voiceChannelId: string]: AudioPlayer } = {};
+
+/**
+ * 互換レイヤー: textChannels マップを guildId でも参照できるようにするヘルパ
+ * - 古い実装では voiceChannelId をキーにしていたため、誤って guildId をキーにすると
+ *   全チャンネルが読み上げ対象になってしまうケースがある。
+ * - このモジュールでは起動時に normalizeTextChannelsMap() を呼び出して
+ *   値から guildId を key にした参照を補完する（既存キーは破壊しない）。
+ */
+export function normalizeTextChannelsMap(): void {
+    try {
+        const vals = Object.values(textChannels || {});
+        for (const tc of vals) {
+            try {
+                if (!tc || !(tc as any).guild) continue;
+                const gid = (tc as any).guild.id;
+                if (!gid) continue;
+                // 既に guildId キーが存在しなければ追加する
+                if (!(textChannels as any)[gid]) {
+                    try { (textChannels as any)[gid] = tc; } catch (_) { /* ignore */ }
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+}
+
+export function getTextChannelFromMapByGuild(guildId: string): TextChannel | undefined {
+    try {
+        // まず guildId キーで直接参照
+        const byKey = (textChannels as any)[guildId];
+        if (byKey) return byKey as TextChannel;
+
+        // 次に値を走査して guild.id と一致するものを探す
+        const vals = Object.values(textChannels || {});
+        for (const tc of vals) {
+            try {
+                if (!tc) continue;
+                if ((tc as any).guild && (tc as any).guild.id === guildId) return tc as TextChannel;
+            } catch {}
+        }
+    } catch (e) {}
+    return undefined;
+}
+
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel): void {
+    try {
+        try { (textChannels as any)[guildId] = channel; } catch (_) { /* ignore */ }
+    } catch (e) {
+        console.warn('setTextChannelForGuildInMap error:', e);
+    }
+}
+
+export function removeTextChannelForGuildInMap(guildId: string): void {
+    try {
+        // 削除対象のキーを列挙して削除
+        for (const key of Object.keys((textChannels as any) || {})) {
+            try {
+                const tc = (textChannels as any)[key];
+                if (!tc) continue;
+                if ((key === guildId) || ((tc as any).guild && (tc as any).guild.id === guildId)) {
+                    try { delete (textChannels as any)[key]; } catch (_) { /* ignore */ }
+                }
+            } catch (_) { continue; }
+        }
+    } catch (e) {
+        console.warn('removeTextChannelForGuildInMap error:', e);
+    }
+}
 
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
@@ -1011,6 +1083,9 @@ let autoJoinChannelsLastModified = 0;
 // 初期化時に既存のデータを読み込む（キャッシュ付き）
 autoJoinChannels = loadAutoJoinChannels();
 
+// 互換性のために textChannels マップを正規化（guildId キーを補完）
+try { normalizeTextChannelsMap(); } catch (e) { /* ignore */ }
+
 export function loadAutoJoinChannels() {
     try {
         if (!fs.existsSync(AUTO_JOIN_FILE)) {
@@ -1242,6 +1317,74 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
+}
+
+/**
+ * ギルド内の指定チャンネルが読み上げ対象かを判定するユーティリティ
+ * 優先順:
+ *  1. voiceStateManager の保存されたテキストチャンネル
+ *  2. autoJoinChannels の textChannelId
+ *  3. joinCommandChannels の記録
+ *  4. voiceClient が接続するボイスチャンネルのカテゴリ内 / 同名テキストチャンネル
+ */
+export function isChannelAllowedForTTS(guildId: string, currentChannelId: string, client?: any, voiceClient?: VoiceConnection): { allowed: boolean, reason?: string } {
+    try {
+        // APIマップ(textChannels)は voiceChannelId をキーにしているため、誤って guildId をキーにしてしまった場合に
+        // 全チャンネルが一致してしまう問題を避けるため、キーではなく値を走査してギルド単位での一致を確認する。
+        try {
+            const vals = Object.values(textChannels || {});
+            for (const tc of vals) {
+                try {
+                    if (!tc) continue;
+                    // tc.guild may be undefined in some runtime states
+                    const tcGuildId = (tc as any).guild?.id;
+                    if (tcGuildId === guildId && tc.id === currentChannelId) {
+                        return { allowed: true, reason: 'api-setting' };
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+        // 1. 保存されたテキストチャンネル
+        const saved = getTextChannelForGuild(guildId);
+        if (saved && saved === currentChannelId) return { allowed: true, reason: 'saved-text-channel' };
+
+        // 2. autoJoinChannels
+        const auto = autoJoinChannels[guildId];
+        if (auto && auto.textChannelId && auto.textChannelId === currentChannelId) return { allowed: true, reason: 'auto-join-setting' };
+
+        // 3. joinCommandChannels
+        const joinCmd = getJoinCommandChannel(guildId);
+        if (joinCmd && joinCmd === currentChannelId) return { allowed: true, reason: 'join-command-channel' };
+
+        // 4. voiceClient 関連（カテゴリ or 同名テキストチャンネル）
+        const voiceChannelId = voiceClient?.joinConfig?.channelId;
+        if (voiceChannelId && client) {
+            const guild = client.guilds?.cache?.get(guildId);
+            if (guild) {
+                const vc = guild.channels.cache.get(voiceChannelId) as DjTextChannel | undefined as any;
+                const tc = guild.channels.cache.get(currentChannelId) as DjTextChannel | undefined as any;
+                if (vc && tc) {
+                    // カテゴリ一致
+                    if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) {
+                        return { allowed: true, reason: 'voice-channel-category' };
+                    }
+                    // 同名テキストチャンネル
+                    if ((vc as any).name && (tc as any).name && tc.type === ChannelType.GuildText && vc.name.toLowerCase() === tc.name.toLowerCase()) {
+                        return { allowed: true, reason: 'matching-text-channel' };
+                    }
+                }
+            }
+        }
+
+        return { allowed: false, reason: 'no-match' };
+    } catch (err) {
+        console.error('isChannelAllowedForTTS error:', err);
+        return { allowed: false, reason: 'error' };
+    }
 }
 
 // joinコマンド実行チャンネルを記録する関数

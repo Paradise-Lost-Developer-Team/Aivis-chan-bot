@@ -1,5 +1,6 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, textChannels, getJoinCommandChannel } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, getJoinCommandChannel, isChannelAllowedForTTS } from './TTS-Engine';
+import { getTextChannelForGuild } from './voiceStateManager';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { enqueueText, Priority } from './VoiceQueue';
 import { logError } from './errorLogger';
@@ -18,7 +19,7 @@ const voiceInitMap: { [guildId: string]: boolean } = {};
  * 動的テキストチャンネル判定システム
  * join_channels.jsonに依存せず、現在の状況に基づいてTTSを実行するかを決定
  */
-const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean; reason: string }> => {
+const shouldPerformTTS = async (message: Message, client?: ExtendedClient): Promise<{ shouldTTS: boolean; reason: string }> => {
     const guildId = message.guildId!;
     const currentChannel = message.channel as TextChannel;
     const voiceClient = voiceClients[guildId];
@@ -29,47 +30,12 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
     }
     
     try {
-        // 1. API設定による明示的許可（textChannelsマップから）
-        if (textChannels[guildId] && textChannels[guildId].id === currentChannel.id) {
-            return { shouldTTS: true, reason: 'api-setting' };
-        }
-        
-        // 2. /joinコマンドを実行したチャンネル
-        const joinCommandChannelId = getJoinCommandChannel(guildId);
-        if (joinCommandChannelId === currentChannel.id) {
-            return { shouldTTS: true, reason: 'join-command-channel' };
-        }
-        
-        // 3. Botが接続しているボイスチャンネル（関連テキストチャンネル）
-        const voiceChannelId = voiceClient.joinConfig?.channelId;
-        if (voiceChannelId) {
-            const voiceChannel = message.guild?.channels.cache.get(voiceChannelId) as VoiceChannel;
-            
-            if (voiceChannel) {
-                // 3a. 同じカテゴリ内のテキストチャンネル
-                if (voiceChannel.parentId && voiceChannel.parentId === currentChannel.parentId) {
-                    return { shouldTTS: true, reason: 'voice-channel-category' };
-                }
-                
-                // 3b. ボイスチャンネルと同名のテキストチャンネル
-                const matchingTextChannel = voiceChannel.parent?.children.cache.find(
-                    ch => ch.type === ChannelType.GuildText && 
-                          ch.name.toLowerCase() === voiceChannel.name.toLowerCase()
-                );
-                if (matchingTextChannel && matchingTextChannel.id === currentChannel.id) {
-                    return { shouldTTS: true, reason: 'matching-text-channel' };
-                }
-            }
-        }
-        
-        // 4. Auto-join設定のフォールバック
-        const autoJoinChannelsData = loadAutoJoinChannels();
-        if (autoJoinChannelsData[guildId]) {
-            if (autoJoinChannelsData[guildId].tempVoice && !autoJoinChannelsData[guildId].isManualTextChannelId) {
-                return { shouldTTS: true, reason: 'temp-voice-auto' };
-            } else if (autoJoinChannelsData[guildId].textChannelId === currentChannel.id) {
-                return { shouldTTS: true, reason: 'auto-join-setting' };
-            }
+        // Centralized TTS channel check to avoid guildId/voiceChannelId key mistakes
+        try {
+            const result = isChannelAllowedForTTS(guildId, currentChannel.id, client, voiceClient);
+            if (result.allowed) return { shouldTTS: true, reason: result.reason ?? 'allowed' };
+        } catch (err) {
+            console.warn('[TTS:pro] isChannelAllowedForTTS error:', err);
         }
         
         return { shouldTTS: false, reason: 'no-match' };
@@ -94,7 +60,7 @@ export function MessageCreate(client: ExtendedClient) {
             const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
 
             // 動的テキストチャンネル判定システムを使用
-            const { shouldTTS, reason } = await shouldPerformTTS(message);
+            const { shouldTTS, reason } = await shouldPerformTTS(message, client);
             
             if (!shouldTTS) {
                 console.log(`[TTS:pro] メッセージ無視: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);

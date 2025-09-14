@@ -2,7 +2,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChatInputCommandInteraction, MessageFlags, EmbedBuilder, TextChannel, ChannelType } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { speakVoice, voiceClients, voiceSettings, textChannels, setJoinCommandChannel } from '../../utils/TTS-Engine';
+import { speakVoice, voiceClients, voiceSettings, setJoinCommandChannel, setTextChannelForGuildInMap } from '../../utils/TTS-Engine';
 import { VoiceConnectionStatus } from '@discordjs/voice';
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 import { ConversationTrackingService } from '../../utils/conversation-tracking-service';
@@ -167,7 +167,7 @@ module.exports = {
                 // 適切なテキストチャンネルの設定
                 const currentChannel = interaction.channel;
                 if (currentChannel && currentChannel.type === ChannelType.GuildText) {
-                    textChannels[guildId] = currentChannel as TextChannel;
+                    setTextChannelForGuildInMap(guildId, currentChannel as TextChannel);
                     // chatコマンド実行チャンネルも記録（動的判定で使用）
                     setJoinCommandChannel(guildId, interaction.channelId);
                     console.log(`[Chat:pro] テキストチャンネル設定: ${currentChannel.name}`);

@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, textChannels, voiceClients, loadAutoJoinChannels, setJoinCommandChannel } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, voiceClients, loadAutoJoinChannels, setJoinCommandChannel, setTextChannelForGuildInMap } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 import { setTextChannelForGuild } from '../../utils/voiceStateManager';
 
@@ -122,7 +122,7 @@ module.exports = {
                     return;
                 } else {
                     // 同じチャンネルの場合
-                    textChannels[guildId] = textChannel; // テキストチャンネルの更新のみ
+                    setTextChannelForGuildInMap(guildId, textChannel); // テキストチャンネルの更新のみ
                     await interaction.editReply({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
@@ -137,7 +137,7 @@ module.exports = {
             }
         }
         
-        textChannels[guildId] = textChannel;
+        setTextChannelForGuildInMap(guildId, textChannel); // 更新は互換APIを通して行う
         // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
         try {
             const execChannelId = (interaction.channel && interaction.channel.type === ChannelType.GuildText) ? interaction.channelId : textChannel.id;
