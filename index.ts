@@ -769,6 +769,40 @@ apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
     }
 });
 
+// Solana: Invoice作成（クライアント側で署名・送信）
+apiApp.post('/internal/solana/create-invoice', async (req: Request, res: Response) => {
+    try {
+        const { amountLamports } = req.body || {};
+        if (!amountLamports || typeof amountLamports !== 'number') return res.status(400).json({ error: 'invalid-amount' });
+        // invoiceIdは簡易的に timestamp を使用
+        const invoiceId = `inv_${Date.now()}`;
+        // 返却値: invoiceId, receiverPubkey, rpc
+        const { getReceiverPublicKey } = await import('./utils/solanaPayments');
+        return res.json({ invoiceId, receiver: getReceiverPublicKey().toString(), rpc: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com' });
+    } catch (e: any) {
+        console.error('create-invoice error:', e);
+        return res.status(500).json({ error: 'create-invoice-failed' });
+    }
+});
+
+// Solana: トランザクション検証
+apiApp.post('/internal/solana/verify', async (req: Request, res: Response) => {
+    try {
+        const { signature, invoiceId, expectedLamports } = req.body || {};
+        if (!signature || !invoiceId || typeof expectedLamports !== 'number') return res.status(400).json({ error: 'invalid-params' });
+        const { verifyTransaction } = await import('./utils/solanaPayments');
+        const ok = await verifyTransaction(signature, expectedLamports);
+        if (!ok) return res.status(400).json({ error: 'verification-failed' });
+
+        // TODO: 実際のアカウント付与や内部処理をここに追加
+        console.log(`Solana payment verified for invoice ${invoiceId} signature ${signature}`);
+        return res.json({ ok: true });
+    } catch (e: any) {
+        console.error('verify error:', e);
+        return res.status(500).json({ error: 'verify-failed' });
+    }
+});
+
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
