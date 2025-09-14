@@ -50,30 +50,49 @@ module.exports = {
         }
 
         if (!textChannel) {
-            // コマンド実行チャンネルを使用（テキストチャンネルかどうか確認）
+            // Prefer the current channel if it's a guild text channel and bot can send messages there
             const currentChannel = interaction.channel;
+            const clientUser = interaction.client.user!;
             if (currentChannel && currentChannel.type === ChannelType.GuildText) {
-                textChannel = currentChannel as TextChannel;
-            } else {
-                // テキストチャンネルでない場合、ギルドの最初のテキストチャンネルを使用
-                const firstTextChannel = interaction.guild?.channels.cache
-                    .filter(ch => ch.type === ChannelType.GuildText)
-                    .first() as TextChannel;
-                if (firstTextChannel) {
-                    textChannel = firstTextChannel;
-                } else {
-                    await interaction.followUp({
-                        embeds: [addCommonFooter(
-                            new EmbedBuilder()
-                                .setTitle('エラー')
-                                .setDescription('適切なテキストチャンネルが見つかりません。テキストチャンネルを指定してください。')
-                                .setColor(0xff0000)
-                        )],
-                        components: [getCommonLinksRow()],
-                        flags: MessageFlags.Ephemeral
-                    });
-                    return;
+                const canSend = (currentChannel as TextChannel).permissionsFor(clientUser)?.has('SendMessages');
+                if (canSend) {
+                    textChannel = currentChannel as TextChannel;
                 }
+            }
+
+            // If still not found, prefer common text channel names (bot-commands, general)
+            if (!textChannel && interaction.guild) {
+                const preferredNames = ['bot-commands', 'bot-logs', 'general', 'chat', 'テキスト', 'bot'];
+                for (const name of preferredNames) {
+                    const ch = interaction.guild.channels.cache.find(c => c.type === ChannelType.GuildText && c.name === name) as TextChannel | undefined;
+                    if (ch && ch.permissionsFor(clientUser)?.has('SendMessages')) {
+                        textChannel = ch;
+                        break;
+                    }
+                }
+            }
+
+            // As a last resort, find the first viewable text channel the bot can send messages to
+            if (!textChannel && interaction.guild) {
+                const candidate = interaction.guild.channels.cache
+                    .filter(ch => ch.type === ChannelType.GuildText && (ch as TextChannel).viewable)
+                    .find(ch => (ch as TextChannel).permissionsFor(clientUser)?.has('SendMessages')) as TextChannel | undefined;
+                if (candidate) textChannel = candidate;
+            }
+
+            // If still not found, ask the user to explicitly specify a text channel
+            if (!textChannel) {
+                await interaction.followUp({
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('エラー')
+                            .setDescription('テキストチャンネルが指定されていないか、Botがメッセージを投稿できるチャンネルが見つかりませんでした。`/join text_channel:#チャンネル名` のように指定してください。')
+                            .setColor(0xff0000)
+                    )],
+                    components: [getCommonLinksRow()],
+                    flags: MessageFlags.Ephemeral
+                });
+                return;
             }
         }
 
@@ -119,8 +138,14 @@ module.exports = {
         }
         
         textChannels[guildId] = textChannel;
-        // joinコマンド実行チャンネルを記録
-        setJoinCommandChannel(guildId, interaction.channelId);
+        // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
+        try {
+            const execChannelId = (interaction.channel && interaction.channel.type === ChannelType.GuildText) ? interaction.channelId : textChannel.id;
+            setJoinCommandChannel(guildId, execChannelId);
+        } catch (e) {
+            // fallback
+            setJoinCommandChannel(guildId, interaction.channelId);
+        }
         // テキストチャンネルをvoiceStateManagerに保存
         setTextChannelForGuild(guildId, textChannel.id);
 
