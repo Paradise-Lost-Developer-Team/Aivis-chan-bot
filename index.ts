@@ -541,8 +541,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    try { (textChannels as any)[voiceChannelId] = tc; } catch {}
-                    try { (textChannels as any)[guildId] = tc; } catch {}
+                    try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any); } catch (_) { /* ignore */ }
                     console.log(`[internal/join:5th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:5th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -554,8 +553,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     ) as any;
                     
                     if (fallbackChannel) {
-                        try { (textChannels as any)[guildId] = fallbackChannel; } catch {}
-                        try { (textChannels as any)[voiceChannelId] = fallbackChannel; } catch {}
+                        try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, fallbackChannel as any); } catch (_) { /* ignore */ }
                         finalTextChannelId = fallbackChannel.id;
                         console.log(`[internal/join:5th] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }
@@ -683,12 +681,12 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
                 if (voiceChannelId) {
                     try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
                     try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-                    try { delete (textChannels as any)[voiceChannelId]; } catch {}
+                    try { const { removeTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); removeTextChannelForGuildInMap(voiceChannelId); } catch {}
                     try { delete (global as any).players?.[voiceChannelId]; } catch {}
                 } else if (guildId) {
                     try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
                     try { delete (voiceClients as any)[guildId]; } catch {}
-                    try { delete (textChannels as any)[guildId]; } catch {}
+                    try { const { removeTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); removeTextChannelForGuildInMap(guildId); } catch {}
                     try { delete (global as any).players?.[guildId]; } catch {}
                 }
             } catch (err) {
