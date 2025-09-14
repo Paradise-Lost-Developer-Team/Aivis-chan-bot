@@ -769,18 +769,13 @@ apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
     }
 });
 
-// Solana: Invoice作成（クライアント側で署名・送信）
+// Solana: Invoice作成はWebサーバー側で行うように変更しました。
+// ここは非推奨のエンドポイントであり、利用を避けてください。
 apiApp.post('/internal/solana/create-invoice', async (req: Request, res: Response) => {
     try {
-        const { amountLamports } = req.body || {};
-        if (!amountLamports || typeof amountLamports !== 'number') return res.status(400).json({ error: 'invalid-amount' });
-        // invoiceIdは簡易的に timestamp を使用
-        const invoiceId = `inv_${Date.now()}`;
-        // 返却値: invoiceId, receiverPubkey, rpc
-        const { getReceiverPublicKey } = await import('./utils/solanaPayments');
-        return res.json({ invoiceId, receiver: getReceiverPublicKey().toString(), rpc: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com' });
+        return res.status(410).json({ error: 'create-invoice-deprecated', message: 'Create invoices via the web service /internal/solana/create-invoice' });
     } catch (e: any) {
-        console.error('create-invoice error:', e);
+        console.error('create-invoice deprecate error:', e);
         return res.status(500).json({ error: 'create-invoice-failed' });
     }
 });
