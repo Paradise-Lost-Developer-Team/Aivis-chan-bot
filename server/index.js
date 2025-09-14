@@ -22,19 +22,24 @@ app.get('/api/tts/speakers', async (req, res) => {
         const r = await fetch(url);
         if (!r.ok) {
           lastErr = new Error(`Engine responded ${r.status} at ${url}`);
+          console.error(`[api/tts/speakers] upstream responded ${r.status} for ${url}`);
           continue;
         }
         const body = await r.json();
         return res.json(body);
       } catch (e) {
+        // Log full error including stack to make k8s pod logs actionable
+        console.error(`[api/tts/speakers] fetch failed for ${url}:`, e && (e.stack || e.message) ? (e.stack || e.message) : e);
         lastErr = e;
         continue;
       }
     }
 
-    res.status(502).json({ error: 'Failed to reach aivisspeech engine', detail: lastErr && lastErr.message });
+    // Provide the last error message (and a hint) to aid debugging
+    res.status(502).json({ error: 'Failed to reach aivisspeech engine', detail: lastErr && (lastErr.message || String(lastErr)) });
   } catch (e) {
-    res.status(500).json({ error: 'Internal error', detail: e && e.message });
+    console.error('[api/tts/speakers] internal handler error:', e && (e.stack || e.message) ? (e.stack || e.message) : e);
+    res.status(500).json({ error: 'Internal error', detail: e && (e.message || String(e)) });
   }
 });
 
@@ -51,10 +56,14 @@ app.get('/api/guilds/:guildId/speakers', async (req, res) => {
     for (const url of engineUrls) {
       try {
         const r = await fetch(url);
-        if (!r.ok) continue;
+        if (!r.ok) {
+          console.error(`[api/guilds/:guildId/speakers] upstream responded ${r.status} for ${url}`);
+          continue;
+        }
         const body = await r.json();
         return res.json(body);
       } catch (e) {
+        console.error(`[api/guilds/:guildId/speakers] fetch failed for ${url}:`, e && (e.stack || e.message) ? (e.stack || e.message) : e);
         continue;
       }
     }
