@@ -3,3 +3,14 @@ node_modules
 npm-debug.log
 build/js
 .env
+
+
+# Exclude sensitive runtime config so it's not baked into the image
+data/config.json
+data/*.key
+data/*.pem
+
+# Editor / OS / logs
+.DS_Store
+Thumbs.db
+*.log
