@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, monitorMemoryUsage, textChannels } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, monitorMemoryUsage, textChannels, normalizeTextChannelsMap, getTextChannelFromMapByGuild } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -54,7 +54,9 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
     
     try {
         // 1. API設定による明示的許可（textChannelsマップから）
-        if (textChannels[guildId] && textChannels[guildId].id === currentChannel.id) {
+        try { normalizeTextChannelsMap(); } catch {}
+        const mapped = getTextChannelFromMapByGuild(guildId);
+        if (mapped && mapped.id === currentChannel.id) {
             return { shouldTTS: true, reason: 'api-setting' };
         }
         

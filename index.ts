@@ -453,7 +453,7 @@ apiApp.listen(3003, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { textChannels, voiceClients, setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -542,7 +542,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    (textChannels as any)[voiceChannelId] = tc;
+                    try { setTextChannelForGuildInMap(guildId, tc); } catch { try { (textChannels as any)[voiceChannelId] = tc; } catch {} }
                     console.log(`[internal/join:2nd] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:2nd] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -554,7 +554,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     ) as any;
                     
                     if (fallbackChannel) {
-                        (textChannels as any)[guildId] = fallbackChannel;
+                        try { setTextChannelForGuildInMap(guildId, fallbackChannel); } catch { try { (textChannels as any)[guildId] = fallbackChannel; } catch {} }
                         finalTextChannelId = fallbackChannel.id;
                         console.log(`[internal/join:2nd] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }
@@ -567,9 +567,9 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
     const prev = getVoiceConnection(voiceChannelId);
-    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+    if (prev) { try { prev.destroy(); } catch {} try { delete (voiceClients as any)[voiceChannelId]; } catch {} }
     const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-    voiceClients[voiceChannelId] = connection;
+    try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
         // wait for the connection to become Ready or Disconnected, but don't hang forever
         const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => {
             return new Promise<void>((resolve) => {
@@ -659,12 +659,12 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         if (voiceChannelId) {
             try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { delete (textChannels as any)[voiceChannelId]; } catch {}
+            try { removeTextChannelForGuildInMap(voiceChannelId); } catch { try { delete (textChannels as any)[voiceChannelId]; } catch {} }
             try { delete (global as any).players?.[voiceChannelId]; } catch {}
         } else if (guildId) {
             try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
             try { delete (voiceClients as any)[guildId]; } catch {}
-            try { delete (textChannels as any)[guildId]; } catch {}
+            try { removeTextChannelForGuildInMap(guildId); } catch { try { delete (textChannels as any)[guildId]; } catch {} }
             try { delete (global as any).players?.[guildId]; } catch {}
         }
 

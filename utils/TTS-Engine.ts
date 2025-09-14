@@ -72,6 +72,58 @@ export const currentSpeaker: { [userId: string]: number } = {};
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [voiceChannelId: string]: AudioPlayer } = {};
 
+// 互換ヘルパ: textChannels マップを guildId でも参照可能にする
+export function normalizeTextChannelsMap(): void {
+    try {
+        const vals = Object.values(textChannels || {});
+        for (const tc of vals) {
+            try {
+                if (!tc || !(tc as any).guild) continue;
+                const gid = (tc as any).guild.id;
+                if (!gid) continue;
+                if (!(textChannels as any)[gid]) {
+                    try { (textChannels as any)[gid] = tc; } catch (_) { }
+                }
+            } catch (e) { continue; }
+        }
+    } catch (e) { }
+}
+
+export function getTextChannelFromMapByGuild(guildId: string): TextChannel | undefined {
+    try {
+        const byKey = (textChannels as any)[guildId];
+        if (byKey) return byKey as TextChannel;
+        const vals = Object.values(textChannels || {});
+        for (const tc of vals) {
+            try {
+                if (!tc) continue;
+                if ((tc as any).guild && (tc as any).guild.id === guildId) return tc as TextChannel;
+            } catch {}
+        }
+    } catch (e) {}
+    return undefined;
+}
+
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel): void {
+    try {
+        try { (textChannels as any)[guildId] = channel; } catch (_) { }
+    } catch (e) { console.warn('setTextChannelForGuildInMap error:', e); }
+}
+
+export function removeTextChannelForGuildInMap(guildId: string): void {
+    try {
+        for (const key of Object.keys((textChannels as any) || {})) {
+            try {
+                const tc = (textChannels as any)[key];
+                if (!tc) continue;
+                if ((key === guildId) || ((tc as any).guild && (tc as any).guild.id === guildId)) {
+                    try { delete (textChannels as any)[key]; } catch (_) { }
+                }
+            } catch (_) { continue; }
+        }
+    } catch (e) { console.warn('removeTextChannelForGuildInMap error:', e); }
+}
+
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
   {
