@@ -134,6 +134,12 @@ module.exports = {
                             voiceSettings.speaker[selectInteraction.user.id] = speakerIdNumber;
                         }
                         saveUserVoiceSettings();
+                        try { // フォロワーへ更新通知
+                            const { sendVoiceSettingsUpdateToFollowers } = await import('../../utils');
+                            sendVoiceSettingsUpdateToFollowers().catch((e: any) => console.warn('フォロワー通知失敗:', e));
+                        } catch (e: any) {
+                            console.warn('フォロワー通知モジュールの読み込みに失敗:', e);
+                        }
                         await selectInteraction.update({
                             embeds: [addCommonFooter(
                                 new EmbedBuilder()
@@ -178,7 +184,8 @@ module.exports = {
         const value = interaction.options.getNumber('value', true);
         if (value >= 0.0 && value <= 2.0) {
             voiceSettings.intonation[interaction.user.id] = value;
-            saveUserVoiceSettings();
+                        saveUserVoiceSettings();
+                        try { const { sendVoiceSettingsUpdateToFollowers } = await import('../../utils'); sendVoiceSettingsUpdateToFollowers().catch((e: any)=>console.warn('フォロワー通知失敗:', e)); } catch(e: any){console.warn('フォロワー通知モジュールの読み込みに失敗:', e);}
             await interaction.editReply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
@@ -203,6 +210,7 @@ module.exports = {
             if (value >= -0.15 && value <= 0.15) {
                 voiceSettings.pitch[interaction.user.id] = value;
                 saveUserVoiceSettings();
+                try { const { sendVoiceSettingsUpdateToFollowers } = await import('../../utils'); sendVoiceSettingsUpdateToFollowers().catch((e: any)=>console.warn('フォロワー通知失敗:', e)); } catch(e: any){console.warn('フォロワー通知モジュールの読み込みに失敗:', e);}
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
@@ -228,6 +236,7 @@ module.exports = {
                 voiceSettings.speed = voiceSettings.speed || {};
                 voiceSettings.speed[interaction.user.id] = value;
                 saveUserVoiceSettings();
+                try { const { sendVoiceSettingsUpdateToFollowers } = await import('../../utils'); sendVoiceSettingsUpdateToFollowers().catch((e: any)=>console.warn('フォロワー通知失敗:', e)); } catch(e: any){console.warn('フォロワー通知モジュールの読み込みに失敗:', e);}
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
@@ -253,6 +262,7 @@ module.exports = {
                 voiceSettings.tempo = voiceSettings.tempo || {};
                 voiceSettings.tempo[interaction.user.id] = value;
                 saveUserVoiceSettings();
+                try { const { sendVoiceSettingsUpdateToFollowers } = await import('../../utils'); sendVoiceSettingsUpdateToFollowers().catch((e: any)=>console.warn('フォロワー通知失敗:', e)); } catch(e: any){console.warn('フォロワー通知モジュールの読み込みに失敗:', e);}
                 await interaction.editReply({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
