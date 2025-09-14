@@ -2,9 +2,27 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 
-// 設定ファイルの読み込み
+// 設定ファイルの読み込み (安全版)
 const CONFIG_PATH = path.join(__dirname, '../data/config.json');
-const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+function safeLoadConfig() {
+  try {
+    if (fs.existsSync(CONFIG_PATH)) {
+      return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    }
+  } catch (e) {
+    console.warn('config.json の読み込みで問題が発生しました。環境変数にフォールバックします。', e);
+  }
+  return {
+    PATREON: {
+      CLIENT_ID: process.env.PATREON_CLIENT_ID || '',
+      CLIENT_SECRET: process.env.PATREON_CLIENT_SECRET || '',
+      REDIRECT_URI: process.env.PATREON_REDIRECT_URI || '',
+      FALLBACK_SERVER: process.env.PATREON_FALLBACK_SERVER || process.env.BASE_URL || 'http://aivis-chan-bot-web:80'
+    }
+  };
+}
+
+const CONFIG = safeLoadConfig();
 const { PATREON } = CONFIG;
 
 // Patreonの認証情報（環境変数優先）

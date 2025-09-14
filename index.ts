@@ -28,7 +28,34 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 const CONFIG_PATH = path.resolve(process.cwd(), 'data', 'config.json');
-const CONFIG = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+
+function safeLoadConfig() {
+    try {
+        if (fs.existsSync(CONFIG_PATH)) {
+            const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
+            return JSON.parse(raw);
+        }
+    } catch (e) {
+        console.warn('config.json の読み込みで問題が発生しました。環境変数にフォールバックします。', e);
+    }
+    // 最低限必要なフィールドを環境変数から取得して返す
+    return {
+        TOKEN: process.env.DISCORD_TOKEN || process.env.TOKEN || '',
+        clientId: process.env.CLIENT_ID || '',
+        PATREON: {
+            CLIENT_ID: process.env.PATREON_CLIENT_ID || '',
+            CLIENT_SECRET: process.env.PATREON_CLIENT_SECRET || '',
+            REDIRECT_URI: process.env.PATREON_REDIRECT_URI || ''
+        },
+        sentry: {
+            dsn: process.env.SENTRY_DSN || '',
+            enabled: process.env.SENTRY_ENABLED ? process.env.SENTRY_ENABLED === 'true' : false
+        },
+        GEMINI_API_KEY: process.env.GEMINI_API_KEY || process.env.GENAI_API_KEY || ''
+    };
+}
+
+const CONFIG = safeLoadConfig();
 const { TOKEN } = CONFIG;
 
 export interface ExtendedClient extends Client {
