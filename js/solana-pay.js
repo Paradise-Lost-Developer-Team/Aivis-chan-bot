@@ -1,4 +1,72 @@
 // Minimal Solana payment helper for Phantom
+
+// --- Payments form UX helpers ---
+function showPayError(msg) {
+  const el = document.getElementById('pay-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function clearPayError() { showPayError(''); }
+
+// --- transient info/toast for non-blocking user messages ---
+function showPayInfo(message, timeout = 5000) {
+  if (!message) return;
+  let toast = document.getElementById('pay-info-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'pay-info-toast';
+    toast.className = 'pay-info-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  // show via CSS class
+  toast.classList.add('show');
+  if (toast._removeTimer) clearTimeout(toast._removeTimer);
+  toast._removeTimer = setTimeout(() => {
+    try { toast.classList.remove('show'); } catch (e) {}
+  }, timeout);
+}
+
+function parseAmount(value) {
+  if (!value && value !== 0) return NaN;
+  const n = Number(String(value).trim());
+  return Number.isFinite(n) ? n : NaN;
+}
+
+function handlePresetClick(e) {
+  const v = e.currentTarget.getAttribute('data-value');
+  const inp = document.getElementById('pay-amount');
+  if (!inp) return;
+  inp.value = v;
+  clearPayError();
+}
+
+function handlePaymentsFormSubmit() {
+  const inp = document.getElementById('pay-amount');
+  if (!inp) return false;
+  const val = parseAmount(inp.value);
+  if (isNaN(val) || val <= 0) {
+    showPayError('有効な支払額を入力してください（0 より大きい数字）');
+    inp.focus();
+    return false;
+  }
+
+  // Format to 6 decimal places for SOL display
+  inp.value = String(Number(val.toFixed(6)));
+
+  // For now the form only shows help; in future we can call web API to create invoice
+  showPayInfo(`支払いリンクはBotのコマンドで生成されます。例: 支払額 ${inp.value} SOL`);
+  return false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const presets = document.querySelectorAll('.pay-presets .preset');
+  presets.forEach(p => p.addEventListener('click', handlePresetClick));
+});
 const PRO_PREMIUM_BASE = (window?.API_CONFIG?.baseURL && window.API_CONFIG.baseURL.includes('aivisspeech')) ? 'http://aivis-chan-bot-pro-premium:3012' : (window?.PRO_PREMIUM_BASE || 'http://aivis-chan-bot-pro-premium:3012');
 
 async function createInvoice(amountLamports) {
