@@ -400,6 +400,19 @@ client.on("guildCreate", async (guild) => {
 // --- サーバー数・VC数API ---
 const apiApp = express();
 apiApp.use(express.json());
+
+// インターナル: プライマリからのボイス設定更新通知を受け取る
+apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
+    try {
+        console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown');
+        // syncSettingsFromPrimary is defined in this file's scope
+        await syncSettingsFromPrimary();
+        return res.json({ ok: true });
+    } catch (e: any) {
+        console.warn('voice-settings-refresh handler error:', e?.message || e);
+        return res.status(500).json({ error: 'refresh-failed' });
+    }
+});
 import { Request, Response } from 'express';
 apiApp.get('/api/stats', async (req: Request, res: Response) => {
     try {
