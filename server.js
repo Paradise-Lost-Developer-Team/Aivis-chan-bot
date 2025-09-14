@@ -1097,6 +1097,59 @@ app.post('/submit-sitemap', async (req, res) => {
   }
 });
 
+// --- Solana invoice endpoints (web handles creation & confirmation) ---
+app.post('/internal/solana/create-invoice', express.json(), async (req, res) => {
+  try {
+    const { amountLamports } = req.body || {};
+    if (!amountLamports || typeof amountLamports !== 'number') return res.status(400).json({ error: 'invalid-amount' });
+    ensureSolanaInvoicesFile();
+    const invoices = loadSolanaInvoices();
+    const invoiceId = `inv_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+    const receiver = process.env.SOLANA_RECEIVER_PUBKEY || '';
+    const rpc = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+    const entry = { invoiceId, amountLamports, receiver, rpc, createdAt: new Date().toISOString(), status: 'pending' };
+    invoices.push(entry);
+    saveSolanaInvoices(invoices);
+    return res.json({ invoiceId, receiver, rpc });
+  } catch (e) {
+    console.error('web create-invoice error', e);
+    return res.status(500).json({ error: 'create-invoice-failed' });
+  }
+});
+
+// Confirm: client provides signature and invoiceId, web calls pro-premium verify and updates invoice
+app.post('/internal/solana/confirm', express.json(), async (req, res) => {
+  try {
+    const { signature, invoiceId } = req.body || {};
+    if (!signature || !invoiceId) return res.status(400).json({ error: 'invalid-params' });
+    ensureSolanaInvoicesFile();
+    const invoices = loadSolanaInvoices();
+    const idx = invoices.findIndex(i => i.invoiceId === invoiceId);
+    if (idx === -1) return res.status(404).json({ error: 'invoice-not-found' });
+    const invoice = invoices[idx];
+    // call pro-premium verify endpoint
+    const proBase = process.env.BOT_API_URL_PRO || 'http://aivis-chan-bot-pro-premium:3012';
+    try {
+      const resp = await axios.post(`${proBase.replace(/\/$/, '')}/internal/solana/verify`, { signature, invoiceId, expectedLamports: invoice.amountLamports }, { timeout: 10000 });
+      if (resp && resp.data && resp.data.ok) {
+        invoices[idx].status = 'paid';
+        invoices[idx].paidAt = new Date().toISOString();
+        invoices[idx].signature = signature;
+        saveSolanaInvoices(invoices);
+        return res.json({ ok: true });
+      } else {
+        return res.status(400).json({ error: 'verification-failed', details: resp?.data || null });
+      }
+    } catch (e) {
+      console.error('pro verify call failed', e?.response?.data || e.message || e);
+      return res.status(502).json({ error: 'verify-call-failed' });
+    }
+  } catch (e) {
+    console.error('web confirm error', e);
+    return res.status(500).json({ error: 'confirm-failed' });
+  }
+});
+
 // Proxy endpoint to fetch Discord guild widget JSON (avoids CORS / iframe parsing)
 app.get('/api/discord-widget/:guildId', async (req, res) => {
   const guildId = req.params.guildId;
@@ -1163,6 +1216,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(os.tmpdir(), 'aivis-data');
 const PATREON_LINKS_FILE = path.join(DATA_DIR, 'patreon_links.json');
 // A simple JSONL logfile for callback debug (do NOT store secrets here)
 const PATREON_CALLBACK_LOG = path.join(DATA_DIR, 'patreon_callbacks.log');
+const SOLANA_INVOICES_FILE = path.join(DATA_DIR, 'solana_invoices.json');
 
 function ensurePatreonLinksFile() {
   try {
@@ -1172,6 +1226,32 @@ function ensurePatreonLinksFile() {
       fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify([]));
     }
   } catch (e) { console.error('ensurePatreonLinksFile error', e); }
+}
+
+function ensureSolanaInvoicesFile() {
+  try {
+    const dir = path.dirname(SOLANA_INVOICES_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    if (!fs.existsSync(SOLANA_INVOICES_FILE)) {
+      fs.writeFileSync(SOLANA_INVOICES_FILE, JSON.stringify([]));
+    }
+  } catch (e) { console.error('ensureSolanaInvoicesFile error', e); }
+}
+
+function loadSolanaInvoices() {
+  try {
+    ensureSolanaInvoicesFile();
+    const raw = fs.readFileSync(SOLANA_INVOICES_FILE, 'utf8') || '[]';
+    return JSON.parse(raw);
+  } catch (e) { console.error('loadSolanaInvoices error', e); return []; }
+}
+
+function saveSolanaInvoices(arr) {
+  try {
+    ensureSolanaInvoicesFile();
+    fs.writeFileSync(SOLANA_INVOICES_FILE, JSON.stringify(arr, null, 2));
+    return true;
+  } catch (e) { console.error('saveSolanaInvoices error', e); return false; }
 }
 
 function appendPatreonCallbackLog(obj) {

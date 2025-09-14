@@ -355,6 +355,36 @@
                     <a href="https://discord.com/oauth2/authorize?client_id=1415251855147008023" target="_blank" class="btn btn-outline btn-sm">Pro/Premium Bot を招待</a>
                 </div>
             </div>
+
+            <!-- Accessible Solana payment guidance -->
+            <section id="payments" class="payments" role="region" aria-labelledby="payments-title">
+                <div class="container">
+                    <h2 id="payments-title" class="section-title">支払い（Solana）について</h2>
+                    <p id="payments-desc" class="section-description">Solanaでの支払いは、Botの支払いコマンドやダッシュボードから発行される支払いリンク（QR/ウォレット用）を使って行います。ここでは視覚・スクリーンリーダー両方でわかりやすい案内を提供します。</p>
+
+                    <div class="payments-content">
+                        <ol aria-labelledby="payments-desc">
+                            <li><strong>リンクを受け取る:</strong> サーバー管理者は `/solana_pay` 等のBotコマンドで支払いリンクを生成できます。リンクは QR とブラウザ用 URL を含みます。</li>
+                            <li><strong>ウォレットで支払う:</strong> 受け取ったリンクをクリックしてウォレットでトランザクションを送信してください。QRをスキャンすることでモバイルウォレットでも支払えます。</li>
+                            <li><strong>確認:</strong> 支払いが完了すると、Web側が検証して支払い状態が更新されます。</li>
+                        </ol>
+
+                        <div class="payments-actions" aria-hidden="false">
+                            <p class="visually-hidden" id="payments-help">支払いリンクがない場合は、サーバー管理者に支払いリンクの発行を依頼してください。</p>
+                            <!-- Non-functional accessible fallback form: guides users to generate a link via bot; preserves keyboard and label semantics -->
+                            <form class="payments-form" aria-describedby="payments-help" onsubmit="event.preventDefault(); alert('支払いリンクはBotのコマンドで生成されます。詳しくはFAQをご覧ください。');" >
+                                <label for="pay-amount">支払額（SOL）</label>
+                                <input id="pay-amount" name="pay-amount" type="number" step="0.000000001" min="0" aria-label="支払額（SOL）" placeholder="例: 0.1" />
+                                <button type="submit" class="btn btn-primary" aria-describedby="payments-help">支払いリンクの取得方法を表示</button>
+                            </form>
+
+                            <p class="payments-links">
+                                <a href="/faq/#solana-pay" class="inline-link" target="_blank" rel="noopener noreferrer" aria-label="Solana支払いのヘルプを新しいウィンドウで開きます">Solana支払いのヘルプを見る</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </section>
 
