@@ -112,12 +112,14 @@ export const loadVoiceState = (): VoiceStateData => {
       const parsedData = JSON.parse(data) as VoiceStateData;
       Object.keys(parsedData).forEach(guildId => {
         const textChannelId = parsedData[guildId].textChannelId;
-        if (textChannelId) {
-          setTextChannelForGuild(guildId, textChannelId);
-        } else {
-    // 未指定ならヘルパー経由で削除
-    removeTextChannelForGuild(guildId);
-        }
+          if (textChannelId) {
+            // ここでは直接グローバルマップに設定して保存処理は行わない
+            // load の途中で setTextChannelForGuild を呼ぶと saveVoiceState -> loadVoiceState の再帰が発生するため
+            guildTextChannels[guildId] = textChannelId;
+          } else {
+            // 未指定ならグローバルマップから削除（直接操作）
+            if (guildTextChannels[guildId]) delete guildTextChannels[guildId];
+          }
       });
       return parsedData;
     }
