@@ -504,30 +504,10 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             }
         }
 
-        if (!finalTextChannelId) {
-            // 4. ギルドのシステムチャンネルを使用
-            if (guild.systemChannel && guild.systemChannel.type === 0) {
-                finalTextChannelId = guild.systemChannel.id;
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // 5. 一般チャンネルを探す
-            const generalChannel = guild.channels.cache.find(ch =>
-                ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般'))
-            );
-            if (generalChannel) {
-                finalTextChannelId = generalChannel.id;
-            }
-        }
-
-        if (!finalTextChannelId) {
-            // 6. 最初のテキストチャンネルを使用
-            const firstTextChannel = guild.channels.cache.find(ch => ch.type === 0);
-            if (firstTextChannel) {
-                finalTextChannelId = firstTextChannel.id;
-            }
-        }
+        // Note: per new policy, do NOT automatically pick guild system/general/first channels.
+        // Only use explicit textChannelId provided by the caller, saved textChannel (getTextChannelForGuild),
+        // or autoJoin/join settings. If none are available, leave finalTextChannelId null and do not
+        // attempt to auto-select another channel.
 
         // テキストチャンネルが見つかった場合のみ設定
         if (finalTextChannelId) {
