@@ -132,6 +132,9 @@ export function removeTextChannelForGuildInMap(guildId: string): void {
     }
 }
 
+// モジュール読み込み時に互換キーを補完
+try { normalizeTextChannelsMap(); } catch (e) { /* ignore */ }
+
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
   {
@@ -1269,9 +1272,23 @@ async function getTextChannelForGuild(guildId: string): Promise<string | undefin
 }
 
 export async function determineMessageTargetChannel(guildId: string, defaultChannelId?: string): Promise<string | undefined> {
-  // 保存されたテキストチャンネルIDを優先
-    const savedTextChannelId = await getTextChannelForGuild(guildId);
-    return savedTextChannelId || defaultChannelId;
+    // 1) ローカルの textChannels マップ（guildIdキー優先）を確認
+        try {
+                normalizeTextChannelsMap();
+                const local = getTextChannelFromMapByGuild(guildId);
+                if (local) {
+                        try { const id = (local as any).id; if (id) return id; } catch (_) { /* ignore */ }
+                }
+        } catch (e) { /* ignore */ }
+
+        // 2) 1台目ボットのAPIからの保存値を参照
+        try {
+                const savedTextChannelId = await getTextChannelForGuild(guildId);
+                if (savedTextChannelId) return savedTextChannelId;
+        } catch (e) { /* ignore */ }
+
+        // 3) デフォルトを返す
+        return defaultChannelId;
 }
 
 /**
