@@ -470,6 +470,29 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         // Decide text channel: only accept explicit textChannelId, primary's saved value, or autoJoin setting.
         let finalTextChannelId = textChannelId || null;
 
+        const { requestingChannelId } = req.body || {};
+
+        // Prefer explicit requestingChannelId if provided and valid
+        if (!finalTextChannelId && requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && (maybe as any).type === 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? (maybe as any).permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        console.log(`[internal/join:3rd] using requestingChannelId as text channel: ${requestingChannelId}`);
+                    } else {
+                        console.warn(`[internal/join:3rd] requestingChannelId exists but bot lacks send permission: ${requestingChannelId}`);
+                    }
+                } else {
+                    console.warn(`[internal/join:3rd] requestingChannelId invalid or not a text channel: ${requestingChannelId}`);
+                }
+            } catch (err) {
+                console.error(`[internal/join:3rd] error validating requestingChannelId ${requestingChannelId}:`, err);
+            }
+        }
+
         // 1) Try to get from primary (1st) if not explicitly provided
         if (!finalTextChannelId) {
             try {
@@ -501,7 +524,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // Do NOT perform further fallbacks (system/general/first or permission-based). Leave finalTextChannelId null if not found.
 
-        if (finalTextChannelId) {
+    if (finalTextChannelId) {
             console.log(`[internal/join:3rd] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
             try {
                 let tc = guild.channels.cache.get(finalTextChannelId) as any;
