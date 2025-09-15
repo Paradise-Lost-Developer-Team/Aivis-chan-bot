@@ -114,7 +114,8 @@ export const loadVoiceState = (): VoiceStateData => {
         if (textChannelId) {
           setTextChannelForGuild(guildId, textChannelId);
         } else {
-          removeTextChannelForGuild(guildId); // 未指定ならグローバル変数からも削除
+    // 未指定ならヘルパー経由で削除
+    removeTextChannelForGuild(guildId);
         }
       });
       return parsedData;
@@ -156,7 +157,8 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
       if (state.textChannelId) {
         const textChannel = guild.channels.cache.get(state.textChannelId) as TextChannel | undefined;
         if (textChannel && textChannel.type === ChannelType.GuildText) {
-          guildTextChannels[guildId] = state.textChannelId;
+          // use helper to persist mapping instead of direct assignment
+          setTextChannelForGuild(guildId, state.textChannelId!);
           console.log(`${guild.name}のテキストチャンネル${textChannel.name}を関連付けしました`);
         } else {
           // 保存されたテキストチャンネルが無効な場合はスキップ
