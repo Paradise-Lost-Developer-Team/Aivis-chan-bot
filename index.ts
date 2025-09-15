@@ -456,7 +456,7 @@ import { textChannels, voiceClients } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
-        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+    const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
         if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
@@ -469,6 +469,27 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // テキストチャンネルの決定ロジックを改善
         let finalTextChannelId = textChannelId;
+
+        // Prefer explicit requestingChannelId if provided and valid (prefer command-invocation channel)
+        if (!finalTextChannelId && requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && (maybe as any).type === 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? (maybe as any).permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        console.log(`[internal/join:5th] using requestingChannelId as text channel: ${requestingChannelId}`);
+                    } else {
+                        console.warn(`[internal/join:5th] requestingChannelId exists but bot lacks send permission: ${requestingChannelId}`);
+                    }
+                } else {
+                    console.warn(`[internal/join:5th] requestingChannelId invalid or not a text channel: ${requestingChannelId}`);
+                }
+            } catch (err) {
+                console.error(`[internal/join:5th] error validating requestingChannelId ${requestingChannelId}:`, err);
+            }
+        }
 
         // 1stまたはProのBotからテキストチャンネル情報を取得
         if (!finalTextChannelId) {
@@ -513,6 +534,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             
             try {
                 // まずキャッシュから確認
+
                 let tc = guild.channels.cache.get(finalTextChannelId) as any;
                 
                 // キャッシュにない場合はフェッチを試行
