@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
-import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine';
+import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
 import { getBotInfos, pickLeastBusyBot, instructJoin, instructLeave } from './botOrchestrator';
@@ -258,8 +258,42 @@ export function VoiceStateUpdate(client: Client) {
         
         // ボットがボイスチャンネルに参加した場合（存在しなかった→存在する）
         if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
-            // 最後に対話のあったチャンネルをテキストチャンネルとして記録する処理をここに追加できる
-            // 例えば、最後のメッセージの受信チャンネルを関連テキストチャンネルとして設定する
+            try {
+                const guild = newState.member!.guild;
+                // 既に永続化されたテキストチャンネルがあれば上書きしない
+                const persisted = getTextChannelForGuild(guild.id);
+                if (!persisted) {
+                    // ボイスチャンネルと同じカテゴリ内のテキストチャンネルを候補として登録
+                    const vc = newState.channel;
+                    const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
+                    if (categoryId) {
+                        const me = guild.members.cache.get(client.user?.id || '');
+                        const candidates: any[] = Array.from(guild.channels.cache.values()).filter((c: any) => c.type === 0 && c.parentId === categoryId);
+                        const allowed: any[] = [];
+                        for (const ch of candidates) {
+                            try {
+                                if (!me) {
+                                    allowed.push(ch);
+                                } else if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) {
+                                    allowed.push(ch);
+                                }
+                            } catch (e) {
+                                continue;
+                            }
+                        }
+                        if (allowed.length > 0) {
+                            try {
+                                addTextChannelsForGuildInMap(guild.id, allowed as any[]);
+                                console.log(`[BotJoin:1st] guild=${guild.id} 登録されたテキスト候補数=${allowed.length}`);
+                            } catch (e) {
+                                console.error('[BotJoin:1st] addTextChannelsForGuildInMap エラー:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Bot join処理中のエラー:', e);
+            }
         }
     });
 

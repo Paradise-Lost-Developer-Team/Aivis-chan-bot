@@ -129,6 +129,23 @@ export function setTextChannelForGuildInMap(guildId: string, channel: TextChanne
     } catch (e) {}
 }
 
+// 追加: ギルドに対して複数のテキストチャンネルを登録するヘルパ
+export function addTextChannelsForGuildInMap(guildId: string, channels: TextChannel[] | undefined) {
+    try {
+        if (!channels || channels.length === 0) return;
+        // 既存の guildId キーがあれば上書きせず、先に登録されているものは残す
+        for (const ch of channels) {
+            try {
+                // keyとして guildId と voiceChannelId の両方に登録する互換性を維持
+                (textChannels as any)[guildId] = ch;
+                try { (textChannels as any)[ch.id] = ch; } catch (_) { /* ignore */ }
+            } catch (_) { continue; }
+        }
+    } catch (e) {
+        console.warn('addTextChannelsForGuildInMap error:', e);
+    }
+}
+
 export function removeTextChannelForGuildInMap(guildId: string) {
     try {
         delete (textChannels as any)[guildId];

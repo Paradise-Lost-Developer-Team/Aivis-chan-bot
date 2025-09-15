@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, textChannels, voiceClients, setJoinCommandChannel, setTextChannelForGuildInMap } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, textChannels, voiceClients, setJoinCommandChannel, setTextChannelForGuildInMap, addTextChannelsForGuildInMap } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 import { setTextChannelForGuild } from '../../utils/voiceStateManager';
 
@@ -120,7 +120,38 @@ module.exports = {
         }
         
     // Ensure the in-memory map uses guildId keys for text channel lookup
-    setTextChannelForGuildInMap(guildId, textChannel);
+    // If textChannel was not explicitly specified, also add other candidate channels
+    try {
+        if ((interaction as any).options.get('text_channel')?.channel) {
+            // user explicitly provided text_channel
+            setTextChannelForGuildInMap(guildId, textChannel);
+        } else {
+            // not explicitly provided: register both the executing channel (if any) and
+            // all text channels in the same category as the chosen voice channel as candidates
+            const execChannel = interaction.channel && interaction.channel.type === ChannelType.GuildText ? interaction.channel as TextChannel : undefined;
+            const candidates: TextChannel[] = [];
+            if (execChannel) candidates.push(execChannel);
+            try {
+                const guild = interaction.guild;
+                if (guild) {
+                    const vc = guild.channels.cache.get(voiceChannel.id) as any;
+                    if (vc && vc.parentId) {
+                        for (const ch of guild.channels.cache.values()) {
+                            try {
+                                if (ch.type === ChannelType.GuildText && (ch as TextChannel).parentId === vc.parentId) candidates.push(ch as TextChannel);
+                            } catch (_) { continue; }
+                        }
+                    }
+                }
+            } catch (_) {}
+            // add unique candidates
+            const uniq = Array.from(new Map(candidates.map(c => [c.id, c])).values());
+            try { addTextChannelsForGuildInMap(guildId, uniq); } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
+        }
+    } catch (e) {
+        // fallback
+        setTextChannelForGuildInMap(guildId, textChannel);
+    }
         // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
         try {
             const execChannelId = (interaction.channel && interaction.channel.type === ChannelType.GuildText) ? interaction.channelId : textChannel.id;
