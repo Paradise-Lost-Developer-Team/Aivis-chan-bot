@@ -1329,57 +1329,84 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
  */
 export function isChannelAllowedForTTS(guildId: string, currentChannelId: string, client?: any, voiceClient?: VoiceConnection): { allowed: boolean, reason?: string } {
     try {
-        // APIマップ(textChannels)は voiceChannelId をキーにしているため、誤って guildId をキーにしてしまった場合に
-        // 全チャンネルが一致してしまう問題を避けるため、キーではなく値を走査してギルド単位での一致を確認する。
+        // argument validation
+        if (!guildId || !currentChannelId) return { allowed: false, reason: 'invalid-args' };
+
+        // 1) persisted setting via voiceStateManager (highest priority)
+        try {
+            const saved = getTextChannelForGuild(guildId);
+            let savedId: string | undefined;
+            if (!saved) savedId = undefined;
+            else if (typeof saved === 'string') savedId = saved;
+            else if ((saved as any).id) savedId = (saved as any).id;
+            if (savedId) {
+                if (savedId === currentChannelId) {
+                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=saved-text-channel`);
+                    return { allowed: true, reason: 'saved-text-channel' };
+                }
+                // explicit saved id differs -> deny further API map match unless matches other rules
+            }
+        } catch (e) {
+            // ignore and continue
+        }
+
+        // 2) autoJoinChannels
+        try {
+            const auto = autoJoinChannels[guildId];
+            if (auto && auto.textChannelId && auto.textChannelId === currentChannelId) {
+                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=auto-join-setting`);
+                return { allowed: true, reason: 'auto-join-setting' };
+            }
+        } catch (e) {}
+
+        // 3) joinCommandChannels
+        try {
+            const joinCmd = getJoinCommandChannel(guildId);
+            if (joinCmd && joinCmd === currentChannelId) {
+                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=join-command-channel`);
+                return { allowed: true, reason: 'join-command-channel' };
+            }
+        } catch (e) {}
+
+        // 4) API map (in-memory textChannels) -- scan values and require both guild.id and channel.id to match
         try {
             const vals = Object.values(textChannels || {});
             for (const tc of vals) {
                 try {
                     if (!tc) continue;
-                    // tc.guild may be undefined in some runtime states
                     const tcGuildId = (tc as any).guild?.id;
-                    if (tcGuildId === guildId && tc.id === currentChannelId) {
+                    const tcId = (tc as any).id;
+                    if (tcGuildId && tcId && tcGuildId === guildId && tcId === currentChannelId) {
+                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-setting`);
                         return { allowed: true, reason: 'api-setting' };
                     }
-                } catch (e) {
-                    continue;
-                }
+                } catch (e) { continue; }
             }
-        } catch (e) {
-            // ignore
-        }
-        // 1. 保存されたテキストチャンネル
-        const saved = getTextChannelForGuild(guildId);
-        if (saved && saved === currentChannelId) return { allowed: true, reason: 'saved-text-channel' };
+        } catch (e) {}
 
-        // 2. autoJoinChannels
-        const auto = autoJoinChannels[guildId];
-        if (auto && auto.textChannelId && auto.textChannelId === currentChannelId) return { allowed: true, reason: 'auto-join-setting' };
-
-        // 3. joinCommandChannels
-        const joinCmd = getJoinCommandChannel(guildId);
-        if (joinCmd && joinCmd === currentChannelId) return { allowed: true, reason: 'join-command-channel' };
-
-        // 4. voiceClient 関連（カテゴリ or 同名テキストチャンネル）
-        const voiceChannelId = voiceClient?.joinConfig?.channelId;
-        if (voiceChannelId && client) {
-            const guild = client.guilds?.cache?.get(guildId);
-            if (guild) {
-                const vc = guild.channels.cache.get(voiceChannelId) as DjTextChannel | undefined as any;
-                const tc = guild.channels.cache.get(currentChannelId) as DjTextChannel | undefined as any;
-                if (vc && tc) {
-                    // カテゴリ一致
-                    if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) {
-                        return { allowed: true, reason: 'voice-channel-category' };
-                    }
-                    // 同名テキストチャンネル
-                    if ((vc as any).name && (tc as any).name && tc.type === ChannelType.GuildText && vc.name.toLowerCase() === tc.name.toLowerCase()) {
-                        return { allowed: true, reason: 'matching-text-channel' };
+        // 5) voiceClient relation: same category or same-name text channel in the same guild
+        try {
+            const voiceChannelId = voiceClient?.joinConfig?.channelId;
+            if (voiceChannelId && client) {
+                const guild = client.guilds?.cache?.get(guildId);
+                if (guild) {
+                    const vc = guild.channels.cache.get(voiceChannelId) as any;
+                    const tc = guild.channels.cache.get(currentChannelId) as any;
+                    if (vc && tc && tc.type === ChannelType.GuildText) {
+                        if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) {
+                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-channel-category`);
+                            return { allowed: true, reason: 'voice-channel-category' };
+                        }
+                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
+                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
+                            return { allowed: true, reason: 'matching-text-channel' };
+                        }
                     }
                 }
             }
-        }
+        } catch (e) {}
 
+        console.debug(`[TTS-DENY] guild=${guildId} channel=${currentChannelId} reason=no-match`);
         return { allowed: false, reason: 'no-match' };
     } catch (err) {
         console.error('isChannelAllowedForTTS error:', err);
