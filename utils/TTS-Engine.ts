@@ -122,6 +122,29 @@ export function setTextChannelForGuildInMap(guildId: string, channel: TextChanne
     }
 }
 
+// 新規: 複数のテキストチャンネル候補をギルドIDおよび個別チャンネルIDで登録するヘルパ
+export function addTextChannelsForGuildInMap(guildId: string, channels: TextChannel[] | undefined): void {
+    try {
+        if (!channels || channels.length === 0) return;
+        const unique: { [id: string]: TextChannel } = {};
+        for (const ch of channels) {
+            if (!ch || !(ch as any).id) continue;
+            unique[(ch as any).id] = ch;
+        }
+        const first = Object.values(unique)[0];
+        if (first) {
+            // ギルドキーにも代表チャンネルを登録して互換性を維持
+            try { (textChannels as any)[guildId] = first; } catch (_) {}
+        }
+        // 個別のチャンネルIDでも参照できるように登録
+        for (const id of Object.keys(unique)) {
+            try { (textChannels as any)[id] = unique[id]; } catch (_) {}
+        }
+    } catch (e) {
+        console.warn('addTextChannelsForGuildInMap error:', e);
+    }
+}
+
 export function removeTextChannelForGuildInMap(guildId: string): void {
     try {
         for (const key of Object.keys((textChannels as any) || {})) {
