@@ -653,10 +653,47 @@ export async function postSynthesis(audioQuery: any, speaker: number): Promise<B
         if (!response.ok) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-    const arrayBuffer = await response.arrayBuffer();
-    const synthRequestEnd = Date.now();
-    console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart}`);
-    return Buffer.from(arrayBuffer);
+        // Prevent huge responses from being fully buffered into memory.
+        const MAX_AUDIO_BYTES = parseInt(process.env.MAX_AUDIO_BYTES || String(5 * 1024 * 1024), 10); // default 5MB
+        const contentLengthHeader = response.headers.get && response.headers.get('content-length');
+        if (contentLengthHeader) {
+            const contentLength = parseInt(contentLengthHeader, 10);
+            if (!Number.isNaN(contentLength) && contentLength > MAX_AUDIO_BYTES) {
+                throw new Error(`postSynthesis: audio too large (Content-Length=${contentLength} > ${MAX_AUDIO_BYTES})`);
+            }
+        }
+
+        // If body is a Node stream, read incrementally and guard the total size.
+        if (response.body && typeof (response.body as any).on === 'function') {
+            const nodeStream = response.body as NodeJS.ReadableStream;
+            const chunks: Buffer[] = [];
+            let total = 0;
+            await new Promise<void>((resolve, reject) => {
+                nodeStream.on('data', (chunk: Buffer) => {
+                    total += chunk.length;
+                    if (total > MAX_AUDIO_BYTES) {
+                        // destroy stream and reject
+                        try { (nodeStream as any).destroy(new Error('audio-too-large')); } catch (_) {}
+                        return reject(new Error('postSynthesis: audio-too-large'));
+                    }
+                    chunks.push(Buffer.from(chunk));
+                });
+                nodeStream.on('end', () => resolve());
+                nodeStream.on('error', (err: any) => reject(err));
+            });
+            const synthRequestEnd = Date.now();
+            console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart} size=${chunks.reduce((s, c) => s + c.length, 0)}`);
+            return Buffer.concat(chunks);
+        }
+
+        // Fallback for environments where arrayBuffer is available
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength > (parseInt(process.env.MAX_AUDIO_BYTES || String(5 * 1024 * 1024), 10))) {
+            throw new Error('postSynthesis: audio-too-large (arrayBuffer)');
+        }
+        const synthRequestEnd = Date.now();
+        console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart} size=${arrayBuffer.byteLength}`);
+        return Buffer.from(arrayBuffer);
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
