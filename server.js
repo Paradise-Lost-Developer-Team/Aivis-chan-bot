@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
+const { Connection, clusterApiUrl, PublicKey } = require('@solana/web3.js');
 const { google } = require('googleapis');
 const session = require('express-session');
 const passport = require('passport');
@@ -543,15 +544,10 @@ app.get('/login', (req, res) => {
 });
 
 // Discord認証開始（無料版）
-app.get('/auth/discord/free', (req, res, next) => {
-  if (!passport._strategies['discord-free']) return res.status(500).send('discord-free not configured');
-  return passport.authenticate('discord-free')(req, res, next);
-});
-
-// Discord認証開始（Pro/Premium版）
-app.get('/auth/discord/pro', (req, res, next) => {
-  if (!passport._strategies['discord-pro']) return res.status(500).send('discord-pro not configured');
-  return passport.authenticate('discord-pro')(req, res, next);
+app.get('/auth/discord/:version', (req, res, next) => {
+    const version = req.params.version || "free";
+  if (!passport._strategies[`discord-${version}`]) return res.status(500).send(`discord-${version} not configured`);
+  return passport.authenticate(`discord-${version}`)(req, res, next);
 });
 
 // Discord認証開始（デフォルト - 後方互換性）
@@ -561,26 +557,11 @@ app.get('/auth/discord', (req, res, next) => {
 });
 
 // Discord認証コールバック（無料版）
-app.get('/auth/discord/callback/free', (req, res, next) => {
-  if (!passport._strategies['discord-free']) return res.redirect('/login');
-  return passport.authenticate('discord-free', { failureRedirect: '/login' })(req, res, () => {
-    res.redirect('/dashboard?version=free');
-  });
-});
-
-// Discord認証コールバック（Pro/Premium版）
-app.get('/auth/discord/callback/pro', (req, res, next) => {
-  if (!passport._strategies['discord-pro']) return res.redirect('/login');
-  return passport.authenticate('discord-pro', { failureRedirect: '/login' })(req, res, () => {
-    res.redirect('/dashboard?version=pro');
-  });
-});
-
-// Discord認証コールバック（デフォルト - 後方互換性）
-app.get('/auth/discord/callback', (req, res, next) => {
-  if (!passport._strategies['discord']) return res.redirect('/login');
-  return passport.authenticate('discord', { failureRedirect: '/login' })(req, res, () => {
-    res.redirect('/dashboard');
+app.get('/auth/discord/callback/:version', (req, res, next) => {
+  const version = req.params.version || "free";
+  if (!passport._strategies[`discord-${version}`]) return res.redirect('/login');
+  return passport.authenticate(`discord-${version}`, { failureRedirect: '/login' })(req, res, () => {
+    res.redirect(`/dashboard?version=${version}`);
   });
 });
 
@@ -1146,11 +1127,100 @@ app.post('/internal/solana/confirm', express.json(), async (req, res) => {
       }
     } catch (e) {
       console.error('pro verify call failed', e?.response?.data || e.message || e);
-      return res.status(502).json({ error: 'verify-call-failed' });
+      // Fallback: attempt on-chain verification via provided RPC or env RPC
+      try {
+        const rpcUrl = invoice.rpc || process.env.SOLANA_RPC_URL || clusterApiUrl('devnet');
+        const conn = new Connection(rpcUrl, 'confirmed');
+        const sig = signature;
+        const tx = await conn.getParsedTransaction(sig, 'confirmed');
+        if (!tx) {
+          console.warn('[solana confirm] transaction not found on chain', sig, rpcUrl);
+          return res.status(502).json({ error: 'verify-call-failed', details: 'transaction-not-found' });
+        }
+
+        // Try to match transfer (SOL or SPL) to invoice
+        let matched = false;
+        const receiverPub = invoice.receiver;
+        const mint = invoice.mint; // may be null for SOL
+        const expectedLamports = Number(invoice.amountLamports);
+
+        const tryMatchInstr = (instr) => {
+          try {
+            if (!instr) return false;
+            // system transfer (SOL)
+            if (instr.program === 'system' && instr.parsed && instr.parsed.type === 'transfer') {
+              const info = instr.parsed.info || {};
+              if (String(info.destination) === String(receiverPub) && Number(info.lamports) === expectedLamports) return true;
+            }
+            // spl-token transfer
+            if (instr.program === 'spl-token' && instr.parsed && (instr.parsed.type === 'transfer' || instr.parsed.type === 'transferChecked')) {
+              const info = instr.parsed.info || {};
+              // parsed transfer may include mint in info or tokenAmount
+              const amountStr = info.amount ?? (info.tokenAmount && info.tokenAmount.amount);
+              // amountStr for token transfers is in minor units (string)
+              if (mint && (info.mint === mint || info.tokenAmount?.mint === mint)) {
+                if (String(amountStr) === String(expectedLamports)) return true;
+              } else if (!mint) {
+                // if invoice didn't record mint, match by destination and amount
+                if (info.destination === receiverPub && String(amountStr) === String(expectedLamports)) return true;
+              }
+            }
+          } catch (e) {
+            // ignore parse errors
+          }
+          return false;
+        };
+
+        // Inspect top-level instructions
+        const instructions = (tx.transaction && tx.transaction.message && tx.transaction.message.instructions) || [];
+        for (const instr of instructions) {
+          if (tryMatchInstr(instr)) { matched = true; break; }
+        }
+
+        // Inspect inner instructions if not yet matched
+        if (!matched && tx.meta && Array.isArray(tx.meta.innerInstructions)) {
+          for (const inner of tx.meta.innerInstructions) {
+            for (const instr of inner.instructions || []) {
+              if (tryMatchInstr(instr)) { matched = true; break; }
+            }
+            if (matched) break;
+          }
+        }
+
+        if (matched) {
+          invoices[idx].status = 'paid';
+          invoices[idx].paidAt = new Date().toISOString();
+          invoices[idx].signature = signature;
+          invoices[idx].tx = { slot: tx.slot, rpc: rpcUrl };
+          saveSolanaInvoices(invoices);
+          return res.json({ ok: true, via: 'on-chain', txSlot: tx.slot });
+        }
+
+        return res.status(400).json({ error: 'onchain-verification-failed', details: 'no-matching-transfer' });
+      } catch (e2) {
+        console.error('on-chain verify failed', e2?.message || e2);
+        return res.status(502).json({ error: 'verify-call-failed', detail: String(e2?.message || e2) });
+      }
     }
   } catch (e) {
     console.error('web confirm error', e);
     return res.status(500).json({ error: 'confirm-failed' });
+  }
+});
+
+// Invoice status check (read-only)
+app.get('/internal/solana/invoice-status', async (req, res) => {
+  try {
+    const invoiceId = req.query.invoiceId;
+    if (!invoiceId) return res.status(400).json({ error: 'missing-invoiceId' });
+    ensureSolanaInvoicesFile();
+    const invoices = loadSolanaInvoices();
+    const inv = invoices.find(i => i.invoiceId === invoiceId);
+    if (!inv) return res.status(404).json({ error: 'invoice-not-found' });
+    return res.json({ invoiceId: inv.invoiceId, status: inv.status, paidAt: inv.paidAt || null, signature: inv.signature || null });
+  } catch (e) {
+    console.error('invoice-status error', e);
+    return res.status(500).json({ error: 'internal' });
   }
 });
 

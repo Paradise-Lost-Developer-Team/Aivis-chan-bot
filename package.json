@@ -3,25 +3,29 @@
   "version": "1.0.0",
   "description": "Discord Bot Statistics API Server for Aivis-chan Bot",
   "scripts": {
-  "dev": "pnpm --filter ./far-field dev",
-  "images:gen": "node tools/generate-responsive-images.mjs",
+    "dev": "pnpm --filter ./far-field dev",
+    "images:gen": "node tools/generate-responsive-images.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@solana/pay": "^0.2.6",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "axios": "^1.12.0",
+    "bignumber.js": "^9.3.1",
+    "connect-redis": "^7.1.1",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.2",
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "express-session": "^1.17.3",
+    "googleapis": "^159.0.0",
+    "node-fetch": "^3.3.2",
+    "nodemon": "^3.1.10",
     "passport": "^0.6.0",
     "passport-discord": "^0.1.4",
-    "googleapis": "^159.0.0",
-    "nodemon": "^3.1.10",
-    "sharp": "^0.34.3",
     "redis": "^4.7.0",
-    "connect-redis": "^7.1.1"
+    "sharp": "^0.34.3"
   },
   "keywords": [
     "discord",
@@ -34,6 +38,5 @@
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
-  },
-  "devDependencies": {}
+  }
 }
