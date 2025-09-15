@@ -106,17 +106,17 @@ export function VoiceStateUpdate(client: Client) {
                     
                     // テキストチャンネルが指定されていない場合のフォールバック
                     if (!textChannelId) {
-                        // 1. システムチャンネルを試行
+                        // 1. システムチャンネルを試行（かつ Bot が送信可能かを確認）
                         if (member.guild.systemChannelId) {
-                            textChannelId = member.guild.systemChannelId;
-                        } else {
-                            // 2. ギルドの最初のテキストチャンネルを使用
-                            const firstTextChannel = member.guild.channels.cache
-                                .filter(ch => ch.type === 0)
-                                .first();
-                            if (firstTextChannel) {
-                                textChannelId = firstTextChannel.id;
+                            const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
+                            if (sys && (sys as any).isTextBased && ((sys as any).permissionsFor ? (sys as any).permissionsFor(client.user)?.has('SendMessages') : true)) {
+                                textChannelId = member.guild.systemChannelId;
                             }
+                        }
+                        // 2. 上記無効なら Bot が閲覧/送信できる最初のチャンネルを選択
+                        if (!textChannelId) {
+                            const ch = findFirstSendableTextChannel(member.guild, client.user);
+                            if (ch) textChannelId = ch.id;
                         }
                         console.log(`[TempVC:1st] テキストチャンネル自動選択: ${textChannelId} (guild: ${member.guild.name})`);
                     }
@@ -222,16 +222,16 @@ export function VoiceStateUpdate(client: Client) {
                             // テキストチャンネル確実指定
                             let finalTextChannelId = textChannelId;
                             if (!finalTextChannelId) {
-                                // フォールバック: システムチャンネル → 最初のテキストチャンネル
+                                // フォールバック: システムチャンネル（送信可） -> botが送信可能な最初のテキストチャンネル
                                 if (member.guild.systemChannelId) {
-                                    finalTextChannelId = member.guild.systemChannelId;
-                                } else {
-                                    const firstTextChannel = member.guild.channels.cache
-                                        .filter(ch => ch.type === 0)
-                                        .first();
-                                    if (firstTextChannel) {
-                                        finalTextChannelId = firstTextChannel.id;
+                                    const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
+                                    if (sys && (sys as any).isTextBased && ((sys as any).permissionsFor ? (sys as any).permissionsFor(client.user)?.has('SendMessages') : true)) {
+                                        finalTextChannelId = member.guild.systemChannelId;
                                     }
+                                }
+                                if (!finalTextChannelId) {
+                                    const ch = findFirstSendableTextChannel(member.guild, client.user);
+                                    if (ch) finalTextChannelId = ch.id;
                                 }
                                 console.log(`[AutoJoin:1st] テキストチャンネル自動選択: ${finalTextChannelId} (guild: ${member.guild.name})`);
                             }
@@ -344,4 +344,31 @@ export function VoiceStateUpdate(client: Client) {
             saveVoiceState(client);
         }
     }, 5 * 60 * 1000); // 5分ごと
+}
+
+// ヘルパ: ギルド内で Bot が閲覧可能かつ送信可能な最初のテキストチャンネルを返す
+function findFirstSendableTextChannel(guild: any, botUser: any): any | undefined {
+    try {
+        if (!guild || !guild.channels || !guild.channels.cache) return undefined;
+        const channels = guild.channels.cache
+            .filter((ch: any) => ch && ch.type === 0) // GuildText
+            .sort((a: any, b: any) => { // deterministic order: by position then id
+                const pa = typeof a.position === 'number' ? a.position : 0;
+                const pb = typeof b.position === 'number' ? b.position : 0;
+                if (pa !== pb) return pa - pb;
+                return (a.id || '').localeCompare(b.id || '');
+            });
+        for (const [k, ch] of channels) {
+            try {
+                if (!ch) continue;
+                // チャンネルが見えているか
+                if (typeof ch.viewable === 'boolean' && !ch.viewable) continue;
+                // Bot が SendMessages パーミッションを持っているか
+                if (!botUser) return ch; // 保険として botUser がない場合は返す
+                const perms = ch.permissionsFor ? ch.permissionsFor(botUser) : null;
+                if (perms && perms.has && perms.has('SendMessages')) return ch;
+            } catch (e) { continue; }
+        }
+    } catch (e) {}
+    return undefined;
 }
