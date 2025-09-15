@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState, GuildMember, Collection } from 'discord.js';
 import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage } from './TTS-Engine';
+import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel } from './TTS-Engine';
 
 export function setupVoiceStateUpdateHandlers(client: Client) {
     // ユーザーのボイス状態の変化を監視
@@ -69,6 +69,53 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
         } finally {
             // メモリ使用状況をチェック
             monitorMemoryUsage();
+        }
+    });
+
+    // ボットがボイスチャンネルに参加した場合（存在しなかった→存在する）
+    client.on(Events.VoiceStateUpdate, (oldState: VoiceState, newState: VoiceState) => {
+        try {
+            if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
+                const guild = newState.member!.guild;
+                determineMessageTargetChannel(guild.id).then((persisted) => {
+                    if (!persisted) {
+                        try {
+                            const vc = newState.channel;
+                            const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
+                            if (categoryId) {
+                                const me = guild.members.cache.get(client.user?.id || '');
+                                const candidates: any[] = Array.from(guild.channels.cache.values()).filter((c: any) => c.type === 0 && c.parentId === categoryId);
+                                const allowed: any[] = [];
+                                for (const ch of candidates) {
+                                    try {
+                                        if (!me) {
+                                            allowed.push(ch);
+                                        } else if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) {
+                                            allowed.push(ch);
+                                        }
+                                    } catch (e) {
+                                        continue;
+                                    }
+                                }
+                                if (allowed.length > 0) {
+                                    try {
+                                        addTextChannelsForGuildInMap(guild.id, allowed as any[]);
+                                        console.log(`[BotJoin:5th] guild=${guild.id} 登録されたテキスト候補数=${allowed.length}`);
+                                    } catch (e) {
+                                        console.error('[BotJoin:5th] addTextChannelsForGuildInMap エラー:', e);
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error('[BotJoin:5th] 内部処理エラー:', e);
+                        }
+                    }
+                }).catch(e => {
+                    console.error('[BotJoin:5th] determineMessageTargetChannel エラー:', e);
+                });
+            }
+        } catch (e) {
+            console.error('[BotJoin:5th] エラー:', e);
         }
     });
 }
