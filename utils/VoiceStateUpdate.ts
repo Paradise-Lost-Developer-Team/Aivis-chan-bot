@@ -89,12 +89,9 @@ function findPreferredTextChannel(member: any, voiceChannel: any): string | unde
             if (same) return same.id;
         }
 
-        // 3) system channel
-        if (guild.systemChannelId) return guild.systemChannelId;
-
-        // 4) first viewable text channel
-        const first = guild.channels.cache.filter((c: any) => c.type === ChannelType.GuildText).find((c: any) => (c as any).viewable);
-        if (first) return first.id;
+    // Do NOT fall back to guild.systemChannelId or the first viewable channel.
+    // If no category-related or same-name channel is found, leave undefined so
+    // callers know there is no preferred text channel.
     } catch (e) {
         // ignore
     }
@@ -116,7 +113,7 @@ function findFirstSendableTextChannel(guild: any, botUser: any): string | undefi
         });
         for (const ch of textChannels) {
             try {
-                if (!me) return ch.id;
+                if (!me) continue;
                 if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) return ch.id;
             } catch (e) {
                 continue;

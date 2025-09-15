@@ -50,7 +50,8 @@ module.exports = {
         }
 
         if (!textChannel) {
-            // Prefer the current channel if it's a guild text channel and bot can send messages there
+            // Only accept the current channel if it's a guild text channel and the bot can send messages there.
+            // Do NOT perform broad automatic searches by name or the first viewable channel.
             const currentChannel = interaction.channel;
             const clientUser = interaction.client.user!;
             if (currentChannel && currentChannel.type === ChannelType.GuildText) {
@@ -60,34 +61,14 @@ module.exports = {
                 }
             }
 
-            // If still not found, prefer common text channel names (bot-commands, general)
-            if (!textChannel && interaction.guild) {
-                const preferredNames = ['bot-commands', 'bot-logs', 'general', 'chat', 'テキスト', 'bot'];
-                for (const name of preferredNames) {
-                    const ch = interaction.guild.channels.cache.find(c => c.type === ChannelType.GuildText && c.name === name) as TextChannel | undefined;
-                    if (ch && ch.permissionsFor(clientUser)?.has('SendMessages')) {
-                        textChannel = ch;
-                        break;
-                    }
-                }
-            }
-
-            // As a last resort, find the first viewable text channel the bot can send messages to
-            if (!textChannel && interaction.guild) {
-                const candidate = interaction.guild.channels.cache
-                    .filter(ch => ch.type === ChannelType.GuildText && (ch as TextChannel).viewable)
-                    .find(ch => (ch as TextChannel).permissionsFor(clientUser)?.has('SendMessages')) as TextChannel | undefined;
-                if (candidate) textChannel = candidate;
-            }
-
-            // If still not found, ask the user to explicitly specify a text channel
+            // If still not found, require explicit specification from the user.
             if (!textChannel) {
                 await interaction.followUp({
                     embeds: [addCommonFooter(
                         new EmbedBuilder()
-                            .setTitle('エラー')
-                            .setDescription('テキストチャンネルが指定されていないか、Botがメッセージを投稿できるチャンネルが見つかりませんでした。`/join text_channel:#チャンネル名` のように指定してください。')
-                            .setColor(0xff0000)
+                            .setTitle('テキストチャンネルが必要です')
+                            .setDescription('テキストチャンネルが指定されていないか、Botがメッセージを送信できません。`/join text_channel:#チャンネル名` のように明示的に指定してください。')
+                            .setColor(0xffa500)
                     )],
                     components: [getCommonLinksRow()],
                     flags: MessageFlags.Ephemeral
