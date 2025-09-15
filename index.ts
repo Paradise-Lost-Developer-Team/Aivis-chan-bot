@@ -456,7 +456,7 @@ import { textChannels, voiceClients, setTextChannelForGuildInMap, removeTextChan
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
-        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+    const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
         if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
@@ -468,7 +468,28 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
     // keep finalTextChannelId only if explicitly provided. Do NOT auto-select system/general/first channels.
-    let finalTextChannelId = textChannelId || null;
+        // Priority: explicit textChannelId -> requestingChannelId (if valid) -> saved mapping -> autoJoin/join settings
+        let finalTextChannelId: string | null = textChannelId || null;
+
+        if (!finalTextChannelId && requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && maybe.type === 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? maybe.permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        console.log(`[internal/join] using requestingChannelId as text channel: ${requestingChannelId}`);
+                    } else {
+                        console.warn(`[internal/join] requestingChannelId exists but bot lacks send permission: ${requestingChannelId}`);
+                    }
+                } else {
+                    console.warn(`[internal/join] requestingChannelId invalid or not a text channel: ${requestingChannelId}`);
+                }
+            } catch (err) {
+                console.error(`[internal/join] error validating requestingChannelId ${requestingChannelId}:`, err);
+            }
+        }
 
     if (finalTextChannelId) {
         console.log(`[internal/join:6th] ギルド ${guildId}: 指定されたテキストチャンネル ${finalTextChannelId} を設定しようとします`);
