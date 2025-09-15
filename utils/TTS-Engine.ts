@@ -1277,8 +1277,32 @@ async function getTextChannelForGuild(guildId: string): Promise<string | undefin
 export async function determineMessageTargetChannel(guildId: string, defaultChannelId?: string): Promise<string | undefined> {
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = await getTextChannelForGuild(guildId);
-    return savedTextChannelId || defaultChannelId;
+        return savedTextChannelId || defaultChannelId; // Return the saved text channel ID or the default channel ID
 }
+
+    // Module init: try to normalize any existing entries so guildId keys are available at runtime
+    try {
+        try { normalizeTextChannelsMap(); } catch (e) { /* ignore */ }
+    } catch (e) { }
+
+    export async function determineMessageTargetChannel_localFirst(guildId: string, defaultChannelId?: string): Promise<string | undefined> {
+        try {
+            // prefer local map (guildId-keyed) first
+            try {
+                normalizeTextChannelsMap();
+            } catch (e) { /* ignore */ }
+            const local = getTextChannelFromMapByGuild(guildId);
+            if (local && (local as any).id) return (local as any).id;
+        } catch (e) {}
+
+        // fallback to external first-bot API
+        try {
+            const savedTextChannelId = await getTextChannelForGuild(guildId);
+            if (savedTextChannelId) return savedTextChannelId;
+        } catch (e) {}
+
+        return defaultChannelId;
+    }
 
 /**
  * TTSエンジンの健全性をチェックする
