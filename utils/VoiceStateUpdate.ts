@@ -1,4 +1,4 @@
-import { Events, Client, VoiceState } from 'discord.js';
+import { Events, Client, VoiceState, ChannelType } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
 import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
@@ -55,6 +55,52 @@ async function sendAutoLeaveEmbed(member: any, channel: any, client: Client, tex
     }
 }
 
+/**
+ * Find preferred text channel for a given voice channel.
+ * Priority:
+ *  1. Text channel(s) in the same category as the voice channel (with send permission)
+ *  2. Text channel with the same name as the voice channel (case-insensitive)
+ *  3. Guild system channel
+ *  4. First viewable text channel
+ */
+function findPreferredTextChannel(member: any, voiceChannel: any): string | undefined {
+    try {
+        const guild = member.guild;
+        const me = guild.members.cache.get(member.client?.user?.id || '');
+
+        // 1) same category
+        const parentId = voiceChannel?.parentId || (voiceChannel?.parent && (voiceChannel.parent as any).id);
+        if (parentId) {
+            const candidates = guild.channels.cache.filter((c: any) => c.type === ChannelType.GuildText && c.parentId === parentId);
+            for (const ch of candidates.values()) {
+                try {
+                    if (!me) return ch.id; // if we can't check perms, return first candidate
+                    if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) return ch.id;
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+
+        // 2) same name
+        if (voiceChannel && typeof voiceChannel.name === 'string') {
+            const name = voiceChannel.name.toLowerCase();
+            const same = guild.channels.cache.find((c: any) => c.type === ChannelType.GuildText && (c.name || '').toLowerCase() === name);
+            if (same) return same.id;
+        }
+
+        // 3) system channel
+        if (guild.systemChannelId) return guild.systemChannelId;
+
+        // 4) first viewable text channel
+        const first = guild.channels.cache.filter((c: any) => c.type === ChannelType.GuildText).find((c: any) => (c as any).viewable);
+        if (first) return first.id;
+    } catch (e) {
+        // ignore
+    }
+    return undefined;
+}
+
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         const member = newState.member!;
@@ -107,16 +153,16 @@ export function VoiceStateUpdate(client: Client) {
                     
                     // テキストチャンネルが指定されていない場合のフォールバック
                     if (!textChannelId) {
-                        // 1. システムチャンネルを試行
-                        if (member.guild.systemChannelId) {
-                            textChannelId = member.guild.systemChannelId;
-                        } else {
-                            // 2. ギルドの最初のテキストチャンネルを使用
-                            const firstTextChannel = member.guild.channels.cache
-                                .filter(ch => ch.type === 0)
-                                .first();
-                            if (firstTextChannel) {
-                                textChannelId = firstTextChannel.id;
+                        // Prefer a text channel related to the voice channel (same category or same name)
+                        textChannelId = findPreferredTextChannel(member, newState.channel);
+                        if (!textChannelId) {
+                            // Fallback to system or first text channel
+                            if (member.guild.systemChannelId) textChannelId = member.guild.systemChannelId;
+                            else {
+                                const firstTextChannel = member.guild.channels.cache
+                                    .filter(ch => ch.type === ChannelType.GuildText)
+                                    .first();
+                                if (firstTextChannel) textChannelId = firstTextChannel.id;
                             }
                         }
                         console.log(`[TempVC:pro] テキストチャンネル自動選択: ${textChannelId} (guild: ${member.guild.name})`);
@@ -223,15 +269,15 @@ export function VoiceStateUpdate(client: Client) {
                             // テキストチャンネル確実指定
                             let finalTextChannelId = textChannelId;
                             if (!finalTextChannelId) {
-                                // フォールバック: システムチャンネル → 最初のテキストチャンネル
-                                if (member.guild.systemChannelId) {
-                                    finalTextChannelId = member.guild.systemChannelId;
-                                } else {
-                                    const firstTextChannel = member.guild.channels.cache
-                                        .filter(ch => ch.type === 0)
-                                        .first();
-                                    if (firstTextChannel) {
-                                        finalTextChannelId = firstTextChannel.id;
+                                // Prefer a text channel related to the voice channel
+                                finalTextChannelId = findPreferredTextChannel(member, newState.channel);
+                                if (!finalTextChannelId) {
+                                    if (member.guild.systemChannelId) finalTextChannelId = member.guild.systemChannelId;
+                                    else {
+                                        const firstTextChannel = member.guild.channels.cache
+                                            .filter(ch => ch.type === ChannelType.GuildText)
+                                            .first();
+                                        if (firstTextChannel) finalTextChannelId = firstTextChannel.id;
                                     }
                                 }
                                 console.log(`[AutoJoin:pro] テキストチャンネル自動選択: ${finalTextChannelId} (guild: ${member.guild.name})`);
