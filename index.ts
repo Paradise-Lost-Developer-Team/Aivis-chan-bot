@@ -520,7 +520,7 @@ function cleanupAudioResources(identifier: string) {
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
-        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+        const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
         if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
@@ -528,7 +528,35 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         if (!voiceChannel || voiceChannel.type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
 
         // テキストチャンネルの決定ロジック
-        let finalTextChannelId = textChannelId || getTextChannelForGuild(guildId) || null;
+        // Priority order:
+        // 1) explicit textChannelId from request
+        // 2) requestingChannelId (the channel where command was invoked) if provided and valid
+        // 3) saved mapping getTextChannelForGuild
+        let finalTextChannelId: string | null = textChannelId || null;
+
+        // If no explicit textChannelId, prefer requestingChannelId (command invocation channel)
+        if (!finalTextChannelId && requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && maybe.type === 0) {
+                    // Ensure the bot can send messages in this channel
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? maybe.permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        console.log(`[internal/join] using requestingChannelId as text channel: ${requestingChannelId}`);
+                    } else {
+                        console.warn(`[internal/join] requestingChannelId exists but bot lacks send permission: ${requestingChannelId}`);
+                    }
+                } else {
+                    console.warn(`[internal/join] requestingChannelId invalid or not a text channel: ${requestingChannelId}`);
+                }
+            } catch (err) {
+                console.error(`[internal/join] error validating requestingChannelId ${requestingChannelId}:`, err);
+            }
+        }
+
+        if (!finalTextChannelId) finalTextChannelId = getTextChannelForGuild(guildId) || null;
 
         if (!finalTextChannelId) {
             const { autoJoinChannels } = await import('./utils/TTS-Engine');
