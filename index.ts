@@ -540,13 +540,8 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             const joinSetting = joinChannels[guildId];
             if (joinSetting && joinSetting.textChannelId) finalTextChannelId = joinSetting.textChannelId;
         }
-        if (!finalTextChannelId && guild.systemChannel && guild.systemChannel.type === 0) {
-            finalTextChannelId = guild.systemChannel.id;
-        }
-        if (!finalTextChannelId) {
-            const generalChannel = guild.channels.cache.find(ch => ch.type === 0 && (ch.name.includes('general') || ch.name.includes('一般')));
-            finalTextChannelId = (generalChannel && (generalChannel as any).id) || (guild.channels.cache.find(ch => ch.type === 0) as any)?.id || null;
-        }
+        // Do NOT fall back to system/general/first channels here.
+        // If finalTextChannelId is still not set, leave it null and do not attempt to auto-select.
 
         // テキストチャンネルをフェッチしてマップに設定（見つからなければフォールバック探索）
         let tc: any = null;
@@ -559,13 +554,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
-                    const fallbackChannel = guild.channels.cache.find(ch => ch.type === 0 && ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])) as any;
-                    if (fallbackChannel) {
-                        try { setTextChannelForGuildInMap(guildId, fallbackChannel as any); } catch (_) { /* ignore */ }
-                        finalTextChannelId = fallbackChannel.id;
-                        tc = fallbackChannel;
-                        console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
-                    }
+                    // Do not attempt a fallback selection. Leave finalTextChannelId null and proceed.
                 }
             } catch (error) {
                 console.error(`[internal/join] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);

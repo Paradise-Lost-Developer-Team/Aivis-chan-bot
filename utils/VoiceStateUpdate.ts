@@ -182,23 +182,8 @@ export function VoiceStateUpdate(client: Client) {
                         if (!textChannelId) {
                             // Prefer a text channel related to the voice channel (same category or same name)
                             textChannelId = findPreferredTextChannel(member, newState.channel);
-                            if (!textChannelId) {
-                                // Try system channel only; do NOT automatically pick the first sendable channel.
-                                if (member.guild.systemChannelId) {
-                                    const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
-                                    try {
-                                        const me = member.guild.members.cache.get(client.user?.id || '');
-                                        if (!me) {
-                                            textChannelId = member.guild.systemChannelId;
-                                        } else if (sys && (sys as any).permissionsFor && (sys as any).permissionsFor(me)?.has('SendMessages')) {
-                                            textChannelId = member.guild.systemChannelId;
-                                        }
-                                    } catch (e) {
-                                        // ignore
-                                    }
-                                }
-                            }
-                            console.log(`[TempVC:pro] テキストチャンネル自動選択結果: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
+                            // Do not use system channel or first-sendable fallback automatically; leave undefined if not found
+                            console.log(`[TempVC:pro] テキストチャンネルは未指定のまま: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
                         }
                     
                     const infos = await getBotInfos();
