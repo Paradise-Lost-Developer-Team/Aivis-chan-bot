@@ -919,8 +919,41 @@ function resolveGuildIdFromVoiceChannel(voiceChannelId: string, client?: any): s
         if (vc && (vc as any).joinConfig && (vc as any).joinConfig.guildId) return (vc as any).joinConfig.guildId;
     } catch {}
     // 2) textChannels にあれば guild を参照
+    // 互換対応: key が voiceChannelId または guildId で保存されている場合があるため
+    // - まず voiceChannelId をキーに直接参照
+    // - 見つからない場合は値を走査して、voiceChannelId を含むギルドのチャンネルを持つエントリを優先
+    // - それでも見つからなければ値の最初の guild を返す（保守的フォールバック）
     try {
-        const tc = textChannels[voiceChannelId];
+        let tc = (textChannels as any)[voiceChannelId];
+        if (!tc) {
+            const vals = Object.values(textChannels || {});
+            for (const v of vals) {
+                try {
+                    if (!v) continue;
+                    const g = (v as any).guild;
+                    if (g && g.id) {
+                        try {
+                            if (g.channels && g.channels.cache && typeof g.channels.cache.has === 'function' && g.channels.cache.has(voiceChannelId)) {
+                                tc = v;
+                                break;
+                            }
+                        } catch (_) {}
+                    }
+                } catch (_) { continue; }
+            }
+        }
+        if (!tc) {
+            // 最終フォールバック: 値に含まれる guild を返す
+            const vals2 = Object.values(textChannels || {});
+            for (const v of vals2) {
+                try {
+                    if (v && (v as any).guild && (v as any).guild.id) {
+                        tc = v;
+                        break;
+                    }
+                } catch (_) { continue; }
+            }
+        }
         if (tc && (tc as any).guild && (tc as any).guild.id) return (tc as any).guild.id;
     } catch {}
     // 3) autoJoinChannels / joinChannels を検索（キーは guildId）
