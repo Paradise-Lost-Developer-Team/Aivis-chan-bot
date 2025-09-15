@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, textChannels, voiceClients, setJoinCommandChannel } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, textChannels, voiceClients, setJoinCommandChannel, setTextChannelForGuildInMap } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 import { setTextChannelForGuild } from '../../utils/voiceStateManager';
 
@@ -122,7 +122,8 @@ module.exports = {
                     return;
                 } else {
                     // 同じチャンネルの場合
-                    textChannels[guildId] = textChannel; // テキストチャンネルの更新のみ
+                    // Use helper to ensure textChannels map is keyed by guildId
+                    setTextChannelForGuildInMap(guildId, textChannel);
                     await interaction.editReply({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
@@ -137,7 +138,8 @@ module.exports = {
             }
         }
         
-        textChannels[guildId] = textChannel;
+    // Ensure the in-memory map uses guildId keys for text channel lookup
+    setTextChannelForGuildInMap(guildId, textChannel);
         // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
         try {
             const execChannelId = (interaction.channel && interaction.channel.type === ChannelType.GuildText) ? interaction.channelId : textChannel.id;
