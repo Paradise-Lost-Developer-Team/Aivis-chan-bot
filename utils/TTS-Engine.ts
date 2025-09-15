@@ -129,7 +129,7 @@ export function removeTextChannelForGuildInMap(guildId: string): void {
                 const tc = (textChannels as any)[key];
                 if (!tc) continue;
                 if ((key === guildId) || ((tc as any).guild && (tc as any).guild.id === guildId)) {
-                    try { delete (textChannels as any)[key]; } catch (_) { /* ignore */ }
+                    try { removeTextChannelForGuildInMap(key as string); } catch (_) { /* ignore */ }
                 }
             } catch (_) { continue; }
         }

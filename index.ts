@@ -452,7 +452,7 @@ apiApp.listen(3007, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { textChannels, voiceClients, setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -632,12 +632,12 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
                 if (voiceChannelId) {
                     try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
                     try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-                    try { delete (textChannels as any)[voiceChannelId]; } catch {}
+                    try { removeTextChannelForGuildInMap(voiceChannelId); } catch {}
                     try { delete (global as any).players?.[voiceChannelId]; } catch {}
                 } else if (guildId) {
                     try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
                     try { delete (voiceClients as any)[guildId]; } catch {}
-                    try { delete (textChannels as any)[guildId]; } catch {}
+                    try { removeTextChannelForGuildInMap(guildId); } catch {}
                     try { delete (global as any).players?.[guildId]; } catch {}
                 }
             } catch (err) {
