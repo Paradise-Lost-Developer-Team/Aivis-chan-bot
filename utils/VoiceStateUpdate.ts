@@ -193,7 +193,7 @@ export function VoiceStateUpdate(client: Client) {
                     const nickname = member.displayName;
                     await speakAnnounce(`${nickname} さんが退室しました。`, guildId, client);
                     updateLastSpeechTime(); // 発話時刻を更新
-    
+
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
                         // 自分自身のBotが接続している場合は直接切断
@@ -203,39 +203,38 @@ export function VoiceStateUpdate(client: Client) {
                 }
             }
         }
-    
+
         // Auto join channels handling
         try {
             const autoJoinChannelsData = loadAutoJoinChannels();
-    
+
             const guildData = autoJoinChannelsData[guildId];
             if (!guildData) return;
-    
+
             const voiceChannelId = guildData.voiceChannelId;
             const textChannelId = guildData.textChannelId;
-    
+
             if (!oldState.channel && newState.channel) {
                 // tempVoiceの場合は前段で処理済み。通常の自動接続のみ扱う
                 if (guildData.tempVoice !== true && voiceChannelId === newState.channel.id) {
                     if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                         try {
-                            // テキストチャンネル確実指定
+                            // テキストチャンネル確実指定（システムチャンネルのみを試行）
                             let finalTextChannelId = textChannelId;
                             if (!finalTextChannelId) {
-                                // フォールバック: システムチャンネル（送信可） -> botが送信可能な最初のテキストチャンネル
                                 if (member.guild.systemChannelId) {
                                     const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
-                                    if (sys && (sys as any).isTextBased && ((sys as any).permissionsFor ? (sys as any).permissionsFor(client.user)?.has('SendMessages') : true)) {
-                                        finalTextChannelId = member.guild.systemChannelId;
+                                    if (sys && (sys as any).isTextBased) {
+                                        const me = member.guild.members?.me;
+                                        const perms = me ? (sys as any).permissionsFor?.(me) : (sys as any).permissionsFor?.(client.user);
+                                        if (perms && perms.has && perms.has('ViewChannel') && perms.has('SendMessages')) {
+                                            finalTextChannelId = member.guild.systemChannelId;
+                                        }
                                     }
                                 }
-                                if (!finalTextChannelId) {
-                                    const ch = findFirstSendableTextChannel(member.guild, client.user);
-                                    if (ch) finalTextChannelId = ch.id;
-                                }
-                                console.log(`[AutoJoin:1st] テキストチャンネル自動選択: ${finalTextChannelId} (guild: ${member.guild.name})`);
+                                console.log(`[AutoJoin:1st] テキストチャンネル自動選択は行いませんでした: ${finalTextChannelId ?? '未指定'} (guild: ${member.guild.name})`);
                             }
-                            
+
                             const infos = await getBotInfos();
                             const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                             const picked = pickLeastBusyBot(eligible);
@@ -358,15 +357,22 @@ function findFirstSendableTextChannel(guild: any, botUser: any): any | undefined
                 if (pa !== pb) return pa - pb;
                 return (a.id || '').localeCompare(b.id || '');
             });
+        const me = guild.members?.me;
         for (const [k, ch] of channels) {
             try {
                 if (!ch) continue;
                 // チャンネルが見えているか
-                if (typeof ch.viewable === 'boolean' && !ch.viewable) continue;
-                // Bot が SendMessages パーミッションを持っているか
+                if (typeof ch.viewable === 'boolean' && !ch.viewable) {
+                    // viewable が false ならスキップ
+                    // console.debug(`[findFirstSendableTextChannel] skip not viewable: ${ch.id}`);
+                    continue;
+                }
+                // Bot が ViewChannel + SendMessages パーミッションを持っているか
                 if (!botUser) return ch; // 保険として botUser がない場合は返す
-                const perms = ch.permissionsFor ? ch.permissionsFor(botUser) : null;
-                if (perms && perms.has && perms.has('SendMessages')) return ch;
+                const perms = ch.permissionsFor ? ch.permissionsFor(me ?? botUser) : null;
+                if (perms && perms.has && perms.has('ViewChannel') && perms.has('SendMessages')) return ch;
+                // 権限不足であればログを残す（詳細確認用）
+                // console.debug(`[findFirstSendableTextChannel] insufficient perms for ${ch.id}`);
             } catch (e) { continue; }
         }
     } catch (e) {}
