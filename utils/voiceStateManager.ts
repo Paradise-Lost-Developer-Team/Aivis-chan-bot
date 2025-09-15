@@ -52,16 +52,24 @@ export const getTextChannelForGuild = (guildId: string): string | undefined => {
   return guildTextChannels[guildId];
 };
 
+// テキストチャンネルのIDを削除する関数
+export const removeTextChannelForGuild = (guildId: string): void => {
+  if (guildTextChannels[guildId]) {
+    delete guildTextChannels[guildId];
+    try { saveVoiceState(null); } catch {}
+  }
+};
+
 // 音声接続状態を保存
 export const saveVoiceState = (client: Client | null): void => {
   ensureDataDirExists();
   const voiceState: VoiceStateData = {};
   const existingState = loadVoiceState();
-  if (client) {
+    if (client) {
     client.guilds.cache.forEach(guild => {
       const me = guild.members.cache.get(client.user?.id || '');
       if (me && me.voice.channel) {
-        const textChannelId = existingState[guild.id]?.textChannelId || guildTextChannels[guild.id];
+        const textChannelId = existingState[guild.id]?.textChannelId || getTextChannelForGuild(guild.id);
         voiceState[guild.id] = {
           channelId: me.voice.channel.id,
           ...(textChannelId ? { textChannelId } : {}) // undefined/nullなら保存しない
@@ -70,7 +78,7 @@ export const saveVoiceState = (client: Client | null): void => {
     });
   } else {
     Object.keys(existingState).forEach(guildId => {
-      const textChannelId = existingState[guildId].textChannelId || guildTextChannels[guildId];
+      const textChannelId = existingState[guildId].textChannelId || getTextChannelForGuild(guildId);
       voiceState[guildId] = {
         channelId: existingState[guildId].channelId,
         ...(textChannelId ? { textChannelId } : {})
@@ -78,7 +86,7 @@ export const saveVoiceState = (client: Client | null): void => {
     });
     Object.keys(guildTextChannels).forEach(guildId => {
       if (!voiceState[guildId] && existingState[guildId]) {
-        const textChannelId = guildTextChannels[guildId];
+        const textChannelId = getTextChannelForGuild(guildId);
         voiceState[guildId] = {
           channelId: existingState[guildId].channelId,
           ...(textChannelId ? { textChannelId } : {})
@@ -104,9 +112,9 @@ export const loadVoiceState = (): VoiceStateData => {
       Object.keys(parsedData).forEach(guildId => {
         const textChannelId = parsedData[guildId].textChannelId;
         if (textChannelId) {
-          guildTextChannels[guildId] = textChannelId;
+          setTextChannelForGuild(guildId, textChannelId);
         } else {
-          delete guildTextChannels[guildId]; // 未指定ならグローバル変数からも削除
+          removeTextChannelForGuild(guildId); // 未指定ならグローバル変数からも削除
         }
       });
       return parsedData;
