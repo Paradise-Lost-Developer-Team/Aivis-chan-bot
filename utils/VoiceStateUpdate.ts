@@ -106,19 +106,8 @@ export function VoiceStateUpdate(client: Client) {
                     
                     // テキストチャンネルが指定されていない場合のフォールバック
                     if (!textChannelId) {
-                        // 1. システムチャンネルを試行（かつ Bot が送信可能かを確認）
-                        if (member.guild.systemChannelId) {
-                            const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
-                            if (sys && (sys as any).isTextBased && ((sys as any).permissionsFor ? (sys as any).permissionsFor(client.user)?.has('SendMessages') : true)) {
-                                textChannelId = member.guild.systemChannelId;
-                            }
-                        }
-                        // 2. 上記無効なら Bot が閲覧/送信できる最初のチャンネルを選択
-                        if (!textChannelId) {
-                            const ch = findFirstSendableTextChannel(member.guild, client.user);
-                            if (ch) textChannelId = ch.id;
-                        }
-                        console.log(`[TempVC:1st] テキストチャンネル自動選択: ${textChannelId} (guild: ${member.guild.name})`);
+                        // テキストチャンネル未指定時はコード側で勝手に選択しません（システムチャンネルも使用しません）。
+                        console.log(`[TempVC:1st] テキストチャンネルは未指定のまま: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
                     }
                     
                     const infos = await getBotInfos();
