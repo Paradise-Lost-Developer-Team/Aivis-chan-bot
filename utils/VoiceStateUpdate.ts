@@ -101,6 +101,33 @@ function findPreferredTextChannel(member: any, voiceChannel: any): string | unde
     return undefined;
 }
 
+/**
+ * Return the first text channel that the bot can send messages to.
+ * Sorted deterministically by position then id.
+ */
+function findFirstSendableTextChannel(guild: any, botUser: any): string | undefined {
+    try {
+        const me = guild.members.cache.get(botUser?.id || '');
+        const textChannels: any[] = Array.from(guild.channels.cache.values())
+            .filter((c: any) => c.type === ChannelType.GuildText && (c as any).viewable);
+        textChannels.sort((a: any, b: any) => {
+            if (a.position !== b.position) return a.position - b.position;
+            return (a.id || '').localeCompare(b.id || '');
+        });
+        for (const ch of textChannels) {
+            try {
+                if (!me) return ch.id;
+                if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) return ch.id;
+            } catch (e) {
+                continue;
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+    return undefined;
+}
+
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         const member = newState.member!;
@@ -152,21 +179,32 @@ export function VoiceStateUpdate(client: Client) {
                     let textChannelId = autoJoinData?.textChannelId;
                     
                     // テキストチャンネルが指定されていない場合のフォールバック
-                    if (!textChannelId) {
-                        // Prefer a text channel related to the voice channel (same category or same name)
-                        textChannelId = findPreferredTextChannel(member, newState.channel);
                         if (!textChannelId) {
-                            // Fallback to system or first text channel
-                            if (member.guild.systemChannelId) textChannelId = member.guild.systemChannelId;
-                            else {
-                                const firstTextChannel = member.guild.channels.cache
-                                    .filter(ch => ch.type === ChannelType.GuildText)
-                                    .first();
-                                if (firstTextChannel) textChannelId = firstTextChannel.id;
+                            // Prefer a text channel related to the voice channel (same category or same name)
+                            textChannelId = findPreferredTextChannel(member, newState.channel);
+                            if (!textChannelId) {
+                                // Prefer system channel only if bot can send, otherwise pick first sendable text channel
+                                const botUser = client.user;
+                                if (member.guild.systemChannelId) {
+                                    const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
+                                    try {
+                                        const me = member.guild.members.cache.get(botUser?.id || '');
+                                        if (!me) {
+                                            textChannelId = member.guild.systemChannelId;
+                                        } else if (sys && (sys as any).permissionsFor && (sys as any).permissionsFor(me)?.has('SendMessages')) {
+                                            textChannelId = member.guild.systemChannelId;
+                                        } else {
+                                            textChannelId = findFirstSendableTextChannel(member.guild, botUser);
+                                        }
+                                    } catch (e) {
+                                        textChannelId = findFirstSendableTextChannel(member.guild, botUser);
+                                    }
+                                } else {
+                                    textChannelId = findFirstSendableTextChannel(member.guild, client.user);
+                                }
                             }
+                            console.log(`[TempVC:pro] テキストチャンネル自動選択: ${textChannelId} (guild: ${member.guild.name})`);
                         }
-                        console.log(`[TempVC:pro] テキストチャンネル自動選択: ${textChannelId} (guild: ${member.guild.name})`);
-                    }
                     
                     const infos = await getBotInfos();
                     const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
@@ -272,12 +310,24 @@ export function VoiceStateUpdate(client: Client) {
                                 // Prefer a text channel related to the voice channel
                                 finalTextChannelId = findPreferredTextChannel(member, newState.channel);
                                 if (!finalTextChannelId) {
-                                    if (member.guild.systemChannelId) finalTextChannelId = member.guild.systemChannelId;
-                                    else {
-                                        const firstTextChannel = member.guild.channels.cache
-                                            .filter(ch => ch.type === ChannelType.GuildText)
-                                            .first();
-                                        if (firstTextChannel) finalTextChannelId = firstTextChannel.id;
+                                    // Prefer system channel only if bot can send, otherwise pick first sendable text channel
+                                    const botUser = client.user;
+                                    if (member.guild.systemChannelId) {
+                                        const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
+                                        try {
+                                            const me = member.guild.members.cache.get(botUser?.id || '');
+                                            if (!me) {
+                                                finalTextChannelId = member.guild.systemChannelId;
+                                            } else if (sys && (sys as any).permissionsFor && (sys as any).permissionsFor(me)?.has('SendMessages')) {
+                                                finalTextChannelId = member.guild.systemChannelId;
+                                            } else {
+                                                finalTextChannelId = findFirstSendableTextChannel(member.guild, botUser);
+                                            }
+                                        } catch (e) {
+                                            finalTextChannelId = findFirstSendableTextChannel(member.guild, botUser);
+                                        }
+                                    } else {
+                                        finalTextChannelId = findFirstSendableTextChannel(member.guild, client.user);
                                     }
                                 }
                                 console.log(`[AutoJoin:pro] テキストチャンネル自動選択: ${finalTextChannelId} (guild: ${member.guild.name})`);
