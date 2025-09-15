@@ -52,6 +52,32 @@ module.exports = {
                 return;
             }
 
+            // フォールバック: voiceClients の中に guildId に紐づく接続がないか走査して削除
+            let foundAndDestroyed = false;
+            for (const key of Object.keys(voiceClients)) {
+                try {
+                    const conn = (voiceClients as any)[key];
+                    const connGuildId = conn?.joinConfig?.guildId ?? conn?.guildId ?? null;
+                    if (connGuildId && connGuildId === guildId) {
+                        try { conn.destroy?.(); } catch {};
+                        try { delete (voiceClients as any)[key]; } catch {}
+                        foundAndDestroyed = true;
+                    }
+                } catch (e) { continue; }
+            }
+            if (foundAndDestroyed) {
+                await interaction.editReply({
+                    embeds: [addCommonFooter(
+                        new EmbedBuilder()
+                            .setTitle('退出完了')
+                            .setDescription('ボイスチャンネルから退出しました。')
+                            .setColor(0x00bfff)
+                    )],
+                    components: [getCommonLinksRow()]
+                });
+                return;
+            }
+
             // 接続していない場合
             await interaction.editReply({
                 embeds: [addCommonFooter(

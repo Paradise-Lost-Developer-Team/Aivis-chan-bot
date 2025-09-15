@@ -4,7 +4,7 @@ import { REST } from "@discordjs/rest";
 import { getUserTierByOwnership, getGuildTier } from "./utils/patreonIntegration";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings, setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from "./utils/TTS-Engine";
+import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings, setTextChannelForGuildInMap, removeTextChannelForGuildInMap, removeTextChannelByVoiceChannelId } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -798,7 +798,8 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         if (voiceChannelId) {
             try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
             try { delete (voiceClients as any)[voiceChannelId]; } catch (e) { /* ignore */ }
-            try { removeTextChannelForGuildInMap(voiceChannelId); } catch (e) { /* ignore */ }
+            // voiceChannelId が渡された場合は、voiceChannelId キーで登録されたテキストチャンネルの削除を行う
+            try { removeTextChannelByVoiceChannelId(voiceChannelId); } catch (e) { /* ignore */ }
             try { delete (global as any).players?.[voiceChannelId]; } catch (e) { /* ignore */ }
         } else if (guildId) {
             // 従来互換性のため guildId ベースのクリーンアップも保持

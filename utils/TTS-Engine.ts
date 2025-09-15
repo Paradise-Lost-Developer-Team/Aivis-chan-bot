@@ -149,6 +149,30 @@ export function removeTextChannelForGuildInMap(guildId: string): void {
     }
 }
 
+/**
+ * 指定された voiceChannelId に紐づくテキストチャンネルのマッピングを削除します。
+ * (voiceChannelId をキーに保存されているケースに対応)
+ */
+export function removeTextChannelByVoiceChannelId(voiceChannelId: string): void {
+    try {
+        const tc = (textChannels as any)[voiceChannelId] as TextChannel | undefined;
+        if (tc && tc.id) {
+            for (const k of Object.keys((textChannels as any) || {})) {
+                try {
+                    const v = (textChannels as any)[k] as TextChannel | undefined;
+                    if (v && v.id === tc.id) {
+                        try { delete (textChannels as any)[k]; } catch (_) { /* ignore */ }
+                    }
+                } catch (_) { continue; }
+            }
+        } else {
+            try { delete (textChannels as any)[voiceChannelId]; } catch (e) { /* ignore */ }
+        }
+    } catch (e) {
+        console.warn('removeTextChannelByVoiceChannelId error:', e);
+    }
+}
+
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
   {
