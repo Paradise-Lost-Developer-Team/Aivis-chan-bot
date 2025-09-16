@@ -17,9 +17,9 @@ module.exports = {
                         .addChannelTypes(ChannelType.GuildVoice))
                 .addChannelOption((option: any) =>
                     option.setName('text_channel')
-                        .setDescription('自動参加するテキストチャンネル')
-                        .setRequired(false)
-                        .addChannelTypes(ChannelType.GuildText))
+                        .setDescription('自動参加するテキストまたはボイスチャンネル（必須）')
+                        .setRequired(true)
+                        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildVoice))
                 .addBooleanOption((option: any) =>
                     option.setName('temp_voice')
                         .setDescription('TempVoice等の一時VCに追従する場合はTrue')
@@ -54,8 +54,14 @@ module.exports = {
     if (sub === 'add') {
             // register_auto_join.tsと同じ処理
             const voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
-            const textChannel = (interaction as any).options.get("text_channel")?.channel as TextChannel;
-            const tempVoice = (interaction as any).options.get("temp_voice")?.value as boolean | undefined;
+            const rawTextChannel = (interaction as any).options.get("text_channel")?.channel;
+            const textChannel = rawTextChannel && (rawTextChannel.type === ChannelType.GuildText)
+                ? rawTextChannel as TextChannel
+                : undefined;
+            const textChannelAsVoice = rawTextChannel && (rawTextChannel.type === ChannelType.GuildVoice)
+                ? rawTextChannel as VoiceChannel
+                : undefined;
+            let tempVoice = (interaction as any).options.get("temp_voice")?.value as boolean | undefined;
 
             if (!voiceChannel) {
                 await interaction.reply({
@@ -72,24 +78,26 @@ module.exports = {
 
             loadAutoJoinChannels();
             
-            // テキストチャンネルが指定されていない場合は、コマンド実行チャンネルまたはデフォルトを使用
-            let finalTextChannel = textChannel;
-            if (!finalTextChannel) {
-                if (interaction.channel && interaction.channel.type === ChannelType.GuildText) {
-                    finalTextChannel = interaction.channel as TextChannel;
-                } else {
-                    // ギルドの最初のテキストチャンネルを使用
-                    finalTextChannel = interaction.guild?.channels.cache
-                        .filter(ch => ch.type === ChannelType.GuildText)
-                        .first() as TextChannel;
-                }
+            let finalTextChannelId: string | undefined = undefined;
+            if (textChannel) {
+                finalTextChannelId = textChannel.id;
+            } else if (textChannelAsVoice) {
+                finalTextChannelId = textChannelAsVoice.id;
+                const explicitTempVoice = tempVoice === true;
+                const voiceMatch = !!(voiceChannel && textChannelAsVoice.id === voiceChannel.id);
+                tempVoice = explicitTempVoice && voiceMatch;
+            } else {
+                const firstText = interaction.guild?.channels.cache
+                    .filter(ch => ch.type === ChannelType.GuildText)
+                    .first() as TextChannel | undefined;
+                finalTextChannelId = firstText ? firstText.id : undefined;
             }
-            
+
             autoJoinChannels[guildId] = {
                 voiceChannelId: voiceChannel.id,
-                textChannelId: finalTextChannel ? finalTextChannel.id : undefined,
-                tempVoice: tempVoice === true, // undefinedならfalse扱い
-                isManualTextChannelId: !!textChannel // 元々指定されていたかどうか
+                textChannelId: finalTextChannelId,
+                tempVoice: tempVoice === true,
+                isManualTextChannelId: !!rawTextChannel
             };
 
             saveAutoJoinChannels();  // ここで保存
