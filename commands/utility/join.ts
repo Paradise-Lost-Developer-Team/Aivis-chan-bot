@@ -147,6 +147,13 @@ module.exports = {
                     }
                 } catch (_) {}
                 const uniq = Array.from(new Map(candidates.map(c => [c.id, c])).values());
+                // Detailed debug logging for join candidates
+                try {
+                    const candidateInfo = uniq.map(c => `${c.id}:${c.name}`).join(', ');
+                    console.log(`[join] guild=${guildId} exec=${interaction.channelId} voice=${voiceChannel.id} candidates=[${candidateInfo}]`);
+                } catch (logErr) {
+                    // ignore logging errors
+                }
                 try { addTextChannelsForGuildInMap(guildId, uniq); } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
             }
         } catch (e) {
@@ -174,7 +181,10 @@ module.exports = {
             if (!picked) throw new Error('no-bot-available');
 
             // include the channel where the command was executed so the target bot can prefer it
-            const requestingChannelId = interaction.channel && interaction.channel.type === ChannelType.GuildText ? interaction.channelId : undefined;
+            const requestingChannelId = interaction.channel && typeof (interaction.channel as any).isTextBased === 'function' && (interaction.channel as any).isTextBased() ? interaction.channelId : undefined;
+            try {
+                console.log(`[join] instructJoin payload guild=${guildId} picked=${picked.bot.name} voice=${voiceChannel.id} text=${textChannel.id} reqCh=${requestingChannelId ?? 'none'}`);
+            } catch (_) {}
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id, requestingChannelId });
 
             await interaction.editReply({
