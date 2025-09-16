@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, textChannels, voiceClients, setJoinCommandChannel, setTextChannelForGuildInMap, addTextChannelsForGuildInMap } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, voiceClients, loadAutoJoinChannels, setJoinCommandChannel, setTextChannelForGuildInMap, addTextChannelsForGuildInMap } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 import { setTextChannelForGuild } from '../../utils/voiceStateManager';
 
@@ -49,16 +49,23 @@ module.exports = {
             }
         }
 
-        if (!textChannel) {
-            // Only accept the current channel if it's a guild text channel and the bot can send messages there.
-            // Do NOT perform broad automatic searches by name or the first viewable channel.
-            const currentChannel = interaction.channel;
+    if (!textChannel) {
+            // Accept the current channel if it's any text-based channel (text channels, threads, news, etc.)
+            // This is more flexible than only allowing ChannelType.GuildText and handles thread contexts.
+            const currentChannel = interaction.channel as any;
             const clientUser = interaction.client.user!;
-            if (currentChannel && currentChannel.type === ChannelType.GuildText) {
-                const canSend = (currentChannel as TextChannel).permissionsFor(clientUser)?.has('SendMessages');
-                if (canSend) {
-                    textChannel = currentChannel as TextChannel;
+            try {
+                const isTextBased = typeof currentChannel?.isTextBased === 'function' ? currentChannel.isTextBased() : (currentChannel && currentChannel.type === ChannelType.GuildText);
+                if (currentChannel && isTextBased) {
+                    const perms = (currentChannel as any).permissionsFor ? (currentChannel as any).permissionsFor(clientUser) : null;
+                    const canSend = perms ? perms.has && perms.has('SendMessages') : false;
+                    if (canSend) {
+                        // cast to any to allow threads/news channels as well
+                        textChannel = currentChannel as any;
+                    }
                 }
+            } catch (e) {
+                // ignore permission-check errors and fall through to explicit require
             }
 
             // If still not found, require explicit specification from the user.
@@ -103,8 +110,7 @@ module.exports = {
                     return;
                 } else {
                     // 同じチャンネルの場合
-                    // Use helper to ensure textChannels map is keyed by guildId
-                    setTextChannelForGuildInMap(guildId, textChannel);
+                    setTextChannelForGuildInMap(guildId, textChannel); // テキストチャンネルの更新のみ
                     await interaction.editReply({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
@@ -119,42 +125,38 @@ module.exports = {
             }
         }
         
-    // Ensure the in-memory map uses guildId keys for text channel lookup
-    // If textChannel was not explicitly specified, also add other candidate channels
-    try {
-        if ((interaction as any).options.get('text_channel')?.channel) {
-            // user explicitly provided text_channel
-            setTextChannelForGuildInMap(guildId, textChannel);
-        } else {
-            // not explicitly provided: register both the executing channel (if any) and
-            // all text channels in the same category as the chosen voice channel as candidates
-            const execChannel = interaction.channel && interaction.channel.type === ChannelType.GuildText ? interaction.channel as TextChannel : undefined;
-            const candidates: TextChannel[] = [];
-            if (execChannel) candidates.push(execChannel);
-            try {
-                const guild = interaction.guild;
-                if (guild) {
-                    const vc = guild.channels.cache.get(voiceChannel.id) as any;
-                    if (vc && vc.parentId) {
-                        for (const ch of guild.channels.cache.values()) {
-                            try {
-                                if (ch.type === ChannelType.GuildText && (ch as TextChannel).parentId === vc.parentId) candidates.push(ch as TextChannel);
-                            } catch (_) { continue; }
+        // If user didn't explicitly specify text_channel, register execution channel + category channels as candidates
+        try {
+            if ((interaction as any).options.get('text_channel')?.channel) {
+                setTextChannelForGuildInMap(guildId, textChannel);
+            } else {
+                const execChannel = interaction.channel && interaction.channel.type === ChannelType.GuildText ? interaction.channel as TextChannel : undefined;
+                const candidates: TextChannel[] = [];
+                if (execChannel) candidates.push(execChannel);
+                try {
+                    const guild = interaction.guild;
+                    if (guild) {
+                        const vc = guild.channels.cache.get(voiceChannel.id) as any;
+                        if (vc && vc.parentId) {
+                            for (const ch of guild.channels.cache.values()) {
+                                try {
+                                    if (ch.type === ChannelType.GuildText && (ch as TextChannel).parentId === vc.parentId) candidates.push(ch as TextChannel);
+                                } catch (_) { continue; }
+                            }
                         }
                     }
-                }
-            } catch (_) {}
-            // add unique candidates
-            const uniq = Array.from(new Map(candidates.map(c => [c.id, c])).values());
-            try { addTextChannelsForGuildInMap(guildId, uniq); } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
+                } catch (_) {}
+                const uniq = Array.from(new Map(candidates.map(c => [c.id, c])).values());
+                try { addTextChannelsForGuildInMap(guildId, uniq); } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
+            }
+        } catch (e) {
+            setTextChannelForGuildInMap(guildId, textChannel);
         }
-    } catch (e) {
-        // fallback
-        setTextChannelForGuildInMap(guildId, textChannel);
-    }
         // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
         try {
-            const execChannelId = (interaction.channel && interaction.channel.type === ChannelType.GuildText) ? interaction.channelId : textChannel.id;
+            // record the channel where the command was executed; accept any text-based channel (threads etc.)
+            const execIsText = (interaction.channel as any) && (typeof (interaction.channel as any).isTextBased === 'function' ? (interaction.channel as any).isTextBased() : ((interaction.channel as any).type === ChannelType.GuildText));
+            const execChannelId = execIsText ? interaction.channelId : textChannel.id;
             setJoinCommandChannel(guildId, execChannelId);
         } catch (e) {
             // fallback
@@ -171,10 +173,9 @@ module.exports = {
             const picked = pickLeastBusyBot(guildBots);
             if (!picked) throw new Error('no-bot-available');
 
-            await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
-
-            // join_channels.json に保存（本Botの設定としても記録）
-            // updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id); // 動的判定により不要
+            // include the channel where the command was executed so the target bot can prefer it
+            const requestingChannelId = interaction.channel && interaction.channel.type === ChannelType.GuildText ? interaction.channelId : undefined;
+            await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id, requestingChannelId });
 
             await interaction.editReply({
                 embeds: [addCommonFooter(
@@ -191,7 +192,7 @@ module.exports = {
                 )],
                 components: [getCommonLinksRow()]
             });
-            // loadJoinChannels(); // 動的判定により不要
+            loadAutoJoinChannels();
         } catch (error) {
             console.error(error);
             // エラーメッセージを送信

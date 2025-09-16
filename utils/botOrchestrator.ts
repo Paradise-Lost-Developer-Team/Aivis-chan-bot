@@ -166,7 +166,7 @@ export function pickPrimaryPreferredBot(
   return candidates[0] || null;
 }
 
-export async function instructJoin(bot: BotInfo, payload: { guildId: string; voiceChannelId: string; textChannelId?: string }, timeoutMs = parseInt(process.env.BOT_ORCHESTRATOR_JOIN_TIMEOUT_MS || '15000', 10)) {
+export async function instructJoin(bot: BotInfo, payload: { guildId: string; voiceChannelId: string; textChannelId?: string; requestingChannelId?: string }, timeoutMs = parseInt(process.env.BOT_ORCHESTRATOR_JOIN_TIMEOUT_MS || '15000', 10)) {
   const url = `${bot.baseUrl.replace(/\/$/, '')}/internal/join`;
   
   // テキストチャンネルIDが指定されていない場合は警告ログを出力
@@ -175,7 +175,7 @@ export async function instructJoin(bot: BotInfo, payload: { guildId: string; voi
   }
   
   try {
-  console.log(`[botOrchestrator:1st] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'} timeoutMs=${timeoutMs}`);
+  console.log(`[botOrchestrator:1st] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'} reqCh=${payload.requestingChannelId || 'none'} timeoutMs=${timeoutMs}`);
   await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
     const msg = `[botOrchestrator:1st] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
