@@ -783,89 +783,130 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
 
+        // Accept optional context: requestingChannelId and voiceChannelId
+        const requestingChannelId = (req.query.requestingChannelId || req.query.reqCh || '') as string || null;
+        const voiceChannelId = (req.query.voiceChannelId || req.query.vc || '') as string || null;
+
         // ギルドのTier情報を取得
         const { getGuildTier } = await import('./utils/patreonIntegration');
         const guildTier = await getGuildTier(guildId, client);
 
-        // テキストチャンネルの決定ロジック
-        let finalTextChannelId = null;
+        // Centralized selection logic
+        // Priority: requestingChannelId (if provided and valid) -> saved mapping -> autoJoin -> joinChannels -> preferred by voiceChannelId -> systemChannel -> none
+        let finalTextChannelId: string | null = null;
+        let reason = 'none';
 
-        // 1. 保存されたテキストチャンネルを取得
-        finalTextChannelId = getTextChannelForGuild(guildId);
+        // 1) requestingChannelId (highest priority when provided)
+        if (requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && maybe.type === 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? maybe.permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        reason = 'requestingChannel';
+                        console.log(`[text-channel API] using requestingChannelId=${requestingChannelId} for guild=${guildId}`);
+                    } else {
+                        console.log(`[text-channel API] requestingChannelId present but bot lacks send permission: ${requestingChannelId}`);
+                    }
+                } else {
+                    console.log(`[text-channel API] requestingChannelId invalid or not text: ${requestingChannelId}`);
+                }
+            } catch (err) {
+                console.error(`[text-channel API] error validating requestingChannelId ${requestingChannelId}:`, err);
+            }
+        }
 
+        // 2) saved mapping
         if (!finalTextChannelId) {
-            // 2. 自動参加設定から取得
+            finalTextChannelId = getTextChannelForGuild(guildId) || null;
+            if (finalTextChannelId) reason = 'savedMapping';
+        }
+
+        // 3) autoJoin
+        if (!finalTextChannelId) {
             const { autoJoinChannels } = await import('./utils/TTS-Engine');
             const autoJoinSetting = autoJoinChannels[guildId];
             if (autoJoinSetting && autoJoinSetting.textChannelId) {
                 finalTextChannelId = autoJoinSetting.textChannelId;
+                reason = 'autoJoinSetting';
             }
         }
 
+        // 4) joinChannels
         if (!finalTextChannelId) {
-            // 3. 参加チャンネル設定から取得
             const { joinChannels } = await import('./utils/TTS-Engine');
             const joinSetting = joinChannels[guildId];
             if (joinSetting && joinSetting.textChannelId) {
                 finalTextChannelId = joinSetting.textChannelId;
+                reason = 'joinChannels';
             }
         }
 
-        // テキストチャンネルが見つかった場合のみ設定
-        if (finalTextChannelId) {
-            console.log(`[text-channel API] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を確認中`);
-            
+        // 5) if voiceChannelId provided, attempt category/same-name search here
+        if (!finalTextChannelId && voiceChannelId) {
             try {
-                // チャンネルをフェッチして最新の情報を取得
-                const tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
-                
-                if (tc && tc.type === 0) {
-                    console.log(`[text-channel API] 成功: ギルド ${guildId} テキストチャンネル ${tc.name} (${finalTextChannelId})`);
-                    return res.json({
-                        ok: true,
-                        textChannelId: finalTextChannelId,
-                        textChannelName: tc.name,
-                        guildTier: guildTier // ギルドTier情報を追加
-                    });
-                } else {
-                    // チャンネルがキャッシュにない場合はキャッシュから確認
-                    const cachedChannel = guild.channels.cache.get(finalTextChannelId) as any;
-                    if (cachedChannel && cachedChannel.type === 0) {
-                        console.log(`[text-channel API] キャッシュから成功: ギルド ${guildId} テキストチャンネル ${cachedChannel.name} (${finalTextChannelId})`);
-                        return res.json({
-                            ok: true,
-                            textChannelId: finalTextChannelId,
-                            textChannelName: cachedChannel.name,
-                            guildTier: guildTier
-                        });
-                    } else {
-                        console.warn(`[text-channel API] テキストチャンネル無効: ギルド ${guildId} チャンネル ${finalTextChannelId} - フェッチ結果: ${!!tc}, タイプ: ${tc?.type}, キャッシュ結果: ${!!cachedChannel}, キャッシュタイプ: ${cachedChannel?.type}`);
-                        
-                        // 明示的なテキストチャンネル設定が無効な場合はエラーを返す
-                        // フォールバック処理は行わない
-                        return res.status(404).json({ 
-                            error: 'text-channel-invalid',
-                            details: {
-                                guildId,
-                                requestedChannelId: finalTextChannelId,
-                                channelExists: !!tc,
-                                channelType: tc?.type,
-                                availableChannels: guild.channels.cache.filter(ch => ch.type === 0).size
-                            }
-                        });
+                const vc = guild.channels.cache.get(voiceChannelId) as any;
+                const candidates: any[] = [];
+                if (vc && vc.parentId) {
+                    for (const ch of guild.channels.cache.values()) {
+                        try { if (ch.type === 0 && (ch as any).parentId === vc.parentId) candidates.push(ch); } catch (_) { }
                     }
                 }
-            } catch (fetchError) {
-                console.error(`[text-channel API] チャンネルフェッチエラー: ギルド ${guildId} チャンネル ${finalTextChannelId}:`, fetchError);
-                return res.status(500).json({ 
-                    error: 'channel-fetch-failed',
-                    details: { guildId, channelId: finalTextChannelId }
-                });
-            }
-        } else {
-            console.warn(`[text-channel API] テキストチャンネルが見つからない: ギルド ${guildId}`);
-            return res.status(404).json({ error: 'no-text-channel-found' });
+                if (candidates.length === 0 && vc) {
+                    const sameName = guild.channels.cache.find((c: any) => c.type === 0 && typeof c.name === 'string' && c.name.toLowerCase() === (vc.name || '').toLowerCase());
+                    if (sameName) candidates.push(sameName);
+                }
+                if (candidates.length > 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    for (const cand of candidates) {
+                        try {
+                            const perms = me ? (cand as any).permissionsFor(me) : null;
+                            if (!perms || perms.has('SendMessages')) {
+                                finalTextChannelId = cand.id;
+                                reason = 'preferredByVoice';
+                                break;
+                            }
+                        } catch (_) { continue; }
+                    }
+                }
+            } catch (_) {}
         }
+
+        // 6) system channel as last resort (but only if sendable)
+        if (!finalTextChannelId) {
+            try {
+                if (guild.systemChannelId) {
+                    const sys = guild.channels.cache.get(guild.systemChannelId) as any;
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    if (sys && sys.type === 0 && (!me || (sys as any).permissionsFor(me)?.has('SendMessages'))) {
+                        finalTextChannelId = guild.systemChannelId;
+                        reason = 'systemChannel';
+                    }
+                }
+            } catch (_) {}
+        }
+
+        // Validate finalTextChannelId before returning
+        if (finalTextChannelId) {
+            try {
+                const tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                if (tc && tc.type === 0) {
+                    console.log(`[text-channel API] selected guild=${guildId} text=${finalTextChannelId} reason=${reason}`);
+                    return res.json({ ok: true, textChannelId: finalTextChannelId, reason, textChannelName: tc.name, guildTier });
+                } else {
+                    console.log(`[text-channel API] selected channel invalid after fetch guild=${guildId} id=${finalTextChannelId} type=${tc?.type}`);
+                    return res.status(404).json({ error: 'text-channel-invalid-after-fetch', details: { guildId, channelId: finalTextChannelId, reason } });
+                }
+            } catch (fetchErr) {
+                console.error(`[text-channel API] fetch error for ${finalTextChannelId}:`, fetchErr);
+                return res.status(500).json({ error: 'channel-fetch-failed', details: { guildId, channelId: finalTextChannelId } });
+            }
+        }
+
+        console.log(`[text-channel API] no text channel selected for guild=${guildId}`);
+        return res.status(404).json({ error: 'no-text-channel-found', reason });
     } catch (e) {
         console.error('text-channel API error:', e);
         return res.status(500).json({ error: 'text-channel-failed' });
