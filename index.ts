@@ -453,7 +453,7 @@ import { textChannels, voiceClients, setTextChannelForGuildInMap, removeTextChan
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
-        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+        const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
         if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
@@ -466,6 +466,28 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // Decide text channel: only accept explicit textChannelId, primary's saved value, or autoJoin setting.
         let finalTextChannelId = textChannelId || null;
+
+        // 2) requestingChannelId (the channel where command was invoked) if provided and valid
+        // If no explicit textChannelId, prefer requestingChannelId (command invocation channel)
+        if (!finalTextChannelId && requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && (maybe as any).type === 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? (maybe as any).permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        console.log(`[internal/join:2nd] using requestingChannelId as text channel: ${requestingChannelId}`);
+                    } else {
+                        console.warn(`[internal/join:2nd] requestingChannelId exists but bot lacks send permission: ${requestingChannelId}`);
+                    }
+                } else {
+                    console.warn(`[internal/join:2nd] requestingChannelId invalid or not a text channel: ${requestingChannelId}`);
+                }
+            } catch (err) {
+                console.error(`[internal/join:2nd] error validating requestingChannelId ${requestingChannelId}:`, err);
+            }
+        }
 
         // 1) Try to get from primary (1st) if not explicitly provided
         if (!finalTextChannelId) {
