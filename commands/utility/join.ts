@@ -164,7 +164,9 @@ module.exports = {
             const picked = pickLeastBusyBot(guildBots);
             if (!picked) throw new Error('no-bot-available');
 
-            await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id });
+            // include the channel where the command was executed so the target bot can prefer it
+            const requestingChannelId = interaction.channel && interaction.channel.type === ChannelType.GuildText ? interaction.channelId : undefined;
+            await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id, requestingChannelId });
 
             await interaction.editReply({
                 embeds: [addCommonFooter(

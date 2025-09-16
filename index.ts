@@ -568,6 +568,90 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             const joinSetting = joinChannels[guildId];
             if (joinSetting && joinSetting.textChannelId) finalTextChannelId = joinSetting.textChannelId;
         }
+        // Fallback: if still no text channel, try to find a text channel related to the voice channel
+        if (!finalTextChannelId) {
+            try {
+                const voiceChannelObj = guild.channels.cache.get(voiceChannelId) as any;
+                if (voiceChannelObj) {
+                    const candidates: any[] = [];
+                    // 1) same category text channels
+                    if (voiceChannelObj.parentId) {
+                        for (const ch of guild.channels.cache.values()) {
+                            try {
+                                if (ch.type === 0 && (ch as any).parentId === voiceChannelObj.parentId) candidates.push(ch);
+                            } catch (_) { continue; }
+                        }
+                    }
+                    // 2) same-name text channel (fallback)
+                    if (candidates.length === 0) {
+                        try {
+                            const sameName = guild.channels.cache.find((c: any) => c.type === 0 && typeof c.name === 'string' && c.name.toLowerCase() === (voiceChannelObj.name || '').toLowerCase());
+                            if (sameName) candidates.push(sameName);
+                        } catch (_) { /* ignore */ }
+                    }
+
+                    if (candidates.length > 0) {
+                        const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                        for (const cand of candidates) {
+                            try {
+                                const perms = me ? (cand as any).permissionsFor(me) : null;
+                                if (!perms || perms.has('SendMessages')) {
+                                    finalTextChannelId = cand.id;
+                                    console.log(`[internal/join] fallback selected text channel: ${cand.name} (${cand.id}) for voice ${voiceChannelId}`);
+                                    break;
+                                }
+                            } catch (e) { continue; }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[internal/join] fallback selection error:', e);
+            }
+        }
+        // Fallback: try to pick a sensible text channel related to the voice channel
+        // - same category text channels
+        // - text channel with same name as the voice channel
+        // Only pick if bot has SendMessages permission in that channel
+        if (!finalTextChannelId) {
+            try {
+                const voiceChannelObj = guild.channels.cache.get(voiceChannelId) as any;
+                if (voiceChannelObj) {
+                    const candidates: any[] = [];
+                    // same category
+                    if (voiceChannelObj.parentId) {
+                        for (const ch of guild.channels.cache.values()) {
+                            try {
+                                if (ch.type === 0 && (ch as any).parentId === voiceChannelObj.parentId) candidates.push(ch);
+                            } catch (_) { continue; }
+                        }
+                    }
+                    // if none found, try same-name text channel
+                    if (candidates.length === 0) {
+                        try {
+                            const sameName = guild.channels.cache.find((c: any) => c.type === 0 && typeof c.name === 'string' && c.name.toLowerCase() === (voiceChannelObj.name || '').toLowerCase());
+                            if (sameName) candidates.push(sameName);
+                        } catch (_) { /* ignore */ }
+                    }
+
+                    // choose the first candidate where bot can send messages
+                    if (candidates.length > 0) {
+                        const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                        for (const cand of candidates) {
+                            try {
+                                const perms = me ? (cand as any).permissionsFor(me) : null;
+                                if (!perms || perms.has('SendMessages')) {
+                                    finalTextChannelId = cand.id;
+                                    console.log(`[internal/join] fallback selected text channel: ${cand.name} (${cand.id}) for voice ${voiceChannelId}`);
+                                    break;
+                                }
+                            } catch (e) { continue; }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[internal/join] fallback selection error:', e);
+            }
+        }
         // Do NOT fall back to system/general/first channels here.
         // If finalTextChannelId is still not set, leave it null and do not attempt to auto-select.
 
@@ -575,6 +659,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         let tc: any = null;
         if (finalTextChannelId) {
             try {
+                console.log(`[internal/join] attempting to fetch text channel id=${finalTextChannelId} for guild=${guildId}`);
                 tc = guild.channels.cache.get(finalTextChannelId) as any;
                 if (!tc) tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 if (tc && tc.type === 0) {
