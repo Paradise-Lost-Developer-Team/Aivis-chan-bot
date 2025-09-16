@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, ActivityType, MessageFlags, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { deployCommands } from "./utils/deploy-commands";
+// deployCommands intentionally disabled for follower bots (commands are removed)
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
@@ -17,7 +17,8 @@ import express from 'express';
 import axios from 'axios';
 const FOLLOW_PRIMARY = process.env.FOLLOW_PRIMARY === 'true';
 const PRIMARY_URL = process.env.PRIMARY_URL || 'http://aivis-chan-bot-1st:3002';
-const ALLOW_COMMANDS = process.env.ALLOW_COMMANDS === 'true';
+// Commands are disabled for follower instances per operator request
+const ALLOW_COMMANDS = false;
 
 async function syncSettingsFromPrimary() {
     if (!FOLLOW_PRIMARY) return;
@@ -186,13 +187,8 @@ client.once("ready", async () => {
             }
         }, 30 * 60 * 1000); // 30分
 
-        // コマンドは1台目のみ: デプロイとハンドリングを制御
-        if (ALLOW_COMMANDS) {
-            await deployCommands(client);
-            console.log("コマンドのデプロイ完了(許可有り)");
-        } else {
-            console.log("コマンド機能は無効化(ALLOW_COMMANDS=false)");
-        }
+        // コマンドはフォロワーBotでは無効化されています（6thはコマンドを使いません）
+        console.log("コマンド機能は無効化: このインスタンスはコマンドを持ちません");
 
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
