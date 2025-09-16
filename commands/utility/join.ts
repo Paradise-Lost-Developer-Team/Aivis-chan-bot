@@ -50,15 +50,22 @@ module.exports = {
         }
 
     if (!textChannel) {
-            // Only accept the current channel if it's a guild text channel and the bot can send messages there.
-            // Do NOT perform broad automatic searches by name or the first viewable channel.
-            const currentChannel = interaction.channel;
+            // Accept the current channel if it's any text-based channel (text channels, threads, news, etc.)
+            // This is more flexible than only allowing ChannelType.GuildText and handles thread contexts.
+            const currentChannel = interaction.channel as any;
             const clientUser = interaction.client.user!;
-            if (currentChannel && currentChannel.type === ChannelType.GuildText) {
-                const canSend = (currentChannel as TextChannel).permissionsFor(clientUser)?.has('SendMessages');
-                if (canSend) {
-                    textChannel = currentChannel as TextChannel;
+            try {
+                const isTextBased = typeof currentChannel?.isTextBased === 'function' ? currentChannel.isTextBased() : (currentChannel && currentChannel.type === ChannelType.GuildText);
+                if (currentChannel && isTextBased) {
+                    const perms = (currentChannel as any).permissionsFor ? (currentChannel as any).permissionsFor(clientUser) : null;
+                    const canSend = perms ? perms.has && perms.has('SendMessages') : false;
+                    if (canSend) {
+                        // cast to any to allow threads/news channels as well
+                        textChannel = currentChannel as any;
+                    }
                 }
+            } catch (e) {
+                // ignore permission-check errors and fall through to explicit require
             }
 
             // If still not found, require explicit specification from the user.
@@ -147,7 +154,9 @@ module.exports = {
         }
         // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
         try {
-            const execChannelId = (interaction.channel && interaction.channel.type === ChannelType.GuildText) ? interaction.channelId : textChannel.id;
+            // record the channel where the command was executed; accept any text-based channel (threads etc.)
+            const execIsText = (interaction.channel as any) && (typeof (interaction.channel as any).isTextBased === 'function' ? (interaction.channel as any).isTextBased() : ((interaction.channel as any).type === ChannelType.GuildText));
+            const execChannelId = execIsText ? interaction.channelId : textChannel.id;
             setJoinCommandChannel(guildId, execChannelId);
         } catch (e) {
             // fallback
