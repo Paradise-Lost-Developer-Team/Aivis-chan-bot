@@ -547,15 +547,48 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
-                    // フォールバック: 利用可能なテキストチャンネルを探す
-                    const fallbackChannel = guild.channels.cache.find(ch => 
-                        ch.type === 0 && 
-                        ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
-                    ) as any;
-                    if (fallbackChannel) {
-                        setTextChannelForGuildInMap(guildId, fallbackChannel);
-                        finalTextChannelId = fallbackChannel.id;
-                        console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
+                    // フォールバック: まずはボイスチャンネルのカテゴリ内のテキストチャンネル、次に同名チャンネルを探す
+                    try {
+                        const voiceChannelObj = guild.channels.cache.get(voiceChannelId) as any;
+                        const candidates: any[] = [];
+                        if (voiceChannelObj && voiceChannelObj.parentId) {
+                            for (const ch of guild.channels.cache.values()) {
+                                try {
+                                    if (ch.type === 0 && (ch as any).parentId === voiceChannelObj.parentId) candidates.push(ch);
+                                } catch (_) { continue; }
+                            }
+                        }
+                        if (candidates.length === 0 && voiceChannelObj) {
+                            const sameName = guild.channels.cache.find((c: any) => c.type === 0 && typeof c.name === 'string' && c.name.toLowerCase() === (voiceChannelObj.name || '').toLowerCase());
+                            if (sameName) candidates.push(sameName);
+                        }
+                        if (candidates.length > 0) {
+                            const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                            for (const cand of candidates) {
+                                try {
+                                    const perms = me ? (cand as any).permissionsFor(me) : null;
+                                    if (!perms || perms.has('SendMessages')) {
+                                        setTextChannelForGuildInMap(guildId, cand);
+                                        finalTextChannelId = cand.id;
+                                        console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${cand.name} (${cand.id}) を使用`);
+                                        break;
+                                    }
+                                } catch (e) { continue; }
+                            }
+                        } else {
+                            // 従来どおり汎用フォールバックも試す
+                            const fallbackChannel = guild.channels.cache.find(ch => 
+                                ch.type === 0 && 
+                                ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
+                            ) as any;
+                            if (fallbackChannel) {
+                                setTextChannelForGuildInMap(guildId, fallbackChannel);
+                                finalTextChannelId = fallbackChannel.id;
+                                console.log(`[internal/join] フォールバック(汎用)成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('[internal/join] fallback selection error:', e);
                     }
                 }
             } catch (error) {
