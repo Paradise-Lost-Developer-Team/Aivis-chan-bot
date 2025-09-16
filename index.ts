@@ -956,3 +956,108 @@ apiApp.get('/internal/guilds/:guildId/channels', async (req: Request, res: Respo
         return res.status(500).json({ error: 'channels-failed' });
     }
 });
+
+// テキストチャンネル決定API
+apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        const requestingChannelId = (req.query.requestingChannelId as string) || (req.query.requestChannelId as string) || null;
+        const voiceChannelId = (req.query.voiceChannelId as string) || null;
+        if (!guildId) return res.status(400).json({ error: 'guildId is required' });
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return res.status(404).json({ error: 'guild-not-found' });
+
+        let finalTextChannelId: string | null = null;
+        let reason = 'none';
+
+        // 1) Prefer the requesting channel (invocation channel)
+        if (requestingChannelId) {
+            try {
+                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                if (maybe && (maybe as any).type === 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    const perms = me ? (maybe as any).permissionsFor(me) : null;
+                    if (!perms || perms.has('SendMessages')) {
+                        finalTextChannelId = requestingChannelId;
+                        reason = 'requestingChannel';
+                    }
+                }
+            } catch (e) {
+                console.warn('[text-channel API:4th] requestingChannel check failed:', e);
+            }
+        }
+
+        // 2) Saved mapping from in-memory textChannels (TTS-Engine)
+        if (!finalTextChannelId) {
+            try {
+                const saved = (textChannels as any)[guildId];
+                if (saved && saved.id) {
+                    finalTextChannelId = saved.id;
+                    reason = 'saved-mapping';
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        // 3) autoJoinChannels / joinChannels from TTS-Engine
+        if (!finalTextChannelId) {
+            try {
+                const { autoJoinChannels, joinChannels } = await import('./utils/TTS-Engine');
+                const a = (autoJoinChannels as any)[guildId];
+                if (a && a.textChannelId) { finalTextChannelId = a.textChannelId; reason = 'autoJoin'; }
+                if (!finalTextChannelId) {
+                    const j = (joinChannels as any)[guildId];
+                    if (j && j.textChannelId) { finalTextChannelId = j.textChannelId; reason = 'joinChannels'; }
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        // 4) Voice-channel related fallbacks (same category or same-name text channel)
+        if (!finalTextChannelId && voiceChannelId) {
+            try {
+                const voiceChObj: any = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
+                const candidates: any[] = [];
+                if (voiceChObj && voiceChObj.parentId) {
+                    for (const ch of guild.channels.cache.values()) {
+                        try { if ((ch as any).type === 0 && (ch as any).parentId === voiceChObj.parentId) candidates.push(ch); } catch (_) { }
+                    }
+                }
+                if (candidates.length === 0 && voiceChObj && voiceChObj.name) {
+                    const name = (voiceChObj.name || '').toLowerCase();
+                    const same = guild.channels.cache.find((c: any) => c.type === 0 && ((c.name||'').toLowerCase() === name));
+                    if (same) candidates.push(same);
+                }
+                if (candidates.length > 0) {
+                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                    for (const cand of candidates) {
+                        try {
+                            const perms = me ? (cand as any).permissionsFor(me) : null;
+                            if (!perms || perms.has('SendMessages')) { finalTextChannelId = cand.id; reason = 'voice-related-fallback'; break; }
+                        } catch (_) { continue; }
+                    }
+                }
+            } catch (e) {
+                console.warn('[text-channel API:4th] voice-related fallback error:', e);
+            }
+        }
+
+        // 5) Return result
+        if (finalTextChannelId) {
+            try {
+                const tc = guild.channels.cache.get(finalTextChannelId) || await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                if (tc && (tc as any).type === 0) return res.json({ ok: true, textChannelId: finalTextChannelId, textChannelName: tc.name, reason });
+                return res.status(404).json({ error: 'text-channel-invalid', details: { finalTextChannelId, reason } });
+            } catch (e) {
+                return res.status(500).json({ error: 'channel-fetch-failed' });
+            }
+        }
+
+        return res.status(404).json({ error: 'no-text-channel-found' });
+    } catch (e) {
+        console.error('[text-channel API:4th] error:', e);
+        return res.status(500).json({ error: 'text-channel-failed' });
+    }
+});
