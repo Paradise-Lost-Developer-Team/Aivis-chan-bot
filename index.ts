@@ -400,11 +400,11 @@ apiApp.use(express.json());
 // インターナル: プライマリからのボイス設定更新通知を受け取る
 apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
     try {
-        console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown');
+        try { console.log('[VOICE_SETTINGS_REFRESH_RECEIVED] from=', req.body?.from || 'unknown', 'bodyKeys=', Object.keys(req.body || {})); } catch(e) { console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown'); }
         await syncSettingsFromPrimary();
         return res.json({ ok: true });
     } catch (e: any) {
-        console.warn('voice-settings-refresh handler error:', e?.message || e);
+        console.warn('voice-settings-refresh handler error:', String(e));
         return res.status(500).json({ error: 'refresh-failed' });
     }
 });
