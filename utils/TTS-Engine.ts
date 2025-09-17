@@ -1139,9 +1139,26 @@ function resolveGuildIdFromVoiceOrGuildId(id: string, client?: any): string | un
 }
 
 export function speakAnnounce(text: string, voiceOrGuildId: string, client?: any): Promise<void> {
-    const guildId = resolveGuildIdFromVoiceOrGuildId(voiceOrGuildId, client) ?? voiceOrGuildId;
+    const resolved = resolveGuildIdFromVoiceOrGuildId(voiceOrGuildId, client);
+    let guildId: string | undefined = resolved ?? undefined;
+    // If resolution failed, accept voiceOrGuildId only when it is clearly a guild id available in the provided client
+    if (!guildId) {
+        try {
+            if (client && client.guilds && client.guilds.cache && client.guilds.cache.has(voiceOrGuildId)) {
+                guildId = voiceOrGuildId;
+            }
+        } catch (e) {
+            // ignore and treat as unresolved
+        }
+    }
+
+    if (!guildId) {
+        console.warn(`[VC DEBUG] speakAnnounce: ギルドを解決できませんでした voiceOrGuildId=${voiceOrGuildId}`);
+        return Promise.resolve();
+    }
+
     const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId!, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理

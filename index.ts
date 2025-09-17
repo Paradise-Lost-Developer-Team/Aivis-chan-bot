@@ -619,7 +619,8 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         (async () => {
             try {
                 const { speakAnnounce } = await import('./utils/TTS-Engine');
-                await speakAnnounce('接続しました', voiceChannelId, client);
+                // 明示的に guildId を渡すことで、TTS 側がギルド解決を誤解しないようにする
+                await speakAnnounce('接続しました', guildId, client);
                 console.log(`[internal/join] (async) 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
             } catch (voiceAnnounceError) {
                 console.error(`[internal/join] (async) 音声アナウンスエラー: ギルド ${guildId} チャンネル ${voiceChannelId}:`, voiceAnnounceError);
