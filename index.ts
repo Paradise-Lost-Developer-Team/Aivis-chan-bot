@@ -658,6 +658,13 @@ apiApp.get('/internal/info', async (req: Request, res: Response) => {
 apiApp.get('/internal/voice-settings', async (req: Request, res: Response) => {
     try {
         const { voiceSettings } = await import('./utils/TTS-Engine');
+        try {
+            // 安全に先頭部分だけをログ出力して確認できるようにする
+            const preview = JSON.stringify(voiceSettings).slice(0, 2000);
+            console.log('[VOICE_SETTINGS_DUMP] keys=', Object.keys(voiceSettings || {}).length, 'preview=', preview);
+        } catch (e) {
+            console.warn('[VOICE_SETTINGS_DUMP] failed to stringify voiceSettings:', String(e));
+        }
         return res.json({ voiceSettings });
     } catch (e) {
         console.error('voice-settings error:', e);
