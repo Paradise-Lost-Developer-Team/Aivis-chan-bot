@@ -1077,20 +1077,72 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     return connection;
 }
 async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
-    let vc = voiceClients[guildId];
-    // VoiceConnectionがない or Readyでなければ再接続
-    if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsやjoinChannelsから取得
+    // Try to resolve existing VoiceConnection by multiple strategies
+    let vc: VoiceConnection | undefined = undefined;
+
+    // 1) direct guildId-keyed entry in voiceClients
+    try { vc = (voiceClients as any)[guildId]; } catch (e) { vc = undefined; }
+
+    // 2) if not found, try to find any entry whose joinConfig.guildId matches
+    if (!vc) {
+        try {
+            for (const k of Object.keys(voiceClients)) {
+                const cand = (voiceClients as any)[k] as VoiceConnection | undefined;
+                if (!cand) continue;
+                try {
+                    if ((cand.joinConfig as any)?.guildId === guildId) { vc = cand; break; }
+                } catch (_) { continue; }
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    // 3) if we found a connection that is destroyed, ignore it
+    if (vc && vc.state && vc.state.status === VoiceConnectionStatus.Destroyed) vc = undefined;
+
+    // If we have an existing connection but it's not Ready, wait briefly for it to reach Ready
+    if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
+        try {
+            console.log(`[VC DEBUG] waiting for existing VoiceConnection to become Ready: guild=${guildId} status=${vc.state.status}`);
+            await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
+            console.log(`[VC DEBUG] existing VoiceConnection became Ready: guild=${guildId} status=${vc.state.status}`);
+        } catch (e) {
+            console.warn(`[VC DEBUG] existing VoiceConnection did not become Ready: guild=${guildId} status=${vc.state.status} error=${e}`);
+            // If it didn't become ready, treat as missing and continue to attempt a fresh connect below
+            try { if (vc) vc.destroy(); } catch (_) {}
+            vc = undefined;
+        }
+    }
+
+    // If still no connection, try to obtain voiceChannelId from autoJoin/joinChannels or from any voiceClients entry
+    if (!vc) {
+        // prefer persisted settings
         const auto = autoJoinChannels[guildId];
         const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
-        const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+        let voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+
+        // fallback: inspect voiceClients entries for a joinConfig.channelId
+        if (!voiceChannelId) {
+            try {
+                for (const k of Object.keys(voiceClients)) {
+                    const cand = (voiceClients as any)[k] as VoiceConnection | undefined;
+                    if (!cand) continue;
+                    try {
+                        const cid = (cand.joinConfig as any)?.channelId;
+                        const gid = (cand.joinConfig as any)?.guildId;
+                        if (cid && gid === guildId) { voiceChannelId = cid; break; }
+                    } catch (_) { continue; }
+                }
+            } catch (e) { /* ignore */ }
+        }
+
         const guild = client?.guilds?.cache?.get(guildId);
         let voiceChannel = null;
         if (guild && voiceChannelId) {
             voiceChannel = guild.channels.cache.get(voiceChannelId);
         }
+
         if (voiceChannel) {
-            console.log(`[VC DEBUG] ensureVoiceConnection: guildId=${guildId}, channelId=${voiceChannelId}`);
+            console.log(`[VC DEBUG] ensureVoiceConnection (fresh): guildId=${guildId}, channelId=${voiceChannelId}`);
             vc = ensureVoiceConnection(guildId, voiceChannel);
             try {
                 console.log(`[VC DEBUG] entersState before: status=${vc.state.status}`);
@@ -1101,8 +1153,33 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
                 return;
             }
         } else {
-            console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${voiceChannelId}, guild=${!!guild}`);
-            return;
+            // Try one last strategy: if any voiceClients entry exists for this guild, derive the channelId from it
+            try {
+                for (const k of Object.keys(voiceClients)) {
+                    const cand = (voiceClients as any)[k] as VoiceConnection | undefined;
+                    if (!cand) continue;
+                    try {
+                        const cid = (cand.joinConfig as any)?.channelId;
+                        const gid = (cand.joinConfig as any)?.guildId;
+                        if (cid && gid === guildId) {
+                            console.log(`[VC DEBUG] derived voiceChannelId from existing voiceClients entry: ${cid} (guild=${gid})`);
+                            // Try to fetch channel object if possible
+                            const g = client?.guilds?.cache?.get(guildId);
+                            const ch = g ? g.channels.cache.get(cid) : null;
+                            if (ch) {
+                                vc = ensureVoiceConnection(guildId, ch);
+                                try { await entersState(vc, VoiceConnectionStatus.Ready, 10_000); } catch (e) { console.warn('derived ensureVoiceConnection failed', e); return; }
+                            }
+                            break;
+                        }
+                    } catch (_) { continue; }
+                }
+            } catch (e) { /* ignore */ }
+
+            if (!vc) {
+                console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${voiceChannelId}, guild=${!!guild}`);
+                return;
+            }
         }
     }
     // AudioPlayerを新規作成し、必ずsubscribe
