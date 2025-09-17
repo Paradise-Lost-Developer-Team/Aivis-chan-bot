@@ -44,10 +44,13 @@ async function syncSettingsFromPrimary() {
             const voiceSettingsUrl = `${PRIMARY_URL.replace(/\/$/, '')}/internal/voice-settings`;
             const { data: voiceData } = await axios.get(voiceSettingsUrl, { timeout: 7000 });
             const vd: any = voiceData as any;
+            try { console.log('[SYNC_VOICE_DATA_FROM_PRIMARY] fetched keys=', Object.keys(vd || {}).slice(0,50)); } catch(e) { console.warn('[SYNC_VOICE_DATA_FROM_PRIMARY] inspect failed'); }
             if (vd && vd.voiceSettings) {
                 const { voiceSettings } = await import('./utils/TTS-Engine');
                 Object.assign(voiceSettings, vd.voiceSettings);
-                console.log('Primaryボイス設定を同期しました');
+                console.log('Primaryボイス設定を同期しました (merged keys=', Object.keys(vd.voiceSettings || {}).length, ')');
+            } else {
+                console.log('[SYNC_VOICE_DATA_FROM_PRIMARY] no vd.voiceSettings found in response');
             }
         } catch (e) {
             console.warn('Primaryボイス設定の同期に失敗:', e);
@@ -400,11 +403,11 @@ apiApp.use(express.json());
 // インターナル: プライマリからのボイス設定更新通知を受け取る
 apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
     try {
-        console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown');
+        try { console.log('[VOICE_SETTINGS_REFRESH_RECEIVED] from=', req.body?.from || 'unknown', 'bodyKeys=', Object.keys(req.body || {})); } catch(e) { console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown'); }
         await syncSettingsFromPrimary();
         return res.json({ ok: true });
     } catch (e: any) {
-        console.warn('voice-settings-refresh handler error:', e?.message || e);
+            console.warn('voice-settings-refresh handler error:', String(e));
         return res.status(500).json({ error: 'refresh-failed' });
     }
 });
