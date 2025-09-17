@@ -472,10 +472,14 @@ import { saveVoiceState, getTextChannelForGuild } from './utils/voiceStateManage
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
+        // Debug: dump incoming payload for runtime troubleshooting
+        try { console.log(`[internal/join] received payload: guildId=${guildId} voiceChannelId=${voiceChannelId} textChannelId=${textChannelId} requestingChannelId=${requestingChannelId}`); } catch (e) {}
         if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
         const guild = client.guilds.cache.get(guildId);
+        try { console.log(`[internal/join] guild resolved from cache: ${!!guild} for guildId=${guildId}`); } catch (e) {}
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
         const voiceChannel = guild.channels.cache.get(voiceChannelId) as any;
+        try { console.log(`[internal/join] voiceChannel resolved from cache: ${!!voiceChannel} for voiceChannelId=${voiceChannelId} (type=${voiceChannel?.type})`); } catch (e) {}
         if (!voiceChannel || voiceChannel.type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
 
         // テキストチャンネルの決定ロジックを改善
@@ -600,9 +604,15 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         // 既存のvoiceClientsをvoiceChannelIdで管理
         const prev = getVoiceConnection(voiceChannelId);
-    if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+        if (prev) {
+            try { prev.destroy(); } catch {}
+            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+            try { delete (voiceClients as any)[guildId]; } catch {}
+        }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-        voiceClients[voiceChannelId] = connection;
+        // store under both keys for compatibility with TTS-Engine lookup (voiceChannelId and guildId)
+        try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
+        try { (voiceClients as any)[guildId] = connection; } catch {}
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
 
         // 即時応答してアナウンスは非同期で実行
@@ -620,6 +630,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             try {
                 const { speakAnnounce } = await import('./utils/TTS-Engine');
                 // 明示的に guildId を渡すことで、TTS 側がギルド解決を誤解しないようにする
+                try { console.log(`[internal/join] (async) about to call speakAnnounce: guildId=${guildId} voiceChannelId=${voiceChannelId} finalTextChannelId=${finalTextChannelId}`); } catch (e) {}
                 await speakAnnounce('接続しました', guildId, client);
                 console.log(`[internal/join] (async) 音声アナウンス再生完了: ギルド ${guildId} チャンネル ${voiceChannelId}`);
             } catch (voiceAnnounceError) {
