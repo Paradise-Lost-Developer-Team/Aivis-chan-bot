@@ -105,6 +105,7 @@ jobs:
           /usr/local/bin/buildctl build \
             --frontend dockerfile.v0 \
             --local context=. \
-            --local dockerfile=./Dockerfile.bot-stats-server \
+            --local dockerfile=. \
+            --opt filename=Dockerfile.bot-stats-server \
             --output type=image,name=${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}:latest,push=true \
             --output type=image,name=${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }},push=true
