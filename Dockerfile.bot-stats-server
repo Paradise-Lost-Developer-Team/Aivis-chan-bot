@@ -14,3 +14,5 @@ COPY bot-stats-server.js ./bot-stats-server.js
 ENV PORT=3001
 EXPOSE 3001
 CMD ["node", "bot-stats-server.js"]
+
+# Note: data/config.json is mounted at runtime via Kubernetes ConfigMap
