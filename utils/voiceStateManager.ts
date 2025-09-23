@@ -3,6 +3,10 @@ import * as path from 'path';
 import { Client, VoiceChannel, ChannelType, TextChannel } from 'discord.js';
 import { monitorMemoryUsage } from './TTS-Engine';
 import { instructJoin, getBotInfos, pickLeastBusyBot, pickPrimaryPreferredBot } from './botOrchestrator';
+// 追加: HTTP同期用の設定（Node18+ の global fetch を前提、必要なら polyfill を入れる）
+const SYNC_VOICE_STATE_HTTP = process.env.SYNC_VOICE_STATE_HTTP === 'true';
+const FETCH_VOICE_STATE_HTTP = process.env.FETCH_VOICE_STATE_HTTP === 'true';
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || ''; // 任意の認証トークン
 
 // プロジェクトルートディレクトリへのパスを取得する関数
 function getProjectRoot(): string {
@@ -65,14 +69,14 @@ export const saveVoiceState = (client: Client | null): void => {
   ensureDataDirExists();
   const voiceState: VoiceStateData = {};
   const existingState = loadVoiceState();
-    if (client) {
+  if (client) {
     client.guilds.cache.forEach(guild => {
       const me = guild.members.cache.get(client.user?.id || '');
       if (me && me.voice.channel) {
         const textChannelId = existingState[guild.id]?.textChannelId || getTextChannelForGuild(guild.id);
         voiceState[guild.id] = {
           channelId: me.voice.channel.id,
-          ...(textChannelId ? { textChannelId } : {}) // undefined/nullなら保存しない
+          ...(textChannelId ? { textChannelId } : {})
         };
       }
     });
@@ -97,6 +101,16 @@ export const saveVoiceState = (client: Client | null): void => {
   try {
     fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(voiceState, null, 2));
     console.log(`ボイス接続状態を保存しました: ${VOICE_STATE_PATH}`);
+    // 追加: HTTPで他Botへ配信（有効なら）
+    if (SYNC_VOICE_STATE_HTTP) {
+      (async () => {
+        try {
+          await postVoiceStateToPeers(voiceState);
+        } catch (e) {
+          console.error('voice_state の HTTP 配信に失敗しました:', e);
+        }
+      })();
+    }
   } catch (error) {
     console.error(`ボイス接続状態の保存に失敗しました: ${error}`);
   }
@@ -112,15 +126,22 @@ export const loadVoiceState = (): VoiceStateData => {
       Object.keys(parsedData).forEach(guildId => {
         const textChannelId = parsedData[guildId].textChannelId;
         if (textChannelId) {
-          // load 中に setTextChannelForGuild を呼ぶと saveVoiceState -> loadVoiceState の再帰が発生する
-          // ここでは直接グローバルマップを設定し、副作用（保存）は行わない
           guildTextChannels[guildId] = textChannelId;
         } else {
-          // 未指定ならグローバルマップから直接削除
           if (guildTextChannels[guildId]) delete guildTextChannels[guildId];
         }
       });
       return parsedData;
+    } else {
+      // ファイルがない場合、HTTPでプライマリ（1st）から取得するオプション
+      if (FETCH_VOICE_STATE_HTTP) {
+        try {
+          const fetched = fetchVoiceStateFromPrimarySync();
+          if (fetched) return fetched;
+        } catch (e) {
+          console.warn('HTTP からの voice_state 取得に失敗:', e);
+        }
+      }
     }
   } catch (error) {
     console.error('ボイス状態の読み込みエラー:', error);
@@ -203,3 +224,75 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
   // メモリ使用状況をチェック（任意）
   try { monitorMemoryUsage(); } catch {}
 };
+
+// 追加ヘルパー: 他Botへ POST で voice_state を配信
+async function postVoiceStateToPeers(state: VoiceStateData): Promise<void> {
+  try {
+    const infos = await getBotInfos();
+    // 自身(1st)以外の bot に配信
+    const peers = infos.filter(i => i.bot && i.bot.baseUrl && i.bot.name !== process.env.BOT_NAME);
+    await Promise.all(peers.map(async p => {
+      const url = `${p.bot.baseUrl.replace(/\/$/, '')}/internal/voice_state`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(INTERNAL_API_KEY ? { 'x-internal-api-key': INTERNAL_API_KEY } : {})
+          },
+          body: JSON.stringify({ voiceState: state })
+        });
+        if (!res.ok) {
+          console.warn(`POST ${url} failed: ${res.status}`);
+        }
+      } catch (e) {
+        console.warn(`POST ${url} error:`, e);
+      }
+    }));
+  } catch (e) {
+    console.error('postVoiceStateToPeers エラー:', e);
+  }
+}
+
+// 追加ヘルパー: プライマリ（1st）から voice_state を取得（同期呼び出し用）
+function fetchVoiceStateFromPrimarySync(): VoiceStateData | null {
+  // 非同期 fetch を簡易扱い（起動時の短時間同期取得を想定）
+  // 注意: 実運用では async/await に統一して呼び出し側を修正することを推奨
+  try {
+    const infosPromise = getBotInfos();
+    // getBotInfos は非同期のため同期的に扱うためにブロッキングは避けられないが、ここでは簡易にPromiseを解決する
+    // 実装環境によってはこの関数を async にして loadVoiceState 呼び出し側も async に変更してください
+    let result: VoiceStateData | null = null;
+    infosPromise.then(async infos => {
+      const primary = pickPrimaryPreferredBot(infos.filter(i => i.ok), ['1st', '2nd', '3rd']);
+      if (!primary || !primary.bot?.baseUrl) return;
+      const url = `${primary.bot.baseUrl.replace(/\/$/, '')}/internal/voice_state`;
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            ...(INTERNAL_API_KEY ? { 'x-internal-api-key': INTERNAL_API_KEY } : {})
+          }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.voiceState) {
+            result = json.voiceState as VoiceStateData;
+            // ファイル化しておく
+            try { fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(result, null, 2)); } catch {}
+            // グローバルマップ設定
+            Object.keys(result).forEach(gid => {
+              if (result![gid].textChannelId) guildTextChannels[gid] = result![gid].textChannelId!;
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('primary fetch error:', e);
+      }
+    }).catch(e => console.warn('getBotInfos error:', e));
+    return result;
+  } catch (e) {
+    console.error('fetchVoiceStateFromPrimarySync error:', e);
+    return null;
+  }
+}
