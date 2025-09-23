@@ -5,6 +5,11 @@ import { monitorMemoryUsage } from './TTS-Engine';
 import { instructJoin, getBotInfos, pickLeastBusyBot, pickPrimaryPreferredBot } from './botOrchestrator';
 import { getGuildTier } from './patreonIntegration';
 
+// 追加: HTTP同期用の設定（Node18+ の global fetch を前提、必要なら polyfill を入れる）
+const SYNC_VOICE_STATE_HTTP = process.env.SYNC_VOICE_STATE_HTTP === 'true';
+const FETCH_VOICE_STATE_HTTP = process.env.FETCH_VOICE_STATE_HTTP === 'true';
+const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || ''; // 任意の認証トークン
+
 // プロジェクトルートディレクトリへのパスを取得する関数
 function getProjectRoot(): string {
     const currentDir = __dirname;
@@ -98,6 +103,17 @@ export const saveVoiceState = (client: Client | null): void => {
   try {
     fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(voiceState, null, 2));
     console.log(`ボイス接続状態を保存しました: ${VOICE_STATE_PATH}`);
+
+    // 追加: HTTPで他Botへ配信（有効なら）
+    if (SYNC_VOICE_STATE_HTTP) {
+      (async () => {
+        try {
+          await postVoiceStateToPeers(voiceState);
+        } catch (e) {
+          console.error('voice_state の HTTP 配信に失敗しました:', e);
+        }
+      })();
+    }
   } catch (error) {
     console.error(`ボイス接続状態の保存に失敗しました: ${error}`);
   }
@@ -122,6 +138,16 @@ export const loadVoiceState = (): VoiceStateData => {
           }
       });
       return parsedData;
+    } else {
+      // ファイルがない場合、HTTPでプライマリ（1st）から取得するオプション
+      if (FETCH_VOICE_STATE_HTTP) {
+        try {
+          const fetched = fetchVoiceStateFromPrimarySync();
+          if (fetched) return fetched;
+        } catch (e) {
+          console.warn('HTTP からの voice_state 取得に失敗:', e);
+        }
+      }
     }
   } catch (error) {
     console.error('ボイス状態の読み込みエラー:', error);
@@ -217,3 +243,70 @@ export const reconnectToVoiceChannels = async (client: Client): Promise<void> =>
   // メモリ使用状況をチェック（任意）
   try { monitorMemoryUsage(); } catch {}
 };
+
+// 追加ヘルパー: 他Botへ POST で voice_state を配信
+async function postVoiceStateToPeers(state: VoiceStateData): Promise<void> {
+  try {
+    const infos = await getBotInfos();
+    // 自身以外の bot に配信
+    const peers = infos.filter(i => i.bot && i.bot.baseUrl && i.bot.name !== process.env.BOT_NAME);
+    await Promise.all(peers.map(async p => {
+      const url = `${p.bot.baseUrl.replace(/\/$/, '')}/internal/voice_state`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(INTERNAL_API_KEY ? { 'x-internal-api-key': INTERNAL_API_KEY } : {})
+          },
+          body: JSON.stringify({ voiceState: state })
+        });
+        if (!res.ok) {
+          console.warn(`POST ${url} failed: ${res.status}`);
+        }
+      } catch (e) {
+        console.warn(`POST ${url} error:`, e);
+      }
+    }));
+  } catch (e) {
+    console.error('postVoiceStateToPeers エラー:', e);
+  }
+}
+
+// 追加ヘルパー: プライマリ（1st）から voice_state を取得（同期呼び出し用）
+// 注意: 実運用では async 化して呼び出し側も調整することを推奨
+function fetchVoiceStateFromPrimarySync(): VoiceStateData | null {
+  try {
+    let result: VoiceStateData | null = null;
+    // 非同期処理だが起動同期の短時間取得を試みる実装（簡易版）
+    getBotInfos().then(async infos => {
+      const primary = pickPrimaryPreferredBot(infos.filter(i => i.ok), ['1st', '2nd', '3rd']);
+      if (!primary || !primary.bot?.baseUrl) return;
+      const url = `${primary.bot.baseUrl.replace(/\/$/, '')}/internal/voice_state`;
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            ...(INTERNAL_API_KEY ? { 'x-internal-api-key': INTERNAL_API_KEY } : {})
+          }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.voiceState) {
+            result = json.voiceState as VoiceStateData;
+            try { fs.writeFileSync(VOICE_STATE_PATH, JSON.stringify(result, null, 2)); } catch {}
+            Object.keys(result).forEach(gid => {
+              if (result![gid].textChannelId) guildTextChannels[gid] = result![gid].textChannelId!;
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('primary fetch error:', e);
+      }
+    }).catch(e => console.warn('getBotInfos error:', e));
+    return result;
+  } catch (e) {
+    console.error('fetchVoiceStateFromPrimarySync error:', e);
+    return null;
+  }
+}
