@@ -663,7 +663,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 tc = guild.channels.cache.get(finalTextChannelId) as any;
                 if (!tc) tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 if (tc && tc.type === 0) {
-                    try { setTextChannelForGuildInMap(guildId, tc as any); } catch (_) { /* ignore */ }
+                    try { setTextChannelForGuildInMap(guildId, tc as any, false); } catch (_) { /* ignore */ }
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);

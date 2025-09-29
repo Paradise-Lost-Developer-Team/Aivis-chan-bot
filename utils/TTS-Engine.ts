@@ -124,9 +124,17 @@ export function getTextChannelFromMapByGuild(guildId: string): TextChannel | und
     return undefined;
 }
 
-export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel): void {
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel | null | undefined, persist: boolean = true): void {
     try {
-        try { (textChannels as any)[guildId] = channel; } catch (_) { /* ignore */ }
+        if (!channel) {
+            try { delete (textChannels as any)[guildId]; } catch (_) {}
+            return;
+        }
+        if (persist) {
+            try { (textChannels as any)[guildId] = channel; } catch (_) { /* ignore */ }
+        } else {
+            try { (textChannels as any)[(channel as any).id] = channel; } catch (_) { /* ignore */ }
+        }
     } catch (e) {
         console.warn('setTextChannelForGuildInMap error:', e);
     }
@@ -1353,9 +1361,36 @@ export function deleteJoinChannelsConfig(guildId: string) {
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
-  // 保存されたテキストチャンネルIDを優先
-    const savedTextChannelId = getTextChannelForGuild(guildId);
-    return savedTextChannelId || defaultChannelId;
+    // 保存されたテキストチャンネルIDを優先
+        const savedTextChannelId = getTextChannelForGuild(guildId);
+        if (savedTextChannelId) return savedTextChannelId;
+
+        // 安易に "最初に見つかった" チャンネルを既定として使わない。
+        // defaultChannelId を返すのは明示的または厳格に一致する場合のみ。
+        if (!defaultChannelId) return undefined;
+
+        // joinコマンドが実行されたチャンネルなら許可
+        const joinCmd = getJoinCommandChannel(guildId);
+        if (joinCmd && joinCmd === defaultChannelId) return defaultChannelId;
+
+        // 自動参加設定でこのチャンネルが設定されている場合は許可
+        try {
+                const autoJoin = getAutoJoinChannelForGuild(guildId);
+                if (autoJoin && autoJoin.textChannelId === defaultChannelId) return defaultChannelId;
+        } catch (e) {
+                // getAutoJoinChannelForGuild が存在しない実装もあるため安全に無視
+        }
+
+        // カテゴリや名前の厳密一致 (既存の addTextChannelsForGuildInMap 等と整合)
+        const candidates = textChannels[guildId];
+        if (candidates && candidates[defaultChannelId]) {
+                const cand = candidates[defaultChannelId];
+                // Voice->Text の候補として既に紐付いている場合のみ許可
+                if (cand && cand.source === 'mapped') return defaultChannelId;
+        }
+
+        // 上記どれにも当てはまらない場合は自動選択を避ける
+        return undefined;
 }
 
 /**
