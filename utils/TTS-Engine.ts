@@ -104,9 +104,17 @@ export function getTextChannelFromMapByGuild(guildId: string): TextChannel | und
     return undefined;
 }
 
-export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel): void {
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel | null | undefined, persist: boolean = true): void {
     try {
-        try { (textChannels as any)[guildId] = channel; } catch (_) { }
+        if (!channel) {
+            try { delete (textChannels as any)[guildId]; } catch (_) {}
+            return;
+        }
+        if (persist) {
+            try { (textChannels as any)[guildId] = channel; } catch (_) { }
+        } else {
+            try { (textChannels as any)[(channel as any).id] = channel; } catch (_) { }
+        }
     } catch (e) { console.warn('setTextChannelForGuildInMap error:', e); }
 }
 
@@ -1281,23 +1289,44 @@ async function getTextChannelForGuild(guildId: string): Promise<string | undefin
 
 export async function determineMessageTargetChannel(guildId: string, defaultChannelId?: string): Promise<string | undefined> {
     // 1) ローカルの textChannels マップ（guildIdキー優先）を確認
-        try {
-                normalizeTextChannelsMap();
-                const local = getTextChannelFromMapByGuild(guildId);
-                if (local) {
-                        // TextChannel オブジェクトの場合は id を返す
-                        try { const id = (local as any).id; if (id) return id; } catch (_) { /* ignore */ }
-                }
-        } catch (e) { /* ignore */ }
+    try {
+        normalizeTextChannelsMap();
+        const local = getTextChannelFromMapByGuild(guildId);
+        if (local) {
+            // TextChannel オブジェクトの場合は id を返す
+            try { const id = (local as any).id; if (id) return id; } catch (_) { /* ignore */ }
+        }
+    } catch (e) { /* ignore */ }
 
-        // 2) 1台目ボットのAPIからの保存値を参照
-        try {
-                const savedTextChannelId = await getTextChannelForGuild(guildId);
-                if (savedTextChannelId) return savedTextChannelId;
-        } catch (e) { /* ignore */ }
+    // 2) 1台目ボットのAPIからの保存値を参照
+    try {
+        const savedTextChannelId = await getTextChannelForGuild(guildId);
+        if (savedTextChannelId) return savedTextChannelId;
+    } catch (e) { /* ignore */ }
 
-        // 3) デフォルトを返す
-        return defaultChannelId;
+    // 3) defaultChannelId は厳格条件を満たす場合のみ許可する
+    if (!defaultChannelId) return undefined;
+
+    // joinコマンドが実行されたチャンネルなら許可
+    const joinCmd = getJoinCommandChannel(guildId);
+    if (joinCmd && joinCmd === defaultChannelId) return defaultChannelId;
+
+    // join_channels.json に設定済みであれば許可
+    try {
+        if ((joinChannels as any)[guildId] && (joinChannels as any)[guildId].textChannelId === defaultChannelId) return defaultChannelId;
+    } catch (e) { /* ignore */ }
+
+    // textChannels マップに 'mapped' として登録されている候補なら許可
+    try {
+        const candidates = (textChannels as any)[guildId];
+        if (candidates && (candidates as any)[defaultChannelId]) {
+            const cand = (candidates as any)[defaultChannelId];
+            if (cand && cand.source === 'mapped') return defaultChannelId;
+        }
+    } catch (e) { /* ignore */ }
+
+    // どれにも当てはまらない場合は自動選択を避ける
+    return undefined;
 }
 
 /**

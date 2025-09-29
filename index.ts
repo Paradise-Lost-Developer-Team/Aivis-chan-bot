@@ -556,7 +556,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                         const perms = (cand as any).permissionsFor ? (cand as any).permissionsFor(botMember) : null;
                         if (perms && perms.has && perms.has('SendMessages')) {
                             finalTextChannelId = cand.id;
-                            try { setTextChannelForGuildInMap(guildId, cand); } catch { try { (textChannels as any)[voiceChannelId] = cand; } catch {} }
+                            try { setTextChannelForGuildInMap(guildId, cand, false); } catch { try { (textChannels as any)[voiceChannelId] = cand; } catch {} }
                             console.log(`[internal/join:2nd] フォールバックでテキストチャンネルを選択しました: ${cand.name} (${cand.id}) for voice ${voiceChannelId}`);
                             break;
                         }
@@ -575,7 +575,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 let tc = guild.channels.cache.get(finalTextChannelId) as any;
                 if (!tc) tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 if (tc && tc.type === 0) {
-                    try { setTextChannelForGuildInMap(guildId, tc); } catch { try { (textChannels as any)[voiceChannelId] = tc; } catch {} }
+                    try { setTextChannelForGuildInMap(guildId, tc, false); } catch { try { (textChannels as any)[voiceChannelId] = tc; } catch {} }
                     console.log(`[internal/join:2nd] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:2nd] 指定または保存されたテキストチャンネルは利用不可です: ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
