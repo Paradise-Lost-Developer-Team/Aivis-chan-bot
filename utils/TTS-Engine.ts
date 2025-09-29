@@ -13,6 +13,7 @@ import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
+import type { TTSEngineExports } from './tts-engine-types';
 // config.jsonを使う
 
 export const TTS_BASE_URL = process.env.TTS_SERVICE_URL || config.speechEngineUrl;
@@ -1789,3 +1790,16 @@ process.on('SIGTERM', () => {
         process.exit(0);
     }
 });
+
+// Canonical typed export for other modules to import safely
+export const ttsEngine: TTSEngineExports = {
+    voiceSettings,
+    saveUserVoiceSettings: typeof saveUserVoiceSettings === 'function' ? saveUserVoiceSettings : undefined,
+    loadUserVoiceSettings: typeof loadUserVoiceSettings === 'function' ? loadUserVoiceSettings : undefined,
+    setTextChannelForGuildInMap: typeof setTextChannelForGuildInMap === 'function' ? setTextChannelForGuildInMap : undefined,
+    addTextChannelsForGuildInMap: typeof addTextChannelsForGuildInMap === 'function' ? addTextChannelsForGuildInMap : undefined,
+    removeTextChannelForGuildInMap: typeof removeTextChannelForGuildInMap === 'function' ? removeTextChannelForGuildInMap : undefined,
+    textChannels,
+    voiceClients,
+    autoJoinChannels,
+};
