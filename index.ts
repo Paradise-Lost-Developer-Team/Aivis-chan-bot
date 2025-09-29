@@ -547,7 +547,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 }
                 if (tc && tc.type === 0) {
-                    setTextChannelForGuildInMap(guildId, tc);
+                    setTextChannelForGuildInMap(guildId, tc, false);
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -572,7 +572,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                                 try {
                                     const perms = me ? (cand as any).permissionsFor(me) : null;
                                     if (!perms || perms.has('SendMessages')) {
-                                        setTextChannelForGuildInMap(guildId, cand);
+                                        setTextChannelForGuildInMap(guildId, cand, false);
                                         finalTextChannelId = cand.id;
                                         console.log(`[internal/join] フォールバック成功: ギルド ${guildId} チャンネル ${cand.name} (${cand.id}) を使用`);
                                         break;
@@ -586,7 +586,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                                 ch.permissionsFor(guild.members.me!)?.has(['ViewChannel', 'SendMessages'])
                             ) as any;
                             if (fallbackChannel) {
-                                setTextChannelForGuildInMap(guildId, fallbackChannel);
+                                setTextChannelForGuildInMap(guildId, fallbackChannel, false);
                                 finalTextChannelId = fallbackChannel.id;
                                 console.log(`[internal/join] フォールバック(汎用)成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                             }
