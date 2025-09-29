@@ -11,6 +11,7 @@ import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
+import type { TTSEngineExports } from './tts-engine-types';
 
 export const TTS_BASE_URL = process.env.TTS_SERVICE_URL || config.speechEngineUrl;
 const TTS_TIMEOUT = config.TTS_TIMEOUT || 15000; // 15秒
@@ -295,6 +296,33 @@ export const voiceSettings: { [key: string]: any } = {
     tempo: {},
     speaker: {} // 追加: ユーザーごとの話者ID
 };
+
+// Persist helpers (ensure existence in this module for uniform API)
+export function saveUserVoiceSettings() {
+    try {
+        const USER_VOICE_SETTINGS_FILE = path.join(getProjectRoot(), 'data', 'voice_settings.json');
+        ensureDirectoryExists(USER_VOICE_SETTINGS_FILE);
+        const tmpPath = USER_VOICE_SETTINGS_FILE + '.tmp';
+        fs.writeFileSync(tmpPath, JSON.stringify(voiceSettings, null, 2), 'utf-8');
+        fs.renameSync(tmpPath, USER_VOICE_SETTINGS_FILE);
+        console.log(`ユーザー音声設定を保存しました: ${USER_VOICE_SETTINGS_FILE}`);
+    } catch (e) {
+        console.error('ユーザー音声設定の保存エラー:', e);
+    }
+}
+
+export function loadUserVoiceSettings() {
+    try {
+        const USER_VOICE_SETTINGS_FILE = path.join(getProjectRoot(), 'data', 'voice_settings.json');
+        if (fs.existsSync(USER_VOICE_SETTINGS_FILE)) {
+            const data = fs.readFileSync(USER_VOICE_SETTINGS_FILE, 'utf-8');
+            const obj = JSON.parse(data);
+            Object.assign(voiceSettings, obj);
+        }
+    } catch (e) {
+        console.error('ユーザー音声設定の読み込みエラー:', e);
+    }
+}
 
 export function AivisAdapter() {
     class AivisAdapter {
@@ -1634,3 +1662,16 @@ process.on('SIGTERM', () => {
         process.exit(0);
     }
 });
+
+// Canonical typed export for other modules to import safely
+export const ttsEngine: TTSEngineExports = {
+    voiceSettings,
+    saveUserVoiceSettings: typeof saveUserVoiceSettings === 'function' ? saveUserVoiceSettings : undefined,
+    loadUserVoiceSettings: typeof loadUserVoiceSettings === 'function' ? loadUserVoiceSettings : undefined,
+    setTextChannelForGuildInMap: typeof setTextChannelForGuildInMap === 'function' ? setTextChannelForGuildInMap : undefined,
+    addTextChannelsForGuildInMap: typeof addTextChannelsForGuildInMap === 'function' ? addTextChannelsForGuildInMap : undefined,
+    removeTextChannelForGuildInMap: typeof removeTextChannelForGuildInMap === 'function' ? removeTextChannelForGuildInMap : undefined,
+    textChannels,
+    voiceClients,
+    autoJoinChannels,
+};
