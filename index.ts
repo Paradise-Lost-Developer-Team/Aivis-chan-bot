@@ -46,9 +46,13 @@ async function syncSettingsFromPrimary() {
             const vd: any = voiceData as any;
             try { console.log('[SYNC_VOICE_DATA_FROM_PRIMARY] fetched keys=', Object.keys(vd || {}).slice(0,50)); } catch(e) { console.warn('[SYNC_VOICE_DATA_FROM_PRIMARY] inspect failed'); }
             if (vd && vd.voiceSettings) {
-                const { voiceSettings } = await import('./utils/TTS-Engine');
-                Object.assign(voiceSettings, vd.voiceSettings);
-                console.log('Primaryボイス設定を同期しました (merged keys=', Object.keys(vd.voiceSettings || {}).length, ')');
+                const mod = (await import('./utils/TTS-Engine')) as import('./utils/tts-engine-types').TTSEngineExports;
+                try {
+                    Object.assign(mod.voiceSettings, vd.voiceSettings);
+                    console.log('Primaryボイス設定を同期しました (merged keys=', Object.keys(vd.voiceSettings || {}).length, ')');
+                } catch (e) {
+                    console.warn('Failed to merge voiceSettings from primary:', e);
+                }
             } else {
                 console.log('[SYNC_VOICE_DATA_FROM_PRIMARY] no vd.voiceSettings found in response');
             }
@@ -404,6 +408,34 @@ apiApp.use(express.json());
 apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
     try {
         try { console.log('[VOICE_SETTINGS_REFRESH_RECEIVED] from=', req.body?.from || 'unknown', 'bodyKeys=', Object.keys(req.body || {})); } catch(e) { console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown'); }
+
+        // If payload includes voiceSettings, merge and save locally
+        if (req.body && req.body.voiceSettings) {
+            try {
+                const mod = (await import('./utils/TTS-Engine')) as import('./utils/tts-engine-types').TTSEngineExports;
+                try {
+                    Object.assign(mod.voiceSettings, req.body.voiceSettings);
+                } catch (e) {
+                    console.warn('voiceSettings merge failed:', e);
+                }
+                if (typeof mod.saveUserVoiceSettings === 'function') {
+                    try { mod.saveUserVoiceSettings(); } catch(e) { console.warn('saveUserVoiceSettings failed:', e); }
+                } else {
+                    // Follower instance may not implement saveUserVoiceSettings; persist to disk as fallback
+                    try {
+                        const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+                        const fs = await import('fs');
+                        fs.writeFileSync(settingsPath, JSON.stringify(mod.voiceSettings, null, 2), 'utf8');
+                        console.log('voiceSettings saved to disk fallback:', settingsPath);
+                    } catch (e) { console.warn('fallback save voiceSettings failed:', e); }
+                }
+                console.log('[VOICE_SETTINGS_REFRESH] merged voiceSettings keys=', Object.keys(req.body.voiceSettings || {}).length);
+            } catch (e) {
+                console.warn('voiceSettings merge failed:', e);
+            }
+        }
+
+        // Always attempt to sync full settings bundle from primary as fallback
         await syncSettingsFromPrimary();
         return res.json({ ok: true });
     } catch (e: any) {
