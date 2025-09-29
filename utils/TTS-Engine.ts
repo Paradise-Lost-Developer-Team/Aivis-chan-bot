@@ -90,12 +90,12 @@ export function normalizeTextChannelsMap(): void {
         const vals = Object.values(textChannels || {});
         for (const tc of vals) {
             try {
-                if (!tc || !(tc as any).guild) continue;
-                const gid = (tc as any).guild.id;
-                if (!gid) continue;
-                // 既に guildId キーが存在しなければ追加する
-                if (!(textChannels as any)[gid]) {
-                    try { (textChannels as any)[gid] = tc; } catch (_) { /* ignore */ }
+                if (!tc) continue;
+                // 登録はチャンネルIDベースで行う（暗黙的に guildId キーを作らない）
+                const cid = (tc as any).id;
+                if (!cid) continue;
+                if (!(textChannels as any)[cid]) {
+                    try { (textChannels as any)[cid] = tc; } catch (_) { /* ignore */ }
                 }
             } catch (e) {
                 continue;
@@ -146,7 +146,9 @@ export function addTextChannelsForGuildInMap(guildId: string, channels: TextChan
         if (!channels || channels.length === 0) return;
         for (const ch of channels) {
             try {
-                (textChannels as any)[guildId] = ch;
+                // 重要: ここでは guildId キーを暗黙的に書き込まないこと。
+                // 永続化（ギルド->チャンネルのマッピング）が必要な場合は
+                // setTextChannelForGuildInMap(guildId, channel, persist = true) を使ってください。
                 try { (textChannels as any)[ch.id] = ch; } catch (_) { /* ignore */ }
             } catch (_) { continue; }
         }
