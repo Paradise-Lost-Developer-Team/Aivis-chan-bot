@@ -81,8 +81,12 @@ export function normalizeTextChannelsMap(): void {
                 if (!tc || !(tc as any).guild) continue;
                 const gid = (tc as any).guild.id;
                 if (!gid) continue;
-                if (!(textChannels as any)[gid]) {
-                    try { (textChannels as any)[gid] = tc; } catch (_) { }
+                // Do NOT implicitly create a guildId-keyed persistent entry here.
+                // Register channels by channel.id only to avoid writing durable
+                // guild->channel mappings when running with a shared hostPath.
+                const cid = (tc as any).id;
+                if (cid && !(textChannels as any)[cid]) {
+                    try { (textChannels as any)[cid] = tc; } catch (_) { }
                 }
             } catch (e) { continue; }
         }
@@ -124,8 +128,9 @@ export function addTextChannelsForGuildInMap(guildId: string, channels: TextChan
         if (!channels || channels.length === 0) return;
         for (const ch of channels) {
             try {
-                // guildId と個別の channel.id の両方をキーとして保持しておく
-                try { (textChannels as any)[guildId] = ch; } catch (_) { }
+                // Compatibility note: do NOT automatically write guildId-keyed mapping here.
+                // If a durable guild->channel mapping is required, callers must call
+                // setTextChannelForGuildInMap(guildId, channel, true) explicitly.
                 try { (textChannels as any)[(ch as any).id] = ch; } catch (_) { }
             } catch (_) { continue; }
         }
