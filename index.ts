@@ -493,7 +493,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             let tc = guild.channels.cache.get(finalTextChannelId) as any;
             if (!tc) tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
             if (tc && tc.type === 0) {
-                try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any); } catch (_) { /* ignore */ }
+                try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any, false); } catch (_) { /* ignore */ }
                 console.log(`[internal/join:6th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
             } else {
                 console.warn(`[internal/join:6th] 指定されたテキストチャンネルは利用不可です: ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
