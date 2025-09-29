@@ -542,7 +542,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 }
                 
                 if (tc && tc.type === 0) {
-                    try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any); } catch (_) { /* ignore */ }
+                    try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any, false); } catch (_) { /* ignore */ }
                     console.log(`[internal/join:5th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
                 } else {
                     console.warn(`[internal/join:5th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
@@ -554,7 +554,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     ) as any;
                     
                     if (fallbackChannel) {
-                        try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, fallbackChannel as any); } catch (_) { /* ignore */ }
+                        try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, fallbackChannel as any, false); } catch (_) { /* ignore */ }
                         finalTextChannelId = fallbackChannel.id;
                         console.log(`[internal/join:5th] フォールバック成功: ギルド ${guildId} チャンネル ${fallbackChannel.name} (${fallbackChannel.id}) を使用`);
                     }

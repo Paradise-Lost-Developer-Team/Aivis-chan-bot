@@ -111,9 +111,18 @@ export function getTextChannelFromMapByGuild(guildId: string): TextChannel | und
     return undefined;
 }
 
-export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel): void {
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel | null | undefined, persist: boolean = true): void {
     try {
-        try { (textChannels as any)[guildId] = channel; } catch (_) { /* ignore */ }
+        if (!channel) {
+            try { delete (textChannels as any)[guildId]; } catch (_) {}
+            return;
+        }
+        if (persist) {
+            try { (textChannels as any)[guildId] = channel; } catch (_) { /* ignore */ }
+        } else {
+            // transient mapping: record under channel.id only to avoid creating a guild-level persisted key
+            try { (textChannels as any)[(channel as any).id] = channel; } catch (_) { /* ignore */ }
+        }
     } catch (e) {
         console.warn('setTextChannelForGuildInMap error:', e);
     }
@@ -1319,9 +1328,16 @@ async function getTextChannelForGuild(guildId: string): Promise<string | undefin
 }
 
 export async function determineMessageTargetChannel(guildId: string, defaultChannelId?: string): Promise<string | undefined> {
-  // 保存されたテキストチャンネルIDを優先
-    const savedTextChannelId = await getTextChannelForGuild(guildId);
-    return savedTextChannelId || defaultChannelId;
+        // 保存されたテキストチャンネルIDを優先
+        const savedTextChannelId = await getTextChannelForGuild(guildId);
+        if (savedTextChannelId) return savedTextChannelId;
+
+        if (!defaultChannelId) return undefined;
+        const joinCmd = getJoinCommandChannel(guildId);
+        if (joinCmd && joinCmd === defaultChannelId) return defaultChannelId;
+        try { if ((joinChannels as any)[guildId] && (joinChannels as any)[guildId].textChannelId === defaultChannelId) return defaultChannelId; } catch (e) {}
+        try { const candidates = (textChannels as any)[guildId]; if (candidates && (candidates as any)[defaultChannelId] && (candidates as any)[defaultChannelId].source === 'mapped') return defaultChannelId; } catch (e) {}
+        return undefined;
 }
 
 // Module init: try to normalize any existing entries so guildId keys are available at runtime
@@ -1345,7 +1361,12 @@ export async function determineMessageTargetChannel_localFirst(guildId: string, 
         if (savedTextChannelId) return savedTextChannelId;
     } catch (e) {}
 
-    return defaultChannelId;
+    if (!defaultChannelId) return undefined;
+    const joinCmd2 = getJoinCommandChannel(guildId);
+    if (joinCmd2 && joinCmd2 === defaultChannelId) return defaultChannelId;
+    try { if ((joinChannels as any)[guildId] && (joinChannels as any)[guildId].textChannelId === defaultChannelId) return defaultChannelId; } catch (e) {}
+    try { const candidates = (textChannels as any)[guildId]; if (candidates && (candidates as any)[defaultChannelId] && (candidates as any)[defaultChannelId].source === 'mapped') return defaultChannelId; } catch (e) {}
+    return undefined;
 }
 
 /**
