@@ -89,8 +89,12 @@ export function normalizeTextChannelsMap() {
             if (!tc) continue;
             try {
                 const gid = tc.guild?.id;
-                if (gid && !(textChannels as any)[gid]) {
-                    (textChannels as any)[gid] = tc;
+                // Do NOT automatically create a guildId-keyed entry here.
+                // Only ensure the channel is addressable by its own channel id
+                // to avoid implicitly creating durable guild->channel mappings.
+                const cid = (tc as any).id;
+                if (cid && !(textChannels as any)[cid]) {
+                    (textChannels as any)[cid] = tc;
                 }
             } catch (e) {
                 // ignore
@@ -143,8 +147,9 @@ export function addTextChannelsForGuildInMap(guildId: string, channels: TextChan
         // 既存の guildId キーがあれば上書きせず、先に登録されているものは残す
         for (const ch of channels) {
             try {
-                // keyとして guildId と voiceChannelId の両方に登録する互換性を維持
-                (textChannels as any)[guildId] = ch;
+                // Register only by individual channel IDs. Do NOT set guildId key
+                // here to avoid creating implicit guild-level mappings that
+                // might be persisted unintentionally by other components.
                 try { (textChannels as any)[ch.id] = ch; } catch (_) { /* ignore */ }
             } catch (_) { continue; }
         }
@@ -1562,8 +1567,13 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
                 if (cand && cand.source === 'mapped') return defaultChannelId;
         }
 
-        // 上記どれにも当てはまらない場合は自動選択を避ける
-        return undefined;
+    // 上記どれにも当てはまらない場合は自動選択を避ける
+    // Note: If callers receive a defaultChannelId from heuristics, they
+    // must treat it as a transient candidate and call
+    // setTextChannelForGuildInMap(guildId, channel, false) if they want
+    // to record it only transiently (avoid persist=true). Persistence
+    // should be explicit.
+    return undefined;
 }
 
 // joinコマンド実行チャンネルを記録する関数
