@@ -2,24 +2,14 @@ name: BuildKit Docker Build
 
 on:
   push:
-<<<<<<< HEAD
     branches: ["6th"]
   pull_request:
     branches: ["6th"]
-=======
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
->>>>>>> 1c01875ab24e0d8856056050c1e12b1b49e392a4
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-<<<<<<< HEAD
   IMAGE_NAME: aivis-chan-bot-6th
-=======
-  IMAGE_NAME: aivis-chan-bot-1st
->>>>>>> 1c01875ab24e0d8856056050c1e12b1b49e392a4
 
 jobs:
   build:
@@ -112,10 +102,6 @@ jobs:
           
           # Build and push the image
           /usr/local/bin/buildctl build \
-<<<<<<< HEAD
-=======
-            --no-cache \
->>>>>>> 1c01875ab24e0d8856056050c1e12b1b49e392a4
             --frontend dockerfile.v0 \
             --local context=. \
             --local dockerfile=. \
