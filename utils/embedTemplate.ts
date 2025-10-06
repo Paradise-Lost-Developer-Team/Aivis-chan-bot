@@ -11,7 +11,11 @@ export const COMMON_LINKS = [
 export function addCommonFooter(embed: EmbedBuilder): EmbedBuilder {
     return embed
         .setFooter({
+<<<<<<< HEAD
             text: '利用規約 | プライバシーポリシー | サポートサーバー | ホームページ | ソースコード'
+=======
+            text: '© 2025 Aivis Chan Bot by Paradise Lost Developer Team'
+>>>>>>> 1c01875ab24e0d8856056050c1e12b1b49e392a4
         })
         .setTimestamp();
 }

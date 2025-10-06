@@ -1,0 +1,147 @@
+{
+  "1317015435043934228": {
+    "清一色": {
+      "pronunciation": "チンイツ",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "822450267651964938": {
+    "対子": {
+      "pronunciation": "トイツ",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "役満": {
+      "pronunciation": "ヤクマン",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "966557943271133235": {
+    "Optifine": {
+      "pronunciation": "オプティファイン",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "気狂い": {
+      "pronunciation": "キグルイ",
+      "accentType": 0,
+      "wordType": "COMMON_NOUN"
+    },
+    "白朮": {
+      "pronunciation": "ビャクジュツ",
+      "accentType": 0,
+      "wordType": "PERSON_NAME"
+    },
+    "宵宮": {
+      "pronunciation": "ヨイミヤ",
+      "accentType": 2,
+      "wordType": "PERSON_NAME"
+    },
+    "胡桃": {
+      "pronunciation": "フータオ",
+      "accentType": 0,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1333082050651230262": {
+    "御冬": {
+      "pronunciation": "ミフユ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    },
+    "みふゆ": {
+      "pronunciation": "ミフユ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1343631802060902444": {
+    "八重神子": {
+      "pronunciation": "ヤエミコ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    },
+    "〆": {
+      "pronunciation": "シメ",
+      "accentType": 1,
+      "wordType": "VERB"
+    },
+    "w": {
+      "pronunciation": "ワラ",
+      "accentType": 1,
+      "wordType": "VERB"
+    },
+    "笑": {
+      "pronunciation": "ワラ",
+      "accentType": 0,
+      "wordType": "VERB"
+    }
+  },
+  "1281107107126575114": {
+    "七対子": {
+      "pronunciation": "チートイツ",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    }
+  },
+  "1203380216366506006": {
+    "天杜": {
+      "pronunciation": "アマト",
+      "accentType": 1,
+      "wordType": "PERSON_FAMILY_NAME"
+    },
+    "しうの": {
+      "pronunciation": "シウノ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "w": {
+      "pronunciation": "ワラ",
+      "accentType": 1,
+      "wordType": "VERB"
+    },
+    "第一住民": {
+      "pronunciation": "シウノ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    },
+    "添菜": {
+      "pronunciation": "テンサイ",
+      "accentType": 0,
+      "wordType": "PROPER_NOUN"
+    },
+    "(´・ω・｀)": {
+      "pronunciation": "ショボン",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    },
+    "詩月姫": {
+      "pronunciation": "カグヤ",
+      "accentType": 1,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1344932516116828190": {
+    "w": {
+      "pronunciation": "ワラ",
+      "accentType": 1,
+      "wordType": "VERB"
+    }
+  },
+  "1385844357445189846": {
+    "救助隊": {
+      "pronunciation": "キュージョタイイーズヤバイ",
+      "accentType": 0,
+      "wordType": "PERSON_NAME"
+    }
+  },
+  "1385254052492869673": {
+    "深夜帯": {
+      "pronunciation": "シンヤタイ",
+      "accentType": 1,
+      "wordType": "PROPER_NOUN"
+    }
+  }
+}
