@@ -1,5 +1,8 @@
 build/
 data/
+build/
+data/
 node_modules/
+__pycache__/
 __pycache__/
 .vscode/
