@@ -139,6 +139,39 @@ export function storePatreonUser(discordId: string, tokenData: any, patreonId?: 
   savePatreonUsers();
 }
 
+// サーバーのティア情報を取得（サーバー所有者のPatreon情報を基に）
+export async function getGuildTier(guildId: string, client?: any): Promise<string> {
+  console.log(`${LOG_PREFIX} getGuildTier start for guild ${guildId}`);
+
+  try {
+    if (!client) {
+      console.log(`${LOG_PREFIX} no client provided, cannot get guild info`);
+      return 'free';
+    }
+
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      console.log(`${LOG_PREFIX} guild ${guildId} not found`);
+      return 'free';
+    }
+
+    const ownerId = guild.ownerId;
+    if (!ownerId) {
+      console.log(`${LOG_PREFIX} guild ${guildId} has no owner`);
+      return 'free';
+    }
+
+    // サーバー所有者のティアを取得
+    const ownerTier = await getUserTier(ownerId);
+    console.log(`${LOG_PREFIX} getGuildTier result for guild ${guildId}: ${ownerTier} (owner: ${ownerId})`);
+    return ownerTier;
+
+  } catch (error) {
+    console.error(`${LOG_PREFIX} error in getGuildTier for guild ${guildId}:`, error);
+    return 'free';
+  }
+}
+
 // ユーザーのティア情報を取得
 export async function getUserTier(discordId: string): Promise<string> {
   console.log(`${LOG_PREFIX} getUserTier start for ${discordId}`);
@@ -453,5 +486,6 @@ export default {
   getPatreonAuthUrl,
   getPatreonTokens,
   storePatreonUser,
-  getUserTier
+  getUserTier,
+  getGuildTier
 };
