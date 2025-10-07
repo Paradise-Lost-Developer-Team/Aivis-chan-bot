@@ -111,7 +111,14 @@ module.exports = {
                 } else {
                     // 同じチャンネルの場合
                     setTextChannelForGuildInMap(guildId, textChannel); // テキストチャンネルの更新のみ
-                    await interaction.editReply({
+                    // 永続化も行う（失敗しても処理継続）
+                    try {
+                        await updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                        console.log(`[join:pro-premium] persisted mapping for guild ${guildId}`);
+                    } catch (e) {
+                        console.warn('[join:pro-premium] updateJoinChannelsConfig failed (already-connected path):', e);
+                    }
+                     await interaction.editReply({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('既に接続中')
@@ -163,6 +170,13 @@ module.exports = {
                     if (!preferred && uniq.length > 0) preferred = uniq[0];
                     if (preferred) {
                         setTextChannelForGuildInMap(guildId, preferred);
+                        // 永続化（preferred が決定したら保存）
+                        try {
+                            await updateJoinChannelsConfig(guildId, voiceChannel.id, preferred.id);
+                            console.log(`[join:pro-premium] persisted preferred mapping for guild ${guildId}`);
+                        } catch (e) {
+                            console.warn('[join:pro-premium] updateJoinChannelsConfig failed (preferred selection):', e);
+                        }
                     } else if (uniq.length > 0) {
                         // as a very last resort, persist the first candidate
                         setTextChannelForGuildInMap(guildId, uniq[0]);
@@ -205,7 +219,8 @@ module.exports = {
             // Persist authoritative voice->text mapping for this guild so follower bots can resolve the mapping later
             try {
                 if (typeof updateJoinChannelsConfig === 'function') {
-                    updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                    await updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                    console.log(`[join:pro-premium] persisted mapping post-instructJoin for guild ${guildId}`);
                 }
             } catch (e) {
                 console.warn('[join] updateJoinChannelsConfig failed:', e);

@@ -4,7 +4,7 @@ import { REST } from "@discordjs/rest";
 import { getUserTierByOwnership, getGuildTier } from "./utils/patreonIntegration";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings, setTextChannelForGuildInMap, removeTextChannelForGuildInMap, removeTextChannelByVoiceChannelId } from "./utils/TTS-Engine";
+import { AivisAdapter, loadAutoJoinChannels, loadSpeakers, fetchAndSaveSpeakers, loadUserVoiceSettings, setTextChannelForGuildInMap, removeTextChannelForGuildInMap, removeTextChannelByVoiceChannelId, updateJoinChannelsConfig } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { VoiceStateUpdate } from "./utils/VoiceStateUpdate";
@@ -665,6 +665,15 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 if (tc && tc.type === 0) {
                     try { setTextChannelForGuildInMap(guildId, tc as any, false); } catch (_) { /* ignore */ }
                     console.log(`[internal/join] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                    // 永続化：join_channels.json 等へ保存（失敗しても処理継続）
+                    try {
+                        if (typeof updateJoinChannelsConfig === 'function') {
+                            await updateJoinChannelsConfig(guildId, voiceChannelId || '', finalTextChannelId);
+                            console.log(`[internal/join:pro-premium] updateJoinChannelsConfig persisted mapping for guild ${guildId}`);
+                        }
+                    } catch (e) {
+                        console.warn(`[internal/join:pro-premium] updateJoinChannelsConfig failed:`, e);
+                    }
                 } else {
                     console.warn(`[internal/join] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
                     // Do not attempt a fallback selection. Leave finalTextChannelId null and proceed.
