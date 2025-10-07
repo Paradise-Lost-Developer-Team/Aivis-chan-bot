@@ -77,8 +77,8 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
         try {
             if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
                 const guild = newState.member!.guild;
-                determineMessageTargetChannel(guild.id).then((persisted: boolean) => {
-                    if (!persisted) {
+                determineMessageTargetChannel(guild.id).then((persistedChannelId: string | undefined) => {
+                    if (!persistedChannelId) {
                         try {
                             const vc = newState.channel;
                             const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
