@@ -67,6 +67,8 @@ function markTTSDown() {
 }
 
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
+// 新規: voiceChannelId -> textChannelId の明示的1:1マップ
+export const textChannelByVoice: { [voiceChannelId: string]: string } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // ユーザーごとの話者設定
@@ -143,6 +145,31 @@ export function addTextChannelsForGuildInMap(guildId: string, channels: TextChan
     } catch (e) {
         console.warn('addTextChannelsForGuildInMap error:', e);
     }
+}
+
+// 新規: voice -> text の永続的マッピングを設定
+export function setTextChannelForVoice(voiceChannelId: string, textChannelId: string | null | undefined, persist: boolean = true) {
+    try {
+        if (!voiceChannelId) return;
+        if (!textChannelId) {
+            try { delete (textChannelByVoice as any)[voiceChannelId]; } catch (_) {}
+            return;
+        }
+        try { (textChannelByVoice as any)[voiceChannelId] = textChannelId; } catch (_) {}
+        // Also register the text channel object in textChannels map by id if available
+        try {
+            const ch = (textChannels as any)[textChannelId];
+            if (ch) try { (textChannels as any)[textChannelId] = ch; } catch (_) {}
+        } catch (_) {}
+    } catch (e) {
+        console.warn('setTextChannelForVoice error:', e);
+    }
+}
+
+export function getTextChannelForVoice(voiceChannelId: string): string | undefined {
+    try {
+        return (textChannelByVoice as any)[voiceChannelId];
+    } catch (e) { return undefined; }
 }
 
 export function removeTextChannelForGuildInMap(guildId: string): void {
@@ -710,6 +737,17 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
     try {
         if (!guildId || !currentChannelId) return { allowed: false, reason: 'invalid-args' };
 
+        // 1) 最優先: voice->text の明示マッピング
+        try {
+            if (voiceClient && typeof (voiceClient as any).joinConfig?.channelId === 'string') {
+                const mapped = getTextChannelForVoice((voiceClient as any).joinConfig.channelId);
+                if (mapped && mapped === currentChannelId) {
+                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped-text-channel`);
+                    return { allowed: true, reason: 'voice-mapped-text-channel' };
+                }
+            }
+        } catch (e) {}
+
         try {
             const maybe = (typeof getTextChannelForGuild === 'function') ? (getTextChannelForGuild as any)(guildId) : undefined;
             let savedId: string | undefined;
@@ -763,7 +801,7 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
 
                         // 2) api-mapped channel exists
                         try {
-                            const mapped = (textChannels as any)[currentChannelId] || ((textChannels as any)[guildId] && (textChannels as any)[guildId].id === currentChannelId);
+                            const mapped = (textChannels as any)[currentChannelId] || ((textChannels as any)[guildId] && (textChannels as any)[guildId].id === currentChannelId) || (textChannelByVoice && (textChannelByVoice as any)[vc.id] === currentChannelId);
                             if (mapped) {
                                 console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
                                 return { allowed: true, reason: 'api-mapped-channel' };
