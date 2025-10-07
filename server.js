@@ -808,6 +808,36 @@ app.get('/internal/global-dictionary/:guildId', async (req, res) => {
       console.log('[INTERNAL] GLOBAL_DICT_API_URL or GLOBAL_DICT_API_KEY not configured; skipping external fetch');
     }
 
+    // Load per-guild local dictionary if present. Format expectations:
+    // - file: /tmp/data/dictionary/<guildId>.json
+    // - shape: { guildId, userId, dictionary: [...] , lastUpdated }
+    let localEntries = [];
+    try {
+      const guildId = req.params.guildId;
+      const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
+      if (fs.existsSync(dictionaryFile)) {
+        const raw = fs.readFileSync(dictionaryFile, 'utf8') || '{}';
+        try {
+          const parsed = JSON.parse(raw);
+          // If stored as object with `.dictionary` array, use that. Otherwise if an array was stored directly, use it.
+          if (parsed && Array.isArray(parsed.dictionary)) {
+            localEntries = parsed.dictionary;
+          } else if (Array.isArray(parsed)) {
+            localEntries = parsed;
+          } else {
+            // unknown shape -> keep empty but log for debugging
+            console.debug('[INTERNAL] global-dictionary: unexpected local dictionary shape for', dictionaryFile);
+          }
+        } catch (e) {
+          console.warn('[INTERNAL] global-dictionary: failed to parse local dictionary', dictionaryFile, e && e.message);
+        }
+      } else {
+        // no local file is fine; we'll return empty array
+      }
+    } catch (e) {
+      console.error('[INTERNAL] global-dictionary: error while loading local dictionary', e && e.message);
+    }
+
     return res.json({ local: localEntries, global: globalEntries });
   } catch (error) {
     console.error('Global dictionary load error:', error);
