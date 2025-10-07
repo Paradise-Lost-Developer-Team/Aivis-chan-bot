@@ -67,6 +67,8 @@ function markTTSDown() {
 }
 
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
+// 明示的 voiceChannelId -> TextChannel の1:1マッピング
+export const textChannelByVoice: { [voiceChannelId: string]: TextChannel | string } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // ユーザーごとの話者設定
@@ -95,6 +97,62 @@ export function normalizeTextChannelsMap(): void {
         }
     } catch (e) {
         // ignore
+    }
+}
+
+// normalizeTextChannelsMap 完了後に voice->text の既知マッピングがあれば同期する
+try {
+    try {
+        for (const key of Object.keys(textChannels || {})) {
+            try {
+                const tc = (textChannels as any)[key];
+                if (!tc) continue;
+                const possibleVoiceId = (tc as any).voiceChannelId || (tc as any).mappedVoiceChannelId;
+                if (possibleVoiceId) {
+                    try { (textChannelByVoice as any)[possibleVoiceId] = tc; } catch (_) { }
+                }
+            } catch (_) {}
+        }
+    } catch (_) {}
+} catch (_) {}
+
+export function getTextChannelForVoice(voiceChannelId: string): string | undefined {
+    try {
+        const v = (textChannelByVoice as any)[voiceChannelId];
+        if (!v) return undefined;
+        if (typeof v === 'string') return v;
+        if ((v as any).id) return (v as any).id;
+        return undefined;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+export function setTextChannelForVoice(voiceChannelId: string, channel: TextChannel | null | undefined, persist: boolean = true): void {
+    try {
+        if (!voiceChannelId) return;
+        if (!channel) {
+            try { delete (textChannelByVoice as any)[voiceChannelId]; } catch (_) {}
+            return;
+        }
+        try { (textChannelByVoice as any)[voiceChannelId] = channel; } catch (_) {}
+
+        if (persist) {
+            try {
+                const gid = (channel as any).guild?.id;
+                if (gid) {
+                    try {
+                        (joinChannels as any)[gid] = { voiceChannelId, textChannelId: (channel as any).id };
+                        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+                        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 2), 'utf-8');
+                    } catch (e) {
+                        console.warn('setTextChannelForVoice: failed to persist joinChannels', e);
+                    }
+                }
+            } catch (e) {}
+        }
+    } catch (e) {
+        console.warn('setTextChannelForVoice error:', e);
     }
 }
 
@@ -709,6 +767,15 @@ export function getMaxTextLength(guildId: string): number {
 export function isChannelAllowedForTTS(guildId: string, currentChannelId: string, client?: any, voiceClient?: VoiceConnection): { allowed: boolean, reason?: string } {
     try {
         if (!guildId || !currentChannelId) return { allowed: false, reason: 'invalid-args' };
+
+        // まず voice->text の明示マッピングを優先してチェック
+        try {
+            const mappedByVoice = getTextChannelForVoice(voiceClient?.joinConfig?.channelId);
+            if (mappedByVoice && mappedByVoice === currentChannelId) {
+                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped`);
+                return { allowed: true, reason: 'voice-mapped' };
+            }
+        } catch (e) {}
 
         try {
             const maybe = (typeof getTextChannelForGuild === 'function') ? (getTextChannelForGuild as any)(guildId) : undefined;
@@ -1694,6 +1761,9 @@ export const ttsEngine: TTSEngineExports = {
     setTextChannelForGuildInMap: typeof setTextChannelForGuildInMap === 'function' ? setTextChannelForGuildInMap : undefined,
     addTextChannelsForGuildInMap: typeof addTextChannelsForGuildInMap === 'function' ? addTextChannelsForGuildInMap : undefined,
     removeTextChannelForGuildInMap: typeof removeTextChannelForGuildInMap === 'function' ? removeTextChannelForGuildInMap : undefined,
+    getTextChannelForVoice: typeof getTextChannelForVoice === 'function' ? getTextChannelForVoice : undefined,
+    setTextChannelForVoice: typeof setTextChannelForVoice === 'function' ? setTextChannelForVoice : undefined,
+    textChannelByVoice,
     textChannels,
     voiceClients,
     autoJoinChannels,
