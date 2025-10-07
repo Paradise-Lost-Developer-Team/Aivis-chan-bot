@@ -478,7 +478,7 @@ apiApp.listen(3003, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients, setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from './utils/TTS-Engine';
+import { textChannels, voiceClients, setTextChannelForGuildInMap, removeTextChannelForGuildInMap, updateJoinChannelsConfig } from './utils/TTS-Engine';
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -599,6 +599,15 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 if (tc && tc.type === 0) {
                     try { setTextChannelForGuildInMap(guildId, tc, false); } catch { try { (textChannels as any)[voiceChannelId] = tc; } catch {} }
                     console.log(`[internal/join:2nd] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                    // 永続化：join_channels.json等へ保存（失敗しても処理継続）
+                    try {
+                        if (typeof updateJoinChannelsConfig === 'function') {
+                            await updateJoinChannelsConfig(guildId, voiceChannelId || '', finalTextChannelId);
+                            console.log(`[internal/join:2nd] updateJoinChannelsConfig persisted mapping for guild ${guildId}`);
+                        }
+                    } catch (e) {
+                        console.warn(`[internal/join:2nd] updateJoinChannelsConfig failed:`, e);
+                    }
                 } else {
                     console.warn(`[internal/join:2nd] 指定または保存されたテキストチャンネルは利用不可です: ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
                     finalTextChannelId = null;
