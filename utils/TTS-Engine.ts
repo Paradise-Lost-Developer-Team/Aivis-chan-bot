@@ -145,6 +145,12 @@ export function addTextChannelsForGuildInMap(guildId: string, channels: TextChan
     }
 }
 
+// Note: Consumers should typically select a single preferred text channel
+// (for example, same-name match or first allowed) and call this helper with
+// a single-element array. This function will register channels by their
+// channel id and does not set a guildId-keyed entry to avoid implicit
+// durable guild->channel mappings.
+
 export function removeTextChannelForGuildInMap(guildId: string): void {
     try {
         for (const key of Object.keys((textChannels as any) || {})) {

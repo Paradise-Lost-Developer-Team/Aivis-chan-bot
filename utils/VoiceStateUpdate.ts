@@ -99,10 +99,30 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                                 }
                                 if (allowed.length > 0) {
                                     try {
-                                        addTextChannelsForGuildInMap(guild.id, allowed as any[]);
-                                        console.log(`[BotJoin:6th] guild=${guild.id} 登録されたテキスト候補数=${allowed.length}`);
+                                        // Prefer a channel whose name matches the voice channel name (strict),
+                                        // otherwise pick the first allowed channel. Register only one preferred
+                                        // channel to avoid allowing multiple text channels in the same category.
+                                        let preferred: any | undefined = undefined;
+                                        try {
+                                            if (vc && typeof vc.name === 'string') {
+                                                const vname = vc.name.toLowerCase();
+                                                preferred = allowed.find((ch: any) => (ch && (ch.name || '').toLowerCase()) === vname);
+                                            }
+                                        } catch (e) { /* ignore */ }
+                                        if (!preferred) preferred = allowed[0];
+
+                                        if (preferred) {
+                                            try {
+                                                // Mark source for debugging/inspection and register only this one
+                                                (preferred as any).source = 'mapped';
+                                                addTextChannelsForGuildInMap(guild.id, [preferred] as any[]);
+                                                console.log(`[BotJoin:6th] guild=${guild.id} 登録されたテキスト候補数=1 selected=${(preferred && preferred.id) || preferred}`);
+                                            } catch (e) {
+                                                console.error('[BotJoin:6th] addTextChannelsForGuildInMap エラー:', e);
+                                            }
+                                        }
                                     } catch (e) {
-                                        console.error('[BotJoin:6th] addTextChannelsForGuildInMap エラー:', e);
+                                        console.error('[BotJoin:6th] 優先チャネル選択エラー:', e);
                                     }
                                 }
                             }
