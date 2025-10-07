@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState, GuildMember, Collection } from 'discord.js';
 import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel, setTextChannelForVoice, setTextChannelForGuildInMap } from './TTS-Engine';
+import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel, setTextChannelForVoice, setTextChannelForGuildInMap, updateJoinChannelsConfig, loadAutoJoinChannels } from './TTS-Engine';
 
 export function setupVoiceStateUpdateHandlers(client: Client) {
     // ユーザーのボイス状態の変化を監視
@@ -113,6 +113,14 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                                             try {
                                                 try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
                                                 try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
+                                                // Persist authoritative mapping for cross-bot resolution
+                                                try {
+                                                    const vcId = (vc && vc.id) || (newState.channel && newState.channel.id);
+                                                    if (vcId && typeof updateJoinChannelsConfig === 'function') {
+                                                        updateJoinChannelsConfig(guild.id, vcId, (preferred as any).id);
+                                                    }
+                                                } catch (e) { console.warn('[BotJoin:2nd] updateJoinChannelsConfig failed:', e); }
+                                                try { loadAutoJoinChannels(); } catch (_) {}
                                                 console.log(`[BotJoin:2nd] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
                                             } catch (e) {
                                                 console.error('[BotJoin:2nd] persist selected text channel error:', e);

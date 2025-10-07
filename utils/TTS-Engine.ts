@@ -1252,28 +1252,39 @@ export function loadJoinChannels() {
     return {};
 }
 
-// // 新規：取得したチャネル情報を保存する関数
-// export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
-//     let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
-//     try {
-//         if (fs.existsSync(JOIN_CHANNELS_FILE)) {
-//             const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
-//             joinChannels = JSON.parse(data);
-//         }
-//     } catch (error) {
-//         console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, error);
-//         joinChannels = {};
-//     }
-//     // tempVoiceはundefinedでOK（従来型もサポート）
-//     joinChannels[guildId] = { voiceChannelId, textChannelId };
-//     try {
-//         ensureDirectoryExists(JOIN_CHANNELS_FILE);
-//         fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
-//         console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
-//     } catch (error) {
-//         console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
-//     }
-// }
+// 新規：取得したチャネル情報を保存する関数
+export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+    let joinChannelsLocal: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+    try {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            try {
+                const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+                joinChannelsLocal = JSON.parse(data) || {};
+            } catch (err) {
+                console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, err);
+                joinChannelsLocal = {};
+            }
+        }
+    } catch (error) {
+        console.error(`参加チャンネル設定読み込みチェックエラー (${JOIN_CHANNELS_FILE}):`, error);
+        joinChannelsLocal = {};
+    }
+
+    // tempVoiceはundefinedでOK（従来型もサポート）
+    joinChannelsLocal[guildId] = { voiceChannelId, textChannelId };
+
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        const tmpPath = JOIN_CHANNELS_FILE + '.tmp';
+        fs.writeFileSync(tmpPath, JSON.stringify(joinChannelsLocal, null, 4), 'utf-8');
+        fs.renameSync(tmpPath, JOIN_CHANNELS_FILE);
+        // update in-memory copy
+        try { (joinChannels as any)[guildId] = { voiceChannelId, textChannelId }; } catch (_) {}
+        console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+    } catch (error) {
+        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+    }
+}
 
 // // 新規：join_channels.json を保存する関数
 // export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
