@@ -60,7 +60,7 @@ export function MessageCreate(client: ExtendedClient) {
             const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
 
             // 動的テキストチャンネル判定システムを使用
-            const { shouldTTS, reason } = await shouldPerformTTS(message, client);
+                const { shouldTTS, reason } = await shouldPerformTTS(message, client);
             
             if (!shouldTTS) {
                 console.log(`[TTS:pro] メッセージ無視: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
