@@ -576,6 +576,37 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                 if (tc && tc.type === 0) {
                     try { const { setTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); setTextChannelForGuildInMap(guildId, tc as any, false); } catch (_) { /* ignore */ }
                     console.log(`[internal/join:5th] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
+                    // Persist authoritative voice->text mapping so subsequent messages are matched correctly
+                    try {
+                        const mod = await import('./utils/TTS-Engine');
+                        try {
+                            if (voiceChannelId && typeof mod.setTextChannelForVoice === 'function') {
+                                mod.setTextChannelForVoice(voiceChannelId, finalTextChannelId, true);
+                                console.log(`[internal/join:5th] setTextChannelForVoice persisted: ${voiceChannelId} -> ${finalTextChannelId}`);
+                            }
+                        } catch (e) {
+                            console.warn('[internal/join:5th] setTextChannelForVoice failed:', e);
+                        }
+
+                        // Also update joinChannels in-memory and persist join_channels.json atomically
+                        try {
+                            mod.joinChannels = mod.joinChannels || {};
+                            mod.joinChannels[guildId] = { voiceChannelId, textChannelId: finalTextChannelId };
+                            try {
+                                const tmpPath = (mod.JOIN_CHANNELS_FILE || (process.cwd() + '/data/join_channels.json')) + '.tmp';
+                                const targetPath = mod.JOIN_CHANNELS_FILE || (process.cwd() + '/data/join_channels.json');
+                                fs.writeFileSync(tmpPath, JSON.stringify(mod.joinChannels, null, 4), 'utf8');
+                                fs.renameSync(tmpPath, targetPath);
+                                console.log(`[internal/join:5th] join_channels.json を更新しました: ${targetPath}`);
+                            } catch (e) {
+                                console.warn('[internal/join:5th] join_channels.json の永続化に失敗しました:', e);
+                            }
+                        } catch (e) {
+                            console.warn('[internal/join:5th] joinChannels update failed:', e);
+                        }
+                    } catch (e) {
+                        console.warn('[internal/join:5th] TTS-Engine import/persist failed:', e);
+                    }
                 } else {
                     console.warn(`[internal/join:5th] テキストチャンネル設定失敗: ギルド ${guildId} チャンネル ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
                     

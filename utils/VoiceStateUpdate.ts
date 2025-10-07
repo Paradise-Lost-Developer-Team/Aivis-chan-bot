@@ -77,7 +77,7 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
         try {
             if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
                 const guild = newState.member!.guild;
-                determineMessageTargetChannel(guild.id).then((persisted) => {
+                determineMessageTargetChannel(guild.id).then(async (persisted) => {
                     if (!persisted) {
                         try {
                             const vc = newState.channel;
@@ -114,6 +114,28 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                                                 try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
                                                 try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
                                                 console.log(`[BotJoin:5th] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+
+                                                // Try to persist into join_channels.json so other instances and restarts keep the mapping
+                                                try {
+                                                    const mod = await import('./TTS-Engine');
+                                                    mod.joinChannels = mod.joinChannels || {};
+                                                    const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id);
+                                                    if (vcId) {
+                                                        mod.joinChannels[guild.id] = { voiceChannelId: vcId, textChannelId: (preferred as any).id };
+                                                        try {
+                                                            const tmpPath = (mod.JOIN_CHANNELS_FILE || (process.cwd() + '/data/join_channels.json')) + '.tmp';
+                                                            const targetPath = mod.JOIN_CHANNELS_FILE || (process.cwd() + '/data/join_channels.json');
+                                                            const fs = await import('fs');
+                                                            fs.writeFileSync(tmpPath, JSON.stringify(mod.joinChannels, null, 4), 'utf8');
+                                                            fs.renameSync(tmpPath, targetPath);
+                                                            console.log(`[BotJoin:5th] join_channels.json updated: ${targetPath}`);
+                                                        } catch (e) {
+                                                            console.warn('[BotJoin:5th] failed to persist join_channels.json:', e);
+                                                        }
+                                                    }
+                                                } catch (e) {
+                                                    console.warn('[BotJoin:5th] error persisting joinChannels:', e);
+                                                }
                                             } catch (e) {
                                                 console.error('[BotJoin:5th] persist selected text channel error:', e);
                                             }
