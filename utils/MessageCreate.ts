@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, getTextChannelFromMapByGuild } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, getTextChannelFromMapByGuild, textChannelByVoice } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -51,18 +51,24 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
             const voiceChannel = message.guild?.channels.cache.get(voiceChannelId) as VoiceChannel;
             
             if (voiceChannel) {
-                // 2a. 同じカテゴリ内のテキストチャンネル
-                if (voiceChannel.parentId && voiceChannel.parentId === currentChannel.parentId) {
-                    return { shouldTTS: true, reason: 'voice-channel-category' };
-                }
-                
-                // 2b. ボイスチャンネルと同名のテキストチャンネル
+                // 1) explicit voice->text mapping
+                try {
+                    const mapped = (textChannelByVoice as any)[voiceChannel.id] as TextChannel | undefined;
+                    if (mapped && mapped.id === currentChannel.id) return { shouldTTS: true, reason: 'voice-mapped-text-channel' };
+                } catch (e) { /* ignore */ }
+
+                // 2) same-name text channel only (fallback with permission check)
                 const matchingTextChannel = voiceChannel.parent?.children.cache.find(
-                    ch => ch.type === ChannelType.GuildText && 
-                          ch.name.toLowerCase() === voiceChannel.name.toLowerCase()
+                    ch => ch.type === ChannelType.GuildText && ch.name.toLowerCase() === voiceChannel.name.toLowerCase()
                 );
                 if (matchingTextChannel && matchingTextChannel.id === currentChannel.id) {
-                    return { shouldTTS: true, reason: 'matching-text-channel' };
+                    try {
+                        const me = message.guild?.members.me || await message.guild?.members.fetch(message.client.user!.id).catch(() => null);
+                        const perms = me ? (matchingTextChannel as any).permissionsFor(me) : null;
+                        if (!perms || perms.has('SendMessages')) {
+                            return { shouldTTS: true, reason: 'matching-text-channel' };
+                        }
+                    } catch (e) { /* ignore */ }
                 }
             }
         }
