@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState, GuildMember, Collection } from 'discord.js';
 import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel } from './TTS-Engine';
+import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel, setTextChannelForVoice, setTextChannelForGuildInMap } from './TTS-Engine';
 
 export function setupVoiceStateUpdateHandlers(client: Client) {
     // ユーザーのボイス状態の変化を監視
@@ -113,12 +113,12 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
 
                                         if (preferred) {
                                             try {
-                                                // Mark source for debugging/inspection and register only this one
                                                 (preferred as any).source = 'mapped';
-                                                addTextChannelsForGuildInMap(guild.id, [preferred] as any[]);
-                                                console.log(`[BotJoin:6th] guild=${guild.id} 登録されたテキスト候補数=1 selected=${(preferred && preferred.id) || preferred}`);
+                                                try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
+                                                try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
+                                                console.log(`[BotJoin:6th] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
                                             } catch (e) {
-                                                console.error('[BotJoin:6th] addTextChannelsForGuildInMap エラー:', e);
+                                                console.error('[BotJoin:6th] persist selected text channel error:', e);
                                             }
                                         }
                                     } catch (e) {
