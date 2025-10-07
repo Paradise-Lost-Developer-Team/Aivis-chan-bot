@@ -762,7 +762,6 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
                             (textChannelByVoice as any)[cid] = tc;
                         }
                     } catch (_) {}
-                    }
                 } catch (e) { continue; }
             }
         } catch (e) {}
@@ -864,43 +863,50 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     (async () => {
         let chunkIndex = 0;
         for (const chunk of chunks) {
-            let audioQuery = await postAudioQuery(chunk, speakerId);
-            if (!audioQuery) continue;
-            audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
-            // TTSエンジンからストリームを取得
-            const params = new URLSearchParams({ speaker: speakerId.toString() });
+            try {
+                let audioQuery = await postAudioQuery(chunk, speakerId);
+                if (!audioQuery) { chunkIndex++; continue; }
+                audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
+
+                // TTSエンジンからストリームを取得
+                const params = new URLSearchParams({ speaker: speakerId.toString() });
                 const synthFetchStart = Date.now();
                 let firstByteRecorded = false;
                 const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(audioQuery)
-            });
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(audioQuery)
+                });
                 const synthFetchEnd = Date.now();
                 console.log(`[TTS] synthesis request: guild=${guildId} chunk=${chunkIndex} fetchMs=${synthFetchEnd - synthFetchStart} status=${response.status}`);
-            if (!response.ok || !response.body) continue;
-            if (!ttsContentType) {
-                const ct = response.headers.get('content-type');
-                ttsContentType = ct === null ? undefined : ct;
-            }
-            const nodeStream = response.body as unknown as import('stream').Readable;
-            await new Promise<void>((resolve, reject) => {
-                if (!nodeStream) return resolve();
-                nodeStream.on('data', (chunk: Buffer) => {
-                    if (!firstByteRecorded) {
-                        firstByteRecorded = true;
-                        const firstByteTime = Date.now();
-                        console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
-                    }
-                    ttsStream.write(chunk);
+
+                if (!response.ok || !response.body) { chunkIndex++; continue; }
+                if (!ttsContentType) {
+                    const ct = response.headers.get('content-type');
+                    ttsContentType = ct === null ? undefined : ct;
+                }
+                const nodeStream = response.body as unknown as import('stream').Readable;
+                await new Promise<void>((resolve, reject) => {
+                    if (!nodeStream) return resolve();
+                    nodeStream.on('data', (chunk: Buffer) => {
+                        if (!firstByteRecorded) {
+                            firstByteRecorded = true;
+                            const firstByteTime = Date.now();
+                            console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
+                        }
+                        ttsStream.write(chunk);
+                    });
+                    nodeStream.on('end', () => resolve());
+                    nodeStream.on('error', (err: any) => reject(err));
                 });
-                nodeStream.on('end', () => resolve());
-                nodeStream.on('error', (err: any) => reject(err));
-            });
+            } catch (e) {
+                console.warn('synthesis chunk error:', e);
+            }
+            chunkIndex++;
         }
-    ended = true;
+        // 全チャンク処理完了
+        ended = true;
         ttsStream.end();
-    chunkIndex++;
     })();
 
     // 先読みバッファを貯めてから再生開始
@@ -1172,58 +1178,7 @@ export function loadAutoJoinChannels() {
     return {};
 }
 
-// export function saveAutoJoinChannels() {
-//     try {
-//         // 既存のデータを読み込む
-//         let existingData = {};
-//         if (fs.existsSync(AUTO_JOIN_FILE)) {
-//             try {
-//                 const data = fs.readFileSync(AUTO_JOIN_FILE, "utf-8");
-//                 existingData = JSON.parse(data);
-//             } catch (readError) {
-//                 console.error(`既存の自動参加チャンネル設定読み込みエラー: ${readError}`);
-//                 // 読み込みエラーの場合は空のオブジェクトで続行
-//                 existingData = {};
-//             }
-//         }
 
-//     // autoJoinChannelsの内容のみで上書き保存
-//     ensureDirectoryExists(AUTO_JOIN_FILE);
-//     fs.writeFileSync(AUTO_JOIN_FILE, JSON.stringify(autoJoinChannels, null, 4), "utf-8");
-//     console.log(`自動参加チャンネル設定を保存しました: ${AUTO_JOIN_FILE}`);
-//     } catch (error) {
-//         console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
-//     }
-        // First, prefer explicit voice->text mapping when available
-        try {
-            const voiceChannelId = voiceClient?.joinConfig?.channelId;
-            if (voiceChannelId) {
-                const mapped = (textChannelByVoice as any)[voiceChannelId] as TextChannel | undefined;
-                if (mapped && mapped.id === currentChannelId) {
-                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped`);
-                    return { allowed: true, reason: 'voice-mapped' };
-                }
-            }
-        } catch (e) {}
-
-        try {
-            const vals = Object.values(textChannels || {});
-            for (const tc of vals) {
-                try {
-                    if (!tc) continue;
-                    const tcGuildId = (tc as any).guild?.id;
-                    const tcId = (tc as any).id;
-                    if (tcGuildId && tcId && tcGuildId === guildId && tcId === currentChannelId) {
-                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-setting`);
-                        return { allowed: true, reason: 'api-setting' };
-                    }
-                } catch (e) { continue; }
-            }
-        } catch (e) {}
-//         return true;
-//     }
-//     return false;
-// }
 
 // ファイル書き込み時にパスの存在チェックと親ディレクトリ作成を行う関数
 function ensureDirectoryExists(filePath: string): void {
