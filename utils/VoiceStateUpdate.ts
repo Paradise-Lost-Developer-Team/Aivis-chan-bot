@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState, ChannelType } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
-import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap } from './TTS-Engine';
+import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap, updateJoinChannelsConfig } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
 import { getBotInfos, pickLeastBusyBot, instructJoin, instructLeave } from './botOrchestrator';
@@ -382,6 +382,10 @@ export function VoiceStateUpdate(client: Client) {
                                             // Persist a strict mapping between this voice channel and the selected text channel
                                             try { setTextChannelForVoice(vc.id, preferred); } catch (_) {}
                                             try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
+                                            // Persist to join_channels.json so other bots can read authoritative mapping
+                                            try { if (typeof updateJoinChannelsConfig === 'function') updateJoinChannelsConfig(guild.id, vc.id, (preferred as any).id); } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
+                                            // refresh auto-join cache if needed
+                                            try { loadAutoJoinChannels(); } catch (_) {}
                                             console.log(`[BotJoin] guild=${guild.id} voice=${vc.id} mapping-set selected=${(preferred && preferred.id) || preferred}`);
                                         } catch (e) {
                                             console.error('[BotJoin] mapping set エラー:', e);
