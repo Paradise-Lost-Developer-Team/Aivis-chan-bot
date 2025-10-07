@@ -66,33 +66,6 @@ function markTTSDown() {
     startTTSHealthProbe();
 }
 
-export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
-export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
-export const currentSpeaker: { [userId: string]: number } = {};
-// ユーザーごとの話者設定
-export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
-export const players: { [voiceChannelId: string]: AudioPlayer } = {};
-
-// 互換ヘルパ: textChannels マップを guildId でも参照可能にする
-export function normalizeTextChannelsMap(): void {
-    try {
-        const vals = Object.values(textChannels || {});
-        for (const tc of vals) {
-            try {
-                if (!tc || !(tc as any).guild) continue;
-                const gid = (tc as any).guild.id;
-                if (!gid) continue;
-                // Do NOT implicitly create a guildId-keyed persistent entry here.
-                // Register channels by channel.id only to avoid writing durable
-                // guild->channel mappings when running with a shared hostPath.
-                const cid = (tc as any).id;
-                if (cid && !(textChannels as any)[cid]) {
-                    try { (textChannels as any)[cid] = tc; } catch (_) { }
-                }
-            } catch (e) { continue; }
-        }
-    } catch (e) { }
-}
 
 export function getTextChannelFromMapByGuild(guildId: string): TextChannel | undefined {
     try {
@@ -748,8 +721,22 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
                     const vc = guild.channels.cache.get(voiceChannelId) as any;
                     const tc = guild.channels.cache.get(currentChannelId) as any;
                     if (vc && tc && tc.type === ChannelType.GuildText) {
-                        if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-channel-category`); return { allowed: true, reason: 'voice-channel-category' }; }
-                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`); return { allowed: true, reason: 'matching-text-channel' }; }
+                        // 1) strict same-name match
+                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
+                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
+                            return { allowed: true, reason: 'matching-text-channel' };
+                        }
+
+                        // 2) api-mapped channel exists
+                        try {
+                            const mapped = (textChannels as any)[currentChannelId] || ((textChannels as any)[guildId] && (textChannels as any)[guildId].id === currentChannelId);
+                            if (mapped) {
+                                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
+                                return { allowed: true, reason: 'api-mapped-channel' };
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
                     }
                 }
             }
