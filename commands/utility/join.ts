@@ -154,7 +154,23 @@ module.exports = {
                 } catch (logErr) {
                     // ignore logging errors
                 }
-                try { addTextChannelsForGuildInMap(guildId, uniq); } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
+                // Choose a single preferred text channel to persist for this guild.
+                // Preference order: explicit execChannel (if present), provided textChannel, first candidate.
+                try {
+                    let preferred: TextChannel | undefined = undefined;
+                    if (execChannel) preferred = execChannel;
+                    if (!preferred && textChannel) preferred = textChannel;
+                    if (!preferred && uniq.length > 0) preferred = uniq[0];
+                    if (preferred) {
+                        setTextChannelForGuildInMap(guildId, preferred);
+                    } else if (uniq.length > 0) {
+                        // as a very last resort, persist the first candidate
+                        setTextChannelForGuildInMap(guildId, uniq[0]);
+                    }
+                } catch (err) {
+                    console.warn('[join] failed to set single text channel mapping, falling back to previous behavior', err);
+                    try { addTextChannelsForGuildInMap(guildId, uniq); } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
+                }
             }
         } catch (e) {
             setTextChannelForGuildInMap(guildId, textChannel);

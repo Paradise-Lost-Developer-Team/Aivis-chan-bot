@@ -5,7 +5,7 @@ import * as fs from "fs";
 import path from "path";
 import { TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
-import { getTextChannelForGuild } from './voiceStateManager';
+import { getTextChannelForGuild, setTextChannelForGuild } from './voiceStateManager';
 import { ChannelType, TextChannel as DjTextChannel } from 'discord.js';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
@@ -101,6 +101,51 @@ export function normalizeTextChannelsMap(): void {
             } catch (e) {
                 continue;
             }
+        }
+        // 追加: 同一ギルドに複数のチャンネルが登録されている場合は単一にまとめるマイグレーション
+        try {
+            const byGuild: Record<string, any[]> = {};
+            for (const [k, v] of Object.entries((textChannels as any) || {})) {
+                try {
+                    const gid = v?.guild?.id;
+                    if (!gid) continue;
+                    if (!byGuild[gid]) byGuild[gid] = [];
+                    // 保存キーとオブジェクトを記録
+                    byGuild[gid].push({ key: k, channel: v });
+                } catch (e) { continue; }
+            }
+            for (const gid of Object.keys(byGuild)) {
+                try {
+                    const entries = byGuild[gid];
+                    if (!entries || entries.length === 0) continue;
+                    // 既に guildId キーが存在すればそれを優先
+                    let preferredEntry = entries.find(en => en.key === gid) || entries[0];
+                    // もし guildIdキーがなくても channel id をキーに残しつつ guildId キーを追加する
+                    try {
+                        (textChannels as any)[preferredEntry.key] = preferredEntry.channel;
+                        // guildId キーにもセットして参照の一貫性を確保
+                        (textChannels as any)[gid] = preferredEntry.channel;
+                    } catch (_) {}
+
+                    // 他の同ギルドのエントリは削除して冗長なマッピングを解消
+                    for (const en of entries) {
+                        try {
+                            if (en.key === preferredEntry.key || en.key === gid) continue;
+                            delete (textChannels as any)[en.key];
+                        } catch (_) { continue; }
+                    }
+
+                    // 永続化可能なら voiceStateManager を通じて保存（textChannelId を保存）
+                    try {
+                        const tcid = (preferredEntry.channel && preferredEntry.channel.id) ? preferredEntry.channel.id : undefined;
+                        if (typeof setTextChannelForGuild === 'function' && tcid) {
+                            try { setTextChannelForGuild(gid, tcid); } catch (_) { /* ignore */ }
+                        }
+                    } catch (_) {}
+                } catch (e) { continue; }
+            }
+        } catch (e) {
+            // ignore migration errors
         }
     } catch (e) {
         // ignore
