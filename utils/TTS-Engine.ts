@@ -114,22 +114,45 @@ export function setTextChannelForVoice(voiceChannelId: string, channel: TextChan
         console.warn('setTextChannelForVoice error:', e);
     }
 }
+        export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+            let local: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+            try {
+                if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+                    try {
+                        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+                        local = JSON.parse(data) || {};
+                    } catch (err) {
+                        console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, err);
+                        local = {};
+                    }
+                }
+            } catch (err) {
+                console.error(`参加チャンネル設定読み込みチェックエラー (${JOIN_CHANNELS_FILE}):`, err);
+                local = {};
+            }
 
-function markTTSDown() {
-    if (!ttsAvailable) return;
-    ttsAvailable = false;
-    console.error('TTSサービスが利用不可と判断されました。ヘルスプローブを開始します。');
-    startTTSHealthProbe();
-}
+            local[guildId] = { voiceChannelId, textChannelId };
 
-export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
-// 明示的 voiceChannelId -> TextChannel の1:1マッピング
-export const textChannelByVoice: { [voiceChannelId: string]: TextChannel | string } = {};
+            try {
+                ensureDirectoryExists(JOIN_CHANNELS_FILE);
+                const tmp = JOIN_CHANNELS_FILE + '.tmp';
+                fs.writeFileSync(tmp, JSON.stringify(local, null, 4), 'utf-8');
+                fs.renameSync(tmp, JOIN_CHANNELS_FILE);
+                try { (joinChannels as any)[guildId] = { voiceChannelId, textChannelId }; } catch (_) {}
+                console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+            } catch (err) {
+                console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, err);
+            }
+        }
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // ユーザーごとの話者設定
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [voiceChannelId: string]: AudioPlayer } = {};
+// テキストチャンネルのマップ（channelId または guildId -> TextChannel）
+export const textChannels: { [key: string]: TextChannel } = {};
+// voiceChannelId -> TextChannel のマッピング
+export const textChannelByVoice: { [voiceChannelId: string]: TextChannel | string } = {};
 
 // 互換レイヤー: textChannels マップを guildId でも参照できるようにするヘルパ
 export function normalizeTextChannelsMap(): void {
@@ -1752,6 +1775,7 @@ process.on('SIGTERM', () => {
         process.exit(0);
     }
 });
+
 
 // Canonical typed export for other modules to import safely
 export const ttsEngine: TTSEngineExports = {
