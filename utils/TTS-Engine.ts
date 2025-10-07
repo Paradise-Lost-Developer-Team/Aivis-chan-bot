@@ -71,6 +71,8 @@ function markTTSDown() {
 
 // voiceChannelIdベースで管理
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
+// 新: ボイスチャンネルIDに紐付けてテキストチャンネルを管理するマップ
+export const textChannelByVoice: { [voiceChannelId: string]: TextChannel } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // joinコマンド実行チャンネルを記録するマップ
@@ -183,6 +185,21 @@ export function setTextChannelForGuildInMap(guildId: string, channel: TextChanne
         }
     } catch (e) {
         console.warn('setTextChannelForGuildInMap error:', e);
+    }
+}
+
+// voiceChannelId に紐づくテキストチャンネルを設定するヘルパ
+export function setTextChannelForVoice(voiceChannelId: string, channel: TextChannel | null | undefined): void {
+    try {
+        if (!voiceChannelId) return;
+        if (!channel) {
+            try { delete (textChannelByVoice as any)[voiceChannelId]; } catch (_) {}
+            return;
+        }
+        try { (textChannelByVoice as any)[voiceChannelId] = channel; } catch (_) {}
+        try { (textChannels as any)[(channel as any).id] = channel; } catch (_) {}
+    } catch (e) {
+        console.warn('setTextChannelForVoice error:', e);
     }
 }
 
@@ -1506,31 +1523,31 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
             }
         } catch (e) {}
 
-        // 5) voiceClient relation: prefer strict same-name or explicitly mapped channel.
-        // Avoid allowing all sibling text channels just because they share the same category.
+        // 5) voiceClient relation: prefer a text channel explicitly mapped to the voice channel.
+        // Avoid allowing sibling text channels just because they share the category.
         try {
             const voiceChannelId = voiceClient?.joinConfig?.channelId;
             if (voiceChannelId && client) {
+                // If there's a mapping of text channel for this voiceChannelId, only allow that one.
+                try {
+                    const mappedTc = (textChannelByVoice as any)[voiceChannelId];
+                    if (mappedTc && (mappedTc as any).id === currentChannelId) {
+                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped-text-channel`);
+                        return { allowed: true, reason: 'voice-mapped-text-channel' };
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                // If no strict mapping exists, fall back to stricter same-name check only (avoid category-wide allowance)
                 const guild = client.guilds?.cache?.get(guildId);
                 if (guild) {
                     const vc = guild.channels.cache.get(voiceChannelId) as any;
                     const tc = guild.channels.cache.get(currentChannelId) as any;
                     if (vc && tc && tc.type === ChannelType.GuildText) {
-                        // 1) strict same-name match
                         if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
                             console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
                             return { allowed: true, reason: 'matching-text-channel' };
-                        }
-
-                        // 2) api-mapped channel exists
-                        try {
-                            const mapped = (textChannels as any)[currentChannelId] || ((textChannels as any)[guildId] && (textChannels as any)[guildId].id === currentChannelId);
-                            if (mapped) {
-                                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
-                                return { allowed: true, reason: 'api-mapped-channel' };
-                            }
-                        } catch (e) {
-                            // ignore
                         }
                     }
                 }

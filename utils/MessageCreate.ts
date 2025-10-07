@@ -68,6 +68,10 @@ export function MessageCreate(client: ExtendedClient) {
             }
             
             console.log(`[TTS:pro] TTS実行許可: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
+            try {
+                const vcId = voiceClient?.joinConfig?.channelId;
+                if (vcId) console.log(`[TTS:pro] voiceClient.joinConfig.channelId=${vcId}`);
+            } catch (e) {}
             
             // メッセージ内容の加工
             // スポイラーを置換
