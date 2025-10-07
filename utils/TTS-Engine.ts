@@ -99,22 +99,36 @@ export function normalizeTextChannelsMap(): void {
         // ignore
     }
 }
-
-// normalizeTextChannelsMap 完了後に voice->text の既知マッピングがあれば同期する
-try {
+export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+    let local: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
     try {
-        for (const key of Object.keys(textChannels || {})) {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
             try {
-                const tc = (textChannels as any)[key];
-                if (!tc) continue;
-                const possibleVoiceId = (tc as any).voiceChannelId || (tc as any).mappedVoiceChannelId;
-                if (possibleVoiceId) {
-                    try { (textChannelByVoice as any)[possibleVoiceId] = tc; } catch (_) { }
-                }
-            } catch (_) {}
+                const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+                local = JSON.parse(data) || {};
+            } catch (err) {
+                console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, err);
+                local = {};
+            }
         }
-    } catch (_) {}
-} catch (_) {}
+    } catch (err) {
+        console.error(`参加チャンネル設定読み込みチェックエラー (${JOIN_CHANNELS_FILE}):`, err);
+        local = {};
+    }
+
+    local[guildId] = { voiceChannelId, textChannelId };
+
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        const tmp = JOIN_CHANNELS_FILE + '.tmp';
+        fs.writeFileSync(tmp, JSON.stringify(local, null, 2), 'utf-8');
+        fs.renameSync(tmp, JOIN_CHANNELS_FILE);
+        try { (joinChannels as any)[guildId] = { voiceChannelId, textChannelId }; } catch (_) {}
+        console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+    } catch (err) {
+        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, err);
+    }
+}
 
 export function getTextChannelForVoice(voiceChannelId: string): string | undefined {
     try {
