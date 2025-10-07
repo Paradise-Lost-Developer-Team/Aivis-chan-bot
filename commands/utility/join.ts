@@ -111,18 +111,26 @@ module.exports = {
                 } else {
                     // 同じチャンネルの場合
                     setTextChannelForGuildInMap(guildId, textChannel); // テキストチャンネルの更新のみ
-                    await interaction.editReply({
-                        embeds: [addCommonFooter(
-                            new EmbedBuilder()
-                                .setTitle('既に接続中')
-                                .setDescription(`✅ 既に「${currentVoiceChannel.name}」に接続しています。テキストチャンネルを「${textChannel.name}」に設定しました。`)
-                                .setColor(0x00bfff)
-                        )],
-                        components: [getCommonLinksRow()]
-                    });
-                    return;
-                }
-            }
+                    // 永続化も行う（失敗しても処理継続）
+                    try {
+                        if (typeof updateJoinChannelsConfig === 'function') {
+                            await updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                        }
+                    } catch (e) {
+                        console.warn('[join:1st] updateJoinChannelsConfig failed (already-connected path):', e);
+                    }
+                     await interaction.editReply({
+                         embeds: [addCommonFooter(
+                             new EmbedBuilder()
+                                 .setTitle('既に接続中')
+                                 .setDescription(`✅ 既に「${currentVoiceChannel.name}」に接続しています。テキストチャンネルを「${textChannel.name}」に設定しました。`)
+                                 .setColor(0x00bfff)
+                         )],
+                         components: [getCommonLinksRow()]
+                     });
+                     return;
+                 }
+             }
         }
         
         // If user didn't explicitly specify text_channel, register execution channel + category channels as candidates
@@ -164,15 +172,23 @@ module.exports = {
                     if (!preferred && uniq.length > 0) preferred = uniq[0];
                     if (preferred) {
                         setTextChannelForGuildInMap(guildId, preferred);
+                        // 永続化（preferred が決定したら保存）
+                        try {
+                            if (typeof updateJoinChannelsConfig === 'function') {
+                                await updateJoinChannelsConfig(guildId, voiceChannel.id, preferred.id);
+                            }
+                        } catch (e) {
+                            console.warn('[join:1st] updateJoinChannelsConfig failed (preferred selection):', e);
+                        }
                     } else {
                         // fallback to original behavior if something unexpected happens
                         addTextChannelsForGuildInMap(guildId, uniq);
                     }
-                } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
-            }
-        } catch (e) {
-            setTextChannelForGuildInMap(guildId, textChannel);
-        }
+                 } catch (_) { setTextChannelForGuildInMap(guildId, textChannel); }
+             }
+         } catch (e) {
+             setTextChannelForGuildInMap(guildId, textChannel);
+         }
         // joinコマンド実行チャンネルを記録（実行チャンネルがテキストでない場合は選択したテキストチャンネルを使う）
         try {
             // record the channel where the command was executed; accept any text-based channel (threads etc.)
@@ -200,29 +216,29 @@ module.exports = {
                 console.log(`[join] instructJoin payload guild=${guildId} picked=${picked.bot.name} voice=${voiceChannel.id} text=${textChannel.id} reqCh=${requestingChannelId ?? 'none'}`);
             } catch (_) {}
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id, requestingChannelId });
-            try {
-                if (typeof updateJoinChannelsConfig === 'function') {
-                    updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                try {
+                    if (typeof updateJoinChannelsConfig === 'function') {
+                        await updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                    }
+                } catch (e) {
+                    console.warn('[join:1st] updateJoinChannelsConfig failed (post-instructJoin):', e);
                 }
-            } catch (e) {
-                console.warn('[join:1st] updateJoinChannelsConfig failed:', e);
-            }
-
-            await interaction.editReply({
-                embeds: [addCommonFooter(
-                    new EmbedBuilder()
-                        .setTitle('接続指示完了')
-                        .setDescription(`✅ 選択Bot (${picked.bot.name}) に <#${voiceChannel.id}> への参加を指示しました。`)
-                        .setColor(0x00bfff)
-                        .addFields(
-                            { name: '接続先', value: `<#${voiceChannel.id}>`, inline: true },
-                            { name: 'テキストチャンネル', value: `<#${textChannel.id}>`, inline: true },
-                            { name: '実行者', value: `<@${interaction.user.id}>`, inline: true }
-                        )
-                        .setThumbnail(interaction.client.user?.displayAvatarURL() ?? null)
-                )],
-                components: [getCommonLinksRow()]
-            });
+ 
+                 await interaction.editReply({
+                     embeds: [addCommonFooter(
+                         new EmbedBuilder()
+                             .setTitle('接続指示完了')
+                             .setDescription(`✅ 選択Bot (${picked.bot.name}) に <#${voiceChannel.id}> への参加を指示しました。`)
+                             .setColor(0x00bfff)
+                             .addFields(
+                                 { name: '接続先', value: `<#${voiceChannel.id}>`, inline: true },
+                                 { name: 'テキストチャンネル', value: `<#${textChannel.id}>`, inline: true },
+                                 { name: '実行者', value: `<@${interaction.user.id}>`, inline: true }
+                             )
+                             .setThumbnail(interaction.client.user?.displayAvatarURL() ?? null)
+                     )],
+                     components: [getCommonLinksRow()]
+                 });
             loadAutoJoinChannels();
         } catch (error) {
             console.error(error);
