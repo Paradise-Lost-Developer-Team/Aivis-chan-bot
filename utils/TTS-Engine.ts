@@ -846,6 +846,9 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
         } catch (e) {}
 
         try {
+            // Only allow relation-based matches when there is a clear mapping or name match.
+            // Avoid allowing any text channel merely because it shares the same category as the
+            // voice channel (that was too permissive and caused reading from all sibling channels).
             const voiceChannelId = voiceClient?.joinConfig?.channelId;
             if (voiceChannelId && client) {
                 const guild = client.guilds?.cache?.get(guildId);
@@ -853,8 +856,22 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
                     const vc = guild.channels.cache.get(voiceChannelId) as any;
                     const tc = guild.channels.cache.get(currentChannelId) as any;
                     if (vc && tc && tc.type === ChannelType.GuildText) {
-                        if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-channel-category`); return { allowed: true, reason: 'voice-channel-category' }; }
-                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`); return { allowed: true, reason: 'matching-text-channel' }; }
+                        // 1) Strict same-name match (voice and text channel share the same name)
+                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
+                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
+                            return { allowed: true, reason: 'matching-text-channel' };
+                        }
+
+                        // 2) API/in-memory map contains this text channel (explicit mapping)
+                        try {
+                            const mapped = (textChannels as any)[currentChannelId] || (textChannels as any)[guildId] && ((textChannels as any)[guildId] as any).id === currentChannelId;
+                            if (mapped) {
+                                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
+                                return { allowed: true, reason: 'api-mapped-channel' };
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
                     }
                 }
             }
