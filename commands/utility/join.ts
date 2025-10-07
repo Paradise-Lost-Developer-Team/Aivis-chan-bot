@@ -4,7 +4,7 @@ import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelTyp
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
-import { currentSpeaker, speakVoice, voiceClients, loadAutoJoinChannels, setJoinCommandChannel, setTextChannelForGuildInMap, addTextChannelsForGuildInMap } from '../../utils/TTS-Engine';
+import { currentSpeaker, speakVoice, voiceClients, loadAutoJoinChannels, setJoinCommandChannel, setTextChannelForGuildInMap, addTextChannelsForGuildInMap, updateJoinChannelsConfig } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 import { setTextChannelForGuild } from '../../utils/voiceStateManager';
 
@@ -200,6 +200,13 @@ module.exports = {
                 console.log(`[join] instructJoin payload guild=${guildId} picked=${picked.bot.name} voice=${voiceChannel.id} text=${textChannel.id} reqCh=${requestingChannelId ?? 'none'}`);
             } catch (_) {}
             await instructJoin(picked.bot, { guildId, voiceChannelId: voiceChannel.id, textChannelId: textChannel.id, requestingChannelId });
+            try {
+                if (typeof updateJoinChannelsConfig === 'function') {
+                    updateJoinChannelsConfig(guildId, voiceChannel.id, textChannel.id);
+                }
+            } catch (e) {
+                console.warn('[join:1st] updateJoinChannelsConfig failed:', e);
+            }
 
             await interaction.editReply({
                 embeds: [addCommonFooter(

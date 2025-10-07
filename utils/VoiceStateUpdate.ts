@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
-import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap } from './TTS-Engine';
+import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap, updateJoinChannelsConfig } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
 import { getBotInfos, pickLeastBusyBot, instructJoin, instructLeave } from './botOrchestrator';
@@ -292,18 +292,21 @@ export function VoiceStateUpdate(client: Client) {
                                     }
                                 } catch (e) { /* ignore */ }
                                 if (!preferred) preferred = allowed[0];
-                                if (preferred) {
-                                    (preferred as any).source = 'mapped';
-                                    try {
-                                        // Persist a single mapping: guild -> preferred text channel
-                                        try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
-                                        // Also map voiceChannelId -> textChannel for stricter relation
-                                        try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
-                                        console.log(`[BotJoin:1st] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
-                                    } catch (e) {
-                                        console.error('[BotJoin:1st] persist selected text channel error:', e);
-                                    }
-                                }
+                                        if (preferred) {
+                                            (preferred as any).source = 'mapped';
+                                            try {
+                                                // Persist a single mapping: guild -> preferred text channel
+                                                try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
+                                                // Also map voiceChannelId -> textChannel for stricter relation
+                                                try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
+                                                // Persist to join_channels.json so other bots can read authoritative mapping
+                                                try { if (typeof updateJoinChannelsConfig === 'function') updateJoinChannelsConfig(guild.id, (vc && vc.id) || (newState.channel && newState.channel.id), (preferred as any).id); } catch (e) { console.warn('[BotJoin:1st] updateJoinChannelsConfig failed:', e); }
+                                                try { loadAutoJoinChannels(); } catch (_) {}
+                                                console.log(`[BotJoin:1st] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+                                            } catch (e) {
+                                                console.error('[BotJoin:1st] persist selected text channel error:', e);
+                                            }
+                                        }
                             } catch (e) {
                                 console.error('[BotJoin:1st] 優先チャネル選択エラー:', e);
                             }
