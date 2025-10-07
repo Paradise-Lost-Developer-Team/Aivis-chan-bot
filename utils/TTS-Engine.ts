@@ -67,6 +67,8 @@ function markTTSDown() {
 }
 
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
+// explicit mapping: voiceChannelId -> TextChannel (preferred when present)
+export const textChannelByVoice: { [voiceChannelId: string]: TextChannel } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // ユーザーごとの話者設定
@@ -159,6 +161,19 @@ export function removeTextChannelForGuildInMap(guildId: string): void {
     } catch (e) {
         console.warn('removeTextChannelForGuildInMap error:', e);
     }
+}
+
+export function setTextChannelForVoice(voiceChannelId: string, channel: TextChannel | null | undefined) {
+    try {
+        if (!voiceChannelId) return;
+        if (!channel) { delete (textChannelByVoice as any)[voiceChannelId]; return; }
+        (textChannelByVoice as any)[voiceChannelId] = channel;
+        try { const gid = channel.guild?.id; if (gid) (textChannels as any)[gid] = channel; } catch (_) {}
+    } catch (e) {}
+}
+
+export function getTextChannelForVoice(voiceChannelId: string): TextChannel | undefined {
+    try { return (textChannelByVoice as any)[voiceChannelId]; } catch (e) { return undefined; }
 }
 
 // デフォルトのスピーカー設定
@@ -738,10 +753,15 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
                 try {
                     if (!tc) continue;
                     const tcGuildId = (tc as any).guild?.id;
-                    const tcId = (tc as any).id;
-                    if (tcGuildId && tcId && tcGuildId === guildId && tcId === currentChannelId) {
-                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-setting`);
-                        return { allowed: true, reason: 'api-setting' };
+                    const cid = (tc as any).id;
+                    if (cid && !(textChannels as any)[cid]) {
+                        try { (textChannels as any)[cid] = tc; } catch (_) { /* ignore */ }
+                    }
+                    try {
+                        if (cid) {
+                            (textChannelByVoice as any)[cid] = tc;
+                        }
+                    } catch (_) {}
                     }
                 } catch (e) { continue; }
             }
@@ -1174,20 +1194,32 @@ export function loadAutoJoinChannels() {
 //     } catch (error) {
 //         console.error(`自動参加チャンネル設定保存エラー (${AUTO_JOIN_FILE}):`, error);
 //     }
-// }
+        // First, prefer explicit voice->text mapping when available
+        try {
+            const voiceChannelId = voiceClient?.joinConfig?.channelId;
+            if (voiceChannelId) {
+                const mapped = (textChannelByVoice as any)[voiceChannelId] as TextChannel | undefined;
+                if (mapped && mapped.id === currentChannelId) {
+                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped`);
+                    return { allowed: true, reason: 'voice-mapped' };
+                }
+            }
+        } catch (e) {}
 
-// // 新規：特定のギルドの自動参加設定を更新/追加する関数
-// export function updateAutoJoinChannel(guildId: string, voiceChannelId: string, textChannelId: string, tempVoice?: boolean) {
-//     // 既存の設定を保持したまま特定のギルドの設定だけを更新
-//     autoJoinChannels[guildId] = { voiceChannelId, textChannelId, tempVoice };
-//     saveAutoJoinChannels();
-// }
-
-// // 新規：特定のギルドの自動参加設定を削除する関数
-// export function removeAutoJoinChannel(guildId: string) {
-//     if (autoJoinChannels[guildId]) {
-//         delete autoJoinChannels[guildId];
-//         saveAutoJoinChannels();
+        try {
+            const vals = Object.values(textChannels || {});
+            for (const tc of vals) {
+                try {
+                    if (!tc) continue;
+                    const tcGuildId = (tc as any).guild?.id;
+                    const tcId = (tc as any).id;
+                    if (tcGuildId && tcId && tcGuildId === guildId && tcId === currentChannelId) {
+                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-setting`);
+                        return { allowed: true, reason: 'api-setting' };
+                    }
+                } catch (e) { continue; }
+            }
+        } catch (e) {}
 //         return true;
 //     }
 //     return false;
@@ -1694,6 +1726,8 @@ export const ttsEngine: TTSEngineExports = {
     setTextChannelForGuildInMap: typeof setTextChannelForGuildInMap === 'function' ? setTextChannelForGuildInMap : undefined,
     addTextChannelsForGuildInMap: typeof addTextChannelsForGuildInMap === 'function' ? addTextChannelsForGuildInMap : undefined,
     removeTextChannelForGuildInMap: typeof removeTextChannelForGuildInMap === 'function' ? removeTextChannelForGuildInMap : undefined,
+    setTextChannelForVoice: typeof setTextChannelForVoice === 'function' ? setTextChannelForVoice : undefined,
+    getTextChannelForVoice: typeof getTextChannelForVoice === 'function' ? getTextChannelForVoice : undefined,
     textChannels,
     voiceClients,
     autoJoinChannels,
