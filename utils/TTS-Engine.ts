@@ -69,6 +69,8 @@ function markTTSDown() {
 
 // voiceChannelIdベースで管理
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
+// explicit mapping: voiceChannelId -> TextChannel (preferred when present)
+export const textChannelByVoice: { [voiceChannelId: string]: TextChannel } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
 // joinコマンド実行チャンネルを記録するマップ
@@ -92,6 +94,13 @@ export function normalizeTextChannelsMap() {
                 if (gid && !(textChannels as any)[gid]) {
                     (textChannels as any)[gid] = tc;
                 }
+                // if the key equals the channel id, treat it as a voice-keyed entry
+                // and populate the voice-specific map for stricter matching
+                try {
+                    if (tc.id && key === tc.id) {
+                        (textChannelByVoice as any)[key] = tc;
+                    }
+                } catch (_) {}
             } catch (e) {
                 // ignore
             }
@@ -127,6 +136,36 @@ export function setTextChannelForGuildInMap(guildId: string, channel: TextChanne
         }
         (textChannels as any)[guildId] = channel;
     } catch (e) {}
+}
+
+/**
+ * Set an explicit mapping from a voice channel id to a text channel.
+ * This is the authoritative mapping when present and is used by isChannelAllowedForTTS.
+ */
+export function setTextChannelForVoice(voiceChannelId: string, channel: TextChannel | null | undefined) {
+    try {
+        if (!voiceChannelId) return;
+        if (!channel) {
+            delete (textChannelByVoice as any)[voiceChannelId];
+            return;
+        }
+        (textChannelByVoice as any)[voiceChannelId] = channel;
+        // keep guild-keyed map in sync for backward compatibility
+        try {
+            const gid = channel.guild?.id;
+            if (gid) (textChannels as any)[gid] = channel;
+        } catch (_) {}
+    } catch (e) {
+        // ignore
+    }
+}
+
+export function getTextChannelForVoice(voiceChannelId: string): TextChannel | undefined {
+    try {
+        return (textChannelByVoice as any)[voiceChannelId];
+    } catch (e) {
+        return undefined;
+    }
 }
 
 // 追加: ギルドに対して複数のテキストチャンネルを登録するヘルパ
@@ -833,6 +872,20 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
             if (joinCmd && joinCmd === currentChannelId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=join-command-channel`); return { allowed: true, reason: 'join-command-channel' }; }
         } catch (e) {}
 
+
+        // まず、voice->text の明示マッピングが存在する場合はそれを優先して許可を与える
+        try {
+            const voiceChannelId = voiceClient?.joinConfig?.channelId;
+            if (voiceChannelId) {
+                const mapped = getTextChannelForVoice(voiceChannelId);
+                if (mapped && mapped.id === currentChannelId) {
+                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped`);
+                    return { allowed: true, reason: 'voice-mapped' };
+                }
+            }
+        } catch (e) {}
+
+        // 次に、古い api/textChannels マップに guildKey または channelId キーとして登録されている場合を許可
         try {
             const vals = Object.values(textChannels || {});
             for (const tc of vals) {

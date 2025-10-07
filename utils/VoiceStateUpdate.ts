@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
-import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap } from './TTS-Engine';
+import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
 import { EmbedBuilder } from 'discord.js';
 import { getBotInfos, pickLeastBusyBot, instructJoin, instructLeave } from './botOrchestrator';
@@ -295,10 +295,13 @@ export function VoiceStateUpdate(client: Client) {
                                 if (preferred) {
                                     (preferred as any).source = 'mapped';
                                     try {
-                                        addTextChannelsForGuildInMap(guild.id, [preferred] as any[]);
-                                        console.log(`[BotJoin:1st] guild=${guild.id} 登録されたテキスト候補数=1 selected=${(preferred && preferred.id) || preferred}`);
+                                        // Persist a single mapping: guild -> preferred text channel
+                                        try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
+                                        // Also map voiceChannelId -> textChannel for stricter relation
+                                        try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
+                                        console.log(`[BotJoin:1st] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
                                     } catch (e) {
-                                        console.error('[BotJoin:1st] addTextChannelsForGuildInMap エラー:', e);
+                                        console.error('[BotJoin:1st] persist selected text channel error:', e);
                                     }
                                 }
                             } catch (e) {
