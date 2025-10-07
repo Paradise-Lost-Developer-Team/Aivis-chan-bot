@@ -882,43 +882,50 @@ async function speakBufferedChunks(text: string, speakerId: number, guildId: str
     (async () => {
         let chunkIndex = 0;
         for (const chunk of chunks) {
-            let audioQuery = await postAudioQuery(chunk, speakerId);
-            if (!audioQuery) continue;
-            audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
-            // TTSエンジンからストリームを取得
-            const params = new URLSearchParams({ speaker: speakerId.toString() });
+            try {
+                let audioQuery = await postAudioQuery(chunk, speakerId);
+                if (!audioQuery) { chunkIndex++; continue; }
+                audioQuery = adjustAudioQuery(audioQuery, guildId, userId);
+
+                // TTSエンジンからストリームを取得
+                const params = new URLSearchParams({ speaker: speakerId.toString() });
                 const synthFetchStart = Date.now();
                 let firstByteRecorded = false;
                 const response = await fetchWithRetry(`${TTS_BASE_URL}/synthesis?${params}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(audioQuery)
-            });
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(audioQuery)
+                });
                 const synthFetchEnd = Date.now();
                 console.log(`[TTS] synthesis request: guild=${guildId} chunk=${chunkIndex} fetchMs=${synthFetchEnd - synthFetchStart} status=${response.status}`);
-            if (!response.ok || !response.body) continue;
-            if (!ttsContentType) {
-                const ct = response.headers.get('content-type');
-                ttsContentType = ct === null ? undefined : ct;
-            }
-            const nodeStream = response.body as unknown as import('stream').Readable;
-            await new Promise<void>((resolve, reject) => {
-                if (!nodeStream) return resolve();
-                nodeStream.on('data', (chunk: Buffer) => {
-                    if (!firstByteRecorded) {
-                        firstByteRecorded = true;
-                        const firstByteTime = Date.now();
-                        console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
-                    }
-                    ttsStream.write(chunk);
+
+                if (!response.ok || !response.body) { chunkIndex++; continue; }
+                if (!ttsContentType) {
+                    const ct = response.headers.get('content-type');
+                    ttsContentType = ct === null ? undefined : ct;
+                }
+                const nodeStream = response.body as unknown as import('stream').Readable;
+                await new Promise<void>((resolve, reject) => {
+                    if (!nodeStream) return resolve();
+                    nodeStream.on('data', (chunk: Buffer) => {
+                        if (!firstByteRecorded) {
+                            firstByteRecorded = true;
+                            const firstByteTime = Date.now();
+                            console.log(`[TTS] synthesis first byte: guild=${guildId} chunk=${chunkIndex} firstByteMs=${firstByteTime - synthFetchStart}`);
+                        }
+                        ttsStream.write(chunk);
+                    });
+                    nodeStream.on('end', () => resolve());
+                    nodeStream.on('error', (err: any) => reject(err));
                 });
-                nodeStream.on('end', () => resolve());
-                nodeStream.on('error', (err: any) => reject(err));
-            });
+            } catch (e) {
+                console.warn('synthesis chunk error:', e);
+            }
+            chunkIndex++;
         }
-    ended = true;
+        // 全チャンク処理完了
+        ended = true;
         ttsStream.end();
-    chunkIndex++;
     })();
 
     // 先読みバッファを貯めてから再生開始
