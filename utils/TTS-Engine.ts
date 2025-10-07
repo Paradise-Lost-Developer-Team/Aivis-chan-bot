@@ -175,61 +175,61 @@ export function removeTextChannelForGuildInMap(guildId: string): void {
 
 // デフォルトのスピーカー設定
 const DEFAULT_SPEAKERS = [
-  {
-    "name": "Anneli",
-    "speaker_uuid": "e756b8e4-b606-4e15-99b1-3f9c6a1b2317",
-    "styles": [
-      {
-        "name": "ノーマル",
-        "id": 888753760,
-        "type": "talk"
-      },
-      {
-        "name": "通常",
-        "id": 888753761,
-        "type": "talk"
-      },
-      {
-        "name": "テンション高め",
-        "id": 888753762,
-        "type": "talk"
-      },
-      {
-        "name": "落ち着き",
-        "id": 888753763,
-        "type": "talk"
-      },
-      {
-        "name": "上機嫌",
-        "id": 888753764,
-        "type": "talk"
-      },
-      {
-        "name": "怒り・悲しみ",
-        "id": 888753765,
-        "type": "talk"
-      }
-    ],
-    "version": "1.0.0",
-    "supported_features": {
-      "permitted_synthesis_morphing": "NOTHING"
+    {
+        "name": "Anneli",
+        "speaker_uuid": "e756b8e4-b606-4e15-99b1-3f9c6a1b2317",
+        "styles": [
+            {
+                "name": "ノーマル",
+                "id": 888753760,
+                "type": "talk"
+            },
+            {
+                "name": "通常",
+                "id": 888753761,
+                "type": "talk"
+            },
+            {
+                "name": "テンション高め",
+                "id": 888753762,
+                "type": "talk"
+            },
+            {
+                "name": "落ち着き",
+                "id": 888753763,
+                "type": "talk"
+            },
+            {
+                "name": "上機嫌",
+                "id": 888753764,
+                "type": "talk"
+            },
+            {
+                "name": "怒り・悲しみ",
+                "id": 888753765,
+                "type": "talk"
+            }
+        ],
+        "version": "1.0.0",
+        "supported_features": {
+            "permitted_synthesis_morphing": "NOTHING"
+        }
+    },
+    {
+        "name": "Anneli (NSFW)",
+        "speaker_uuid": "9c3114d0-59ce-4576-8110-a6671d3930e1",
+        "styles": [
+            {
+                "name": "ノーマル",
+                "id": 1196801504,
+                "type": "talk"
+            }
+        ],
+        "version": "1.0.0",
+        "supported_features": {
+            "permitted_synthesis_morphing": "NOTHING"
+        }
     }
-  },
-  {
-    "name": "Anneli (NSFW)",
-    "speaker_uuid": "9c3114d0-59ce-4576-8110-a6671d3930e1",
-    "styles": [
-      {
-        "name": "ノーマル",
-        "id": 1196801504,
-        "type": "talk"
-      }
-    ],
-    "version": "1.0.0",
-    "supported_features": {
-      "permitted_synthesis_morphing": "NOTHING"
-    }
-  }
 ];
 
 // プロジェクトルートディレクトリへのパスを取得する関数
@@ -776,13 +776,21 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
                     const vc = guild.channels.cache.get(voiceChannelId) as any;
                     const tc = guild.channels.cache.get(currentChannelId) as any;
                     if (vc && tc && tc.type === ChannelType.GuildText) {
-                        if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) {
-                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-channel-category`);
-                            return { allowed: true, reason: 'voice-channel-category' };
-                        }
+                        // 1) strict same-name match
                         if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
                             console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
                             return { allowed: true, reason: 'matching-text-channel' };
+                        }
+
+                        // 2) api-mapped channel exists
+                        try {
+                            const mapped = (textChannels as any)[currentChannelId] || ((textChannels as any)[guildId] && (textChannels as any)[guildId].id === currentChannelId);
+                            if (mapped) {
+                                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
+                                return { allowed: true, reason: 'api-mapped-channel' };
+                            }
+                        } catch (e) {
+                            // ignore
                         }
                     }
                 }
