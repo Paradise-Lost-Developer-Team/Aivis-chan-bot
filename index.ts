@@ -477,181 +477,137 @@ import { textChannels, voiceClients, setTextChannelForGuildInMap, setTextChannel
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
-        const { guildId, voiceChannelId, textChannelId } = req.body || {};
+        const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
         if (!guildId || !voiceChannelId) return res.status(400).json({ error: 'guildId and voiceChannelId are required' });
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
-        const voiceChannel = guild.channels.cache.get(voiceChannelId);
-        if (!voiceChannel || !('type' in voiceChannel) || (voiceChannel as any).type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
+        const voiceChannel = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
+        if (!voiceChannel || (voiceChannel as any).type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
+
         const existing = voiceClients[guildId];
         if (existing && existing.state.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
             return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
         }
 
-        // Decide text channel: only accept explicit textChannelId, primary's saved value, or autoJoin setting.
-        let finalTextChannelId = textChannelId || null;
+        // 新ルール: 明示的な textChannelId が渡された場合は「そのまま」受け入れる（自動フォールバックは行わない）。
+        // 明示指定が無い場合のみ requestingChannel -> primary -> autoJoin/joinChannels の順でフォールバック。
+        let finalTextChannelId: string | null = null;
+        let resolvedBy: string | null = null;
 
-        const { requestingChannelId } = req.body || {};
-
-        // Prefer explicit requestingChannelId if provided and valid
-        if (!finalTextChannelId && requestingChannelId) {
+        if (textChannelId) {
+            finalTextChannelId = String(textChannelId);
+            resolvedBy = 'explicitParam';
+            // 可能なら永続化を試みるが、失敗しても処理は継続する
             try {
-                const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
-                if (maybe && (maybe as any).type === 0) {
-                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
-                    const perms = me ? (maybe as any).permissionsFor(me) : null;
-                    if (!perms || perms.has('SendMessages')) {
-                        finalTextChannelId = requestingChannelId;
-                        console.log(`[internal/join:3rd] using requestingChannelId as text channel: ${requestingChannelId}`);
+                const tc = guild.channels.cache.get(finalTextChannelId) || await guild.channels.fetch(finalTextChannelId).catch(() => null);
+                try {
+                    const mod = await import('./utils/TTS-Engine');
+                    if (typeof mod.setTextChannelForGuildInMap === 'function') {
+                        await mod.setTextChannelForGuildInMap(guildId, tc || { id: finalTextChannelId } as any, true);
                     } else {
-                        console.warn(`[internal/join:3rd] requestingChannelId exists but bot lacks send permission: ${requestingChannelId}`);
+                        (mod as any).textChannels = (mod as any).textChannels || {};
+                        (mod as any).textChannels[guildId] = { id: finalTextChannelId };
                     }
-                } else {
-                    console.warn(`[internal/join:3rd] requestingChannelId invalid or not a text channel: ${requestingChannelId}`);
-                }
-            } catch (err) {
-                console.error(`[internal/join:3rd] error validating requestingChannelId ${requestingChannelId}:`, err);
-            }
-        }
-
-        // 1) Try to get from primary (1st) if not explicitly provided
-        if (!finalTextChannelId) {
-            try {
-                console.log(`[3rd Bot] 1st Botからテキストチャンネル情報を取得: ${PRIMARY_URL}/internal/text-channel/${guildId}`);
-                const response = await axios.get(`${PRIMARY_URL.replace(/\/$/, '')}/internal/text-channel/${guildId}`, { timeout: 5000 });
-                const data = response.data as { ok?: boolean; textChannelId?: string; textChannelName?: string; guildTier?: string; error?: string };
-                if (data && data.ok && data.textChannelId) {
-                    finalTextChannelId = data.textChannelId;
-                    console.log(`[3rd Bot] 1st Botからテキストチャンネルを取得: ${data.textChannelName} (${finalTextChannelId})`);
-                }
-            } catch (error) {
-                const err = error as any;
-                console.warn(`[3rd Bot] 1st Botからのテキストチャンネル取得に失敗:`, err?.message || String(error));
-            }
-        }
-
-        // 2) Try auto-join saved setting if still not found
-        if (!finalTextChannelId) {
-            try {
-                const { autoJoinChannels } = await import('./utils/TTS-Engine');
-                const autoJoinSetting = autoJoinChannels[guildId];
-                if (autoJoinSetting && autoJoinSetting.textChannelId) {
-                    finalTextChannelId = autoJoinSetting.textChannelId;
-                }
-            } catch (_) {
-                // ignore
-            }
-        }
-
-        // Additional fallbacks: prefer text channels associated with the voice channel
-        if (!finalTextChannelId) {
-            try {
-                console.log(`[internal/join:3rd] フォールバック候補を検査中: guild=${guildId}, voice=${voiceChannelId}`);
-                const botMember = guild.members.me;
-                const voiceChObj: any = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
-                const candidates: any[] = [];
-                if (voiceChObj && voiceChObj.parentId) {
-                    // same category
-                    for (const ch of Array.from(guild.channels.cache.values())) {
-                        try {
-                            if ((ch as any).type === 0 && (ch as any).parentId === voiceChObj.parentId) candidates.push(ch);
-                        } catch (_) {}
-                    }
-                }
-                if (candidates.length === 0 && voiceChObj && voiceChObj.name) {
-                    // try same-name text channel (case-insensitive)
-                    const targetName = (voiceChObj.name || '').toLowerCase();
-                    for (const ch of Array.from(guild.channels.cache.values())) {
-                        try {
-                            if ((ch as any).type === 0 && ((ch as any).name || '').toLowerCase() === targetName) candidates.push(ch);
-                        } catch (_) {}
-                    }
-                }
-
-                for (const cand of candidates) {
-                    try {
-                        if (!botMember) break;
-                        const perms = (cand as any).permissionsFor ? (cand as any).permissionsFor(botMember) : null;
-                        if (perms && perms.has && perms.has('SendMessages')) {
-                            finalTextChannelId = cand.id;
-                            try { setTextChannelForGuildInMap(guildId, cand, false); } catch { try { (textChannels as any)[voiceChannelId] = cand; } catch {} }
-                            console.log(`[internal/join:3rd] フォールバックでテキストチャンネルを選択しました: ${cand.name} (${cand.id}) for voice ${voiceChannelId}`);
-                            break;
-                        }
-                    } catch (e) {
-                        // ignore per-candidate errors
-                    }
-                }
+                } catch (_) { /* 永続化失敗は無視 */ }
             } catch (e) {
-                console.warn('[internal/join:3rd] フォールバック候補検査中にエラーが発生しました:', e);
+                console.warn(`[internal/join:3rd] explicit textChannelId 保存試行に失敗: ${finalTextChannelId}`, e);
             }
-        }
-
-    if (finalTextChannelId) {
-            console.log(`[internal/join:3rd] ギルド ${guildId}: テキストチャンネル ${finalTextChannelId} を設定中`);
-            try {
-                let tc = guild.channels.cache.get(finalTextChannelId) as any;
-                if (!tc) tc = await guild.channels.fetch(finalTextChannelId).catch(() => null);
-                if (tc && tc.type === 0) {
-                    try { setTextChannelForGuildInMap(guildId, tc, false); } catch { try { (textChannels as any)[voiceChannelId] = tc; } catch {} }
-                    console.log(`[internal/join:3rd] 成功: ギルド ${guildId} のテキストチャンネルを設定: ${tc.name} (${finalTextChannelId})`);
-                } else {
-                    console.warn(`[internal/join:3rd] 指定または保存されたテキストチャンネルは利用不可です: ${finalTextChannelId} - 存在: ${!!tc}, タイプ: ${tc?.type}`);
-                    finalTextChannelId = null;
-                }
-            } catch (error) {
-                console.error(`[internal/join:3rd] テキストチャンネル設定エラー: ギルド ${guildId}:`, error);
-                finalTextChannelId = null;
-            }
+            console.log(`[internal/join:3rd] explicit textChannelId をそのまま使用: ${finalTextChannelId}`);
         } else {
-            console.log(`[internal/join:3rd] ギルド ${guildId}: テキストチャンネルは指定されておらず、自動選択は行いません`);
+            // requestingChannelId を優先して検証
+            if (requestingChannelId) {
+                try {
+                    const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
+                    if (maybe && (maybe as any).type === 0) {
+                        const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                        const perms = me ? (maybe as any).permissionsFor(me) : null;
+                        if (!perms || perms.has('SendMessages')) {
+                            finalTextChannelId = requestingChannelId;
+                            resolvedBy = 'requestingChannel';
+                            console.log(`[internal/join:3rd] requestingChannel を使用: ${requestingChannelId}`);
+                        } else {
+                            console.warn(`[internal/join:3rd] requestingChannel が存在するが送信権限がありません: ${requestingChannelId}`);
+                        }
+                    } else {
+                        console.warn(`[internal/join:3rd] requestingChannelId 無効またはテキストチャンネルでない: ${requestingChannelId}`);
+                    }
+                } catch (err) {
+                    console.error(`[internal/join:3rd] requestingChannel 検証エラー: ${requestingChannelId}`, err);
+                }
+            }
+
+            // primary から問い合わせ
+            if (!finalTextChannelId) {
+                try {
+                    const response = await axios.get(`${PRIMARY_URL.replace(/\/$/, '')}/internal/text-channel/${guildId}`, { timeout: 5000 });
+                    const data = response.data as { ok?: boolean; textChannelId?: string; guildTier?: string };
+                    if (data && data.ok && data.textChannelId) {
+                        finalTextChannelId = data.textChannelId;
+                        resolvedBy = 'primary';
+                        console.log(`[internal/join:3rd] primary から取得: ${finalTextChannelId}`);
+                    }
+                } catch (err) {
+                    console.warn('[internal/join:3rd] primary からの取得に失敗:', (err as any)?.message || err);
+                }
+            }
+
+            // autoJoin / joinChannels をフォールバックで確認
+            if (!finalTextChannelId) {
+                try {
+                    const mod = await import('./utils/TTS-Engine');
+                    const auto = (mod.autoJoinChannels || {})[guildId];
+                    if (auto && auto.textChannelId) { finalTextChannelId = auto.textChannelId; resolvedBy = 'autoJoin'; }
+                } catch (_) {}
+            }
+            if (!finalTextChannelId) {
+                try {
+                    const mod = await import('./utils/TTS-Engine');
+                    const js = (mod.joinChannels || {})[guildId];
+                    if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; resolvedBy = 'joinChannels'; }
+                } catch (_) {}
+            }
         }
 
-    const prev = getVoiceConnection(voiceChannelId);
-    if (prev) { try { prev.destroy(); } catch {} try { delete (voiceClients as any)[voiceChannelId]; } catch {} }
-    const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-    try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
-        // wait for the connection to become Ready or Disconnected, but don't hang forever
-        const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => {
-            return new Promise<void>((resolve) => {
-                let finished = false;
-                const cleanup = () => {
-                    try { conn.off(VoiceConnectionStatus.Ready, onReady); } catch {}
-                    try { conn.off(VoiceConnectionStatus.Disconnected, onDisc); } catch {}
-                };
-                const onReady = () => { if (finished) return; finished = true; cleanup(); resolve(); };
-                const onDisc = () => { if (finished) return; finished = true; cleanup(); resolve(); };
-                conn.once(VoiceConnectionStatus.Ready, onReady);
-                conn.once(VoiceConnectionStatus.Disconnected, onDisc);
-                // fallback timeout to ensure resolution even if events never fire
-                setTimeout(() => { if (finished) return; finished = true; cleanup(); resolve(); }, timeoutMs);
-            });
-        };
+        // voice 接続処理（text チャンネル決定とは独立）
+        const prev = getVoiceConnection(voiceChannelId);
+        if (prev) { try { prev.destroy(); } catch {} try { delete (voiceClients as any)[voiceChannelId]; } catch {} }
+        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+        try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
+
+        // wait for Ready or Disconnected with timeout
+        const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => new Promise<void>((resolve) => {
+            let finished = false;
+            const cleanup = () => {
+                try { conn.off(VoiceConnectionStatus.Ready, onReady); } catch {}
+                try { conn.off(VoiceConnectionStatus.Disconnected, onDisc); } catch {}
+            };
+            const onReady = () => { if (finished) return; finished = true; cleanup(); resolve(); };
+            const onDisc = () => { if (finished) return; finished = true; cleanup(); resolve(); };
+            conn.once(VoiceConnectionStatus.Ready, onReady);
+            conn.once(VoiceConnectionStatus.Disconnected, onDisc);
+            setTimeout(() => { if (finished) return; finished = true; cleanup(); resolve(); }, timeoutMs);
+        });
         await waitReady(connection, 10000);
-        // 3rd Botではボイス状態の保存をスキップ（1st Botが管理）
-        // try { saveVoiceState(client as any); } catch {}
-        
-        // Voice接続安定化のための短い遅延
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 即時応答してアナウンスは非同期で実行
+
         try {
             res.json({
                 ok: true,
                 textChannelId: finalTextChannelId,
-                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが見つかりませんでした'
+                resolvedBy,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルは未決定です'
             });
         } catch (e) {
-            console.warn('[internal/join] 応答送信エラー:', e);
+            console.warn('[internal/join:3rd] 応答送信エラー:', e);
         }
 
+        // 非同期でアナウンス再生
         (async () => {
             try {
                 const { speakAnnounce } = await import('./utils/TTS-Engine');
                 await speakAnnounce('接続しました', voiceChannelId, client);
-                console.log(`[internal/join] (async) 音声アナウンス再生完了: ギルド ${guildId}`);
             } catch (voiceAnnounceError) {
-                console.error(`[internal/join] (async) 音声アナウンスエラー: ギルド ${guildId}:`, voiceAnnounceError);
+                console.error('[internal/join:3rd] 音声アナウンスエラー:', voiceAnnounceError);
             }
         })();
     } catch (e) {
@@ -986,10 +942,11 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
 
+        // 優先順位: requestingChannel -> in-memory mapping -> autoJoin/joinChannels -> voice フォールバック（最後）
         let finalTextChannelId: string | null = null;
-        let reason = 'none';
+        let reason: string | null = null;
 
-        if (!finalTextChannelId && requestingChannelId) {
+        if (requestingChannelId) {
             try {
                 const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
                 if (maybe && (maybe as any).type === 0) {
@@ -998,77 +955,86 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
                     if (!perms || perms.has('SendMessages')) {
                         finalTextChannelId = requestingChannelId;
                         reason = 'requestingChannel';
-                        console.log(`[text-channel API:3rd] using requestingChannelId ${requestingChannelId} for guild ${guildId}`);
+                    } else {
+                        reason = 'requestingChannel_no_permission';
                     }
+                } else {
+                    reason = 'requestingChannel_invalid';
                 }
-            } catch (e) { console.warn('[text-channel API:3rd] requestingChannel check failed:', e); }
+            } catch (err) {
+                console.warn('[text-channel API:3rd] requestingChannel validation error', err);
+            }
         }
 
         if (!finalTextChannelId) {
             try {
-                const saved = (textChannels as any)[guildId];
-                if (saved && saved.id) { finalTextChannelId = saved.id; reason = 'saved-mapping'; }
-            } catch (_) { }
+                const saved = (textChannels as Record<string, any>)[guildId];
+                if (saved && saved.id) { finalTextChannelId = saved.id; reason = 'savedMapping'; }
+            } catch (_) {}
         }
 
         if (!finalTextChannelId) {
             try {
-                const { autoJoinChannels } = await import('./utils/TTS-Engine');
-                const a = (autoJoinChannels as any)[guildId];
-                if (a && a.textChannelId) { finalTextChannelId = a.textChannelId; reason = 'autoJoin'; }
-            } catch (_) { }
+                const mod = await import('./utils/TTS-Engine');
+                const auto = (mod.autoJoinChannels || {})[guildId];
+                if (auto && auto.textChannelId) { finalTextChannelId = auto.textChannelId; reason = 'autoJoin'; }
+            } catch (_) {}
         }
 
         if (!finalTextChannelId) {
             try {
-                const { joinChannels } = await import('./utils/TTS-Engine');
-                const j = (joinChannels as any)[guildId];
-                if (j && j.textChannelId) { finalTextChannelId = j.textChannelId; reason = 'joinChannels'; }
-            } catch (_) { }
+                const mod = await import('./utils/TTS-Engine');
+                const js = (mod.joinChannels || {})[guildId];
+                if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; reason = 'joinChannels'; }
+            } catch (_) {}
         }
 
+        // 上の手段で決定しなかった場合のみ voice ベースのフォールバックを行う
         if (!finalTextChannelId && voiceChannelId) {
             try {
-                const voiceChObj: any = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
-                const candidates: any[] = [];
-                if (voiceChObj && voiceChObj.parentId) {
-                    for (const ch of guild.channels.cache.values()) {
-                        try { if ((ch as any).type === 0 && (ch as any).parentId === voiceChObj.parentId) candidates.push(ch); } catch (_) { }
+                const voiceObj = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
+                if (voiceObj) {
+                    const candidates: any[] = [];
+                    if ((voiceObj as any).parentId) {
+                        for (const ch of guild.channels.cache.values()) {
+                            try { if ((ch as any).type === 0 && (ch as any).parentId === (voiceObj as any).parentId) candidates.push(ch); } catch (_) {}
+                        }
                     }
-                }
-                if (candidates.length === 0 && voiceChObj && voiceChObj.name) {
-                    const name = (voiceChObj.name || '').toLowerCase();
-                    const same = guild.channels.cache.find((c: any) => c.type === 0 && ((c.name||'').toLowerCase() === name));
-                    if (same) candidates.push(same);
-                }
-                if (candidates.length > 0) {
-                    const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
-                    for (const cand of candidates) {
-                        try {
-                            const perms = me ? (cand as any).permissionsFor(me) : null;
-                            if (!perms || perms.has('SendMessages')) { finalTextChannelId = cand.id; reason = 'voice-related-fallback'; break; }
-                        } catch (_) { continue; }
+                    if (candidates.length === 0) {
+                        const sameName = guild.channels.cache.find((c: any) => c.type === 0 && typeof c.name === 'string' && c.name.toLowerCase() === (voiceObj as any).name?.toLowerCase?.());
+                        if (sameName) candidates.push(sameName);
                     }
+                    if (candidates.length > 0) {
+                        const me = guild.members.me || await guild.members.fetch(client.user!.id).catch(() => null);
+                        for (const cand of candidates) {
+                            try {
+                                const perms = me ? (cand as any).permissionsFor(me) : null;
+                                if (!perms || perms.has('SendMessages')) { finalTextChannelId = cand.id; reason = 'voiceFallback'; break; }
+                            } catch (e) { continue; }
+                        }
+                    } else {
+                        reason = 'noCandidatesFromVoice';
+                    }
+                } else {
+                    reason = 'voiceChannelNotFound';
                 }
-            } catch (e) { console.warn('[text-channel API:3rd] voice-related fallback error:', e); }
+            } catch (err) { console.warn('[text-channel API:3rd] voiceFallback error', err); }
         }
 
         if (finalTextChannelId) {
             try {
                 const tc = guild.channels.cache.get(finalTextChannelId) || await guild.channels.fetch(finalTextChannelId).catch(() => null);
-                if (tc && (tc as any).type === 0) {
-                    return res.json({ ok: true, textChannelId: finalTextChannelId, textChannelName: tc.name, reason });
-                } else {
-                    return res.status(404).json({ error: 'text-channel-invalid', details: { finalTextChannelId, reason } });
-                }
-            } catch (e) {
-                return res.status(500).json({ error: 'channel-fetch-failed' });
+                if (tc && (tc as any).type === 0) return res.json({ ok: true, textChannelId: finalTextChannelId, textChannelName: (tc as any).name, reason });
+                return res.status(404).json({ error: 'text-channel-invalid', reason });
+            } catch (err) {
+                console.warn('[text-channel API:3rd] channel fetch error', err);
+                return res.status(500).json({ error: 'channel-fetch-failed', reason });
             }
         }
 
-        return res.status(404).json({ error: 'no-text-channel-found' });
+        return res.status(404).json({ error: 'no-text-channel-found', reason: reason || 'none' });
     } catch (e) {
-        console.error('[text-channel API:3rd] error:', e);
+        console.error('[text-channel API:3rd] error', e);
         return res.status(500).json({ error: 'text-channel-failed' });
     }
 });
