@@ -271,6 +271,38 @@ function getProjectRoot(): string {
     }
 }
 
+export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+        let local: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+        try {
+            if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+                try {
+                    const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+                    local = JSON.parse(data) || {};
+                } catch (err) {
+                    console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, err);
+                    local = {};
+                }
+            }
+        } catch (err) {
+            console.error(`参加チャンネル設定読み込みチェックエラー (${JOIN_CHANNELS_FILE}):`, err);
+            local = {};
+        }
+
+        local[guildId] = { voiceChannelId, textChannelId };
+
+        try {
+            ensureDirectoryExists(JOIN_CHANNELS_FILE);
+            const tmp = JOIN_CHANNELS_FILE + '.tmp';
+            fs.writeFileSync(tmp, JSON.stringify(local, null, 4), 'utf-8');
+            fs.renameSync(tmp, JOIN_CHANNELS_FILE);
+            try { (joinChannels as any)[guildId] = { voiceChannelId, textChannelId }; } catch (_) {}
+            console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+        } catch (err) {
+            console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, err);
+        }
+    }
+
+
 // JSONファイルのパスを正しく設定
 const PROJECT_ROOT = getProjectRoot();
 console.log(`プロジェクトルートディレクトリ: ${PROJECT_ROOT}`);
