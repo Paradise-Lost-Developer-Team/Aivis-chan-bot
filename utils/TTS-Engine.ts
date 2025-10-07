@@ -755,8 +755,22 @@ export function isChannelAllowedForTTS(guildId: string, currentChannelId: string
                     const vc = guild.channels.cache.get(voiceChannelId) as any;
                     const tc = guild.channels.cache.get(currentChannelId) as any;
                     if (vc && tc && tc.type === ChannelType.GuildText) {
-                        if ((vc as any).parentId && (vc as any).parentId === (tc as any).parentId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-channel-category`); return { allowed: true, reason: 'voice-channel-category' }; }
-                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`); return { allowed: true, reason: 'matching-text-channel' }; }
+                        // 1) strict same-name match
+                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
+                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
+                            return { allowed: true, reason: 'matching-text-channel' };
+                        }
+
+                        // 2) api-mapped channel exists
+                        try {
+                            const mapped = (textChannels as any)[currentChannelId] || ((textChannels as any)[guildId] && (textChannels as any)[guildId].id === currentChannelId);
+                            if (mapped) {
+                                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
+                                return { allowed: true, reason: 'api-mapped-channel' };
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
                     }
                 }
             }
