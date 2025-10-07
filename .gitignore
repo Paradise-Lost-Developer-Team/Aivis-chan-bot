@@ -1,14 +1,7 @@
-<<<<<<< HEAD
-/build/js
-/data/
-/node_modules/
-__pycache__/
-.vscode/
-=======
 build/
+build/js/
 data/
 node_modules/
 __pycache__/
 .vscode/
 deployment/config-configmap.yaml
->>>>>>> 1c01875ab24e0d8856056050c1e12b1b49e392a4
