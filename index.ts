@@ -1240,3 +1240,43 @@ apiApp.get('/api/voice-status/:guildId', async (req: Request, res: Response) => 
         res.status(500).json({ error: 'Failed to fetch voice status' });
     }
 });
+
+// WEBダッシュボード用: ユーザーが参加しているサーバー一覧を取得
+apiApp.get('/api/servers', async (req: Request, res: Response) => {
+    try {
+        // 認証チェック（セッションベースの認証が必要な場合）
+        // この実装では、全てのBotが参加しているサーバー一覧を返します
+        
+        // Botが参加している全サーバーを取得
+        const guilds = Array.from(client.guilds.cache.values()).map(guild => {
+            // アイコンURLを生成
+            const iconUrl = guild.icon 
+                ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`
+                : null;
+            
+            // ボイス接続状態を確認
+            const connection = voiceClients[guild.id];
+            const isConnected = connection && connection.state.status === VoiceConnectionStatus.Ready;
+            
+            return {
+                id: guild.id,
+                name: guild.name,
+                icon: guild.icon,
+                iconUrl: iconUrl,
+                memberCount: guild.memberCount,
+                voiceConnected: isConnected,
+                owner: false, // オーナー情報は認証後に取得可能
+                permissions: null // 権限情報は認証後に取得可能
+            };
+        });
+
+        // サーバー名でソート
+        guilds.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+
+        console.log(`[API] /api/servers: ${guilds.length} servers returned`);
+        res.json(guilds);
+    } catch (error) {
+        console.error('Failed to fetch servers:', error);
+        res.status(500).json({ error: 'Failed to retrieve server list' });
+    }
+});
