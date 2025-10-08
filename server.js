@@ -57,6 +57,17 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 
+// --- Patreon defaults (moved before any route that may reference them; k8s: avoid localhost fallback) ---
+const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
+const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
+const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || (process.env.BASE_URL ? `${String(process.env.BASE_URL).replace(/\/$/, '')}/auth/patreon/callback` : undefined);
+const PATREON_REDIRECT_PATH = process.env.PATREON_REDIRECT_PATH || '/auth/patreon/callback';
+const PATREON_LINKS_FILE = process.env.PATREON_LINKS_FILE || path.join('/tmp', 'data', 'patreon_links.json');
+
+if (!PATREON_REDIRECT_URI) {
+  console.warn('[PATREON] PATREON_REDIRECT_URI not configured. /auth/patreon/start will return 500 until configured. Set BASE_URL or PATREON_REDIRECT_URI to your ingress domain (e.g. https://example.com).');
+}
+
 // Discord OAuth2設定（無料版とPro/Premium版）
 const DISCORD_CONFIG_FREE = {
   clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
@@ -1270,14 +1281,3 @@ app.get('/health/redis', async (req, res) => {
     res.status(503).json({ status: 'Redis connection failed', error: error.message });
   }
 });
-
-// Patreon defaults (k8s: avoid localhost fallback)
-const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
-const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
-const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || (process.env.BASE_URL ? `${String(process.env.BASE_URL).replace(/\/$/, '')}/auth/patreon/callback` : undefined);
-const PATREON_REDIRECT_PATH = process.env.PATREON_REDIRECT_PATH || '/auth/patreon/callback';
-const PATREON_LINKS_FILE = process.env.PATREON_LINKS_FILE || path.join('/tmp', 'data', 'patreon_links.json');
-
-if (!PATREON_REDIRECT_URI) {
-  console.warn('[PATREON] PATREON_REDIRECT_URI not configured. /auth/patreon/start will return 500 until configured. Set BASE_URL or PATREON_REDIRECT_URI to your ingress domain (e.g. https://example.com).');
-}
