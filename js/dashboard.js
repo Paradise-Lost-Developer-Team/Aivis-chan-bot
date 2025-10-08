@@ -1727,39 +1727,42 @@ class Dashboard {
             }
         });
 
-        // 2) チャンネル一覧の取得（/api/guilds/:guildId から取得）
+        // 2) チャンネル一覧の取得
         let channels = [];
         
         try {
-            console.log(`[Dashboard] Fetching guild data (including channels) from: /api/guilds/${guildId}`);
-            const guildResp = await fetch(`/api/guilds/${guildId}`, { 
+            console.log(`[Dashboard] Fetching channels from: /api/guilds/${guildId}`);
+            const chResp = await fetch(`/api/guilds/${guildId}`, { 
                 credentials: 'include',
                 headers: { 'Accept': 'application/json' }
             });
             
-            console.log(`[Dashboard] Guild response:`, guildResp.status, guildResp.statusText);
+            console.log(`[Dashboard] Channel response:`, chResp.status, chResp.statusText);
             
-            if (guildResp && guildResp.ok) {
-                const guildData = await guildResp.json();
-                console.log(`[Dashboard] Guild data:`, guildData);
+            if (chResp && chResp.ok) {
+                const chBody = await chResp.json();
+                console.log(`[Dashboard] Channel data type:`, typeof chBody, 'isArray:', Array.isArray(chBody));
+                console.log(`[Dashboard] Channel data sample:`, chBody.slice ? chBody.slice(0, 3) : chBody);
                 
-                // チャンネル情報を抽出
-                if (Array.isArray(guildData.channels) && guildData.channels.length > 0) {
-                    channels = guildData.channels.map(c => ({ 
+                // レスポンスは直接配列形式
+                if (Array.isArray(chBody) && chBody.length > 0) {
+                    channels = chBody.map(c => ({ 
                         id: c.id, 
                         name: c.name, 
                         type: c.type 
                     }));
-                    console.log(`[Dashboard] Loaded ${channels.length} channels from guild data`);
+                    console.log(`[Dashboard] Loaded ${channels.length} channels`);
                     logger.success(`Loaded ${channels.length} channels`);
+                } else {
+                    console.warn(`[Dashboard] Unexpected channel data format or empty array`);
                 }
             } else {
-                console.warn(`[Dashboard] Failed to fetch guild data: ${guildResp.status}`);
-                logger.warn(`ギルド情報の取得に失敗しました (${guildResp.status})`);
+                console.warn(`[Dashboard] Failed to fetch channels: ${chResp.status}`);
+                logger.warn(`チャンネル情報の取得に失敗しました (${chResp.status})`);
             }
         } catch (e) {
-            console.error(`[Dashboard] Guild data fetch failed:`, e);
-            logger.error(`ギルド情報の取得に失敗: ${e.message}`);
+            console.error(`[Dashboard] Channel fetch failed:`, e);
+            logger.error(`チャンネル情報の取得に失敗: ${e.message}`);
         }
 
         // チャンネルをDOMに反映
@@ -1779,11 +1782,15 @@ class Dashboard {
             // Discord チャンネルタイプの定義
             // 0: GUILD_TEXT, 2: GUILD_VOICE, 4: GUILD_CATEGORY, 5: GUILD_NEWS, 13: GUILD_STAGE_VOICE, 15: GUILD_FORUM
             const isVoiceChannel = (type) => {
-                return type === 2 || type === 13; // GUILD_VOICE または GUILD_STAGE_VOICE
+                // 数値または文字列数値に対応
+                const numType = typeof type === 'string' ? parseInt(type, 10) : type;
+                return numType === 2 || numType === 13; // GUILD_VOICE または GUILD_STAGE_VOICE
             };
             
             const isTextChannel = (type) => {
-                return type === 0 || type === 5 || type === 15; // GUILD_TEXT, GUILD_NEWS, GUILD_FORUM
+                // 数値または文字列数値に対応
+                const numType = typeof type === 'string' ? parseInt(type, 10) : type;
+                return numType === 0 || numType === 5 || numType === 15; // GUILD_TEXT, GUILD_NEWS, GUILD_FORUM
             };
 
             const voiceChannels = channels.filter(c => isVoiceChannel(c.type));
