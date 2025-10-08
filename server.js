@@ -419,13 +419,13 @@ const BOT_PORTS = {
 };
 
 const BOT_API_URLS = {
-  main: process.env.BOT_API_URL     || clusterUrl('aivis-chan-bot-1st', BOT_PORTS.main),
-  second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd', BOT_PORTS.second),
-  third: process.env.BOT_API_URL_3RD || clusterUrl('aivis-chan-bot-3rd', BOT_PORTS.third),
-  fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th', BOT_PORTS.fourth),
-  fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th', BOT_PORTS.fifth),
-  sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th', BOT_PORTS.sixth),
-  pro: process.env.BOT_API_URL_PRO || clusterUrl('aivis-chan-bot-pro-premium', BOT_PORTS.pro)
+  main: process.env.BOT_API_URL     || clusterUrl('aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local', BOT_PORTS.main),
+  second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local', BOT_PORTS.second),
+  third: process.env.BOT_API_URL_3RD || clusterUrl('aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local', BOT_PORTS.third),
+  fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local', BOT_PORTS.fourth),
+  fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local', BOT_PORTS.fifth),
+  sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local', BOT_PORTS.sixth),
+  pro: process.env.BOT_API_URL_PRO || clusterUrl('aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local', BOT_PORTS.pro)
 };
 
 // 追加: bot-stats-server サービス (集約専用マイクロサービス) への委譲設定
@@ -610,13 +610,13 @@ app.get('/api/debug-aggregator', async (req, res) => {
 app.get('/api/bot-stats', async (req, res) => {
     try {
         const botUrls = [
-            process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st:3002',
-            process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd:3003',
-            process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd:3004',
-            process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th:3005',
-            process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th:3006',
-            process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th:3007',
-            process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium:3008'
+            process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
+            process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
+            process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
+            process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
+            process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
+            process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
+            process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
         ];
 
         const botStatusPromises = botUrls.map(async (url) => {
@@ -1547,9 +1547,8 @@ async function notifyBotsSettingsUpdate(guildId, settings) {
         process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
         process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
         process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
-        process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3008'
+        process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
     ];
-
     const notifyPromises = botUrls.map(async (url) => {
         try {
             const response = await fetch(`${url}/internal/apply-web-settings`, {
