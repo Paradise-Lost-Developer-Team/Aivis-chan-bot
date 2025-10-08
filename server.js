@@ -565,6 +565,37 @@ app.get('/auth/discord/callback/:version', (req, res, next) => {
   });
 });
 
+// Backwards-compatible callback route: handle redirects to /auth/discord/callback (no :version)
+app.get('/auth/discord/callback', (req, res, next) => {
+  try {
+    // Allow ?version=free|pro or fallback to 'free'
+    const versionQuery = req.query.version || req.query.v;
+    const version = String(versionQuery || 'free');
+
+    // Prefer explicit named strategy (discord-free / discord-pro), then default 'discord'
+    let strategyName = null;
+    if (passport._strategies && passport._strategies[`discord-${version}`]) {
+      strategyName = `discord-${version}`;
+    } else if (passport._strategies && passport._strategies['discord']) {
+      strategyName = 'discord';
+    } else if (passport._strategies && passport._strategies['discord-free']) {
+      strategyName = 'discord-free';
+    }
+
+    if (!strategyName) {
+      console.warn('[auth] No Discord strategy available to handle callback');
+      return res.redirect('/login');
+    }
+
+    return passport.authenticate(strategyName, { failureRedirect: '/login' })(req, res, () => {
+      res.redirect(`/dashboard?version=${version}`);
+    });
+  } catch (e) {
+    console.error('[auth] callback (no-version) handler error:', e);
+    return res.redirect('/login');
+  }
+});
+
 // ログアウト
 app.get('/logout', (req, res) => {
   // Passport 0.6+: req.logout requires callback
@@ -787,733 +818,74 @@ app.get('/internal/dictionary/:guildId', (req, res) => {
 app.get('/internal/global-dictionary/:guildId', async (req, res) => {
   console.log(`[INTERNAL] Global dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
   try {
-    // 外部グローバル辞書サービスから一覧を取得する（環境変数で有効化）
+    const now = Date.now();
+
+    // キャッシュが新しければそれを返す
+    if (GLOBAL_DICT_CACHE.fetchedAt && (now - GLOBAL_DICT_CACHE.fetchedAt) < GLOBAL_DICT_CACHE_TTL) {
+      return res.json({ local: await loadLocalDictionary(req.params.guildId), global: GLOBAL_DICT_CACHE.entries || [] });
+    }
+
+    // 直近に外部フェッチでエラーがあれば一定時間スキップ（バックオフ）
+    if (GLOBAL_DICT_CACHE.errorUntil && now < GLOBAL_DICT_CACHE.errorUntil) {
+      console.debug('[INTERNAL] Skipping global dictionary fetch due to recent error, using cached/empty list');
+      GLOBAL_DICT_CACHE.fetchedAt = now;
+      return res.json({ local: await loadLocalDictionary(req.params.guildId), global: GLOBAL_DICT_CACHE.entries || [] });
+    }
+
     const GLOBAL_DICT_API_URL = process.env.GLOBAL_DICT_API_URL || 'https://dictapi.libertasmc.xyz';
     const GLOBAL_DICT_API_KEY = process.env.GLOBAL_DICT_API_KEY;
     let globalEntries = [];
+
     if (GLOBAL_DICT_API_URL && GLOBAL_DICT_API_KEY) {
       try {
-        const listUrl = `${GLOBAL_DICT_API_URL.replace(/\/$/, '')}/list?per_page=200`;
+        const listUrl = `${String(GLOBAL_DICT_API_URL).replace(/\/$/, '')}/list?per_page=200`;
         const r = await axios.get(listUrl, { headers: { 'X-API-Key': GLOBAL_DICT_API_KEY }, timeout: 7000 });
         if (r && r.data && Array.isArray(r.data.entries)) {
           globalEntries = r.data.entries;
-          console.log(`[INTERNAL] Fetched ${globalEntries.length} global dictionary entries from ${GLOBAL_DICT_API_URL}`);
+          GLOBAL_DICT_CACHE.entries = globalEntries;
+          GLOBAL_DICT_CACHE.fetchedAt = Date.now();
+          console.log(`[INTERNAL] Fetched ${globalEntries.length} global dictionary entries`);
         } else {
-          console.log('[INTERNAL] Global dictionary service returned unexpected shape, ignoring');
+          console.debug('[INTERNAL] Global dictionary service returned unexpected shape, caching empty result');
+          GLOBAL_DICT_CACHE.entries = [];
+          GLOBAL_DICT_CACHE.fetchedAt = Date.now();
         }
       } catch (e) {
-        console.warn('[INTERNAL] failed to fetch global dictionary:', e.message || e);
+        const status = e?.response?.status;
+        const msg = e?.message || String(e);
+        console.warn('[INTERNAL] failed to fetch global dictionary:', status || msg);
+        const errorBackoffMs = parseInt(process.env.GLOBAL_DICT_ERROR_BACKOFF_MS || String(2 * 60 * 1000), 10);
+        GLOBAL_DICT_CACHE.errorUntil = Date.now() + errorBackoffMs;
+        GLOBAL_DICT_CACHE.entries = GLOBAL_DICT_CACHE.entries || [];
+        GLOBAL_DICT_CACHE.fetchedAt = Date.now();
       }
     } else {
-      console.log('[INTERNAL] GLOBAL_DICT_API_URL or GLOBAL_DICT_API_KEY not configured; skipping external fetch');
+      console.debug('[INTERNAL] GLOBAL_DICT_API_URL or GLOBAL_DICT_API_KEY not configured; skipping external fetch');
+      GLOBAL_DICT_CACHE.entries = GLOBAL_DICT_CACHE.entries || [];
+      GLOBAL_DICT_CACHE.fetchedAt = Date.now();
     }
 
-    // Load per-guild local dictionary if present. Format expectations:
-    // - file: /tmp/data/dictionary/<guildId>.json
-    // - shape: { guildId, userId, dictionary: [...] , lastUpdated }
-    let localEntries = [];
-    try {
-      const guildId = req.params.guildId;
-      const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
-      if (fs.existsSync(dictionaryFile)) {
-        const raw = fs.readFileSync(dictionaryFile, 'utf8') || '{}';
-        try {
-          const parsed = JSON.parse(raw);
-          // If stored as object with `.dictionary` array, use that. Otherwise if an array was stored directly, use it.
-          if (parsed && Array.isArray(parsed.dictionary)) {
-            localEntries = parsed.dictionary;
-          } else if (Array.isArray(parsed)) {
-            localEntries = parsed;
-          } else {
-            // unknown shape -> keep empty but log for debugging
-            console.debug('[INTERNAL] global-dictionary: unexpected local dictionary shape for', dictionaryFile);
-          }
-        } catch (e) {
-          console.warn('[INTERNAL] global-dictionary: failed to parse local dictionary', dictionaryFile, e && e.message);
-        }
-      } else {
-        // no local file is fine; we'll return empty array
-      }
-    } catch (e) {
-      console.error('[INTERNAL] global-dictionary: error while loading local dictionary', e && e.message);
-    }
-
-    return res.json({ local: localEntries, global: globalEntries });
+    const localEntries = await loadLocalDictionary(req.params.guildId);
+    return res.json({ local: localEntries, global: GLOBAL_DICT_CACHE.entries || [] });
   } catch (error) {
     console.error('Global dictionary load error:', error);
     res.status(500).json({ error: 'グローバル辞書の読み込みに失敗しました' });
   }
 });
 
-// 個人設定保存・取得API
-app.post('/api/personal-settings', requireAuth, express.json(), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.body.guildId;
-        const settings = req.body.settings;
-
-        if (!guildId || !settings) {
-            return res.status(400).json({ error: 'guildId and settings are required' });
-        }
-
-        // 個人設定をファイルに保存
-        const personalDir = path.join('/tmp', 'data', 'personal');
-        if (!fs.existsSync(personalDir)) {
-            fs.mkdirSync(personalDir, { recursive: true });
-        }
-
-        const personalFile = path.join(personalDir, `${guildId}_${userId}.json`);
-        const personalData = {
-            guildId,
-            userId,
-            settings,
-            lastUpdated: new Date().toISOString()
-        };
-
-        fs.writeFileSync(personalFile, JSON.stringify(personalData, null, 2));
-
-        // 全Botに即座に設定更新を通知
-        await notifyBotsSettingsUpdate(guildId, 'personal-settings');
-
-        res.json({ success: true, message: '個人設定を保存しました' });
-    } catch (error) {
-        console.error('Personal settings save error:', error);
-        res.status(500).json({ error: '個人設定の保存に失敗しました' });
-    }
-});
-
-app.get('/api/personal-settings/:guildId', requireAuth, (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.params.guildId;
-        const personalFile = path.join('/tmp', 'data', 'personal', `${guildId}_${userId}.json`);
-
-        if (!fs.existsSync(personalFile)) {
-            return res.json({ settings: null });
-        }
-
-        const personalData = JSON.parse(fs.readFileSync(personalFile, 'utf8'));
-        res.json(personalData);
-    } catch (error) {
-        console.error('Personal settings load error:', error);
-        res.status(500).json({ error: '個人設定の読み込みに失敗しました' });
-    }
-});
-
-// 辞書設定保存・取得API
-app.post('/api/dictionary', requireAuth, express.json(), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.body.guildId;
-        const dictionary = req.body.dictionary;
-
-        if (!guildId || !dictionary) {
-            return res.status(400).json({ error: 'guildId and dictionary are required' });
-        }
-
-        // 辞書をファイルに保存
-        const dictionaryDir = path.join('/tmp', 'data', 'dictionary');
-        if (!fs.existsSync(dictionaryDir)) {
-            fs.mkdirSync(dictionaryDir, { recursive: true });
-        }
-
-        const dictionaryFile = path.join(dictionaryDir, `${guildId}.json`);
-        const dictionaryData = {
-            guildId,
-            userId,
-            dictionary,
-            lastUpdated: new Date().toISOString()
-        };
-
-        fs.writeFileSync(dictionaryFile, JSON.stringify(dictionaryData, null, 2));
-
-        // 全Botに即座に設定更新を通知
-        await notifyBotsSettingsUpdate(guildId, 'dictionary');
-
-        res.json({ success: true, message: '辞書を保存しました' });
-    } catch (error) {
-        console.error('Dictionary save error:', error);
-        res.status(500).json({ error: '辞書の保存に失敗しました' });
-    }
-});
-
-app.get('/api/dictionary/:guildId', requireAuth, (req, res) => {
-    try {
-        const guildId = req.params.guildId;
-        const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
-
-        if (!fs.existsSync(dictionaryFile)) {
-            return res.json({ dictionary: [] });
-        }
-
-        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
-        res.json(dictionaryData);
-    } catch (error) {
-        console.error('Dictionary load error:', error);
-        res.status(500).json({ error: '辞書の読み込みに失敗しました' });
-    }
-});
-
-// 全Botに設定更新を通知する関数
-async function notifyBotsSettingsUpdate(guildId, settingsType) {
-    const botServices = [
-        'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
-        'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
-    ];
-
-    const notifications = botServices.map(async (botUrl) => {
-        try {
-            console.log(`通知送信中: ${botUrl} (Guild: ${guildId}, Type: ${settingsType})`);
-            const response = await axios.post(`${botUrl}/internal/reload-settings`, {
-                guildId: guildId,
-                settingsType: settingsType
-            }, {
-                timeout: 3000,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.status === 200) {
-                console.log(`✓ Bot通知成功: ${botUrl}`);
-            } else {
-                console.warn(`⚠ Bot通知失敗: ${botUrl} (Status: ${response.status})`);
-            }
-        } catch (error) {
-            console.warn(`⚠ Bot通知エラー: ${botUrl} - ${error.message}`);
-        }
-    });
-
-    // すべての通知を並行実行（エラーがあっても続行）
-    await Promise.allSettled(notifications);
-    console.log(`設定更新通知完了 (Guild: ${guildId}, Type: ${settingsType})`);
-}
-
-// Patreonリンク取得ヘルパー関数
-async function getPatreonLink(discordId) {
-    try {
-        if (!fs.existsSync(PATREON_LINKS_FILE)) return null;
-        const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
-        const arr = JSON.parse(raw);
-        return arr.find(x => String(x.discordId) === String(discordId)) || null;
-    } catch (e) {
-        console.error('getPatreonLink error', e);
-        return null;
-    }
-}
-
-// ダッシュボードルート（認証必須）
-app.get('/dashboard', requireAuth, (req, res) => {
-    // バージョン情報を取得
-    const version = req.query.version || req.user.version || 'free';
-    res.sendFile(path.join(__dirname, 'dashboard.html'));
-});
-
-// 追加: sitemap / robots / Google ping（末尾に追記）
-
-const BASE_URL = process.env.BASE_URL || 'https://aivis-chan-bot.com';
-
-// robots.txt を返す（ファイルがあればファイルを、その場で無ければデフォルトを返す）
-app.get('/robots.txt', (req, res) => {
-  const p = path.join(__dirname, 'robots.txt');
-  if (fs.existsSync(p)) return res.sendFile(p);
-  res.type('text/plain').send(
-`User-agent: *
-Allow: /
-Sitemap: ${BASE_URL}/sitemap.xml
-`
-  );
-});
-
-// sitemap.xml を動的生成して返す（必要に応じて拡張）
-app.get('/sitemap.xml', (req, res) => {
-  const urls = [
-    { loc: `${BASE_URL}/`, priority: 1.0 },
-    { loc: `${BASE_URL}/bot-stats`, priority: 0.6 },
-    { loc: `${BASE_URL}/bot-stats-2nd`, priority: 0.6 },
-    { loc: `${BASE_URL}/bot-stats-3rd`, priority: 0.6 },
-    { loc: `${BASE_URL}/bot-stats-4th`, priority: 0.6 },
-    { loc: `${BASE_URL}/bot-stats-5th`, priority: 0.6 },
-    { loc: `${BASE_URL}/bot-stats-6th`, priority: 0.6 },
-    // 必要なら他の静的ページを追加
-  ];
-
-  const now = new Date().toISOString();
-  const xml = ['<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    .concat(urls.map(u => `
-  <url>
-    <loc>${u.loc}</loc>
-    <lastmod>${now}</lastmod>
-    <priority>${u.priority}</priority>
-  </url>`))
-    .concat(['</urlset>'])
-    .join('\n');
-
-  res.type('application/xml').send(xml);
-});
-
-// Google に sitemap 更新を通知する簡易エンドポイント（実行ログを返す）
-app.get('/notify-google', async (req, res) => {
-  // Google の sitemaps ping は廃止されています。
-  // 自動で sitemap を登録するには Search Console API を利用してください。
-  // 手順:
-  // 1. GCP プロジェクトでサービスアカウント作成
-  // 2. Search Console のサイト所有権を確認し、サービスアカウントを Search Console に追加
-  // 3. Search Console API の sites.sitemaps.submit を呼ぶ
-  res.json({
-    ok: false,
-    message: 'Google sitemaps ping is deprecated. Use Search Console (manual) or Search Console API (sites.sitemaps.submit). See https://developers.google.com/search/docs/crawling-indexing/sitemaps/submit-sitemap',
-    manual_steps: [
-      'Search Console -> サイトを選択 -> サイトマップ -> https://aivis-chan-bot.com/sitemap.xml を追加',
-      'または Search Console API を利用してプログラム的に登録'
-    ]
-  });
-});
-
-// サイト／認証設定（環境変数で指定）
-const GSC_SITE_URL = process.env.GSC_SITE_URL || 'https://aivis-chan-bot.com'; // Search Console に登録されている正確なプロパティ URL
-const GSC_SA_KEY_JSON = process.env.GSC_SA_KEY_JSON; // JSON文字列（推奨）またはパスを使う場合は次のロジックを変更する
-
-async function getGscClient() {
-  if (!GSC_SA_KEY_JSON) throw new Error('GSC_SA_KEY_JSON not set');
-  const key = JSON.parse(GSC_SA_KEY_JSON);
-  const auth = new google.auth.GoogleAuth({
-    credentials: key,
-    scopes: ['https://www.googleapis.com/auth/webmasters'],
-  });
-  return google.webmasters({ version: 'v3', auth });
-}
-
-async function submitSitemap() {
-  const client = await getGscClient();
-  const sitemapUrl = `${GSC_SITE_URL.replace(/\/$/, '')}/sitemap.xml`;
-  // siteUrl must exactly match property in Search Console (including https://)
-  await client.sitemaps.submit({ siteUrl: GSC_SITE_URL, feedpath: sitemapUrl });
-}
-
-// エンドポイント：即時送信（手動トリガー用）
-app.post('/submit-sitemap', async (req, res) => {
+// helper to load local dictionary safely
+async function loadLocalDictionary(guildId) {
   try {
-    await submitSitemap();
-    res.json({ ok: true, message: 'sitemap submitted' });
-  } catch (err) {
-    console.error('submit-sitemap error', err);
-    res.status(500).json({ ok: false, error: String(err.message) });
-  }
-});
-
-// --- Solana invoice endpoints (web handles creation & confirmation) ---
-app.post('/internal/solana/create-invoice', express.json(), async (req, res) => {
-  try {
-    const { amountLamports, currency, mint } = req.body || {};
-    if (!amountLamports || typeof amountLamports !== 'number') return res.status(400).json({ error: 'invalid-amount' });
-    const allowedCurrencies = ['sol', 'spl'];
-    const cur = allowedCurrencies.includes(currency) ? currency : 'sol';
-    if (cur === 'spl' && (!mint || typeof mint !== 'string')) return res.status(400).json({ error: 'invalid-mint' });
-
-    ensureSolanaInvoicesFile();
-    const invoices = loadSolanaInvoices();
-    const invoiceId = `inv_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-    const receiver = process.env.SOLANA_RECEIVER_PUBKEY || '';
-    const rpc = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-    const entry = { invoiceId, amountLamports, currency: cur, mint: cur === 'spl' ? mint : null, receiver, rpc, createdAt: new Date().toISOString(), status: 'pending' };
-    invoices.push(entry);
-    saveSolanaInvoices(invoices);
-    return res.json({ invoiceId, receiver, rpc, currency: cur, mint: entry.mint });
+    const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
+    if (!fs.existsSync(dictionaryFile)) return [];
+    const raw = fs.readFileSync(dictionaryFile, 'utf8') || '{}';
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.dictionary)) return parsed.dictionary;
+    if (Array.isArray(parsed)) return parsed;
+    return [];
   } catch (e) {
-    console.error('web create-invoice error', e);
-    return res.status(500).json({ error: 'create-invoice-failed' });
-  }
-});
-
-// Confirm: client provides signature and invoiceId, web calls pro-premium verify and updates invoice
-app.post('/internal/solana/confirm', express.json(), async (req, res) => {
-  try {
-    const { signature, invoiceId } = req.body || {};
-    if (!signature || !invoiceId) return res.status(400).json({ error: 'invalid-params' });
-    ensureSolanaInvoicesFile();
-    const invoices = loadSolanaInvoices();
-    const idx = invoices.findIndex(i => i.invoiceId === invoiceId);
-    if (idx === -1) return res.status(404).json({ error: 'invoice-not-found' });
-    const invoice = invoices[idx];
-    // call pro-premium verify endpoint
-    const proBase = process.env.BOT_API_URL_PRO || 'http://aivis-chan-bot-pro-premium:3012';
-    try {
-      const resp = await axios.post(`${proBase.replace(/\/$/, '')}/internal/solana/verify`, { signature, invoiceId, expectedLamports: invoice.amountLamports }, { timeout: 10000 });
-      if (resp && resp.data && resp.data.ok) {
-        invoices[idx].status = 'paid';
-        invoices[idx].paidAt = new Date().toISOString();
-        invoices[idx].signature = signature;
-        saveSolanaInvoices(invoices);
-        return res.json({ ok: true });
-      } else {
-        return res.status(400).json({ error: 'verification-failed', details: resp?.data || null });
-      }
-    } catch (e) {
-      console.error('pro verify call failed', e?.response?.data || e.message || e);
-      // Fallback: attempt on-chain verification via provided RPC or env RPC
-      try {
-        const rpcUrl = invoice.rpc || process.env.SOLANA_RPC_URL || clusterApiUrl('devnet');
-        const conn = new Connection(rpcUrl, 'confirmed');
-        const sig = signature;
-        const tx = await conn.getParsedTransaction(sig, 'confirmed');
-        if (!tx) {
-          console.warn('[solana confirm] transaction not found on chain', sig, rpcUrl);
-          return res.status(502).json({ error: 'verify-call-failed', details: 'transaction-not-found' });
-        }
-
-        // Try to match transfer (SOL or SPL) to invoice
-        let matched = false;
-        const receiverPub = invoice.receiver;
-        const mint = invoice.mint; // may be null for SOL
-        const expectedLamports = Number(invoice.amountLamports);
-
-        const tryMatchInstr = (instr) => {
-          try {
-            if (!instr) return false;
-            // system transfer (SOL)
-            if (instr.program === 'system' && instr.parsed && instr.parsed.type === 'transfer') {
-              const info = instr.parsed.info || {};
-              if (String(info.destination) === String(receiverPub) && Number(info.lamports) === expectedLamports) return true;
-            }
-            // spl-token transfer
-            if (instr.program === 'spl-token' && instr.parsed && (instr.parsed.type === 'transfer' || instr.parsed.type === 'transferChecked')) {
-              const info = instr.parsed.info || {};
-              // parsed transfer may include mint in info or tokenAmount
-              const amountStr = info.amount ?? (info.tokenAmount && info.tokenAmount.amount);
-              // amountStr for token transfers is in minor units (string)
-              if (mint && (info.mint === mint || info.tokenAmount?.mint === mint)) {
-                if (String(amountStr) === String(expectedLamports)) return true;
-              } else if (!mint) {
-                // if invoice didn't record mint, match by destination and amount
-                if (info.destination === receiverPub && String(amountStr) === String(expectedLamports)) return true;
-              }
-            }
-          } catch (e) {
-            // ignore parse errors
-          }
-          return false;
-        };
-
-        // Inspect top-level instructions
-        const instructions = (tx.transaction && tx.transaction.message && tx.transaction.message.instructions) || [];
-        for (const instr of instructions) {
-          if (tryMatchInstr(instr)) { matched = true; break; }
-        }
-
-        // Inspect inner instructions if not yet matched
-        if (!matched && tx.meta && Array.isArray(tx.meta.innerInstructions)) {
-          for (const inner of tx.meta.innerInstructions) {
-            for (const instr of inner.instructions || []) {
-              if (tryMatchInstr(instr)) { matched = true; break; }
-            }
-            if (matched) break;
-          }
-        }
-
-        if (matched) {
-          invoices[idx].status = 'paid';
-          invoices[idx].paidAt = new Date().toISOString();
-          invoices[idx].signature = signature;
-          invoices[idx].tx = { slot: tx.slot, rpc: rpcUrl };
-          saveSolanaInvoices(invoices);
-          return res.json({ ok: true, via: 'on-chain', txSlot: tx.slot });
-        }
-
-        return res.status(400).json({ error: 'onchain-verification-failed', details: 'no-matching-transfer' });
-      } catch (e2) {
-        console.error('on-chain verify failed', e2?.message || e2);
-        return res.status(502).json({ error: 'verify-call-failed', detail: String(e2?.message || e2) });
-      }
-    }
-  } catch (e) {
-    console.error('web confirm error', e);
-    return res.status(500).json({ error: 'confirm-failed' });
-  }
-});
-
-// Invoice status check (read-only)
-app.get('/internal/solana/invoice-status', async (req, res) => {
-  try {
-    const invoiceId = req.query.invoiceId;
-    if (!invoiceId) return res.status(400).json({ error: 'missing-invoiceId' });
-    ensureSolanaInvoicesFile();
-    const invoices = loadSolanaInvoices();
-    const inv = invoices.find(i => i.invoiceId === invoiceId);
-    if (!inv) return res.status(404).json({ error: 'invoice-not-found' });
-    return res.json({ invoiceId: inv.invoiceId, status: inv.status, paidAt: inv.paidAt || null, signature: inv.signature || null });
-  } catch (e) {
-    console.error('invoice-status error', e);
-    return res.status(500).json({ error: 'internal' });
-  }
-});
-
-// Proxy endpoint to fetch Discord guild widget JSON (avoids CORS / iframe parsing)
-app.get('/api/discord-widget/:guildId', async (req, res) => {
-  const guildId = req.params.guildId;
-  try {
-    const r = await axios.get(`https://discord.com/api/guilds/${guildId}/widget.json`, { timeout: 5000 });
-    return res.json(r.data);
-  } catch (err) {
-    console.error('discord-widget proxy error', err?.response?.data || err.message || err);
-    return res.status(502).json({ error: 'failed to fetch widget', details: err?.response?.data || err.message });
-  }
-});
-
-
-// 任意：定期自動送信（cron式を環境変数で指定）
-if (process.env.SITEMAP_SUBMIT_CRON) {
-  const cron = require('node-cron');
-  cron.schedule(process.env.SITEMAP_SUBMIT_CRON, async () => {
-    try {
-      console.log('scheduled submit-sitemap running');
-      await submitSitemap();
-      console.log('scheduled submit-sitemap done');
-    } catch (e) {
-      console.error('scheduled submit-sitemap failed', e);
-    }
-  }, { timezone: process.env.SITEMAP_CRON_TZ || 'UTC' });
-}
-
-app.listen(PORT, HOST, () => {
-  console.log(`Server is running at http://${HOST}:${PORT}`);
-});
-
-// Webhook receiver for bot-stats-server
-app.post('/api/receive', express.json(), async (req, res) => {
-  try {
-    const body = req.body;
-    console.log('[WEBHOOK] Received:', JSON.stringify(body).slice(0, 1000));
-
-    // Basic validation
-    if (!body || !body.type) {
-      return res.status(400).json({ ok: false, error: 'invalid payload' });
-    }
-
-    // Store or process payload as needed. For now, write to logs and a rolling file.
-  const logLine = `${new Date().toISOString()} ${req.ip} ${body.type} ${JSON.stringify(body.payload).slice(0,1000)}\n`;
-  // Use writable location by default; allow override via WEBHOOK_LOG_PATH
-  const logPath = process.env.WEBHOOK_LOG_PATH || '/tmp/webhook-receive.log';
-  fs.appendFile(logPath, logLine, (err) => { if (err) console.error('Failed to write webhook log', err); });
-
-    return res.json({ ok: true });
-  } catch (err) {
-    console.error('Webhook handler error', err);
-    return res.status(500).json({ ok: false, error: String(err.message) });
-  }
-});
-
-// --- Patreon OAuth endpoints
-const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
-const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
-const PATREON_REDIRECT_PATH = '/auth/patreon/callback';
-const PATREON_REDIRECT_URI = `${BASE_URL.replace(/\/$/, '')}${PATREON_REDIRECT_PATH}`;
-const os = require('os');
-// store patreon links in a writable folder. Prefer explicit DATA_DIR env, otherwise use system tmpdir.
-const DATA_DIR = process.env.DATA_DIR || path.join(os.tmpdir(), 'aivis-data');
-const PATREON_LINKS_FILE = path.join(DATA_DIR, 'patreon_links.json');
-// A simple JSONL logfile for callback debug (do NOT store secrets here)
-const PATREON_CALLBACK_LOG = path.join(DATA_DIR, 'patreon_callbacks.log');
-const SOLANA_INVOICES_FILE = path.join(DATA_DIR, 'solana_invoices.json');
-
-function ensurePatreonLinksFile() {
-  try {
-    const dir = path.dirname(PATREON_LINKS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (!fs.existsSync(PATREON_LINKS_FILE)) {
-      fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify([]));
-    }
-  } catch (e) { console.error('ensurePatreonLinksFile error', e); }
-}
-
-function ensureSolanaInvoicesFile() {
-  try {
-    const dir = path.dirname(SOLANA_INVOICES_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (!fs.existsSync(SOLANA_INVOICES_FILE)) {
-      fs.writeFileSync(SOLANA_INVOICES_FILE, JSON.stringify([]));
-    }
-  } catch (e) { console.error('ensureSolanaInvoicesFile error', e); }
-}
-
-function loadSolanaInvoices() {
-  try {
-    ensureSolanaInvoicesFile();
-    const raw = fs.readFileSync(SOLANA_INVOICES_FILE, 'utf8') || '[]';
-    return JSON.parse(raw);
-  } catch (e) { console.error('loadSolanaInvoices error', e); return []; }
-}
-
-function saveSolanaInvoices(arr) {
-  try {
-    ensureSolanaInvoicesFile();
-    fs.writeFileSync(SOLANA_INVOICES_FILE, JSON.stringify(arr, null, 2));
-    return true;
-  } catch (e) { console.error('saveSolanaInvoices error', e); return false; }
-}
-
-function appendPatreonCallbackLog(obj) {
-  try {
-    // ensure directory exists
-    const dir = path.dirname(PATREON_CALLBACK_LOG);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    // Prepare a safe object: strip or mask potentially sensitive fields
-    const safe = Object.assign({}, obj);
-    if (safe.tokenData) {
-      // Do not persist access/refresh tokens; keep only non-sensitive metadata
-      safe.tokenData = {
-        hasAccessToken: !!safe.tokenData.access_token,
-        expires_in: safe.tokenData.expires_in || null
-      };
-    }
-    fs.appendFileSync(PATREON_CALLBACK_LOG, JSON.stringify(safe) + '\n');
-  } catch (e) {
-    console.error('appendPatreonCallbackLog error', e);
-  }
-}
-
-// run migration once at startup
-try {
-  ensurePatreonLinksFile();
-  migratePatreonLinks();
-} catch (e) { console.error('[PATREON] startup migration error', e); }
-
-function savePatreonLink(link) {
-  try {
-    ensurePatreonLinksFile();
-    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
-    const arr = JSON.parse(raw || '[]');
-    // Normalize incoming discordId: if the incoming value is a base64-encoded JSON
-    // like {"discordId":"12345"} decode it and store the plain id. Also
-    // ensure createdAt is set to server time to avoid trusting client timestamps.
-    const incoming = Object.assign({}, link);
-    // Normalize incoming.discordId so we never persist a base64-encoded value
-    const storedVal = String(incoming.discordId || '');
-    let decoded = tryDecodeBase64Json(storedVal);
-    if (decoded) {
-      // keep original encoded value for audit
-      incoming.originalState = incoming.originalState || storedVal;
-      incoming.discordId = decoded;
-    } else {
-      // If value looks like "<left>:<rand>", try decode left-part too (legacy state format)
-      if (storedVal && storedVal.includes(':')) {
-        const left = storedVal.split(':', 1)[0];
-        const leftDecoded = tryDecodeBase64Json(left);
-        if (leftDecoded) {
-          incoming.originalState = incoming.originalState || left;
-          incoming.discordId = leftDecoded;
-        } else if (/^\d{5,22}$/.test(left)) {
-          // plain numeric left-side
-          incoming.discordId = left;
-        }
-      }
-      // If it's already a plain numeric id, leave it as-is
-      if (!incoming.discordId && /^\d{5,22}$/.test(storedVal)) {
-        incoming.discordId = storedVal;
-      }
-    }
-
-    // Use server time for createdAt to avoid stale client timestamps
-    incoming.createdAt = new Date().toISOString();
-
-    // If an entry for this discordId already exists, update it instead of
-    // appending a duplicate. Preserve other fields where appropriate.
-    const idx = arr.findIndex(x => String(x.discordId) === String(incoming.discordId));
-    if (idx !== -1) {
-      // Merge: overwrite tokenData and patreonId, but preserve older originalState
-      const existing = arr[idx] || {};
-      const merged = Object.assign({}, existing, incoming);
-      if (!merged.originalState && existing.originalState) merged.originalState = existing.originalState;
-      arr[idx] = merged;
-    } else {
-      arr.push(incoming);
-    }
-
-    fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(arr, null, 2));
-  } catch (e) { console.error('savePatreonLink error', e); }
-}
-
-// Migration: ensure stored patreon links include plain discordId values
-function tryDecodeBase64Json(s) {
-  try {
-    const buf = Buffer.from(String(s), 'base64');
-    const txt = buf.toString('utf8');
-    if (!txt) return null;
-    // If decoded text is likely JSON (object, array or quoted string), parse it.
-    const trimmed = String(txt).trim();
-    if (trimmed.startsWith('{') || trimmed.startsWith('[') || trimmed.startsWith('"')) {
-      try {
-        const parsed = JSON.parse(txt);
-        if (parsed && typeof parsed === 'object' && parsed.discordId) return String(parsed.discordId);
-        if (typeof parsed === 'number' || typeof parsed === 'string') {
-          const plain = String(parsed).trim();
-          if (/^\d{5,22}$/.test(plain)) return plain;
-        }
-        return null;
-      } catch (e) {
-        // fall through to plain handling
-      }
-    }
-    // Not JSON-like: treat decoded text as plain string and check for numeric discordId
-    const plain = trimmed;
-    if (/^\d{5,22}$/.test(plain)) return plain; // plausible discord id length
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
-
-function migratePatreonLinks() {
-  try {
-    if (!fs.existsSync(PATREON_LINKS_FILE)) return;
-    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
-    const arr = JSON.parse(raw);
-    let changed = false;
-    const toRemove = new Set();
-
-    for (let i = 0; i < arr.length; i++) {
-      const entry = arr[i];
-      const stored = String(entry.discordId || '');
-      const decoded = tryDecodeBase64Json(stored);
-      if (decoded && stored !== decoded) {
-        // If there's already an entry with the plain id, mark this one for removal to avoid duplicates
-        const existsPlainIndex = arr.findIndex(x => String(x.discordId) === decoded);
-        if (existsPlainIndex === -1) {
-          // keep token data but set discordId to decoded plain id and store original state
-          entry.originalState = stored;
-          entry.discordId = decoded;
-          changed = true;
-        } else {
-          // prefer the existing plain entry; if not identical, preserve createdAt if earlier
-          toRemove.add(i);
-          changed = true;
-        }
-      }
-    }
-
-    if (toRemove.size > 0) {
-      // remove in reverse order
-      const indices = Array.from(toRemove).sort((a,b) => b - a);
-      for (const idx of indices) arr.splice(idx, 1);
-    }
-
-    if (changed) {
-      // backup original
-      const bak = PATREON_LINKS_FILE + '.bak.' + Date.now();
-      try { fs.copyFileSync(PATREON_LINKS_FILE, bak); console.log('[PATREON] backup saved to', bak); } catch (e) { console.warn('[PATREON] failed to save backup', e); }
-      fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(arr, null, 2));
-      console.log('[PATREON] migrated patreon_links.json - plain discordId fields ensured');
-    } else {
-      console.log('[PATREON] no migration needed for patreon_links.json');
-    }
-  } catch (e) {
-    console.error('[PATREON] migratePatreonLinks error', e);
+    console.warn('[INTERNAL] loadLocalDictionary error', e && e.message);
+    return [];
   }
 }
 

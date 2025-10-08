@@ -231,6 +231,29 @@ class Dashboard {
         // Update user UI regardless of authenticated state
         // (fills #user-display, #user-avatar, shows/hides logout button)
         this.loadUserInfo();
+
+        // If initial session check did not find an authenticated user,
+        // poll briefly to handle the case where the OAuth redirect arrives
+        // and the session cookie becomes available just after load.
+        if (!this.isLoggedIn) {
+            const maxAttempts = 10; // 最大待機回数（秒）
+            for (let i = 0; i < maxAttempts; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                try {
+                    const s = await fetch('/api/session', { credentials: 'include' }).then(r => r.json());
+                    if (s && s.authenticated) {
+                        this.isLoggedIn = true;
+                        this.user = s.user || null;
+                        console.log('Session detected after polling, showing dashboard.');
+                        this.showDashboard();
+                        this.checkPremiumStatus();
+                        break;
+                    }
+                } catch (err) {
+                    // ignore transient errors while polling
+                }
+            }
+        }
     }
 
     // ログインページを表示する処理は不要になったため削除しました
