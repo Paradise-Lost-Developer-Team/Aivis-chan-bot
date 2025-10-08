@@ -1446,3 +1446,33 @@ app.get('/auth/discord/callback/pro', (req, res, next) => {
     }
   })(req, res, next);
 });
+
+// Helper function to notify all bot instances of settings changes
+async function notifyBotsSettingsUpdate(guildId, settings) {
+    const botUrls = [
+        process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st:3002',
+        process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd:3003',
+        process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd:3004',
+        process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th:3005',
+        process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th:3006',
+        process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th:3007',
+        process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium:3008'
+    ];
+
+    const notifyPromises = botUrls.map(async (url) => {
+        try {
+            const response = await fetch(`${url}/internal/apply-web-settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ guildId, settings })
+            });
+            if (!response.ok) {
+                console.warn(`Failed to notify bot at ${url}: ${response.status}`);
+            }
+        } catch (error) {
+            console.warn(`Error notifying bot at ${url}:`, error.message);
+        }
+    });
+
+    await Promise.allSettled(notifyPromises);
+}
