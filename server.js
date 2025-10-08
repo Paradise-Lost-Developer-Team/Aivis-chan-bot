@@ -61,14 +61,14 @@ const HOST = process.env.HOST || '0.0.0.0';
 const DISCORD_CONFIG_FREE = {
   clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
-  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
+  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'https://aivis-chan-bot.com'}/auth/discord/callback`,
   version: 'free'
 };
 
 const DISCORD_CONFIG_PRO = {
   clientId: process.env.DISCORD_CLIENT_ID_PRO,
   clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
-  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'http://localhost:3001'}/auth/discord/callback`,
+  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'https://aivis-chan-bot.com'}/auth/discord/callback`,
   version: 'pro'
 };
 
@@ -1182,7 +1182,7 @@ async function fetchServersForUser(accessToken) {
 // TTS エンジンの話者一覧をプロキシするエンドポイント
 // フロントは CORS やネットワーク制約を避けるためこのエンドポイントを優先して叩きます
 app.get('/api/tts/speakers', async (req, res) => {
-  const ttsBase = process.env.TTS_ENGINE_URL || process.env.AIVIS_TTS_URL || 'http://localhost:10101';
+  const ttsBase = process.env.TTS_ENGINE_URL || process.env.AIVIS_TTS_URL || 'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101';
   const url = `${String(ttsBase).replace(/\/$/, '')}/speakers`;
   try {
     const r = await axios.get(url, { timeout: 5000 });
@@ -1270,3 +1270,10 @@ app.get('/health/redis', async (req, res) => {
     res.status(503).json({ status: 'Redis connection failed', error: error.message });
   }
 });
+
+// Patreon defaults
+const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
+const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
+const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || `${process.env.BASE_URL || 'https://aivis-chan-bot.com'}/auth/patreon/callback`;
+const PATREON_REDIRECT_PATH = process.env.PATREON_REDIRECT_PATH || '/auth/patreon/callback';
+const PATREON_LINKS_FILE = process.env.PATREON_LINKS_FILE || path.join('/tmp', 'data', 'patreon_links.json');
