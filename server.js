@@ -116,6 +116,9 @@ if (DISCORD_CONFIG_FREE.clientId && DISCORD_CONFIG_FREE.clientSecret) {
       callbackURL: DISCORD_CONFIG_FREE.redirectUri,
       scope: ['identify', 'guilds']
   }, (accessToken, refreshToken, profile, done) => {
+      try {
+        console.log('[PASSPORT DEBUG] verify start', { version: profile && profile.version ? profile.version : '(unknown)', accessTokenPresent: Boolean(accessToken), refreshTokenPresent: Boolean(refreshToken) });
+      } catch (e) {}
       // バージョン情報を追加
       profile.version = 'free';
       // Try to enrich profile with avatar/guild icon info like the default strategy
@@ -149,6 +152,9 @@ if (DISCORD_CONFIG_PRO.clientId && DISCORD_CONFIG_PRO.clientSecret) {
       callbackURL: DISCORD_CONFIG_PRO.redirectUri,
       scope: ['identify', 'guilds']
   }, (accessToken, refreshToken, profile, done) => {
+      try {
+        console.log('[PASSPORT DEBUG] verify start', { version: profile && profile.version ? profile.version : '(unknown)', accessTokenPresent: Boolean(accessToken), refreshTokenPresent: Boolean(refreshToken) });
+      } catch (e) {}
       // バージョン情報を追加
       profile.version = 'pro';
       // Enrich profile with avatar/guild icon info when possible
