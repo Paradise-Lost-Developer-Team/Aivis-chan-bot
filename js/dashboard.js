@@ -560,19 +560,41 @@ class Dashboard {
 
     async loadOverviewData() {
         try {
-            const response = await fetch('/api/bot-stats');
-            const data = await response.json();
+            // Use relative path that server.js can proxy or handle
+            const response = await fetch('/api/bot-stats', { 
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch bot stats: ${response.status} ${response.statusText}`);
+            }
+            
+             const data = await response.json();
 
-            document.getElementById('total-servers').textContent = data.total_bots || 0;
-            document.getElementById('total-users').textContent = data.total_bots ? Math.floor(Math.random() * 10000) + 1000 : 0; // 仮のデータ
-            document.getElementById('online-bots').textContent = data.online_bots || 0;
-            document.getElementById('vc-connections').textContent = data.total_bots ? Math.floor(Math.random() * 500) + 50 : 0; // 仮のデータ
+             document.getElementById('total-servers').textContent = data.total_bots || 0;
+             document.getElementById('total-users').textContent = data.total_bots ? Math.floor(Math.random() * 10000) + 1000 : 0; // 仮のデータ
+             document.getElementById('online-bots').textContent = data.online_bots || 0;
+             document.getElementById('vc-connections').textContent = data.total_bots ? Math.floor(Math.random() * 500) + 50 : 0; // 仮のデータ
 
-            this.renderBotStatus(data.bots || []);
-        } catch (error) {
-            console.error('Failed to load overview data:', error);
-        }
-    }
+             this.renderBotStatus(data.bots || []);
+         } catch (error) {
+             console.error('Failed to load overview data:', error);
+            logger.error(`Bot統計の取得に失敗: ${error.message}`);
+            
+            // Show fallback data
+            document.getElementById('total-servers').textContent = '0';
+            document.getElementById('total-users').textContent = '0';
+            document.getElementById('online-bots').textContent = '0';
+            document.getElementById('vc-connections').textContent = '0';
+            
+            // Render empty bot status
+            const container = document.getElementById('bot-status-list');
+            if (container) {
+                container.innerHTML = '<div class="bot-item offline"><div class="bot-name">データ取得エラー</div><div class="bot-status offline">オフライン</div></div>';
+            }
+         }
+     }
 
     renderBotStatus(bots) {
         const container = document.getElementById('bot-status-list');
@@ -1282,15 +1304,23 @@ class Dashboard {
             return;
         }
 
-        fetch('/api/servers', { credentials: 'include' })
+        fetch('/api/servers', { 
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}`);
+                    throw new Error(`Server list endpoint returned ${response.status}: ${response.statusText}`);
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Servers loaded:', data);
+                
+                if (!Array.isArray(data)) {
+                    throw new Error('Server list response is not an array');
+                }
+                
                 serverListContainer.innerHTML = '';
 
                 data.forEach(server => {
@@ -1350,7 +1380,8 @@ class Dashboard {
             })
             .catch(error => {
                 console.error('Failed to load servers:', error);
-                serverListContainer.innerHTML = '<li style="padding: 12px; color: #f44336;">サーバーの読み込みに失敗しました</li>';
+                logger.error(`サーバー一覧の取得に失敗: ${error.message}`);
+                serverListContainer.innerHTML = `<li style="padding: 12px; color: #f44336;">サーバーの読み込みに失敗しました<br><small>${error.message}</small></li>`;
             });
     }
 
