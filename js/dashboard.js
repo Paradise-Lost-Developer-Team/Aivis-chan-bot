@@ -103,6 +103,25 @@ class CustomLogger {
                 this.downloadLogs();
             });
         }
+
+        // Setup toggle buttons
+        const toggleButton = document.getElementById('toggle-logs');
+        const openButton = document.getElementById('open-logs');
+        const logViewer = document.getElementById('log-viewer');
+
+        if (toggleButton && logViewer) {
+            toggleButton.addEventListener('click', () => {
+                logViewer.style.display = 'none';
+                if (openButton) openButton.style.display = 'block';
+            });
+        }
+
+        if (openButton && logViewer) {
+            openButton.addEventListener('click', () => {
+                logViewer.style.display = 'flex';
+                openButton.style.display = 'none';
+            });
+        }
     }
 
     renderLogs() {
@@ -205,31 +224,58 @@ class Dashboard {
         this.currentGuildId = null;
         this.servers = [];
         this.guildUpdateInterval = null;
+        this.version = null;
         
-        console.log('[Dashboard] Constructor initialized');
+        logger.info('[Dashboard] Constructor initialized');
     }
 
     async init() {
-        console.log('[Dashboard] Initializing...');
+        logger.info('[Dashboard] Initializing...');
         
         try {
+            // versionパラメータを取得
+            const urlParams = new URLSearchParams(window.location.search);
+            this.version = urlParams.get('version');
+            
+            if (!this.version || (this.version !== 'free' && this.version !== 'pro')) {
+                logger.error('[Dashboard] Invalid or missing version parameter');
+                window.location.href = '/login?error=missing_version';
+                return;
+            }
+            
+            logger.info(`[Dashboard] Version: ${this.version}`);
+            
+            // バージョンタグを表示
+            const versionTag = document.getElementById('version-tag');
+            if (versionTag) {
+                versionTag.textContent = this.version === 'free' ? 'Free版' : 'Pro版';
+                versionTag.className = `version-tag version-${this.version}`;
+            }
+            
             // セッション確認
             const sessionResp = await fetch('/api/session', {
                 credentials: 'include'
             });
             
             if (!sessionResp.ok) {
-                console.error('[Dashboard] Session check failed:', sessionResp.status);
+                logger.error(`[Dashboard] Session check failed: ${sessionResp.status}`);
                 window.location.href = '/login';
                 return;
             }
             
             const sessionData = await sessionResp.json();
-            console.log('[Dashboard] Session data:', sessionData);
+            logger.info('[Dashboard] Session data:', JSON.stringify(sessionData));
             
             if (!sessionData.authenticated) {
-                console.warn('[Dashboard] Not authenticated');
+                logger.warn('[Dashboard] Not authenticated');
                 window.location.href = '/login';
+                return;
+            }
+            
+            // バージョンチェック
+            if (sessionData.user.version !== this.version) {
+                logger.error(`[Dashboard] Version mismatch: expected ${this.version}, got ${sessionData.user.version}`);
+                window.location.href = `/login?error=version_mismatch&message=${encodeURIComponent('認証バージョンが一致しません')}`;
                 return;
             }
             
@@ -239,19 +285,14 @@ class Dashboard {
             // サーバー一覧読み込み
             await this.loadServers();
             
-            // 定期更新開始（メソッドが存在する場合のみ）
-            if (typeof this.startGuildUpdates === 'function') {
-                this.startGuildUpdates();
-            }
-            
         } catch (error) {
-            console.error('[Dashboard] Init error:', error);
+            logger.error('[Dashboard] Init error: ' + error.message);
             this.showError('初期化に失敗しました: ' + error.message);
         }
     }
 
     displayUserInfo(user) {
-        console.log('[Dashboard] Displaying user info:', user);
+        logger.info(`[Dashboard] Displaying user info: ${user.username}`);
         
         const userNameEl = document.getElementById('user-name');
         const userAvatarEl = document.getElementById('user-avatar');
@@ -263,16 +304,16 @@ class Dashboard {
         if (userAvatarEl && user.avatarUrl) {
             userAvatarEl.src = user.avatarUrl;
             userAvatarEl.onerror = () => {
-                console.warn('[Dashboard] Avatar load failed, using default');
+                logger.warn('[Dashboard] Avatar load failed, using default');
                 userAvatarEl.src = '/default-icon.svg';
             };
         }
         
-        console.log('[Dashboard] User info displayed');
+        logger.success('User info loaded: ' + user.username);
     }
 
     async loadServers() {
-        console.log('[Dashboard] Loading servers...');
+        logger.info('[Dashboard] Loading server information...');
         
         try {
             const response = await fetch('/api/servers', {
@@ -282,38 +323,31 @@ class Dashboard {
                 }
             });
             
-            console.log('[Dashboard] /api/servers response:', {
-                status: response.status,
-                ok: response.ok,
-                statusText: response.statusText
-            });
+            logger.info(`[Dashboard] /api/servers response status: ${response.status}`);
             
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('[Dashboard] Server list error:', {
-                    status: response.status,
-                    body: errorText
-                });
+                logger.error(`[Dashboard] Server list error: ${response.status} - ${errorText}`);
                 throw new Error(`サーバー一覧の取得に失敗しました (${response.status})`);
             }
             
             const servers = await response.json();
             
-            console.log('[Dashboard] Servers loaded:', {
-                isArray: Array.isArray(servers),
-                count: servers.length,
-                sample: servers.slice(0, 3)
-            });
+            logger.info(`[Dashboard] Data type: ${typeof servers}`);
+            logger.info(`[Dashboard] Is array: ${Array.isArray(servers)}`);
+            logger.info(`[Dashboard] Servers loaded: ${JSON.stringify(servers).substring(0, 200)}`);
             
             if (!Array.isArray(servers)) {
-                console.error('[Dashboard] Invalid servers format:', servers);
+                logger.error('[Dashboard] Invalid servers format: ' + typeof servers);
                 throw new Error('サーバーデータの形式が不正です');
             }
             
             this.servers = servers;
             
+            logger.info(`Servers loaded: ${servers.length} servers`);
+            
             if (servers.length === 0) {
-                console.warn('[Dashboard] No servers returned');
+                logger.warn('[Dashboard] No servers returned');
                 this.showNoServersMessage();
                 return;
             }
@@ -321,7 +355,7 @@ class Dashboard {
             this.renderServerList(servers);
             
         } catch (error) {
-            console.error('[Dashboard] Failed to load servers:', error);
+            logger.error('[Dashboard] Failed to load servers: ' + error.message);
             this.showError('サーバー一覧の読み込みに失敗しました: ' + error.message);
         }
     }
@@ -329,9 +363,11 @@ class Dashboard {
     showNoServersMessage() {
         const serverListEl = document.getElementById('server-list');
         if (!serverListEl) {
-            console.warn('[Dashboard] server-list element not found');
+            logger.warn('[Dashboard] server-list element not found');
             return;
         }
+        
+        logger.warn('Botが参加しているサーバーが見つかりません');
         
         serverListEl.innerHTML = `
             <div class="no-servers-message">
@@ -351,11 +387,11 @@ class Dashboard {
     }
 
     renderServerList(servers) {
-        console.log('[Dashboard] Rendering server list:', servers.length);
+        logger.info(`[Dashboard] Rendering server list: ${servers.length} servers`);
         
         const serverListEl = document.getElementById('server-list');
         if (!serverListEl) {
-            console.error('[Dashboard] server-list element not found');
+            logger.error('[Dashboard] server-list element not found');
             return;
         }
         
@@ -387,7 +423,7 @@ class Dashboard {
             serverListEl.appendChild(serverCard);
         });
         
-        console.log('[Dashboard] Server list rendered');
+        logger.success(`Server list rendered: ${servers.length} servers displayed`);
     }
 
     escapeHtml(text) {
@@ -397,7 +433,7 @@ class Dashboard {
     }
 
     async selectServer(guildId) {
-        console.log('[Dashboard] Selecting server:', guildId);
+        logger.info(`[Dashboard] Selecting server: ${guildId}`);
         
         this.currentGuildId = guildId;
         
@@ -409,12 +445,18 @@ class Dashboard {
             }
         });
         
+        // Welcome画面を非表示
+        const welcomeScreen = document.getElementById('welcome-screen');
+        if (welcomeScreen) {
+            welcomeScreen.style.display = 'none';
+        }
+        
         // サーバー設定を読み込む
         await this.loadServerSettings(guildId);
     }
 
     async loadServerSettings(guildId) {
-        console.log('[Dashboard] Loading settings for:', guildId);
+        logger.info(`[Dashboard] Loading settings for: ${guildId}`);
         
         try {
             // チャンネル一覧取得
@@ -427,7 +469,7 @@ class Dashboard {
             }
             
             const channels = await channelsResp.json();
-            console.log('[Dashboard] Channels loaded:', channels.length);
+            logger.info(`[Dashboard] Channels loaded: ${channels.length}`);
             
             // 設定取得
             const settingsResp = await fetch(`/api/guilds/${guildId}/settings`, {
@@ -435,39 +477,55 @@ class Dashboard {
             });
             
             const settings = settingsResp.ok ? await settingsResp.json() : {};
-            console.log('[Dashboard] Settings loaded:', settings);
+            logger.info('[Dashboard] Settings loaded');
             
             // 設定画面を表示
             this.renderSettings(guildId, channels, settings);
             
         } catch (error) {
-            console.error('[Dashboard] Failed to load server settings:', error);
+            logger.error('[Dashboard] Failed to load server settings: ' + error.message);
             this.showError('サーバー設定の読み込みに失敗しました: ' + error.message);
         }
     }
 
     renderSettings(guildId, channels, settings) {
-        console.log('[Dashboard] Rendering settings for:', guildId);
+        logger.info(`[Dashboard] Rendering settings for: ${guildId}`);
         
         const settingsEl = document.getElementById('settings-panel');
         if (!settingsEl) {
-            console.error('[Dashboard] settings-panel element not found');
+            logger.error('[Dashboard] settings-panel element not found');
             return;
         }
+        
+        const server = this.servers.find(s => s.id === guildId);
+        const serverName = server ? server.name : 'サーバー';
         
         // 設定UIを表示
         settingsEl.style.display = 'block';
         settingsEl.innerHTML = `
-            <h2>サーバー設定</h2>
+            <div class="settings-header">
+                <h2>⚙️ ${this.escapeHtml(serverName)} の設定</h2>
+            </div>
             <div class="settings-content">
-                <p>チャンネル数: ${channels.length}</p>
-                <!-- ここに設定UIを追加 -->
+                <div class="settings-section">
+                    <h3>📊 サーバー情報</h3>
+                    <p>チャンネル数: ${channels.length}</p>
+                    <p>Bot: ${server?.botName || '不明'}</p>
+                    ${server?.memberCount ? `<p>メンバー数: ${server.memberCount}人</p>` : ''}
+                </div>
+                
+                <div class="settings-section">
+                    <h3>🔧 基本設定</h3>
+                    <p class="info-text">設定機能は開発中です。近日公開予定！</p>
+                </div>
             </div>
         `;
+        
+        logger.success('Settings panel displayed');
     }
 
     showError(message) {
-        console.error('[Dashboard] Error:', message);
+        logger.error('[Dashboard] Error: ' + message);
         
         // エラー表示UIを実装
         const errorEl = document.createElement('div');
@@ -477,25 +535,32 @@ class Dashboard {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #f44336;
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
             color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(244, 67, 54, 0.3);
             z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
         `;
         
         document.body.appendChild(errorEl);
         
         setTimeout(() => {
-            errorEl.remove();
+            errorEl.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => errorEl.remove(), 300);
         }, 5000);
     }
 }
 
 // ページ読み込み時に初期化
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[Dashboard] DOM loaded, initializing...');
+    // ログシステムを初期化
+    logger.init();
+    
+    logger.info('[Dashboard] DOM loaded, initializing...');
+    
+    // ダッシュボードを初期化
     const dashboard = new Dashboard();
     dashboard.init();
 });
