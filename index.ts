@@ -1619,3 +1619,74 @@ apiApp.get('/api/servers', async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to retrieve server list' });
     }
 });
+
+// 設定変更通知を受け取るエンドポイント
+apiApp.post('/api/settings/notify', async (req: Request, res: Response) => {
+    try {
+        const { guildId, userId, settings } = req.body;
+        
+        console.log(`[API] Settings update notification for guild: ${guildId}`);
+        
+        // ここでBotの内部キャッシュを更新するなどの処理を行う
+        // 例: settingsCache.set(guildId, settings);
+        
+        res.json({ 
+            success: true, 
+            message: 'Settings notification received',
+            guildId,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[API] Failed to process settings notification:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to process notification' 
+        });
+    }
+});
+
+// 個人設定変更通知を受け取るエンドポイント
+apiApp.post('/api/personal-settings/notify', async (req: Request, res: Response) => {
+    try {
+        const { guildId, userId, settings } = req.body;
+        
+        console.log(`[API] Personal settings update notification for guild: ${guildId}, user: ${userId}`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Personal settings notification received',
+            guildId,
+            userId,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[API] Failed to process personal settings notification:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to process notification' 
+        });
+    }
+});
+
+// 辞書変更通知を受け取るエンドポイント
+apiApp.post('/api/dictionary/notify', async (req: Request, res: Response) => {
+    try {
+        const { guildId, dictionary } = req.body;
+        
+        console.log(`[API] Dictionary update notification for guild: ${guildId}`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Dictionary notification received',
+            guildId,
+            entryCount: Array.isArray(dictionary) ? dictionary.length : 0,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[API] Failed to process dictionary notification:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to process notification' 
+        });
+    }
+});
