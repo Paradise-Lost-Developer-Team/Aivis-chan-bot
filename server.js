@@ -1520,7 +1520,7 @@ app.get('/api/patreon/link/:discordId', (req, res) => {
           for (const entry of arr) {
             const stored = String(entry.discordId || '');
             const decoded = tryDecodeBase64Json(stored);
-            if (decoded && decoded === reqDecoded) {
+            if ( decoded && decoded === reqDecoded) {
               found = entry;
               break;
             }
@@ -1777,82 +1777,351 @@ async function fetchServersForUser(accessToken) {
     }
 }
 
-// TTS エンジンの話者一覧をプロキシするエンドポイント
-// フロントは CORS やネットワーク制約を避けるためこのエンドポイントを優先して叩きます
-app.get('/api/tts/speakers', async (req, res) => {
-  const ttsBase = process.env.TTS_ENGINE_URL || process.env.AIVIS_TTS_URL || 'http://localhost:10101';
-  const url = `${String(ttsBase).replace(/\/$/, '')}/speakers`;
-  try {
-    const r = await axios.get(url, { timeout: 5000 });
-    if (r && r.data) {
-      // 期待は配列（文字列またはオブジェクト）
-      return res.json(r.data);
+// AivisSpeech エンジンのベースURL
+const AIVISSPEECH_URL = process.env.AIVISSPEECH_URL || process.env.TTS_ENGINE_URL || 'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101';
+
+// 話者一覧を取得するAPI
+app.get('/api/speakers', async (req, res) => {
+    try {
+        console.log(`[API /api/speakers] Fetching from AivisSpeech: ${AIVISSPEECH_URL}/speakers`);
+        
+        try {
+            const response = await axios.get(`${AIVISSPEECH_URL}/speakers`, {
+                timeout: 5000
+            });
+            
+            if (response.data && Array.isArray(response.data)) {
+                // 話者データを整形
+                const speakers = response.data.map(speaker => {
+                    const styles = speaker.styles || [];
+                    return styles.map(style => ({
+                        id: style.id,
+                        name: `${speaker.name} (${style.name})`,
+                        speaker: speaker.name,
+                        style: style.name
+                    }));
+                }).flat();
+                
+                console.log(`[API /api/speakers] Found ${speakers.length} speaker styles from AivisSpeech`);
+                return res.json(speakers);
+            } else {
+                console.warn('[API /api/speakers] Unexpected response format from AivisSpeech');
+                return res.json([]);
+            }
+        } catch (aivisSpeechError) {
+            console.warn('[API /api/speakers] AivisSpeech fetch failed:', aivisSpeechError.message);
+            
+            // フォールバック: デフォルトの話者リストを返す
+            const defaultSpeakers = [
+                { id: 0, name: 'AivisSpeech (デフォルト)', speaker: 'AivisSpeech', style: 'デフォルト' }
+            ];
+            
+            console.log('[API /api/speakers] Returning default speaker list');
+            return res.json(defaultSpeakers);
+        }
+    } catch (error) {
+        console.error('[API /api/speakers] Error:', error);
+        res.status(500).json({ error: '話者一覧の取得に失敗しました' });
     }
-    return res.json([]);
-  } catch (e) {
-    console.warn('[api/tts/speakers] fetch failed:', e.message || e);
-    return res.status(502).json({ error: 'Failed to fetch speakers from TTS engine' });
-  }
 });
 
-// ギルドのチャンネル一覧を返す（最良努力）
-// 実装方針:
-// 1) req.user.guilds に channels 情報が含まれていればそれを返す
-// 2) 各 Bot インスタンスの内部 API に /internal/guilds/:guildId/channels を問い合わせ
-// 3) Discord widget を使って最低限の情報を取得
-// 認証必須（requireAuth）
-app.get('/api/guilds/:guildId/channels', requireAuth, async (req, res) => {
-  const guildId = req.params.guildId;
-  try {
-    // 1) req.user.guilds に channels 情報があるか確認
-    if (req.user && Array.isArray(req.user.guilds)) {
-      const g = req.user.guilds.find(x => String(x.id) === String(guildId));
-      if (g && Array.isArray(g.channels) && g.channels.length > 0) {
-        return res.json(g.channels);
-      }
-    }
-
-    // 2) Bot インスタンスに問い合わせ（同じ BOTS 配列形式を使用）
-    const BOTS = [
-      { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
-      { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
-      { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
-      { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
-      { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
-      { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
-      { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
-    ];
-
-    for (const bot of BOTS) {
-      try {
-        const r = await axios.get(`${bot.baseUrl}/internal/guilds/${guildId}/channels`, { timeout: 3000 });
-        if (r && Array.isArray(r.data) && r.data.length > 0) {
-          return res.json(r.data);
-        }
-      } catch (e) {
-        // ignore and try next
-        console.debug(`[api/guilds/${guildId}/channels] bot ${bot.name} failed:`, e.message || e);
-      }
-    }
-
-    // 3) Discord widget fallback
+// TTS エンジンの話者一覧をプロキシするエンドポイント
+app.get('/api/tts/speakers', async (req, res) => {
+    const url = `${String(AIVISSPEECH_URL).replace(/\/$/, '')}/speakers`;
+    
+    console.log(`[API /api/tts/speakers] Fetching from AivisSpeech: ${url}`);
+    
     try {
-      const widget = await axios.get(`https://discord.com/api/guilds/${guildId}/widget.json`, { timeout: 3000 });
-      if (widget && widget.data) {
-        // widget.channels might exist; map to simple shape
-        const chs = (widget.data.channels || []).map(c => ({ id: c.id, name: c.name, type: c.type || null }));
-        if (chs.length > 0) return res.json(chs);
-      }
+        const r = await axios.get(url, { timeout: 5000 });
+        if (r && r.data) {
+            console.log(`[API /api/tts/speakers] Successfully fetched from AivisSpeech`);
+            return res.json(r.data);
+        }
+        console.warn('[API /api/tts/speakers] Empty response from AivisSpeech');
+        return res.json([]);
     } catch (e) {
-      console.debug(`[api/guilds/${guildId}/channels] discord widget failed:`, e.message || e);
+        console.warn('[API /api/tts/speakers] fetch failed:', e.message || e);
+        return res.status(502).json({ error: 'Failed to fetch speakers from Aivispeech engine' });
     }
+});
 
-    // 最終フォールバック: 空配列
-    return res.json([]);
-  } catch (error) {
-    console.error(`[api/guilds/${guildId}/channels] error:`, error);
-    return res.status(500).json({ error: 'Failed to fetch guild channels' });
-  }
+// ギルド情報を取得するAPI（チャンネル情報を含む）
+app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const userId = req.user.id;
+
+        console.log(`[API /api/guilds/${guildId}] Request from user: ${userId}`);
+
+        // ユーザーがこのギルドにアクセス権があるか確認
+        const userGuilds = req.user.guilds || [];
+        const guild = userGuilds.find(g => g.id === guildId);
+
+        if (!guild) {
+            console.warn(`[API /api/guilds/${guildId}] User ${userId} does not have access`);
+            return res.status(403).json({ error: 'このサーバーにアクセスする権限がありません' });
+        }
+
+        // Botインスタンスからギルド情報を取得
+        const BOT_INSTANCES = [
+            { name: '1st', url: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
+            { name: '2nd', url: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
+            { name: '3rd', url: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
+            { name: '4th', url: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
+            { name: '5th', url: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
+            { name: '6th', url: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
+            { name: 'pro-premium', url: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+        ];
+
+        let guildData = null;
+        let botName = null;
+
+        // 各Botインスタンスからギルド情報を取得
+        for (const bot of BOT_INSTANCES) {
+            try {
+                console.log(`[API /api/guilds/${guildId}] Trying bot: ${bot.name} at ${bot.url}`);
+                const response = await axios.get(`${bot.url}/internal/guilds/${guildId}`, {
+                    timeout: 5000
+                });
+
+                if (response.data) {
+                    guildData = response.data;
+                    botName = bot.name;
+                    console.log(`[API /api/guilds/${guildId}] Found in bot: ${bot.name}`);
+                    break;
+                }
+            } catch (error) {
+                console.debug(`[API /api/guilds/${guildId}] Bot ${bot.name} failed:`, error.message);
+            }
+        }
+
+        if (!guildData) {
+            console.warn(`[API /api/guilds/${guildId}] Guild not found in any bot`);
+            return res.status(404).json({ 
+                error: 'このサーバーにBotが参加していません',
+                message: 'BotをサーバーにDiscord経由で招待してください' 
+            });
+        }
+
+        // チャンネル情報を整形
+        const channels = (guildData.channels || []).map(ch => ({
+            id: ch.id,
+            name: ch.name,
+            type: ch.type
+        }));
+
+        const responseData = {
+            id: guildId,
+            name: guild.name || guildData.name,
+            iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guildId}/${guild.icon}.png` : null,
+            channels: channels,
+            botName: botName
+        };
+
+        console.log(`[API /api/guilds/${guildId}] Response:`, {
+            name: responseData.name,
+            channelsCount: channels.length,
+            botName: botName
+        });
+
+        res.json(responseData);
+    } catch (error) {
+        console.error(`[API /api/guilds/${req.params.guildId}] Error:`, error);
+        res.status(500).json({ error: 'ギルド情報の取得に失敗しました' });
+    }
+});
+
+// ギルドのチャンネル一覧を取得するAPI
+app.get('/api/guilds/:guildId/channels', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        
+        console.log(`[API /api/guilds/${guildId}/channels] Fetching channels`);
+
+        // ギルド情報から取得
+        const guildResponse = await axios.get(`${req.protocol}://${req.get('host')}/api/guilds/${guildId}`, {
+            headers: {
+                'Cookie': req.headers.cookie
+            }
+        });
+
+        if (guildResponse.data && guildResponse.data.channels) {
+            res.json(guildResponse.data.channels);
+        } else {
+            res.json([]);
+        }
+    } catch (error) {
+        console.error(`[API /api/guilds/${req.params.guildId}/channels] Error:`, error.message);
+        res.json([]);
+    }
+});
+
+// ギルドの設定を取得するAPI
+app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        
+        console.log(`[API /api/settings/${guildId}] Fetching settings`);
+
+        // ファイルから設定を読み込み
+        const settingsFile = path.join(__dirname, 'data', 'settings', `${guildId}.json`);
+
+        if (!fs.existsSync(settingsFile)) {
+            console.log(`[API /api/settings/${guildId}] No settings file found, returning defaults`);
+            return res.json({ settings: {} });
+        }
+
+        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+        
+        console.log(`[API /api/settings/${guildId}] Settings loaded`);
+        
+        res.json({ settings: settingsData.settings || {} });
+    } catch (error) {
+        console.error(`[API /api/settings/${req.params.guildId}] Error:`, error);
+        res.json({ settings: {} });
+    }
+});
+
+// ギルドの設定を保存するAPI
+app.post('/api/settings', express.json(), requireAuth, async (req, res) => {
+    try {
+        const { guildId, settings } = req.body;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        console.log(`[API /api/settings POST] Saving settings for guild: ${guildId}`);
+
+        // ディレクトリを作成
+        const settingsDir = path.join(__dirname, 'data', 'settings');
+        if (!fs.existsSync(settingsDir)) {
+            fs.mkdirSync(settingsDir, { recursive: true });
+        }
+
+        // ファイルに保存
+        const settingsFile = path.join(settingsDir, `${guildId}.json`);
+        fs.writeFileSync(settingsFile, JSON.stringify({ settings }, null, 2));
+
+        console.log(`[API /api/settings POST] Settings saved successfully`);
+        
+        res.json({ success: true, message: 'Settings saved' });
+    } catch (error) {
+        console.error('[API /api/settings POST] Error:', error);
+        res.status(500).json({ error: '設定の保存に失敗しました' });
+    }
+});
+
+// 個人設定を取得するAPI
+app.get('/api/personal-settings/:guildId', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+        const userId = req.user.id;
+
+        console.log(`[API /api/personal-settings/${guildId}] Fetching for user: ${userId}`);
+
+        const personalFile = path.join(__dirname, 'data', 'personal', `${guildId}_${userId}.json`);
+
+        if (!fs.existsSync(personalFile)) {
+            console.log(`[API /api/personal-settings/${guildId}] No personal settings found`);
+            return res.json({ settings: {} });
+        }
+
+        const personalData = JSON.parse(fs.readFileSync(personalFile, 'utf8'));
+        
+        console.log(`[API /api/personal-settings/${guildId}] Settings loaded`);
+        
+        res.json({ settings: personalData.settings || {} });
+    } catch (error) {
+        console.error(`[API /api/personal-settings/${req.params.guildId}] Error:`, error);
+        res.json({ settings: {} });
+    }
+});
+
+// 個人設定を保存するAPI
+app.post('/api/personal-settings', express.json(), requireAuth, async (req, res) => {
+    try {
+        const { guildId, settings } = req.body;
+        const userId = req.user.id;
+
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        console.log(`[API /api/personal-settings POST] Saving for guild: ${guildId}, user: ${userId}`);
+
+        // ディレクトリを作成
+        const personalDir = path.join(__dirname, 'data', 'personal');
+        if (!fs.existsSync(personalDir)) {
+            fs.mkdirSync(personalDir, { recursive: true });
+        }
+
+        // ファイルに保存
+        const personalFile = path.join(personalDir, `${guildId}_${userId}.json`);
+        fs.writeFileSync(personalFile, JSON.stringify({ settings }, null, 2));
+
+        console.log(`[API /api/personal-settings POST] Settings saved successfully`);
+        
+        res.json({ success: true, message: 'Personal settings saved' });
+    } catch (error) {
+        console.error('[API /api/personal-settings POST] Error:', error);
+        res.status(500).json({ error: '個人設定の保存に失敗しました' });
+    }
+});
+
+// 辞書を取得するAPI
+app.get('/api/dictionary/:guildId', requireAuth, async (req, res) => {
+    try {
+        const guildId = req.params.guildId;
+
+        console.log(`[API /api/dictionary/${guildId}] Fetching dictionary`);
+
+        const dictionaryFile = path.join(__dirname, 'data', 'dictionary', `${guildId}.json`);
+
+        if (!fs.existsSync(dictionaryFile)) {
+            console.log(`[API /api/dictionary/${guildId}] No dictionary file found`);
+            return res.json({ dictionary: [] });
+        }
+
+        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
+        
+        console.log(`[API /api/dictionary/${guildId}] Dictionary loaded: ${dictionaryData.dictionary?.length || 0} entries`);
+        
+        res.json({ dictionary: dictionaryData.dictionary || [] });
+    } catch (error) {
+        console.error(`[API /api/dictionary/${req.params.guildId}] Error:`, error);
+        res.json({ dictionary: [] });
+    }
+});
+
+// 辞書を保存するAPI
+app.post('/api/dictionary', express.json(), requireAuth, async (req, res) => {
+    try {
+        const { guildId, dictionary } = req.body;
+
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        console.log(`[API /api/dictionary POST] Saving dictionary for guild: ${guildId}, entries: ${dictionary?.length || 0}`);
+
+        // ディレクトリを作成
+        const dictionaryDir = path.join(__dirname, 'data', 'dictionary');
+        if (!fs.existsSync(dictionaryDir)) {
+            fs.mkdirSync(dictionaryDir, { recursive: true });
+        }
+
+        // ファイルに保存
+        const dictionaryFile = path.join(dictionaryDir, `${guildId}.json`);
+        fs.writeFileSync(dictionaryFile, JSON.stringify({ dictionary }, null, 2));
+
+        console.log(`[API /api/dictionary POST] Dictionary saved successfully`);
+        
+        res.json({ success: true, message: 'Dictionary saved' });
+    } catch (error) {
+        console.error('[API /api/dictionary POST] Error:', error);
+        res.status(500).json({ error: '辞書の保存に失敗しました' });
+    }
 });
 
 // Redisヘルスチェックエンドポイント
