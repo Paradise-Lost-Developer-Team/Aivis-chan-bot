@@ -614,8 +614,8 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             if (!finalTextChannelId) {
                 try {
                     const mod = await import('./utils/TTS-Engine');
-                    const js = (mod.joinChannels || {})[guildId];
-                    if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; resolvedBy = 'joinChannels'; }
+                    const js = (mod.autoJoinChannels || {})[guildId];
+                    if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; resolvedBy = 'autoJoinChannels'; }
                 } catch (_) {}
             }
         }
@@ -1120,8 +1120,8 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
         if (!finalTextChannelId) {
             try {
                 const mod = await import('./utils/TTS-Engine');
-                const js = (mod.joinChannels || {})[guildId];
-                if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; reason = 'joinChannels'; }
+                const js = (mod.autoJoinChannels || {})[guildId];
+                if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; reason = 'autoJoinChannels'; }
             } catch (_) {}
         }
 
