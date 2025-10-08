@@ -303,10 +303,7 @@ class Dashboard {
         
         if (userAvatarEl && user.avatarUrl) {
             userAvatarEl.src = user.avatarUrl;
-            userAvatarEl.onerror = () => {
-                logger.warn('[Dashboard] Avatar load failed, using default');
-                userAvatarEl.src = '/default-icon.svg';
-            };
+
         }
         
         logger.success('User info loaded: ' + user.username);
@@ -417,13 +414,11 @@ class Dashboard {
             serverCard.className = 'server-card';
             serverCard.dataset.serverId = server.id;
             
-            const iconUrl = server.iconUrl || '/default-icon.svg';
-            
+            const iconUrl = server.iconUrl;
             serverCard.innerHTML = `
                 <img src="${iconUrl}" 
                      alt="${server.name}" 
-                     class="server-icon"
-                     onerror="this.src='/default-icon.svg'">
+                     class="server-icon">
                 <div class="server-info">
                     <h3 class="server-name">${this.escapeHtml(server.name)}</h3>
                     ${server.memberCount ? `<p class="server-members">👥 ${server.memberCount}人</p>` : ''}
@@ -474,36 +469,68 @@ class Dashboard {
         logger.info(`[Dashboard] Loading settings for: ${guildId}`);
         
         try {
-            // チャンネル一覧取得
-            const channelsResp = await fetch(`/api/guilds/${guildId}`, {
-                credentials: 'include'
+            // ギルド情報取得
+            logger.info(`[Dashboard] Fetching guild info: /api/guilds/${guildId}`);
+            
+            const guildResp = await fetch(`/api/guilds/${guildId}`, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
             
-            if (!channelsResp.ok) {
-                throw new Error(`チャンネル情報の取得に失敗しました (${channelsResp.status})`);
+            logger.info(`[Dashboard] Guild info response status: ${guildResp.status}`);
+            
+            if (!guildResp.ok) {
+                const errorData = await guildResp.json().catch(() => ({}));
+                logger.error(`[Dashboard] Failed to fetch guild info:`, JSON.stringify(errorData));
+                
+                if (guildResp.status === 404) {
+                    throw new Error(errorData.message || 'このサーバーにBotが参加していません');
+                } else if (guildResp.status === 403) {
+                    throw new Error('このサーバーの管理権限がありません');
+                } else {
+                    throw new Error(`ギルド情報の取得に失敗しました (${guildResp.status})`);
+                }
             }
             
-            const channels = await channelsResp.json();
-            logger.info(`[Dashboard] Channels loaded: ${channels.length}`);
+            const guildData = await guildResp.json();
+            
+            logger.info(`[Dashboard] Guild data received:`, {
+                id: guildData.id,
+                name: guildData.name,
+                channelsCount: guildData.channels?.length || 0,
+                rolesCount: guildData.roles?.length || 0,
+                botName: guildData.botName
+            });
+            
+            // チャンネル配列の確認
+            if (!Array.isArray(guildData.channels)) {
+                logger.warn(`[Dashboard] Channels is not an array, converting...`);
+                guildData.channels = [];
+            }
             
             // 設定取得
+            logger.info(`[Dashboard] Fetching settings: /api/guilds/${guildId}/settings`);
+            
             const settingsResp = await fetch(`/api/guilds/${guildId}/settings`, {
                 credentials: 'include'
             });
             
             const settings = settingsResp.ok ? await settingsResp.json() : {};
-            logger.info('[Dashboard] Settings loaded');
+            logger.info('[Dashboard] Settings loaded:', Object.keys(settings).length > 0 ? 'Custom settings' : 'Default settings');
             
             // 設定画面を表示
-            this.renderSettings(guildId, channels, settings);
+            this.renderSettings(guildId, guildData, settings);
             
         } catch (error) {
             logger.error('[Dashboard] Failed to load server settings: ' + error.message);
+            logger.error('[Dashboard] Stack trace:', error.stack);
             this.showError('サーバー設定の読み込みに失敗しました: ' + error.message);
         }
     }
 
-    renderSettings(guildId, channels, settings) {
+    renderSettings(guildId, guildData, settings) {
         logger.info(`[Dashboard] Rendering settings for: ${guildId}`);
         
         const settingsEl = document.getElementById('settings-panel');
@@ -513,7 +540,14 @@ class Dashboard {
         }
         
         const server = this.servers.find(s => s.id === guildId);
-        const serverName = server ? server.name : 'サーバー';
+        const serverName = guildData.name || (server ? server.name : 'サーバー');
+        
+        // チャンネルをカテゴリごとに分類
+        const channels = guildData.channels || [];
+        const textChannels = channels.filter(ch => ch.type === 0 || ch.type === 'GUILD_TEXT');
+        const voiceChannels = channels.filter(ch => ch.type === 2 || ch.type === 'GUILD_VOICE');
+        
+        logger.info(`[Dashboard] Channels breakdown: Text=${textChannels.length}, Voice=${voiceChannels.length}`);
         
         // 設定UIを表示
         settingsEl.style.display = 'block';
@@ -524,15 +558,68 @@ class Dashboard {
             <div class="settings-content">
                 <div class="settings-section">
                     <h3>📊 サーバー情報</h3>
-                    <p>チャンネル数: ${channels.length}</p>
-                    <p>Bot: ${server?.botName || '不明'}</p>
-                    ${server?.memberCount ? `<p>メンバー数: ${server.memberCount}人</p>` : ''}
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">🤖 Bot:</span>
+                            <span class="info-value">${this.escapeHtml(guildData.botName || '不明')}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">💬 テキストチャンネル:</span>
+                            <span class="info-value">${textChannels.length}個</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">🔊 ボイスチャンネル:</span>
+                            <span class="info-value">${voiceChannels.length}個</span>
+                        </div>
+                        ${guildData.memberCount ? `
+                        <div class="info-item">
+                            <span class="info-label">👥 メンバー数:</span>
+                            <span class="info-value">${guildData.memberCount}人</span>
+                        </div>
+                        ` : ''}
+                        ${guildData.roles ? `
+                        <div class="info-item">
+                            <span class="info-label">🎭 役職数:</span>
+                            <span class="info-value">${guildData.roles.length}個</span>
+                        </div>
+                        ` : ''}
+                    </div>
                 </div>
                 
                 <div class="settings-section">
                     <h3>🔧 基本設定</h3>
                     <p class="info-text">設定機能は開発中です。近日公開予定！</p>
                 </div>
+                
+                ${textChannels.length > 0 ? `
+                <div class="settings-section">
+                    <h3>💬 テキストチャンネル一覧</h3>
+                    <ul class="channel-list">
+                        ${textChannels.slice(0, 10).map(ch => `
+                            <li class="channel-item">
+                                <span class="channel-icon">#</span>
+                                <span class="channel-name">${this.escapeHtml(ch.name)}</span>
+                            </li>
+                        `).join('')}
+                        ${textChannels.length > 10 ? `<li class="channel-item">... 他 ${textChannels.length - 10}個</li>` : ''}
+                    </ul>
+                </div>
+                ` : ''}
+                
+                ${voiceChannels.length > 0 ? `
+                <div class="settings-section">
+                    <h3>🔊 ボイスチャンネル一覧</h3>
+                    <ul class="channel-list">
+                        ${voiceChannels.slice(0, 10).map(ch => `
+                            <li class="channel-item">
+                                <span class="channel-icon">🔊</span>
+                                <span class="channel-name">${this.escapeHtml(ch.name)}</span>
+                            </li>
+                        `).join('')}
+                        ${voiceChannels.length > 10 ? `<li class="channel-item">... 他 ${voiceChannels.length - 10}個</li>` : ''}
+                    </ul>
+                </div>
+                ` : ''}
             </div>
         `;
         

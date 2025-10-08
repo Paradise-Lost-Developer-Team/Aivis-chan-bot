@@ -596,58 +596,68 @@ app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
 
   console.log(`[API /api/guilds/:guildId][${requestId}] Found bot: ${targetBot.name} for guild ${guildId}`);
 
-  // Botからチャンネル一覧を取得
+  // Botからギルド情報を取得
   try {
-    console.log(`[API /api/guilds/:guildId][${requestId}] Fetching channels from: ${targetBot.url}/internal/guilds/${guildId}`);
+    console.log(`[API /api/guilds/:guildId][${requestId}] Fetching guild info from: ${targetBot.url}/internal/guilds/${guildId}`);
     
-    const channelsResp = await axios.get(`${targetBot.url}/internal/guilds/${guildId}`, {
+    const guildInfoResp = await axios.get(`${targetBot.url}/internal/guilds/${guildId}`, {
       timeout: 5000,
       headers: { 'User-Agent': 'Dashboard/1.0' }
     });
 
-    console.log(`[API /api/guilds/:guildId][${requestId}] Channels response status: ${channelsResp.status}`);
-    console.log(`[API /api/guilds/:guildId][${requestId}] Channels fetched: ${channelsResp.data.channels?.length || 0}`);
-
-    const guildData = {
+    console.log(`[API /api/guilds/:guildId][${requestId}] Guild info response status: ${guildInfoResp.status}`);
+    
+    const guildData = guildInfoResp.data;
+    
+    // レスポンス形式を統一
+    const response = {
       id: guildId,
-      name: userGuild.name,
+      name: guildData.name || userGuild.name,
       icon: userGuild.icon,
-      iconUrl: userGuild.iconUrl || (userGuild.icon 
+      iconUrl: userGuild.icon 
         ? `https://cdn.discordapp.com/icons/${guildId}/${userGuild.icon}.png?size=256`
-        : null),
-      channels: channelsResp.data.channels || [],
+        : null,
+      channels: Array.isArray(guildData.channels) ? guildData.channels : [],
+      roles: Array.isArray(guildData.roles) ? guildData.roles : [],
+      memberCount: guildData.memberCount || null,
+      region: guildData.region || null,
       botName: targetBot.name,
-      botId: botInfo?.botId || channelsResp.data.botId,
-      botTag: botInfo?.botTag,
-      memberCount: channelsResp.data.memberCount,
-      region: channelsResp.data.region
+      botId: botInfo?.botId || guildData.botId,
+      botTag: botInfo?.botTag
     };
 
-    console.log(`[API /api/guilds/:guildId][${requestId}] Returning guild data:`, {
-      id: guildData.id,
-      name: guildData.name,
-      channelsCount: guildData.channels.length,
-      botName: guildData.botName
+    console.log(`[API /api/guilds/:guildId][${requestId}] Response summary:`, {
+      id: response.id,
+      name: response.name,
+      channelsCount: response.channels.length,
+      rolesCount: response.roles.length,
+      botName: response.botName
     });
     
     console.log(`[API /api/guilds/:guildId][${requestId}] ========== END ==========`);
 
-    res.json(guildData);
+    res.json(response);
 
   } catch (error) {
-    console.error(`[API /api/guilds/:guildId][${requestId}] Error fetching channels:`, {
+    console.error(`[API /api/guilds/:guildId][${requestId}] Error fetching guild info:`, {
       message: error.message,
       status: error.response?.status,
+      statusText: error.response?.statusText,
       data: error.response?.data
     });
     
     console.log(`[API /api/guilds/:guildId][${requestId}] ========== END (ERROR) ==========`);
     
-    res.status(500).json({ 
-      error: 'failed-to-fetch-channels', 
+    // より詳細なエラーレスポンス
+    const errorResponse = {
+      error: 'failed-to-fetch-guild-info',
       message: error.message,
-      details: error.response?.data
-    });
+      details: error.response?.data || null,
+      botName: targetBot?.name,
+      guildId: guildId
+    };
+    
+    res.status(error.response?.status || 500).json(errorResponse);
   }
 });
 

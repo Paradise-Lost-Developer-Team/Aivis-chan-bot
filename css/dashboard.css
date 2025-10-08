@@ -1850,6 +1850,66 @@ body {
     }
 }
 
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.info-value {
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Channel List */
+.channel-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0 0;
+}
+
+.channel-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+}
+
+.channel-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.channel-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.channel-name {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.9);
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
     .sidebar {
