@@ -194,7 +194,7 @@ client.once("ready", async () => {
             }
         }, 30 * 60 * 1000); // 30分
 
-        // コマンドはフォロワーBotでは無効化されています（5thはコマンドを使いません）
+        // コマンドはフォロワーBotでは無効化されています（sub botはコマンドを使いません）
         console.log("コマンド機能は無効化: このインスタンスはコマンドを持ちません");
 
         // 再接続が完了した後で他の機能を初期化
@@ -407,39 +407,38 @@ apiApp.use(express.json());
 // インターナル: プライマリからのボイス設定更新通知を受け取る
 apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
     try {
-        try { console.log('[VOICE_SETTINGS_REFRESH_RECEIVED] from=', req.body?.from || 'unknown', 'bodyKeys=', Object.keys(req.body || {})); } catch(e) { console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown'); }
+        try { console.log('[VOICE_SETTINGS_REFRESH_RECEIVED] from=', req.body?.from || 'unknown', 'bodyKeys=', Object.keys(req.body || {})); } catch (e) { console.log('Received voice-settings-refresh from primary:', req.body?.from || 'unknown'); }
 
-        // If payload includes voiceSettings, merge and save locally
         if (req.body && req.body.voiceSettings) {
             try {
-                const mod = (await import('./utils/TTS-Engine')) as import('./utils/tts-engine-types').TTSEngineExports;
+                const mod = (await import('./utils/TTS-Engine')) as any;
                 try {
                     Object.assign(mod.voiceSettings, req.body.voiceSettings);
                 } catch (e) {
                     console.warn('voiceSettings merge failed:', e);
                 }
-                if (typeof mod.saveUserVoiceSettings === 'function') {
-                    try { mod.saveUserVoiceSettings(); } catch(e) { console.warn('saveUserVoiceSettings failed:', e); }
-                } else {
-                    // Follower instance may not implement saveUserVoiceSettings; persist to disk as fallback
-                    try {
-                        const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
-                        const fs = await import('fs');
-                        fs.writeFileSync(settingsPath, JSON.stringify(mod.voiceSettings, null, 2), 'utf8');
-                        console.log('voiceSettings saved to disk fallback:', settingsPath);
-                    } catch (e) { console.warn('fallback save voiceSettings failed:', e); }
+                // ランタイムに即時反映できる場合は loadUserVoiceSettings を優先して呼ぶ
+                try {
+                    if (typeof mod.loadUserVoiceSettings === 'function') {
+                        await mod.loadUserVoiceSettings();
+                        console.log('loadUserVoiceSettings executed after voice-settings-refresh');
+                    } else if (typeof mod.saveUserVoiceSettings === 'function') {
+                        await Promise.resolve(mod.saveUserVoiceSettings());
+                    } else {
+                        const fs = await import('fs'); const path = await import('path');
+                        fs.writeFileSync(path.resolve(process.cwd(), 'data', 'voice_settings.json'), JSON.stringify(mod.voiceSettings, null, 2), 'utf8');
+                    }
+                } catch (e) {
+                    console.warn('Failed to persist or reload voiceSettings after refresh:', e);
                 }
                 console.log('[VOICE_SETTINGS_REFRESH] merged voiceSettings keys=', Object.keys(req.body.voiceSettings || {}).length);
-            } catch (e) {
-                console.warn('voiceSettings merge failed:', e);
-            }
+            } catch (e) { console.warn('voiceSettings merge failed:', e); }
         }
 
-        // Always attempt to sync full settings bundle from primary as fallback
         await syncSettingsFromPrimary();
         return res.json({ ok: true });
     } catch (e: any) {
-            console.warn('voice-settings-refresh handler error:', String(e));
+        console.warn('voice-settings-refresh handler error:', String(e));
         return res.status(500).json({ error: 'refresh-failed' });
     }
 });
@@ -483,7 +482,50 @@ apiApp.listen(3006, () => {
 
 // --- 内部: 指定ギルド/チャンネルへ参加API & info ---
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
-import { textChannels, voiceClients } from './utils/TTS-Engine';
+import { textChannels, voiceClients, setTextChannelForGuildInMap, setTextChannelForGuildInMap as __setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from './utils/TTS-Engine';
+
+// Backwards-compatibility shim: utils/TTS-Engine may not export removeTextChannelByVoiceChannelId.
+// Provide a local synchronous helper that delegates to the module if available, otherwise falls back
+// to scanning and removing entries from the in-memory textChannels mapping.
+function removeTextChannelByVoiceChannelId(voiceChannelId: string) {
+    // Try to delegate to the TTS-Engine module implementation if it exists.
+    try {
+        // use require to keep this synchronous and compatible with mixed import/require usage in the codebase
+        // (some places in this project use require(...) already).
+        const mod = require('./utils/TTS-Engine');
+        if (mod && typeof mod.removeTextChannelByVoiceChannelId === 'function') {
+            try {
+                mod.removeTextChannelByVoiceChannelId(voiceChannelId);
+                return;
+            } catch (e) {
+                // fall through to fallback implementation
+            }
+        }
+    } catch (e) {
+        // module or function not available — proceed to fallback
+    }
+
+    // Fallback: remove any mapping entries in the in-memory textChannels map that reference the voiceChannelId.
+    try {
+        const tc = textChannels as Record<string, any>;
+        for (const key of Object.keys(tc)) {
+            try {
+                const ch = tc[key];
+                if (!ch) {
+                    delete tc[key];
+                    continue;
+                }
+                if (ch.voiceChannelId === voiceChannelId || ch.id === voiceChannelId || ch.guild?.id === voiceChannelId) {
+                    delete tc[key];
+                }
+            } catch (e) {
+                // ignore per-entry errors
+            }
+        }
+    } catch (e) {
+        // not critical — swallow
+    }
+}
 
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
@@ -494,36 +536,37 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         const voiceChannel = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
         if (!voiceChannel || (voiceChannel as any).type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
 
-        const existing = (voiceClients as any)[guildId];
-        if (existing && existing.state?.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
+        const existing = voiceClients[guildId];
+        if (existing && existing.state.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
             return res.status(409).json({ error: 'already-connected_other-channel', current: existing.joinConfig.channelId });
         }
 
-        // 明示的 textChannelId が渡された場合はその ID をそのまま受け入れて保存する（存在や権限が無くても自動フォールバックしない）
-        // 明示指定がない場合のみ requestingChannel -> primary -> autoJoin/joinChannels の順でフォールバックする
+        // 新ルール: 明示的な textChannelId が渡された場合は「そのまま」受け入れる（自動フォールバックは行わない）。
+        // 明示指定が無い場合のみ requestingChannel -> primary -> autoJoin/joinChannels の順でフォールバック。
         let finalTextChannelId: string | null = null;
         let resolvedBy: string | null = null;
 
         if (textChannelId) {
             finalTextChannelId = String(textChannelId);
             resolvedBy = 'explicitParam';
+            // 可能なら永続化を試みるが、失敗しても処理は継続する
             try {
                 const tc = guild.channels.cache.get(finalTextChannelId) || await guild.channels.fetch(finalTextChannelId).catch(() => null);
                 try {
                     const mod = await import('./utils/TTS-Engine');
                     if (typeof mod.setTextChannelForGuildInMap === 'function') {
-                        await mod.setTextChannelForGuildInMap(guildId, tc || { id: finalTextChannelId } as any, true);
+                        mod.setTextChannelForGuildInMap(guildId, tc || { id: finalTextChannelId } as any);
                     } else {
                         (mod as any).textChannels = (mod as any).textChannels || {};
                         (mod as any).textChannels[guildId] = { id: finalTextChannelId };
                     }
-                } catch (_) { /* 永続化失敗は無視して続行 */ }
+                } catch (_) { /* 永続化失敗は無視 */ }
             } catch (e) {
-                console.warn(`[internal/join:5th] explicit textChannelId の保存に失敗しました: ${finalTextChannelId}`, e);
+                console.warn(`[internal/join] explicit textChannelId 保存試行に失敗: ${finalTextChannelId}`, e);
             }
-            console.log(`[internal/join:5th] explicit textChannelId をそのまま使用します: ${finalTextChannelId}`);
+            console.log(`[internal/join] explicit textChannelId をそのまま使用: ${finalTextChannelId}`);
         } else {
-            // requestingChannel があれば検証して使用
+            // requestingChannelId を優先して検証
             if (requestingChannelId) {
                 try {
                     const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
@@ -533,12 +576,16 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                         if (!perms || perms.has('SendMessages')) {
                             finalTextChannelId = requestingChannelId;
                             resolvedBy = 'requestingChannel';
-                            console.log(`[internal/join:5th] requestingChannel をテキストチャンネルとして使用: ${requestingChannelId}`);
+                            console.log(`[internal/join] requestingChannel を使用: ${requestingChannelId}`);
                         } else {
-                            console.warn(`[internal/join:5th] requestingChannel が存在するが送信権限がありません: ${requestingChannelId}`);
+                            console.warn(`[internal/join] requestingChannel が存在するが送信権限がありません: ${requestingChannelId}`);
                         }
+                    } else {
+                        console.warn(`[internal/join] requestingChannelId 無効またはテキストチャンネルでない: ${requestingChannelId}`);
                     }
-                } catch (err) { console.error(`[internal/join:5th] requestingChannel 検証エラー: ${requestingChannelId}`, err); }
+                } catch (err) {
+                    console.error(`[internal/join] requestingChannel 検証エラー: ${requestingChannelId}`, err);
+                }
             }
 
             // primary から問い合わせ
@@ -549,50 +596,28 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
                     if (data && data.ok && data.textChannelId) {
                         finalTextChannelId = data.textChannelId;
                         resolvedBy = 'primary';
-                        if (data.guildTier === 'pro' || data.guildTier === 'premium') {
-                            console.log(`[internal/join:5th] Pro/Premiumギルド(${data.guildTier}) の追加処理を行います: ${guildId}`);
-                        }
-                        console.log(`[internal/join:5th] primary から取得: ${finalTextChannelId}`);
+                        console.log(`[internal/join] primary から取得: ${finalTextChannelId}`);
                     }
-                } catch (err: any) {
-                    console.warn('[internal/join:5th] primary からテキストチャンネル取得に失敗:', err?.message ?? String(err));
+                } catch (err) {
+                    console.warn('[internal/join] primary からの取得に失敗:', (err as any)?.message || err);
                 }
             }
 
-            // autoJoin/joinChannels の設定をフォールバックで確認
+            // autoJoin / joinChannels をフォールバックで確認
             if (!finalTextChannelId) {
                 try {
                     const mod = await import('./utils/TTS-Engine');
-                    const autoJoin = (mod.autoJoinChannels || {})[guildId];
-                    if (autoJoin && autoJoin.textChannelId) { finalTextChannelId = autoJoin.textChannelId; resolvedBy = 'autoJoin'; }
+                    const auto = (mod.autoJoinChannels || {})[guildId];
+                    if (auto && auto.textChannelId) { finalTextChannelId = auto.textChannelId; resolvedBy = 'autoJoin'; }
                 } catch (_) {}
             }
             if (!finalTextChannelId) {
                 try {
                     const mod = await import('./utils/TTS-Engine');
-                    const joinCh = (mod.joinChannels || {})[guildId];
-                    if (joinCh && joinCh.textChannelId) { finalTextChannelId = joinCh.textChannelId; resolvedBy = 'joinChannels'; }
+                    const js = (mod.joinChannels || {})[guildId];
+                    if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; resolvedBy = 'joinChannels'; }
                 } catch (_) {}
             }
-        }
-
-        // 注意: 明示的指定がある場合はそのまま使用し、存在や権限不足でも自動的に別チャンネルを選ばない（安全策）
-        if (finalTextChannelId) {
-            console.log(`[internal/join:5th] ギルド ${guildId}: テキストチャンネルを設定 (${resolvedBy}): ${finalTextChannelId}`);
-            try {
-                const tc = guild.channels.cache.get(finalTextChannelId) || await guild.channels.fetch(finalTextChannelId).catch(() => null);
-                if (tc && (tc as any).type === 0) {
-                    try { const mod = await import('./utils/TTS-Engine'); if (typeof mod.setTextChannelForGuildInMap === 'function') mod.setTextChannelForGuildInMap(guildId, tc as any, false); } catch (_) {}
-                    try { const mod = await import('./utils/TTS-Engine'); mod.joinChannels = mod.joinChannels || {}; mod.joinChannels[guildId] = { voiceChannelId, textChannelId: finalTextChannelId }; } catch (_) {}
-                } else {
-                    console.warn(`[internal/join:5th] 指定されたテキストチャンネルが存在しないかテキストでありません: ${finalTextChannelId}`);
-                    // 自動フォールバックは行わない
-                }
-            } catch (err) {
-                console.warn(`[internal/join:5th] テキストチャンネル検証エラー: ${finalTextChannelId}`, err);
-            }
-        } else {
-            console.log(`[internal/join:5th] ギルド ${guildId}: 有効なテキストチャンネルは決定されませんでした（自動選択は行いません）`);
         }
 
         // voice 接続処理（text チャンネル決定とは独立）
@@ -604,11 +629,14 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
          }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
-        try { (voiceClients as any)[guildId] = connection; } catch {}
 
+        // wait for Ready or Disconnected with timeout
         const waitReady = (conn: VoiceConnection, timeoutMs = 10000) => new Promise<void>((resolve) => {
             let finished = false;
-            const cleanup = () => { try { conn.off(VoiceConnectionStatus.Ready, onReady); } catch {} try { conn.off(VoiceConnectionStatus.Disconnected, onDisc); } catch {} };
+            const cleanup = () => {
+                try { conn.off(VoiceConnectionStatus.Ready, onReady); } catch {}
+                try { conn.off(VoiceConnectionStatus.Disconnected, onDisc); } catch {}
+            };
             const onReady = () => { if (finished) return; finished = true; cleanup(); resolve(); };
             const onDisc = () => { if (finished) return; finished = true; cleanup(); resolve(); };
             conn.once(VoiceConnectionStatus.Ready, onReady);
@@ -622,18 +650,20 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             res.json({
                 ok: true,
                 textChannelId: finalTextChannelId,
-                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルが決定されませんでした'
+                resolvedBy,
+                message: finalTextChannelId ? 'ボイスチャンネルに参加し、テキストチャンネルを設定しました' : 'ボイスチャンネルに参加しましたが、テキストチャンネルは未決定です'
             });
         } catch (e) {
-            console.warn(`[internal/join:5th] 応答送信エラー:`, e);
+            console.warn('[internal/join] 応答送信エラー:', e);
         }
 
+        // 非同期でアナウンス再生
         (async () => {
             try {
                 const { speakAnnounce } = await import('./utils/TTS-Engine');
                 await speakAnnounce('接続しました', voiceChannelId, client);
             } catch (voiceAnnounceError) {
-                console.error(`[internal/join:5th] 音声アナウンスエラー:`, voiceAnnounceError);
+                console.error('[internal/join] 音声アナウンスエラー:', voiceAnnounceError);
             }
         })();
     } catch (e) {
@@ -677,86 +707,75 @@ client.login(TOKEN).catch(error => {
     process.exit(1);
 });
 
-// Fallback helpers: prefer TTS-Engine exported functions if present, otherwise mutate in-memory textChannels map
-function removeTextChannelByVoiceChannelId(voiceChannelId: string) {
-    try {
-        // try to use implementation from TTS-Engine if exported
-        // use require to keep this synchronous and compatible with existing code usage
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require('./utils/TTS-Engine');
-        if (mod && typeof mod.removeTextChannelByVoiceChannelId === 'function') {
-            try { mod.removeTextChannelByVoiceChannelId(voiceChannelId); return; } catch (_) { /* fallback below */ }
-        }
-    } catch (_) { /* ignore */ }
-
-    // fallback: clean entries in in-memory textChannels mapping
-    try {
-        const tc = textChannels as Record<string, any>;
-        if (!tc) return;
-        for (const key of Object.keys(tc)) {
-            try {
-                const ch = tc[key];
-                if (!ch) { delete tc[key]; continue; }
-                if (ch.voiceChannelId === voiceChannelId || ch.id === voiceChannelId) {
-                    delete tc[key];
-                }
-            } catch (_) { /* ignore per-entry errors */ }
-        }
-    } catch (_) { /* ignore */ }
-}
-
-function removeTextChannelForGuildInMap(guildId: string) {
-    try {
-        // try to use implementation from TTS-Engine if exported
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require('./utils/TTS-Engine');
-        if (mod && typeof mod.removeTextChannelForGuildInMap === 'function') {
-            try { mod.removeTextChannelForGuildInMap(guildId); return; } catch (_) { /* fallback below */ }
-        }
-    } catch (_) { /* ignore */ }
-
-    // fallback: remove any textChannels entries associated with the guild id
-    try {
-        const tc = textChannels as Record<string, any>;
-        if (!tc) return;
-        for (const key of Object.keys(tc)) {
-            try {
-                const ch = tc[key];
-                if (!ch) { delete tc[key]; continue; }
-                if (ch.guild?.id === guildId || ch.guildId === guildId || key === guildId) {
-                    delete tc[key];
-                }
-            } catch (_) { /* ignore per-entry errors */ }
-        }
-    } catch (_) { /* ignore */ }
-}
-
+// joinした順番に退出処理をしてしまう不具合を修正します
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
-        const ids = [guildId, voiceChannelId].filter(Boolean);
-        for (const id of ids) {
-            try { const c = getVoiceConnection(id); if (c) try { c.destroy(); } catch {} } catch {}
+
+        // 集合でユニークに扱う（提供された識別子だけでなく、voiceClients 内の該当接続キーも検出して破棄する）
+        const targets = new Set<string>();
+        if (voiceChannelId) targets.add(voiceChannelId);
+        if (guildId) targets.add(guildId);
+
+        try {
+            for (const [key, conn] of Object.entries(voiceClients as Record<string, any>)) {
+                try {
+                    if (!conn) continue;
+                    const jc = conn.joinConfig || {};
+                    // key または joinConfig の channelId / guildId が指定値と一致する場合、そのキーを削除対象に追加
+                    if (voiceChannelId && (key === voiceChannelId || jc.channelId === voiceChannelId || jc.guildId === voiceChannelId)) {
+                        targets.add(key);
+                    }
+                    if (guildId && (key === guildId || jc.guildId === guildId || jc.channelId === guildId)) {
+                        targets.add(key);
+                    }
+                } catch (e) {
+                    // per-entry ignore
+                }
+            }
+        } catch (e) {
+            // non-fatal
         }
-        try { if (voiceChannelId) delete (voiceClients as any)[voiceChannelId]; } catch {}
-        try { if (guildId) delete (voiceClients as any)[guildId]; } catch {}
+
+        // 発見した各接続を一度だけ破棄し、関連するマップをクリーンアップする
+        const destroyedKeys: string[] = [];
+        for (const key of Array.from(targets)) {
+            try {
+                const conn = (voiceClients as any)[key] || getVoiceConnection(key);
+                if (conn && typeof conn.destroy === 'function') {
+                    try { conn.destroy(); } catch (e) { /* ignore */ }
+                }
+                try { delete (voiceClients as any)[key]; } catch (_) { /* ignore */ }
+                destroyedKeys.push(key);
+            } catch (e) {
+                // ignore individual errors
+            }
+        }
+
+        // テキストチャンネルマッピングと global players のクリーンアップ（提供された識別子に基づく）
         try { if (voiceChannelId) removeTextChannelByVoiceChannelId(voiceChannelId); } catch {}
         try { if (guildId) removeTextChannelForGuildInMap(guildId); } catch {}
-        try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
-        try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
-        const saveVoiceState = (cli: any) => {
-            try {
-                const state: any = {
-                    voiceClients: Object.keys(voiceClients || {}),
-                    textChannels: textChannels || {}
-                };
-                const file = path.join(DATA_DIR, 'voice_state.json');
-                fs.writeFileSync(file, JSON.stringify(state, null, 2), 'utf8');
-            } catch (e) { console.warn('saveVoiceState failed', e); }
-        };
-        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
-        return res.json({ ok: true });
+        try { if (voiceChannelId && (global as any).players) delete (global as any).players[voiceChannelId]; } catch {}
+        try { if (guildId && (global as any).players) delete (global as any).players[guildId]; } catch {}
+
+        // saveVoiceState が存在すれば非同期で呼び出す（ベストエフォート）
+        setTimeout(() => {
+            (async () => {
+                try {
+                    const mod = await import('./utils/TTS-Engine').catch(() => null) as any;
+                    if (mod && typeof mod.saveVoiceState === 'function') {
+                        try { await mod.saveVoiceState(client); } catch (e) { /* ignore */ }
+                    } else if (typeof (global as any).saveVoiceState === 'function') {
+                        try { (global as any).saveVoiceState(client); } catch (e) { /* ignore */ }
+                    }
+                } catch (e) {
+                    // swallow errors during best-effort save
+                }
+            })();
+        }, 500);
+
+        return res.json({ ok: true, destroyed: destroyedKeys });
     } catch (e) {
         console.error('internal/leave error:', e);
         return res.status(500).json({ error: 'leave-failed' });
@@ -782,8 +801,8 @@ async function loadWebDashboardSettings() {
                 
                 if (settingsResponse.data && settingsResponse.data.settings) {
                     console.log(`ギルド ${guild.name} (${guildId}) の設定を読み込みました:`, settingsResponse.data.settings);
-                    // ここで設定を適用する処理を追加
-                    applyGuildSettings(guildId, settingsResponse.data.settings);
+                    // 設定を適用（TTS設定の即時反映を待つ）
+                    await applyGuildSettings(guildId, settingsResponse.data.settings);
                 }
                 
                 // 辞書設定を読み込み（タイムアウト時間を15秒に延長）
@@ -858,18 +877,49 @@ async function loadWebDashboardSettings() {
 }
 
 // ギルド設定を適用する関数
-function applyGuildSettings(guildId: string, settings: any) {
+async function applyGuildSettings(guildId: string, settings: any) {
     try {
         // 設定ファイルに保存
         const settingsDir = path.join(DATA_DIR, 'guild-settings');
         if (!fs.existsSync(settingsDir)) {
             fs.mkdirSync(settingsDir, { recursive: true });
         }
-        
         const settingsFile = path.join(settingsDir, `${guildId}.json`);
         fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
-        
         console.log(`ギルド ${guildId} の設定を保存しました`);
+
+        // TTS 側の voiceSettings に反映する（存在するキーのみ上書き）
+        const ttsKeys = ['defaultSpeaker','defaultSpeed','defaultPitch','defaultTempo','defaultVolume','defaultIntonation','autoLeave','ignoreBots'];
+        const hasTTS = ttsKeys.some(k => settings[k] !== undefined);
+        if (hasTTS) {
+            try {
+                const mod = (await import('./utils/TTS-Engine')) as any;
+                if (!mod.voiceSettings) mod.voiceSettings = {};
+                if (!mod.voiceSettings[guildId]) mod.voiceSettings[guildId] = {};
+                for (const k of ttsKeys) {
+                    if (settings[k] !== undefined && settings[k] !== null) {
+                        mod.voiceSettings[guildId][k] = settings[k];
+                    }
+                }
+                // ランタイム反映を試みる
+                try {
+                    if (typeof mod.loadUserVoiceSettings === 'function') {
+                        await mod.loadUserVoiceSettings();
+                        console.log(`applyGuildSettings: loadUserVoiceSettings called for guild=${guildId}`);
+                    } else if (typeof mod.saveUserVoiceSettings === 'function') {
+                        await Promise.resolve(mod.saveUserVoiceSettings());
+                        console.log(`applyGuildSettings: saveUserVoiceSettings called for guild=${guildId}`);
+                    } else {
+                        const vsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+                        try { fs.writeFileSync(vsPath, JSON.stringify(mod.voiceSettings, null, 2), 'utf8'); } catch (e) { console.warn('failed to write voice_settings.json fallback:', e); }
+                    }
+                } catch (e) {
+                    console.warn('Failed to persist or reload voiceSettings after applyGuildSettings:', e);
+                }
+            } catch (e) {
+                console.warn('applyGuildSettings: failed to apply TTS voiceSettings:', e);
+            }
+        }
     } catch (error) {
         console.error(`ギルド ${guildId} の設定適用に失敗:`, error);
     }
@@ -1017,21 +1067,21 @@ apiApp.get('/internal/guilds/:guildId/channels', async (req: Request, res: Respo
     }
 });
 
-// テキストチャンネル決定API（他Botから呼ばれる）
+// テキストチャンネル決定API（他のBotや内部オーケストレーターが使用）
 apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response) => {
     try {
         const { guildId } = req.params;
-        const requestingChannelId = (req.query.requestingChannelId as string) || null;
+        const requestingChannelId = (req.query.requestingChannelId as string) || (req.query.requestChannelId as string) || null;
         const voiceChannelId = (req.query.voiceChannelId as string) || null;
         if (!guildId) return res.status(400).json({ error: 'guildId is required' });
 
         const guild = client.guilds.cache.get(guildId);
         if (!guild) return res.status(404).json({ error: 'guild-not-found' });
 
+        // 優先順位: requestingChannel -> in-memory mapping -> autoJoin/joinChannels -> voice フォールバック（最後）
         let finalTextChannelId: string | null = null;
         let reason: string | null = null;
 
-        // 1) requestingChannelId が有効なら優先
         if (requestingChannelId) {
             try {
                 const maybe = guild.channels.cache.get(requestingChannelId) || await guild.channels.fetch(requestingChannelId).catch(() => null);
@@ -1047,45 +1097,35 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
                 } else {
                     reason = 'requestingChannel_invalid';
                 }
-            } catch (err) { console.warn('[text-channel API:5th] requestingChannel validation error', err); }
+            } catch (err) {
+                console.warn('[text-channel API] requestingChannel validation error', err);
+            }
         }
 
-        // 2) in-memory saved mapping
         if (!finalTextChannelId) {
             try {
                 const saved = (textChannels as Record<string, any>)[guildId];
-                if (saved && saved.id) {
-                    finalTextChannelId = saved.id;
-                    reason = 'savedMapping';
-                }
+                if (saved && saved.id) { finalTextChannelId = saved.id; reason = 'savedMapping'; }
             } catch (_) {}
         }
 
-        // 3) autoJoin
         if (!finalTextChannelId) {
             try {
-                const { autoJoinChannels } = await import('./utils/TTS-Engine');
-                const auto = autoJoinChannels[guildId];
-                if (auto && auto.textChannelId) {
-                    finalTextChannelId = auto.textChannelId;
-                    reason = 'autoJoin';
-                }
+                const mod = await import('./utils/TTS-Engine');
+                const auto = (mod.autoJoinChannels || {})[guildId];
+                if (auto && auto.textChannelId) { finalTextChannelId = auto.textChannelId; reason = 'autoJoin'; }
             } catch (_) {}
         }
 
-        // 4) joinChannels
         if (!finalTextChannelId) {
             try {
-                const { joinChannels } = await import('./utils/TTS-Engine');
-                const js = joinChannels[guildId];
-                if (js && js.textChannelId) {
-                    finalTextChannelId = js.textChannelId;
-                    reason = 'joinChannels';
-                }
+                const mod = await import('./utils/TTS-Engine');
+                const js = (mod.joinChannels || {})[guildId];
+                if (js && js.textChannelId) { finalTextChannelId = js.textChannelId; reason = 'joinChannels'; }
             } catch (_) {}
         }
 
-        // 5) voice ベースのフォールバック（1-4で決まらない場合のみ）
+        // 上の手段で決定しなかった場合のみ voice ベースのフォールバックを行う
         if (!finalTextChannelId && voiceChannelId) {
             try {
                 const voiceObj = guild.channels.cache.get(voiceChannelId) || await guild.channels.fetch(voiceChannelId).catch(() => null);
@@ -1114,7 +1154,7 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
                 } else {
                     reason = 'voiceChannelNotFound';
                 }
-            } catch (err) { console.warn('[text-channel API:5th] voiceFallback error', err); }
+            } catch (err) { console.warn('[text-channel API] voiceFallback error', err); }
         }
 
         if (finalTextChannelId) {
@@ -1123,14 +1163,14 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
                 if (tc && (tc as any).type === 0) return res.json({ ok: true, textChannelId: finalTextChannelId, textChannelName: (tc as any).name, reason });
                 return res.status(404).json({ error: 'text-channel-invalid', reason });
             } catch (err) {
-                console.warn('[text-channel API:5th] channel fetch error', err);
+                console.warn('[text-channel API] channel fetch error', err);
                 return res.status(500).json({ error: 'channel-fetch-failed', reason });
             }
         }
 
-        return res.status(404).json({ error: 'no-text-channel-found', reason });
+        return res.status(404).json({ error: 'no-text-channel-found', reason: reason || 'none' });
     } catch (e) {
-        console.error('[text-channel API:5th] error', e);
+        console.error('[text-channel API] error', e);
         return res.status(500).json({ error: 'text-channel-failed' });
     }
 });
