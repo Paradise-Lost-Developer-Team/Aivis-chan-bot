@@ -335,7 +335,7 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  proxy: true,
+  proxy: true, // リバースプロキシ配下では必須
   cookie: Object.assign({
     secure: cookieSecure,
     sameSite: cookieSameSite,
@@ -350,7 +350,8 @@ console.log('[SESSION] cookie settings:', {
   sameSite: sessionConfig.cookie.sameSite, 
   httpOnly: sessionConfig.cookie.httpOnly,
   domain: sessionConfig.cookie.domain || '(none)',
-  name: sessionConfig.name
+  name: sessionConfig.name,
+  proxy: sessionConfig.proxy
 });
 
 if (redisStoreInstance) sessionConfig.store = redisStoreInstance;
@@ -649,77 +650,6 @@ app.get('/api/bot-stats', async (req, res) => {
     } catch (error) {
         console.error('Failed to get bot stats:', error);
         res.status(500).json({ error: 'Failed to retrieve bot statistics' });
-    }
-});
-
-// ユーザーが参加しているサーバー一覧を取得
-app.get('/api/servers', async (req, res) => {
-    try {
-        if (!req.session || !req.session.user) {
-            return res.status(401).json({ error: 'Not authenticated' });
-        }
-
-        const accessToken = req.session.accessToken;
-        if (!accessToken) {
-            return res.status(401).json({ error: 'No access token' });
-        }
-
-        // Discord APIから自分が参加しているサーバー一覧を取得
-        const guildsResponse = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
-
-        const userGuilds = guildsResponse.data;
-
-        // 各Botインスタンスから参加サーバー情報を取得
-        const botUrls = [
-            process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st:3002',
-            process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd:3003',
-            process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd:3004',
-            process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th:3005',
-            process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th:3006',
-            process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th:3007',
-            process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium:3008'
-        ];
-
-        // 全ボットインスタンスから参加しているギルドIDを集約
-        const botGuildPromises = botUrls.map(async (url) => {
-            try {
-                const response = await axios.get(`${url}/api/guilds`, { timeout: 5000 });
-                return response.data || [];
-            } catch (error) {
-                console.warn(`Failed to fetch guilds from ${url}:`, error.message);
-                return [];
-            }
-        });
-
-        const botGuildResults = await Promise.allSettled(botGuildPromises);
-        const allBotGuilds = botGuildResults
-            .filter(r => r.status === 'fulfilled')
-            .flatMap(r => r.value);
-
-        // ユーザーとボットの共通ギルドをフィルタリング
-        const botGuildIds = new Set(allBotGuilds.map(g => g.id));
-        const commonGuilds = userGuilds.filter(g => botGuildIds.has(g.id));
-
-        // アイコンURLを追加
-        const serversWithIcons = commonGuilds.map(guild => ({
-            id: guild.id,
-            name: guild.name,
-            icon: guild.icon,
-            iconUrl: guild.icon 
-                ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`
-                : null,
-            owner: guild.owner,
-            permissions: guild.permissions
-        }));
-
-        res.json(serversWithIcons);
-    } catch (error) {
-        console.error('Failed to fetch servers:', error);
-        res.status(500).json({ error: 'Failed to retrieve server list' });
     }
 });
 

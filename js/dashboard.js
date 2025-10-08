@@ -1309,12 +1309,27 @@ class Dashboard {
         // ローディング表示
         serverListContainer.innerHTML = '<li class="server-item loading"><span>読み込み中...</span></li>';
 
+        // ★ デバッグ: 現在のセッション状態を確認 ★
+        fetch('/api/session', { 
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(session => {
+                console.log('[Dashboard] Current session:', session);
+                logger.info(`Session status: ${session.authenticated ? 'authenticated' : 'not authenticated'}`);
+            })
+            .catch(err => {
+                console.error('[Dashboard] Failed to check session:', err);
+            });
+
         fetch('/api/servers', { 
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         })
             .then(response => {
                 console.log('[Dashboard] /api/servers response status:', response.status);
+                console.log('[Dashboard] Response headers:', Object.fromEntries(response.headers.entries()));
                 
                 if (response.status === 401) {
                     console.warn('[Dashboard] 401 Unauthorized - User not authenticated');
@@ -1331,6 +1346,8 @@ class Dashboard {
             })
             .then(data => {
                 console.log('[Dashboard] Servers loaded:', data);
+                console.log('[Dashboard] Data type:', typeof data);
+                console.log('[Dashboard] Is array:', Array.isArray(data));
                 logger.info(`Servers loaded: ${Array.isArray(data) ? data.length : 0} servers`);
                 
                 if (!Array.isArray(data)) {
@@ -1396,7 +1413,6 @@ class Dashboard {
 
                     // クリックイベントを追加
                     listItem.addEventListener('click', () => {
-                        console.log('[Dashboard] Server clicked:', server.id);
                         this.selectServer(server.id);
                     });
                 });
@@ -1404,13 +1420,12 @@ class Dashboard {
                 // 自動で最初のサーバーを選択して設定を読み込む
                 if (data.length > 0) {
                     const firstId = data[0].id;
-                    console.log('[Dashboard] Auto-selecting first server:', firstId);
-                    logger.info(`Auto-selecting first server: ${data[0].name}`);
                     setTimeout(() => this.selectServer(firstId), 100);
                 }
             })
             .catch(error => {
-                console.error('[Dashboard] Failed to load servers:', error);
+                console.error('[Dashboard] サーバー一覧の取得に失敗:', error);
+                console.error('[Dashboard] Error stack:', error.stack);
                 logger.error(`サーバー一覧の取得に失敗: ${error.message}`);
                 
                 if (serverListContainer) {
