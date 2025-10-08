@@ -1062,7 +1062,39 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// ダッシュボード（versionパラメータ必須）
 app.get('/dashboard', requireAuth, (req, res) => {
+  const version = req.query.version;
+  const userVersion = req.user?.version;
+  
+  console.log('[DASHBOARD] Access attempt:', {
+    queryVersion: version,
+    userVersion: userVersion,
+    userId: req.user?.id
+  });
+  
+  // versionパラメータがない場合
+  if (!version) {
+    console.log('[DASHBOARD] No version parameter, redirecting to login');
+    return res.redirect(`/login?error=missing_version&message=${encodeURIComponent('バージョンパラメータが必要です')}`);
+  }
+  
+  // 無効なversionパラメータ
+  if (version !== 'free' && version !== 'pro') {
+    console.log('[DASHBOARD] Invalid version parameter:', version);
+    return res.redirect(`/login?error=invalid_version&message=${encodeURIComponent('無効なバージョンです')}`);
+  }
+  
+  // ユーザーのログインバージョンと一致しない場合
+  if (userVersion && userVersion !== version) {
+    console.log('[DASHBOARD] Version mismatch:', {
+      expected: version,
+      actual: userVersion
+    });
+    return res.redirect(`/login?error=version_mismatch&message=${encodeURIComponent('認証バージョンが一致しません')}`);
+  }
+  
+  console.log('[DASHBOARD] Access granted for version:', version);
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
