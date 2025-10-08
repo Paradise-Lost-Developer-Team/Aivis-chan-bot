@@ -2,66 +2,14 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
-const fsPromises = require('fs').promises; // 追加
-const { Connection, clusterApiUrl, PublicKey } = require('@solana/web3.js');
-const { google } = require('googleapis');
+const fsPromises = require('fs').promises;
 const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 
-// Redis セッションストア設定
-let redisStoreInstance = null;
-
-// SESSION_STORE環境変数が'redis'の場合のみRedisストアを使用
-if (process.env.SESSION_STORE === 'redis') {
-  try {
-    const RedisStore = require('connect-redis').default;
-    const redis = require('redis');
-    const redisClient = redis.createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
-      socket: {
-        connectTimeout: 60000,
-        lazyConnect: true
-      }
-    });
-
-    redisClient.on('error', (err) => {
-      console.error('[REDIS] Client Error:', err);
-    });
-
-    redisClient.on('connect', () => {
-      console.log('[REDIS] Client Connected');
-    });
-
-    redisClient.on('ready', () => {
-      console.log('[REDIS] Client Ready');
-    });
-
-    redisClient.connect().catch((err) => {
-      console.error('[REDIS] Connection failed:', err);
-    });
-
-    redisStoreInstance = new RedisStore({
-      client: redisClient,
-      prefix: 'aivis:sess:',
-      ttl: 24 * 60 * 60 // 24時間（秒単位）
-    });
-    console.log('[SESSION] Using Redis session store');
-  } catch (err) {
-    console.error('[SESSION] Failed to setup Redis store, falling back to memory store:', err.message);
-  }
-} else {
-  console.log('[SESSION] Using memory store (not suitable for production)');
-}
-
-const app = express();
-const PORT = process.env.PORT || 3001;
-const HOST = process.env.HOST || '0.0.0.0';
-
-// --- Diagnostics: log env summary and catch crashes early ---
+// エラーハンドリング（最初に設定）
 process.on('uncaughtException', (err) => {
   console.error('[FATAL] uncaughtException:', err && (err.stack || err.message || err));
-  // give logs a moment to flush
   setTimeout(() => process.exit(1), 200);
 });
 process.on('unhandledRejection', (reason) => {
@@ -69,424 +17,61 @@ process.on('unhandledRejection', (reason) => {
   setTimeout(() => process.exit(1), 200);
 });
 
+const app = express();
+const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
+
+// Redis セッションストア設定
+let redisStoreInstance = null;
+if (process.env.SESSION_STORE === 'redis') {
+  try {
+    const RedisStore = require('connect-redis').default;
+    const redis = require('redis');
+    const redisClient = redis.createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      socket: { connectTimeout: 60000, lazyConnect: true }
+    });
+    redisClient.on('error', (err) => console.error('[REDIS] Client Error:', err));
+    redisClient.on('connect', () => console.log('[REDIS] Client Connected'));
+    redisClient.on('ready', () => console.log('[REDIS] Client Ready'));
+    redisClient.connect().catch((err) => console.error('[REDIS] Connection failed:', err));
+    redisStoreInstance = new RedisStore({
+      client: redisClient,
+      prefix: 'aivis:sess:',
+      ttl: 24 * 60 * 60
+    });
+    console.log('[SESSION] Using Redis session store');
+  } catch (err) {
+    console.error('[SESSION] Failed to setup Redis store:', err.message);
+  }
+} else {
+  console.log('[SESSION] Using memory store');
+}
+
 console.log('[STARTUP] server env summary:', {
   PORT,
   HOST,
   BASE_URL: process.env.BASE_URL ? 'set' : 'unset',
   SESSION_STORE: process.env.SESSION_STORE || 'memory',
   REDIS_URL: process.env.REDIS_URL ? 'set' : 'unset',
-  PATREON_REDIRECT_URI: process.env.PATREON_REDIRECT_URI ? 'set' : (process.env.BASE_URL ? 'derived-from-BASE_URL' : 'unset')
+  PATREON_REDIRECT_URI: process.env.PATREON_REDIRECT_URI ? 'set' : 'unset'
 });
 
-// --- Patreon defaults (moved before any route that may reference them; k8s: avoid localhost fallback) ---
+// 定数定義
+const BASE_URL = (process.env.BASE_URL || 'https://aivis-chan-bot.com').replace(/\/$/, '');
 const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
 const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
-const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || (process.env.BASE_URL ? `${String(process.env.BASE_URL).replace(/\/$/, '')}/auth/patreon/callback` : 'https://aivis-chan-bot.com/auth/patreon/callback');
-const PATREON_REDIRECT_PATH = process.env.PATREON_REDIRECT_PATH || '/auth/patreon/callback';
+const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || `${BASE_URL}/auth/patreon/callback`;
 const PATREON_LINKS_FILE = process.env.PATREON_LINKS_FILE || path.join('/tmp', 'data', 'patreon_links.json');
 
 console.log('[PATREON] Config:', {
   CLIENT_ID: PATREON_CLIENT_ID ? 'set' : 'NOT SET',
   CLIENT_SECRET: PATREON_CLIENT_SECRET ? 'set' : 'NOT SET',
-  REDIRECT_URI: PATREON_REDIRECT_URI || 'NOT SET',
-  REDIRECT_PATH: PATREON_REDIRECT_PATH
+  REDIRECT_URI: PATREON_REDIRECT_URI,
+  REDIRECT_PATH: '/auth/patreon/callback'
 });
 
-// Discord OAuth2設定（無料版とPro/Premium版）
-// Ensure callbackURL includes versioned callback path to match Discord Developer Portal settings
-const BASE = (process.env.BASE_URL || 'https://aivis-chan-bot.com').replace(/\/$/, '');
-const DISCORD_CONFIG_FREE = {
-  clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
-  clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
-  // use explicit /auth/discord/callback/free by default
-  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${BASE}/auth/discord/callback/free`,
-  version: 'free'
-};
-
-const DISCORD_CONFIG_PRO = {
-  clientId: process.env.DISCORD_CLIENT_ID_PRO,
-  clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
-  // use explicit /auth/discord/callback/pro by default
-  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${BASE}/auth/discord/callback/pro`,
-  version: 'pro'
-};
-
-// デフォルト設定（後方互換性のため）
-const DISCORD_CLIENT_ID = DISCORD_CONFIG_FREE.clientId;
-const DISCORD_CLIENT_SECRET = DISCORD_CONFIG_FREE.clientSecret;
-const DISCORD_REDIRECT_URI = DISCORD_CONFIG_FREE.redirectUri;
-
-// Passport設定（無料版） - 必須値がある場合のみ登録
-if (DISCORD_CONFIG_FREE.clientId && DISCORD_CONFIG_FREE.clientSecret) {
-  passport.use('discord-free', new DiscordStrategy({
-      clientID: DISCORD_CONFIG_FREE.clientId,
-      clientSecret: DISCORD_CONFIG_FREE.clientSecret,
-      callbackURL: DISCORD_CONFIG_FREE.redirectUri,
-      scope: ['identify', 'guilds']
-  }, async (accessToken, refreshToken, profile, done) => {
-      try {
-        console.log('[PASSPORT DEBUG] verify start', { 
-          version: 'free', 
-          accessTokenPresent: Boolean(accessToken), 
-          refreshTokenPresent: Boolean(refreshToken),
-          profileId: profile?.id 
-        });
-      } catch (e) {}
-      
-      // バージョン情報を追加
-      profile.version = 'free';
-      profile.accessToken = accessToken;
-      
-      // プロフィール情報を取得して補完
-      try {
-        const [userResp, guildsResp] = await Promise.all([
-          axios.get('https://discord.com/api/users/@me', { 
-            headers: { Authorization: `Bearer ${accessToken}` },
-            timeout: 5000 
-          }),
-          axios.get('https://discord.com/api/users/@me/guilds', { 
-            headers: { Authorization: `Bearer ${accessToken}` },
-            timeout: 5000
-          })
-        ]);
-        
-        if (userResp.status === 200) {
-          profile.avatarUrl = userResp.data.avatar 
-            ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` 
-            : null;
-          profile.nickname = userResp.data.username;
-          profile.discriminator = userResp.data.discriminator;
-          profile.email = userResp.data.email || null;
-        }
-        
-        if (guildsResp.status === 200) {
-          profile.guilds = guildsResp.data.map(guild => ({ 
-            id: guild.id, 
-            name: guild.name, 
-            icon: guild.icon,
-            iconUrl: guild.icon 
-              ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` 
-              : null,
-            owner: guild.owner || false,
-            permissions: guild.permissions || null
-          }));
-        }
-        
-        console.log('[PASSPORT DEBUG] Profile enriched for user:', profile.id, 
-          'guilds:', profile.guilds?.length || 0);
-      } catch (e) {
-        console.warn('[passport][discord-free] failed to enrich profile:', e.message || e);
-      }
-      
-      return done(null, profile, { accessToken });
-  }));
-}
-
-// Passport設定（Pro/Premium版） - 必須値がある場合のみ登録
-if (DISCORD_CONFIG_PRO.clientId && DISCORD_CONFIG_PRO.clientSecret) {
-  passport.use('discord-pro', new DiscordStrategy({
-      clientID: DISCORD_CONFIG_PRO.clientId,
-      clientSecret: DISCORD_CONFIG_PRO.clientSecret,
-      callbackURL: DISCORD_CONFIG_PRO.redirectUri,
-      scope: ['identify', 'guilds']
-  }, async (accessToken, refreshToken, profile, done) => {
-      try {
-        console.log('[PASSPORT DEBUG] verify start', { 
-          version: 'pro', 
-          accessTokenPresent: Boolean(accessToken), 
-          refreshTokenPresent: Boolean(refreshToken),
-          profileId: profile?.id 
-        });
-      } catch (e) {}
-      
-      // バージョン情報を追加
-      profile.version = 'pro';
-      profile.accessToken = accessToken;
-      
-      // プロフィール情報を取得して補完
-      try {
-        const [userResp, guildsResp] = await Promise.all([
-          axios.get('https://discord.com/api/users/@me', { 
-            headers: { Authorization: `Bearer ${accessToken}` },
-            timeout: 5000
-          }),
-          axios.get('https://discord.com/api/users/@me/guilds', { 
-            headers: { Authorization: `Bearer ${accessToken}` },
-            timeout: 5000
-          })
-        ]);
-        
-        if (userResp.status === 200) {
-          profile.avatarUrl = userResp.data.avatar 
-            ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` 
-            : null;
-          profile.nickname = userResp.data.username;
-          profile.discriminator = userResp.data.discriminator;
-          profile.email = userResp.data.email || null;
-        }
-        
-        if (guildsResp.status === 200) {
-          profile.guilds = guildsResp.data.map(guild => ({ 
-            id: guild.id, 
-            name: guild.name, 
-            icon: guild.icon,
-            iconUrl: guild.icon 
-              ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` 
-              : null,
-            owner: guild.owner || false,
-            permissions: guild.permissions || null
-          }));
-        }
-        
-        console.log('[PASSPORT DEBUG] Profile enriched for user:', profile.id, 
-          'guilds:', profile.guilds?.length || 0);
-      } catch (e) {
-        console.warn('[passport][discord-pro] failed to enrich profile:', e.message || e);
-      }
-      
-      return done(null, profile, { accessToken });
-  }));
-}
-
-// 後方互換性のためのデフォルト設定 - 必須値がある場合のみ登録
-if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
-  passport.use(new DiscordStrategy({
-      clientID: DISCORD_CLIENT_ID,
-      clientSecret: DISCORD_CLIENT_SECRET,
-      callbackURL: DISCORD_REDIRECT_URI,
-      scope: ['identify', 'guilds']
-  }, async (accessToken, refreshToken, profile, done) => {
-      try {
-          // Discord APIからユーザー情報を取得
-          const userResponse = await axios.get('https://discord.com/api/users/@me', {
-              headers: {
-                  Authorization: `Bearer ${accessToken}`
-              }
-          });
-
-          if (userResponse.status !== 200) {
-              throw new Error(`Failed to fetch user info: ${userResponse.statusText}`);
-          }
-
-          // Discord APIからギルド情報を取得
-          const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
-              headers: {
-                  Authorization: `Bearer ${accessToken}`
-              }
-          });
-
-          if (guildsResponse.status !== 200) {
-              throw new Error(`Failed to fetch guilds info: ${guildsResponse.statusText}`);
-          }
-
-          // ユーザーアイコンとニックネームをプロファイルに追加
-          profile.avatarUrl = userResponse.data.avatar
-              ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.png`
-              : null;
-          profile.nickname = userResponse.data.username;
-
-          // ギルド情報をプロファイルに追加
-          profile.guilds = guildsResponse.data.map(guild => ({
-              id: guild.id,
-              name: guild.name,
-              iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null
-          }));
-
-          return done(null, profile);
-      } catch (error) {
-          console.error('Error during Discord login:', error);
-          return done(error);
-      }
-}));
-}
-
-passport.serializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-    done(null, user);
-});
-
-// 認証チェックミドルウェア
-function requireAuth(req, res, next) {
-  try {
-    console.log('[DEBUG] requireAuth check:', {
-      isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-      hasUser: !!req.user,
-      userId: req.user?.id,
-      sessionID: req.sessionID,
-      path: req.path
-    });
-    
-    if (req.isAuthenticated && req.isAuthenticated()) {
-      return next();
-    }
-    
-    // 認証されていない場合はログインページへリダイレクト
-    console.log('[AUTH] Unauthorized access attempt to:', req.path);
-    return res.redirect('/login');
-  } catch (error) {
-    console.error('[AUTH] requireAuth error:', error);
-    return res.redirect('/login');
-  }
-}
-
-// オプション: 管理者権限チェック（必要に応じて）
-function requireAdmin(req, res, next) {
-  if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  // ここで管理者チェックロジックを追加
-  // 例: const ADMIN_IDS = (process.env.ADMIN_IDS || '').split(',');
-  // if (!ADMIN_IDS.includes(req.user.id)) {
-  //   return res.status(403).json({ error: 'Forbidden' });
-  // }
-  
-  next();
-}
-
-// ミドルウェア設定
-// リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
-app.set('trust proxy', 1);
-
-// Session config - do not auto-set cookie.domain from BASE_URL (use explicit COOKIE_DOMAIN if needed)
-const BASE_URL = process.env.BASE_URL || '';
-let cookieSecure = false;
-let cookieSameSite = 'lax';
-let cookieDomain = process.env.COOKIE_DOMAIN || undefined; // only use explicit env override
-
-try {
-  if (BASE_URL) {
-    const parsedBase = new URL(BASE_URL);
-    cookieSecure = parsedBase.protocol === 'https:';
-    // Only set SameSite='none' when secure (required by browsers)
-    if (cookieSecure) cookieSameSite = 'none';
-  } else {
-    cookieSecure = String(process.env.COOKIE_SECURE || '').toLowerCase() === 'true';
-    cookieSameSite = process.env.COOKIE_SAMESITE || 'lax';
-  }
-} catch (e) {
-  console.warn('[SESSION] failed to parse BASE_URL for cookie settings:', e.message);
-}
-
-const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  proxy: true, // リバースプロキシ配下では必須
-  cookie: Object.assign({
-    secure: cookieSecure,
-    sameSite: cookieSameSite,
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24時間
-  }, cookieDomain ? { domain: cookieDomain } : {}),
-  name: 'connect.sid' // 明示的にCookie名を指定
-};
-
-console.log('[SESSION] cookie settings:', { 
-  secure: sessionConfig.cookie.secure, 
-  sameSite: sessionConfig.cookie.sameSite, 
-  httpOnly: sessionConfig.cookie.httpOnly,
-  domain: sessionConfig.cookie.domain || '(none)',
-  name: sessionConfig.name,
-  proxy: sessionConfig.proxy
-});
-
-if (redisStoreInstance) sessionConfig.store = redisStoreInstance;
-
-app.use(session(sessionConfig));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// 静的ファイル配信（Dockerfileでコピーした全ディレクトリを対象に）
-app.use(express.static(__dirname));
-
-// 追加：簡易リクエストロガー（デバッグ用）
-app.use((req, res, next) => {
-  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.url} Host:${req.headers.host} UA:${req.headers['user-agent']}`);
-  next();
-});
-
-// SEO: ダッシュボードは認証後のみ表示されるため、検索エンジンにインデックスさせない
-// HTTP レベルでも保証するため、X-Robots-Tag: noindex を /dashboard 以下に追加するミドルウェア
-app.use((req, res, next) => {
-  try {
-    const u = req.url || req.path || '';
-    // ダッシュボードのルートおよびその静的アセット（/dashboard/*, /dashboard.html 等）に対して付与
-    if (u === '/dashboard' || u.startsWith('/dashboard') || u === '/dashboard.html' || u.startsWith('/dashboard/')) {
-      res.set('X-Robots-Tag', 'noindex');
-    }
-  } catch (e) {
-    // ヘッダー付与失敗でも処理は継続
-    console.warn('[SEO] failed to set X-Robots-Tag', e && e.message);
-  }
-  next();
-});
-
-// Bot APIから統計データを取得して返すエンドポイント
-// デフォルトではクラスタ内部DNS（FQDN）を使うようにする。
-// 必要であれば環境変数で個別に上書き可能。
-const BOT_NAMESPACE = process.env.BOT_NAMESPACE || 'aivis-chan-bot-web';
-const CLUSTER_DOMAIN = process.env.CLUSTER_DOMAIN || 'svc.cluster.local';
-
-function clusterUrl(svcName, port) {
-  // 例: http://aivis-chan-bot-1st.default.svc.cluster.local:3002/api/stats
-  return `http://${svcName}.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:${port}/api/stats`;
-}
-
-// --- Per Bot Port Mapping ---
-// 実際: 1台目～6台目 = 3002～3007
-// 環境変数で個別上書き可能 (BOT_1ST_PORT など) / あるいは BOT_BASE_PORT で連番開始指定
-const BOT_BASE_PORT = parseInt(process.env.BOT_BASE_PORT || '3002', 10);
-// 旧互換: BOT_SERVICE_PORT が指定され、個別ポート未指定の場合のみ fallback として利用
-const LEGACY_SERVICE_PORT = process.env.BOT_SERVICE_PORT ? parseInt(process.env.BOT_SERVICE_PORT, 10) : null;
-function resolvePort(envName, offset) {
-  if (process.env[envName]) return parseInt(process.env[envName], 10);
-  // 個別未指定で legacy が設定されている場合は legacy を使う（ただし base が変更されていれば base 優先）
-  if (LEGACY_SERVICE_PORT != null && BOT_BASE_PORT === 3002 && !process.env.BOT_BASE_PORT) return LEGACY_SERVICE_PORT; // 旧挙動維持条件
-  return BOT_BASE_PORT + offset;
-}
-const BOT_PORTS = {
-  main: resolvePort('BOT_1ST_PORT', 0),
-  second: resolvePort('BOT_2ND_PORT', 1),
-  third: resolvePort('BOT_3RD_PORT', 2),
-  fourth: resolvePort('BOT_4TH_PORT', 3),
-  fifth: resolvePort('BOT_5TH_PORT', 4),
-  sixth: resolvePort('BOT_6TH_PORT', 5),
-  pro: resolvePort('BOT_PRO_PORT', 6)
-};
-
-const BOT_API_URLS = {
-  main: process.env.BOT_API_URL     || clusterUrl('aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local', BOT_PORTS.main),
-  second: process.env.BOT_API_URL_2ND || clusterUrl('aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local', BOT_PORTS.second),
-  third: process.env.BOT_API_URL_3RD || clusterUrl('aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local', BOT_PORTS.third),
-  fourth: process.env.BOT_API_URL_4TH || clusterUrl('aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local', BOT_PORTS.fourth),
-  fifth: process.env.BOT_API_URL_5TH || clusterUrl('aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local', BOT_PORTS.fifth),
-  sixth: process.env.BOT_API_URL_6TH || clusterUrl('aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local', BOT_PORTS.sixth),
-  pro: process.env.BOT_API_URL_PRO || clusterUrl('aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local', BOT_PORTS.pro)
-};
-
-// 追加: bot-stats-server サービス (集約専用マイクロサービス) への委譲設定
-// 例: Service 名: bot-stats-server (Port: BOT_STATS_SERVER_PORT=3000)
-const BOT_STATS_SERVER_PORT = process.env.BOT_STATS_SERVER_PORT || '3001';
-const BOT_STATS_SERVER_BASE = process.env.BOT_STATS_SERVER_URL || `http://bot-stats-server.${BOT_NAMESPACE}.${CLUSTER_DOMAIN}:${BOT_STATS_SERVER_PORT}`;
-// 強制無効化したい場合は USE_BOT_STATS_SERVER=false を指定
-const USE_BOT_STATS_SERVER = String(process.env.USE_BOT_STATS_SERVER || 'true').toLowerCase() !== 'false';
-
-// Map known bot IDs (used by frontend) to the internal BOT_API_URLS entries
-const BOT_ID_MAP = {
-  '1333819940645638154': BOT_API_URLS.main,
-  '1334732369831268352': BOT_API_URLS.second,
-  '1334734681656262770': BOT_API_URLS.third,
-  '1365633502988472352': BOT_API_URLS.fourth,
-  '1365633586123771934': BOT_API_URLS.fifth,
-  '1365633656173101086': BOT_API_URLS.sixth,
-  '1415251855147008023': BOT_API_URLS.pro
-};
-
-// Bot インスタンス一覧（設定通知用）
+// Bot インスタンス設定
 const BOT_INSTANCES = [
   { name: '1st', url: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
   { name: '2nd', url: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
@@ -497,736 +82,996 @@ const BOT_INSTANCES = [
   { name: 'pro-premium', url: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
 ];
 
-// 追加: 簡易設定変更通知用エンドポイント
-app.post('/api/notify-settings-update', express.json(), async (req, res) => {
-  const { guildId, settings } = req.body;
-  console.log(`[API /api/notify-settings-update] Received settings update for guild: ${guildId}`);
-  
-  // 全Botに通知
-  const notifyResults = await Promise.allSettled(
-    BOT_INSTANCES.map(async (bot) => {
-      const url = `${bot.url}/api/settings/notify`;
-      try {
-        const response = await axios.post(url, { guildId, settings }, { timeout: 5000 });
-        return { bot: bot.name, success: response.status === 200 };
-      } catch (error) {
-        return { bot: bot.name, success: false, error: error.message };
-      }
-    })
-  );
-  
-  // 成功/失敗したBotのリストを作成
-  const successBots = notifyResults.filter(r => r.status === 'fulfilled' && r.value.success).map(r => r.value.bot);
-  const failedBots = notifyResults.filter(r => r.status === 'fulfilled' && !r.value.success).map(r => r.value.bot);
-  const errorDetails = notifyResults.filter(r => r.status === 'rejected').map(r => r.reason);
-  
-  console.log(`[API /api/notify-settings-update] Notification results - Success: ${successBots.length}, Failure: ${failedBots.length}, Errors: ${errorDetails.length}`);
-  
-  res.json({ 
-    success: true, 
-    message: 'Settings update notification processed', 
-    details: { success: successBots, failure: failedBots, errors: errorDetails }
-  });
-});
+const BOT_ID_MAP = {
+  '1333819940645638154': BOT_INSTANCES[0].url,
+  '1334732369831268352': BOT_INSTANCES[1].url,
+  '1334734681656262770': BOT_INSTANCES[2].url,
+  '1365633502988472352': BOT_INSTANCES[3].url,
+  '1365633586123771934': BOT_INSTANCES[4].url,
+  '1365633656173101086': BOT_INSTANCES[5].url,
+  '1415251855147008023': BOT_INSTANCES[6].url
+};
 
-// --- Internal fetch helper with multi-path fallback & structured debug ---
-// Tries sequentially: /api/stats (existing supplied url), then /stats, then /metrics
-// You can override fallback list via BOT_STATS_FALLBACK_PATHS (comma separated relative paths beginning with /)
-async function fetchBotWithFallback(baseUrl, timeoutMs = 7000) {
-  const urlsTried = [];
-  const errors = [];
-  // If baseUrl already ends with /api/stats keep that first, then build alternates.
-  const parsed = new URL(baseUrl);
-  const origin = `${parsed.protocol}//${parsed.host}`;
-  const providedPath = parsed.pathname; // e.g. /api/stats
-  const defaultFallbacks = ['/stats', '/metrics'];
-  let candidatePaths = [providedPath];
-  const envExtra = process.env.BOT_STATS_FALLBACK_PATHS;
-  if (envExtra) {
-    const list = envExtra.split(',').map(s => s.trim()).filter(Boolean);
-    candidatePaths = Array.from(new Set([providedPath, ...list]));
-  } else {
-    // only add default fallbacks if not explicitly overridden
-    defaultFallbacks.forEach(p => { if (!candidatePaths.includes(p)) candidatePaths.push(p); });
-  }
-  for (const p of candidatePaths) {
-    const url = origin + p;
-    urlsTried.push(url);
-    try {
-      const r = await axios.get(url, { timeout: timeoutMs });
-      return { success: true, data: r.data, path_used: p, urls_tried: urlsTried, errors };
-    } catch (e) {
-      errors.push({ path: p, message: e.message, status: e?.response?.status });
+// Discord OAuth設定
+const DISCORD_CONFIG_FREE = {
+  clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
+  clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
+  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || `${BASE_URL}/auth/discord/callback/free`,
+  version: 'free'
+};
+
+const DISCORD_CONFIG_PRO = {
+  clientId: process.env.DISCORD_CLIENT_ID_PRO,
+  clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
+  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || `${BASE_URL}/auth/discord/callback/pro`,
+  version: 'pro'
+};
+
+// Passport設定
+async function enrichProfile(profile, accessToken, version) {
+  profile.version = version;
+  profile.accessToken = accessToken;
+  
+  try {
+    const [userResp, guildsResp] = await Promise.all([
+      axios.get('https://discord.com/api/users/@me', { 
+        headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: 10000 
+      }),
+      axios.get('https://discord.com/api/users/@me/guilds', { 
+        headers: { Authorization: `Bearer ${accessToken}` },
+        timeout: 10000
+      })
+    ]);
+    
+    if (userResp.status === 200) {
+      const userData = userResp.data;
+      
+      if (userData.avatar) {
+        const isAnimated = userData.avatar.startsWith('a_');
+        const extension = isAnimated ? 'gif' : 'png';
+        profile.avatarUrl = `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.${extension}?size=256`;
+        profile.avatar = userData.avatar;
+      } else {
+        const defaultAvatarIndex = userData.discriminator === '0' 
+          ? (parseInt(userData.id) >> 22) % 6 
+          : parseInt(userData.discriminator) % 5;
+        profile.avatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+        profile.avatar = null;
+      }
+      
+      profile.id = userData.id;
+      profile.username = userData.username;
+      profile.nickname = userData.global_name || userData.username;
+      profile.discriminator = userData.discriminator;
+      profile.email = userData.email || null;
+      
+      console.log(`[passport][${version}] User profile enriched:`, {
+        id: profile.id,
+        username: profile.username,
+        avatarUrl: profile.avatarUrl
+      });
     }
+    
+    if (guildsResp.status === 200) {
+      profile.guilds = guildsResp.data.map(guild => {
+        const permissions = BigInt(guild.permissions || '0');
+        const hasManageGuild = (permissions & BigInt(0x20)) !== BigInt(0);
+        const hasAdministrator = (permissions & BigInt(0x8)) !== BigInt(0);
+        const isOwner = guild.owner === true;
+        
+        let iconUrl = null;
+        if (guild.icon) {
+          const isAnimated = guild.icon.startsWith('a_');
+          const extension = isAnimated ? 'gif' : 'png';
+          iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${extension}?size=128`;
+        }
+        
+        return {
+          id: guild.id,
+          name: guild.name,
+          icon: guild.icon,
+          iconUrl,
+          owner: isOwner,
+          permissions: guild.permissions,
+          hasManageGuild,
+          hasAdministrator,
+          canManage: isOwner || hasManageGuild || hasAdministrator
+        };
+      });
+      
+      console.log(`[passport][${version}] Found ${profile.guilds.length} guilds, ${profile.guilds.filter(g => g.canManage).length} manageable`);
+    } else {
+      profile.guilds = [];
+    }
+  } catch (e) {
+    console.error(`[passport][${version}] failed to enrich profile:`, e.message);
+    if (e.response) {
+      console.error(`[passport][${version}] Discord API error:`, {
+        status: e.response.status,
+        data: e.response.data
+      });
+    }
+    profile.guilds = [];
   }
-  return { success: false, data: null, path_used: null, urls_tried: urlsTried, errors };
+  
+  return profile;
 }
 
-// API: aggregated bot stats expected by front-end
+if (DISCORD_CONFIG_FREE.clientId && DISCORD_CONFIG_FREE.clientSecret) {
+  passport.use('discord-free', new DiscordStrategy({
+    clientID: DISCORD_CONFIG_FREE.clientId,
+    clientSecret: DISCORD_CONFIG_FREE.clientSecret,
+    callbackURL: DISCORD_CONFIG_FREE.redirectUri,
+    scope: ['identify', 'guilds']
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const enriched = await enrichProfile(profile, accessToken, 'free');
+      return done(null, enriched);
+    } catch (error) {
+      return done(error);
+    }
+  }));
+}
+
+if (DISCORD_CONFIG_PRO.clientId && DISCORD_CONFIG_PRO.clientSecret) {
+  passport.use('discord-pro', new DiscordStrategy({
+    clientID: DISCORD_CONFIG_PRO.clientId,
+    clientSecret: DISCORD_CONFIG_PRO.clientSecret,
+    callbackURL: DISCORD_CONFIG_PRO.redirectUri,
+    scope: ['identify', 'guilds']
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const enriched = await enrichProfile(profile, accessToken, 'pro');
+      return done(null, enriched);
+    } catch (error) {
+      return done(error);
+    }
+  }));
+}
+
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+// 認証ミドルウェア
+function requireAuth(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+  console.log('[AUTH] Unauthorized access to:', req.path);
+  return res.redirect('/login');
+}
+
+// ミドルウェア設定（重要：順序を守る）
+app.set('trust proxy', 1);
+
+// JSONパーサー（セッションより前）
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// セッション設定
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  proxy: true,
+  cookie: {
+    secure: BASE_URL.startsWith('https'),
+    sameSite: BASE_URL.startsWith('https') ? 'none' : 'lax',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000
+  },
+  name: 'connect.sid'
+};
+
+console.log('[SESSION] cookie settings:', {
+  secure: sessionConfig.cookie.secure,
+  sameSite: sessionConfig.cookie.sameSite,
+  httpOnly: sessionConfig.cookie.httpOnly,
+  domain: '(none)',
+  name: 'connect.sid',
+  proxy: true
+});
+
+if (redisStoreInstance) sessionConfig.store = redisStoreInstance;
+
+app.use(session(sessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// リクエストロガー
+app.use((req, res, next) => {
+  req.startTime = Date.now();
+  const userAgent = req.headers['user-agent']?.substring(0, 100) || 'unknown';
+  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.url} Host:${req.headers.host} UA:${userAgent}`);
+  next();
+});
+
+// SEO: ダッシュボードにnoindexタグ
+app.use((req, res, next) => {
+  const urlPath = req.url || req.path || '';
+  if (urlPath === '/dashboard' || urlPath.startsWith('/dashboard')) {
+    res.set('X-Robots-Tag', 'noindex');
+  }
+  next();
+});
+
+// 静的ファイル
+app.use(express.static(__dirname));
+
+// ===== API エンドポイント =====
+
+// Bot統計情報
 app.get('/api/bot-stats', async (req, res) => {
-  let aggregatorError = null;
-  const wantDebug = String(req.query.debug || 'false').toLowerCase() === 'true';
-  const forceAggregator = String(req.query.forceAggregator || 'false').toLowerCase() === 'true';
-  const noFallback = forceAggregator || String(req.query.noFallback || 'false').toLowerCase() === 'true';
+  try {
+    const results = await Promise.all(
+      Object.entries(BOT_ID_MAP).map(async ([botId, url]) => {
+        try {
+          const response = await axios.get(`${url}/api/stats`, { timeout: 7000 });
+          const data = response.data || {};
+          return {
+            bot_id: botId,
+            success: true,
+            server_count: data.server_count || 0,
+            user_count: data.user_count || 0,
+            vc_count: data.vc_count || 0,
+            uptime: data.uptime || 0,
+            shard_count: data.shard_count || 0,
+            online: data.online !== false
+          };
+        } catch (error) {
+          return { bot_id: botId, success: false, error: error.message };
+        }
+      })
+    );
+    
+    const online_bots = results.filter(r => r.success && r.online).length;
+    res.json({ 
+      bots: results, 
+      total_bots: results.length, 
+      online_bots,
+      timestamp: new Date().toISOString() 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-  if (USE_BOT_STATS_SERVER) {
-    try {
-      const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
-      const started = Date.now();
-      const upstream = await axios.get(upstreamUrl, { timeout: 7000 });
-      const latencyMs = Date.now() - started;
-      if (upstream?.data && Array.isArray(upstream.data.bots)) {
-        const payload = Object.assign({ via: 'aggregator', aggregator_latency_ms: latencyMs }, upstream.data);
-        if (wantDebug) payload.debug = Object.assign(payload.debug||{}, { upstream_url: upstreamUrl });
-        return res.json(payload);
-      } else {
-        aggregatorError = 'unexpected upstream shape';
-        console.warn('[bot-stats] unexpected upstream shape from bot-stats-server, falling back');
+// サーバー一覧取得
+app.get('/api/servers', requireAuth, async (req, res) => {
+  const requestId = Math.random().toString(36).substring(7);
+  
+  try {
+    console.log(`[API /api/servers][${requestId}] ========== START ==========`);
+    console.log(`[API /api/servers][${requestId}] Request received at`, new Date().toISOString());
+    console.log(`[API /api/servers][${requestId}] isAuthenticated:`, req.isAuthenticated ? req.isAuthenticated() : false);
+    console.log(`[API /api/servers][${requestId}] req.user:`, req.user ? {
+      id: req.user.id,
+      username: req.user.username,
+      version: req.user.version,
+      hasGuilds: !!req.user.guilds,
+      guildsCount: req.user.guilds?.length
+    } : null);
+    
+    if (!req.user || !req.user.guilds || !Array.isArray(req.user.guilds)) {
+      console.error(`[API /api/servers][${requestId}] No guilds data available`);
+      return res.status(401).json({ error: 'No guilds data available' });
+    }
+
+    const allUserGuilds = req.user.guilds;
+    const userGuilds = allUserGuilds.filter(g => g.canManage);
+    console.log(`[API /api/servers][${requestId}] Total user guilds: ${allUserGuilds.length}`);
+    console.log(`[API /api/servers][${requestId}] Manageable guilds: ${userGuilds.length}`);
+    
+    if (userGuilds.length === 0) {
+      console.warn(`[API /api/servers][${requestId}] No manageable guilds found`);
+      return res.json([]);
+    }
+
+    console.log(`[API /api/servers][${requestId}] Fetching guild info from ${BOT_INSTANCES.length} bots...`);
+    
+    const botResults = await Promise.allSettled(
+      BOT_INSTANCES.map(async (bot) => {
+        try {
+          console.log(`[API /api/servers][${requestId}] Fetching from ${bot.name}: ${bot.url}/internal/info`);
+          
+          const response = await axios.get(`${bot.url}/internal/info`, { 
+            timeout: 8000,
+            validateStatus: (status) => status < 500
+          });
+          
+          const guilds = response.data?.guilds || [];
+          console.log(`[API /api/servers][${requestId}] ${bot.name} - Status: ${response.status}, Guilds: ${guilds.length}`);
+          
+          return { name: bot.name, guilds, success: true };
+        } catch (error) {
+          console.error(`[API /api/servers][${requestId}] ${bot.name} failed:`, {
+            message: error.message,
+            code: error.code
+          });
+          return { name: bot.name, guilds: [], success: false };
+        }
+      })
+    );
+
+    const botGuildIds = new Set();
+    const botGuildDetails = new Map();
+    let successfulBots = 0;
+    
+    botResults.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value.success) {
+        successfulBots++;
+        result.value.guilds.forEach(guild => {
+          if (guild && guild.id) {
+            botGuildIds.add(guild.id);
+            botGuildDetails.set(guild.id, {
+              name: guild.name,
+              memberCount: guild.memberCount,
+              botName: result.value.name
+            });
+          }
+        });
       }
-    } catch (e) {
-      aggregatorError = e.message || String(e);
-      console.warn('[bot-stats] bot-stats-server fetch failed, fallback to direct multi-fetch:', aggregatorError);
-    }
-  }
+    });
+    
+    console.log(`[API /api/servers][${requestId}] Bot results summary:`);
+    console.log(`[API /api/servers][${requestId}] - Successful bots: ${successfulBots}/${BOT_INSTANCES.length}`);
+    console.log(`[API /api/servers][${requestId}] - Unique bot guild IDs: ${botGuildIds.size}`);
 
-  if (noFallback && aggregatorError) {
-    return res.status(502).json({ error: 'aggregator_failed', aggregator_error: aggregatorError, via: 'aggregator', fallback_attempted: false });
-  }
-
-  // fallback direct multi-fetch
-  const botEntries = Object.entries(BOT_ID_MAP);
-  const axiosTimeout = 7000;
-  const results = await Promise.all(botEntries.map(async ([botId, url]) => {
-    const fetched = await fetchBotWithFallback(url, axiosTimeout);
-    if (!fetched.success) {
-      return {
-        bot_id: botId,
-        success: false,
-        error: 'fetch_failed',
-        fetch_errors: fetched.errors,
-        urls_tried: fetched.urls_tried
-      };
+    if (botGuildIds.size === 0) {
+      console.warn(`[API /api/servers][${requestId}] No guilds found in any bot`);
+      return res.json([]);
     }
-    const d = fetched.data || {};
-    const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
-    const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
-    const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
-    const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
-    const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
-    const online = d.online ?? d.is_online ?? (server_count > 0);
-    return Object.assign({ bot_id: botId, success: true, path_used: fetched.path_used }, { server_count, user_count, vc_count, uptime, shard_count, online });
-  }));
-  const total_bots = results.length;
-  const online_bots = results.filter(r => r.success && r.online).length;
-  const payload = { bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true, aggregator_error: aggregatorError };
-  if (wantDebug) payload.debug = { bot_namespace: BOT_NAMESPACE, base_port: BOT_BASE_PORT, per_bot_ports: BOT_PORTS, legacy_service_port: LEGACY_SERVICE_PORT, stats_server: BOT_STATS_SERVER_BASE, use_aggregator: USE_BOT_STATS_SERVER };
-  return res.json(payload);
+
+    const filteredServers = userGuilds
+      .filter(guild => botGuildIds.has(guild.id))
+      .map(guild => {
+        const botDetails = botGuildDetails.get(guild.id);
+        return {
+          id: guild.id,
+          name: guild.name,
+          icon: guild.icon,
+          iconUrl: guild.iconUrl,
+          owner: guild.owner,
+          memberCount: botDetails?.memberCount,
+          botName: botDetails?.botName
+        };
+      });
+
+    console.log(`[API /api/servers][${requestId}] Returning ${filteredServers.length} servers`);
+    console.log(`[API /api/servers][${requestId}] ========== END ==========`);
+    
+    res.json(filteredServers);
+  } catch (error) {
+    console.error(`[API /api/servers][${requestId}] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// API: single bot stats by botId
-app.get('/api/bot-stats/:botId', async (req, res) => {
-  const botId = req.params.botId;
-  // まず集約サーバー（有効なら）を利用
-  if (USE_BOT_STATS_SERVER) {
-    try {
-      const r = await axios.get(`${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats/${botId}`, { timeout: 7000 });
-      if (r?.data) return res.json(Object.assign({ via: 'aggregator' }, r.data));
-    } catch (e) {
-      console.warn(`[single-bot] aggregator fetch failed for ${botId}:`, e.message);
-    }
-  }
-  const url = BOT_ID_MAP[botId];
-  if (!url) return res.status(404).json({ error: 'unknown bot id' });
+// ギルドのチャンネル取得
+app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  
   try {
-    const fetched = await fetchBotWithFallback(url, 7000);
-    if (!fetched.success) {
-      return res.status(502).json({ bot_id: botId, success: false, error: 'fetch_failed', fetch_errors: fetched.errors, urls_tried: fetched.urls_tried, fallback: true });
+    for (const bot of BOT_INSTANCES) {
+      try {
+        const response = await axios.get(`${bot.url}/api/guilds/${guildId}`, { 
+          timeout: 3000,
+          validateStatus: (status) => status < 500
+        });
+        
+        if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0) {
+          return res.json(response.data);
+        }
+      } catch (error) {
+        continue;
+      }
     }
-    const d = fetched.data || {};
-    const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
-    const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
-    const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
-    const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
-    const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
-    const online = d.online ?? d.is_online ?? (server_count > 0);
-    return res.json(Object.assign({ bot_id: botId, success: true, fallback: true, path_used: fetched.path_used }, { server_count, user_count, vc_count, uptime, shard_count, online }));
-  } catch (err) {
-    const status = err?.response?.status;
-    const respBody = err?.response?.data;
-    let briefBody = '';
-    try {
-      briefBody = typeof respBody === 'string' ? respBody.slice(0, 1000) : JSON.stringify(respBody).slice(0, 1000);
-    } catch (e) {
-      briefBody = String(respBody).slice(0, 1000);
-    }
-    console.warn(`Failed to fetch stats for ${botId} from ${url}: ${err.message} status=${status} body=${briefBody}`);
-    return res.status(502).json({ bot_id: botId, success: false, error: err.message, upstream_status: status, upstream_body: briefBody, fallback: true });
+    
+    res.status(503).json({ error: 'No channels available' });
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}] Error:`, error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Debug endpoint: returns current config & raw attempt (without caching)
-app.get('/api/debug-bot-stats', async (req, res) => {
-  const axiosTimeout = 5000;
-  const detail = await Promise.all(Object.entries(BOT_ID_MAP).map(async ([botId, url]) => {
-    const fetched = await fetchBotWithFallback(url, axiosTimeout);
-    return { bot_id: botId, url, fetched };
-  }));
-  res.json({ namespace: BOT_NAMESPACE, base_port: BOT_BASE_PORT, per_bot_ports: BOT_PORTS, legacy_service_port: LEGACY_SERVICE_PORT, aggregator: BOT_STATS_SERVER_BASE, use_aggregator: USE_BOT_STATS_SERVER, detail });
+// ギルド設定取得
+app.get('/api/guilds/:guildId/settings', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
+    
+    try {
+      const data = await fsPromises.readFile(settingsPath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        res.json({});
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}/settings] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Aggregator 直接テスト用: フォールバック無しで結果/失敗を返す
-app.get('/api/debug-aggregator', async (req, res) => {
-  if (!USE_BOT_STATS_SERVER) return res.status(400).json({ error: 'aggregator_disabled' });
-  const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
-  const started = Date.now();
+// 個人設定取得
+app.get('/api/guilds/:guildId/personal-settings', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  const userId = req.user?.id;
+  
+  if (!userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
   try {
-    const r = await axios.get(upstreamUrl, { timeout: 7000 });
-    const latencyMs = Date.now() - started;
-    if (!r?.data) return res.status(502).json({ error: 'no_data', upstream_url: upstreamUrl });
-    return res.json({ upstream_url: upstreamUrl, latency_ms: latencyMs, data_shape: { bots: Array.isArray(r.data.bots), keys: Object.keys(r.data||{}) }, raw: r.data });
-  } catch (e) {
-    return res.status(502).json({ error: 'aggregator_request_failed', message: e.message, upstream_url: upstreamUrl });
+    const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'personal', `${userId}.json`);
+    
+    try {
+      const data = await fsPromises.readFile(settingsPath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        res.json({});
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}/personal-settings] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 辞書取得
+app.get('/api/guilds/:guildId/dictionary', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const dictPath = path.join(__dirname, 'data', 'guilds', guildId, 'dictionary.json');
+    
+    try {
+      const data = await fsPromises.readFile(dictPath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        res.json([]);
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}/dictionary] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 話者一覧取得
+app.get('/api/speakers', async (req, res) => {
+  try {
+    for (const bot of BOT_INSTANCES) {
+      try {
+        const response = await axios.get(`${bot.url}/api/speakers`, { 
+          timeout: 3000,
+          validateStatus: (status) => status < 500
+        });
+        
+        if (response.status === 200 && Array.isArray(response.data)) {
+          return res.json(response.data);
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+    
+    res.status(503).json({ error: 'No speakers available' });
+  } catch (error) {
+    console.error('[API /api/speakers] Error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
 // 設定保存エンドポイント
-app.post('/api/settings', async (req, res) => {
-    try {
-        const { guildId, settings } = req.body;
-        
-        if (!guildId) {
-            return res.status(400).json({ error: 'guildId is required' });
-        }
-
-        console.log(`[API /api/settings] Saving settings for guild: ${guildId}`);
-        
-        // ファイルに保存
-        const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
-        await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
-        await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
-        
-        // 全Botに通知
-        const notifyResults = await Promise.allSettled(
-            BOT_INSTANCES.map(async (bot) => {
-                try {
-                    const url = `${bot.url}/api/settings/notify`;
-                    const response = await axios.post(url, 
-                        { guildId, settings },
-                        { 
-                            headers: { 'Content-Type': 'application/json' },
-                            timeout: 5000
-                        }
-                    );
-                    
-                    if (response.status !== 200) {
-                        throw new Error(`${response.status}`);
-                    }
-                    return { bot: bot.name, success: true };
-                } catch (error) {
-                    throw new Error(`${error.message}`);
-                }
-            })
-        );
-        
-        notifyResults.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                console.log(`Failed to notify bot at ${BOT_INSTANCES[index].url}: ${result.reason.message}`);
-            }
-        });
-        
-        res.json({ success: true, message: 'Settings saved successfully' });
-    } catch (error) {
-        console.error('[API /api/settings] Error:', error);
-        res.status(500).json({ error: 'Failed to save settings' });
-    }
-});
-
-// 個人設定保存エンドポイント
-app.post('/api/personal-settings', async (req, res) => {
-    try {
-        const { guildId, settings } = req.body;
-        const userId = req.user?.id;
-        
-        if (!guildId || !userId) {
-            return res.status(400).json({ error: 'guildId and userId are required' });
-        }
-
-        console.log(`[API /api/personal-settings] Saving personal settings for guild: ${guildId}, user: ${userId}`);
-        
-        const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'personal', `${userId}.json`);
-        await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
-        await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
-        
-        // 全Botに通知
-        const notifyResults = await Promise.allSettled(
-            BOT_INSTANCES.map(async (bot) => {
-                try {
-                    const url = `${bot.url}/api/personal-settings/notify`;
-                    const response = await axios.post(url,
-                        { guildId, userId, settings },
-                        {
-                            headers: { 'Content-Type': 'application/json' },
-                            timeout: 5000
-                        }
-                    );
-                    
-                    if (response.status !== 200) {
-                        throw new Error(`${response.status}`);
-                    }
-                    return { bot: bot.name, success: true };
-                } catch (error) {
-                    throw new Error(`${error.message}`);
-                }
-            })
-        );
-        
-        notifyResults.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                console.log(`Failed to notify bot at ${BOT_INSTANCES[index].url}: ${result.reason.message}`);
-            }
-        });
-        
-        res.json({ success: true, message: 'Personal settings saved successfully' });
-    } catch (error) {
-        console.error('[API /api/personal-settings] Error:', error);
-        res.status(500).json({ error: 'Failed to save personal settings' });
-    }
-});
-
-// 辞書保存エンドポイント
-app.post('/api/dictionary', async (req, res) => {
-    try {
-        const { guildId, dictionary } = req.body;
-        
-        if (!guildId) {
-            return res.status(400).json({ error: 'guildId is required' });
-        }
-
-        console.log(`[API /api/dictionary] Saving dictionary for guild: ${guildId}`);
-        
-        const dictPath = path.join(__dirname, 'data', 'guilds', guildId, 'dictionary.json');
-        await fsPromises.mkdir(path.dirname(dictPath), { recursive: true });
-        await fsPromises.writeFile(dictPath, JSON.stringify(dictionary, null, 2));
-        
-        // 全Botに通知
-        const notifyResults = await Promise.allSettled(
-            BOT_INSTANCES.map(async (bot) => {
-                try {
-                    const url = `${bot.url}/api/dictionary/notify`;
-                    const response = await axios.post(url,
-                        { guildId, dictionary },
-                        {
-                            headers: { 'Content-Type': 'application/json' },
-                            timeout: 5000
-                        }
-                    );
-                    
-                    if (response.status !== 200) {
-                        throw new Error(`${response.status}`);
-                    }
-                    return { bot: bot.name, success: true };
-                } catch (error) {
-                    throw new Error(`${error.message}`);
-                }
-            })
-        );
-        
-        notifyResults.forEach((result, index) => {
-            if (result.status === 'rejected') {
-                console.log(`Failed to notify bot at ${BOT_INSTANCES[index].url}: ${result.reason.message}`);
-            }
-        });
-        
-        res.json({ success: true, message: 'Dictionary saved successfully' });
-    } catch (error) {
-        console.error('[API /api/dictionary] Error:', error);
-        res.status(500).json({ error: 'Failed to save dictionary' });
-    }
-});
-
-// Redisヘルスチェックエンドポイント
-app.get('/health/redis', async (req, res) => {
-  if (!redisStoreInstance) {
-   
-   
-    return res.status(503).json({ status: 'Redis not configured' });
-  }
-
+app.post('/api/settings', requireAuth, async (req, res) => {
   try {
-    await redisStoreInstance.client.ping();
-    res.json({ status: 'Redis connected' });
+    const { guildId, settings } = req.body;
+    
+    if (!guildId) {
+      return res.status(400).json({ error: 'guildId is required' });
+    }
+
+    const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
+    await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
+    await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+    
+    await Promise.allSettled(
+      BOT_INSTANCES.map(bot => 
+        axios.post(`${bot.url}/api/settings/notify`, 
+          { guildId, settings },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 5000 }
+        ).catch(err => console.log(`Failed to notify ${bot.name}: ${err.message}`))
+      )
+    );
+    
+    res.json({ success: true, message: 'Settings saved' });
   } catch (error) {
-    res.status(503).json({ status: 'Redis connection failed', error: error.message });
+    console.error('[API /api/settings] Error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Ensure we actually start listening and log it (add/replace at end of file)
+// 個人設定保存
+app.post('/api/personal-settings', requireAuth, async (req, res) => {
+  try {
+    const { guildId, settings } = req.body;
+    const userId = req.user?.id;
+    
+    if (!guildId || !userId) {
+      return res.status(400).json({ error: 'guildId and userId required' });
+    }
+
+    const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'personal', `${userId}.json`);
+    await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
+    await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+    
+    await Promise.allSettled(
+      BOT_INSTANCES.map(bot => 
+        axios.post(`${bot.url}/api/personal-settings/notify`,
+          { guildId, userId, settings },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 5000 }
+        ).catch(err => console.log(`Failed to notify ${bot.name}: ${err.message}`))
+      )
+    );
+    
+    res.json({ success: true, message: 'Personal settings saved' });
+  } catch (error) {
+    console.error('[API /api/personal-settings] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 辞書保存
+app.post('/api/dictionary', requireAuth, async (req, res) => {
+  try {
+    const { guildId, dictionary } = req.body;
+    
+    if (!guildId) {
+      return res.status(400).json({ error: 'guildId required' });
+    }
+
+    const dictPath = path.join(__dirname, 'data', 'guilds', guildId, 'dictionary.json');
+    await fsPromises.mkdir(path.dirname(dictPath), { recursive: true });
+    await fsPromises.writeFile(dictPath, JSON.stringify(dictionary, null, 2));
+    
+    await Promise.allSettled(
+      BOT_INSTANCES.map(bot => 
+        axios.post(`${bot.url}/api/dictionary/notify`,
+          { guildId, dictionary },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 5000 }
+        ).catch(err => console.log(`Failed to notify ${bot.name}: ${err.message}`))
+      )
+    );
+    
+    res.json({ success: true, message: 'Dictionary saved' });
+  } catch (error) {
+    console.error('[API /api/dictionary] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bot間通信受信
+app.post('/api/receive', (req, res) => {
+  console.log('[API /api/receive] Received data from bot');
+  res.json({ success: true, message: 'Data received' });
+});
+
+// セッション情報取得
+app.get('/api/session', (req, res) => {
+  console.log('[DEBUG] /api/session called');
+  console.log('[DEBUG] isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
+  console.log('[DEBUG] req.user:', req.user ? { 
+    id: req.user.id, 
+    username: req.user.username, 
+    guilds: req.user.guilds?.length 
+  } : null);
+  console.log('[DEBUG] sessionID:', req.sessionID);
+  console.log('[DEBUG] session.cookie:', req.session?.cookie);
+  console.log('[DEBUG] cookies from request:', Object.keys(req.cookies || {}));
+  
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    res.json({
+      authenticated: true,
+      user: {
+        id: req.user.id,
+        username: req.user.username || req.user.nickname,
+        discriminator: req.user.discriminator,
+        avatar: req.user.avatarUrl || req.user.avatar,
+        avatarUrl: req.user.avatarUrl,
+        version: req.user.version,
+        guildsCount: req.user.guilds?.length || 0
+      }
+    });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+// ===== 認証ルート =====
+
+app.get('/login', (req, res) => {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+app.get('/auth/discord/:version', (req, res, next) => {
+  const version = req.params.version || 'free';
+  const strategy = `discord-${version}`;
+  
+  if (!passport._strategies[strategy]) {
+    return res.status(500).send(`${strategy} not configured`);
+  }
+  
+  return passport.authenticate(strategy)(req, res, next);
+});
+
+app.get('/auth/discord/callback/:version', (req, res, next) => {
+  const version = req.params.version || 'free';
+  const strategy = `discord-${version}`;
+  
+  if (!passport._strategies[strategy]) {
+    console.warn('[AUTH] strategy not available:', strategy);
+    return res.redirect('/login');
+  }
+
+  passport.authenticate(strategy, { session: true }, (err, user) => {
+    if (err) {
+      console.error('[AUTH] Error:', err);
+      return res.status(500).send('authentication error');
+    }
+    if (!user) {
+      console.warn('[AUTH] No user returned');
+      return res.redirect('/login');
+    }
+    
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('[AUTH] Login failed:', loginErr);
+        return res.status(500).send('login failed');
+      }
+      
+      if (req.session) {
+        req.session.save((saveErr) => {
+          if (saveErr) console.warn('[SESSION] Save failed:', saveErr);
+          return res.redirect(`/dashboard?version=${version}`);
+        });
+      } else {
+        return res.redirect(`/dashboard?version=${version}`);
+      }
+    });
+  })(req, res, next);
+});
+
+app.get('/logout', (req, res) => {
+  req.logout(err => {
+    if (err) console.error('Logout error:', err);
+    req.session?.destroy(() => {
+      res.clearCookie('connect.sid');
+      return res.redirect('/login');
+    });
+  });
+});
+
+// ===== Patreon認証 =====
+
+if (PATREON_CLIENT_ID && PATREON_CLIENT_SECRET) {
+  console.log('[PATREON] OAuth routes enabled');
+  
+  // Patreon認証開始
+  app.get('/auth/patreon', requireAuth, (req, res) => {
+    console.log('[PATREON] Auth request from user:', req.user?.id);
+    
+    const state = Buffer.from(JSON.stringify({ 
+      userId: req.user?.id,
+      timestamp: Date.now() 
+    })).toString('base64');
+    
+    const authUrl = `https://www.patreon.com/oauth2/authorize?` +
+      `response_type=code&` +
+      `client_id=${PATREON_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(PATREON_REDIRECT_URI)}&` +
+      `scope=identity identity[email] campaigns campaigns.members&` +
+      `state=${state}`;
+    
+    console.log('[PATREON] Redirecting to:', authUrl);
+    res.redirect(authUrl);
+  });
+
+  // Patreonコールバック
+  app.get('/auth/patreon/callback', requireAuth, async (req, res) => {
+    const { code, state, error, error_description } = req.query;
+    
+    console.log('[PATREON] Callback received:', {
+      hasCode: !!code,
+      hasState: !!state,
+      error,
+      userId: req.user?.id
+    });
+    
+    if (error) {
+      console.error('[PATREON] OAuth error:', error, error_description);
+      return res.redirect('/dashboard?error=patreon_auth_failed&message=' + encodeURIComponent(error_description || error));
+    }
+    
+    if (!code) {
+      console.error('[PATREON] No authorization code received');
+      return res.redirect('/dashboard?error=patreon_no_code');
+    }
+    
+    try {
+      // stateの検証
+      let stateData = {};
+      try {
+        stateData = JSON.parse(Buffer.from(state, 'base64').toString());
+        console.log('[PATREON] State decoded:', stateData);
+        
+        if (stateData.userId !== req.user?.id) {
+          console.error('[PATREON] State userId mismatch:', {
+            expected: req.user?.id,
+            got: stateData.userId
+          });
+          return res.redirect('/dashboard?error=patreon_state_mismatch');
+        }
+      } catch (e) {
+        console.error('[PATREON] Failed to decode state:', e.message);
+        return res.redirect('/dashboard?error=patreon_invalid_state');
+      }
+      
+      // アクセストークン取得
+      console.log('[PATREON] Exchanging code for access token...');
+      const tokenResponse = await axios.post('https://www.patreon.com/api/oauth2/token', {
+        code,
+        grant_type: 'authorization_code',
+        client_id: PATREON_CLIENT_ID,
+        client_secret: PATREON_CLIENT_SECRET,
+        redirect_uri: PATREON_REDIRECT_URI
+      }, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 10000
+      });
+      
+      console.log('[PATREON] Token response status:', tokenResponse.status);
+      const accessToken = tokenResponse.data.access_token;
+      const refreshToken = tokenResponse.data.refresh_token;
+      
+      if (!accessToken) {
+        console.error('[PATREON] No access token in response');
+        return res.redirect('/dashboard?error=patreon_no_token');
+      }
+      
+      // ユーザー情報取得
+      console.log('[PATREON] Fetching user identity...');
+      const userResponse = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {
+          'include': 'memberships,memberships.campaign',
+          'fields[user]': 'email,full_name,vanity,image_url',
+          'fields[member]': 'patron_status,currently_entitled_amount_cents,lifetime_support_cents,pledge_relationship_start',
+          'fields[campaign]': 'vanity,creation_name'
+        },
+        timeout: 10000
+      });
+      
+      console.log('[PATREON] User response status:', userResponse.status);
+      const userData = userResponse.data.data;
+      const includedData = userResponse.data.included || [];
+      
+      // メンバーシップ情報を抽出
+      const memberships = includedData
+        .filter(item => item.type === 'member')
+        .map(member => ({
+          patron_status: member.attributes.patron_status,
+          currently_entitled_amount_cents: member.attributes.currently_entitled_amount_cents,
+          lifetime_support_cents: member.attributes.lifetime_support_cents,
+          pledge_relationship_start: member.attributes.pledge_relationship_start
+        }));
+      
+      console.log('[PATREON] Memberships found:', memberships.length);
+      
+      // Patreonデータを保存
+      const patreonData = {
+        patreon_id: userData.id,
+        discord_id: req.user?.id,
+        email: userData.attributes.email,
+        full_name: userData.attributes.full_name,
+        vanity: userData.attributes.vanity,
+        image_url: userData.attributes.image_url,
+        memberships: memberships,
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        linked_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('[PATREON] Saving data for user:', {
+        patreon_id: patreonData.patreon_id,
+        discord_id: patreonData.discord_id,
+        memberships_count: memberships.length
+      });
+      
+      // ファイルに保存
+      await fsPromises.mkdir(path.dirname(PATREON_LINKS_FILE), { recursive: true });
+      
+      let existingLinks = [];
+      try {
+        const data = await fsPromises.readFile(PATREON_LINKS_FILE, 'utf8');
+        existingLinks = JSON.parse(data);
+        console.log('[PATREON] Loaded existing links:', existingLinks.length);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          console.log('[PATREON] Creating new links file');
+        } else {
+          console.warn('[PATREON] Failed to read existing links:', error.message);
+        }
+      }
+      
+      // 既存データを更新または追加
+      const index = existingLinks.findIndex(link => link.discord_id === req.user?.id);
+      if (index >= 0) {
+        console.log('[PATREON] Updating existing link at index:', index);
+        existingLinks[index] = patreonData;
+      } else {
+        console.log('[PATREON] Adding new link');
+        existingLinks.push(patreonData);
+      }
+      
+      await fsPromises.writeFile(PATREON_LINKS_FILE, JSON.stringify(existingLinks, null, 2));
+      console.log('[PATREON] Data saved successfully');
+      
+      // 全Botに通知
+      console.log('[PATREON] Notifying bots...');
+      await Promise.allSettled(
+        BOT_INSTANCES.map(bot => 
+          axios.post(`${bot.url}/api/patreon/notify`,
+            { discord_id: req.user?.id, patreon_data: patreonData },
+            { headers: { 'Content-Type': 'application/json' }, timeout: 5000 }
+          ).then(() => {
+            console.log(`[PATREON] Notified ${bot.name}`);
+          }).catch(err => {
+            console.log(`[PATREON] Failed to notify ${bot.name}: ${err.message}`);
+          })
+        )
+      );
+      
+      res.redirect('/dashboard?patreon=linked&status=success');
+    } catch (error) {
+      console.error('[PATREON] Auth error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        stack: error.stack
+      });
+      
+      const errorMessage = error.response?.data?.error_description || error.response?.data?.error || error.message;
+      res.redirect('/dashboard?error=patreon_link_failed&message=' + encodeURIComponent(errorMessage));
+    }
+  });
+  
+  // Patreon連携解除
+  app.post('/api/patreon/unlink', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      console.log('[PATREON] Unlinking for user:', userId);
+      
+      // ファイルから削除
+      let existingLinks = [];
+      try {
+        const data = await fsPromises.readFile(PATREON_LINKS_FILE, 'utf8');
+        existingLinks = JSON.parse(data);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          return res.json({ success: true, message: 'No link found' });
+        }
+        throw error;
+      }
+      
+      const filteredLinks = existingLinks.filter(link => link.discord_id !== userId);
+      
+      if (filteredLinks.length === existingLinks.length) {
+        console.log('[PATREON] No link found to remove');
+        return res.json({ success: true, message: 'No link found' });
+      }
+      
+      await fsPromises.writeFile(PATREON_LINKS_FILE, JSON.stringify(filteredLinks, null, 2));
+      console.log('[PATREON] Link removed successfully');
+      
+      // 全Botに通知
+      await Promise.allSettled(
+        BOT_INSTANCES.map(bot => 
+          axios.post(`${bot.url}/api/patreon/unlink`,
+            { discord_id: userId },
+            { headers: { 'Content-Type': 'application/json' }, timeout: 5000 }
+          ).catch(err => console.log(`Failed to notify ${bot.name}: ${err.message}`))
+        )
+      );
+      
+      res.json({ success: true, message: 'Patreon unlinked successfully' });
+    } catch (error) {
+      console.error('[PATREON] Unlink error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Patreon連携状態確認
+  app.get('/api/patreon/status', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      
+      let existingLinks = [];
+      try {
+        const data = await fsPromises.readFile(PATREON_LINKS_FILE, 'utf8');
+        existingLinks = JSON.parse(data);
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          return res.json({ linked: false });
+        }
+        throw error;
+      }
+      
+      const userLink = existingLinks.find(link => link.discord_id === userId);
+      
+      if (!userLink) {
+        return res.json({ linked: false });
+      }
+      
+      res.json({
+        linked: true,
+        patreon_id: userLink.patreon_id,
+        full_name: userLink.full_name,
+        vanity: userLink.vanity,
+        image_url: userLink.image_url,
+        memberships: userLink.memberships,
+        linked_at: userLink.linked_at,
+        updated_at: userLink.updated_at
+      });
+    } catch (error) {
+      console.error('[PATREON] Status check error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+} else {
+  console.log('[PATREON] OAuth not configured - routes disabled');
+  
+  app.get('/auth/patreon', (req, res) => {
+    res.status(503).send('Patreon integration not configured');
+  });
+  
+  app.get('/auth/patreon/callback', (req, res) => {
+    res.status(503).send('Patreon integration not configured');
+  });
+}
+
+// ===== ページルート =====
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/dashboard', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+// ===== サーバー起動 =====
+
 if (require.main === module) {
   app.listen(PORT, HOST, () => {
     console.log(`[LISTEN] app listening on ${HOST}:${PORT} (PID ${process.pid})`);
   });
 }
 
-// Replace fallback pro-callback with explicit callback handling too
-app.get('/auth/discord/callback/pro', (req, res, next) => {
-  const preferred = passport._strategies && (passport._strategies['discord-pro'] ? 'discord-pro' : (passport._strategies['discord'] ? 'discord' : (passport._strategies['discord-free'] ? 'discord-free' : null)));
-  if (!preferred) {
-    console.warn('[auth] no discord strategy available for pro callback');
-    return res.redirect('/login');
-  }
-
-  passport.authenticate(preferred, { session: true }, (err, user, info) => {
-    try {
-      console.log('[AUTH DEBUG] pro callback raw:', { strategy: preferred, err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
-      if (err) {
-        console.error('[AUTH DEBUG] authenticate error (pro):', err && (err.stack || err.message || err));
-        return res.status(500).send('authentication error');
-      }
-      if (!user) {
-        console.warn('[AUTH DEBUG] authenticate returned no user (pro), info=', info);
-        return res.redirect('/login');
-      }
-      req.logIn(user, (loginErr) => {
-        if (loginErr) {
-          console.error('[AUTH DEBUG] req.logIn failed (pro):', loginErr && (loginErr.stack || loginErr.message || loginErr));
-          return res.status(500).send('login failed');
-        }
-        if (req.session) {
-          req.session.save((saveErr) => {
-            if (saveErr) console.warn('[SESSION] save after oauth failed (pro):', saveErr && (saveErr.message || saveErr));
-            console.log('[AUTH DEBUG] pro login success sessionID=', req.sessionID);
-            return res.redirect('/dashboard?version=pro');
-          });
-        } else {
-          console.log('[AUTH DEBUG] pro login success but no session object');
-          return res.redirect('/dashboard?version=pro');
-        }
-      });
-    } catch (inner) {
-      console.error('[AUTH DEBUG] unexpected error in pro callback handler:', inner && (inner.stack || inner.message || inner));
-      return res.status(500).send('internal handler error');
-    }
-  })(req, res, next);
-});
-
-// Helper function to notify all bot instances of settings changes
-async function notifyBotsSettingsUpdate(guildId, settings) {
-       const botUrls = [
-        process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
-        process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
-        process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
-        process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
-        process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
-        process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
-        process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
-    ];
-    const notifyPromises = botUrls.map(async (url) => {
-        try {
-            const response = await fetch(`${url}/internal/apply-web-settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ guildId, settings })
-            });
-            if (!response.ok) {
-                console.warn(`Failed to notify bot at ${url}: ${response.status}`);
-            }
-        } catch (error) {
-            console.warn(`Error notifying bot at ${url}:`, error.message);
-        }
-    });
-
-    await Promise.allSettled(notifyPromises);
-}
-
-// Helper: decode base64-encoded JSON or plain base64 numeric ID
-function tryDecodeBase64Json(input) {
-  if (!input || typeof input !== 'string') return null;
-  try {
-    const decoded = Buffer.from(input, 'base64').toString('utf8');
-    console.log('[PATREON] Base64 decoded value:', decoded);
-    
-    // First check if it's a plain numeric ID (most common case)
-    if (/^\d{15,22}$/.test(decoded)) {
-      console.log('[PATREON] Decoded as plain numeric Discord ID:', decoded);
-      return decoded;
-    }
-    
-    // Try JSON parse for complex objects
-    try {
-      const parsed = JSON.parse(decoded);
-      if (parsed && parsed.discordId) {
-        console.log('[PATREON] Decoded as JSON with discordId:', parsed.discordId);
-        return String(parsed.discordId);
-      }
-    } catch (e) {
-      // not JSON, already checked for numeric above
-      console.log('[PATREON] Base64 content is not JSON and not numeric:', decoded);
-    }
-  } catch (e) {
-    // not valid base64
-    console.log('[PATREON] Failed to decode base64:', e.message);
-  }
-  return null;
-}
-
-// Helper: save Patreon link to file
-function savePatreonLink(linkData) {
-  try {
-    const dir = path.dirname(PATREON_LINKS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    
-    let links = [];
-    if (fs.existsSync(PATREON_LINKS_FILE)) {
-      try {
-        const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
-        links = JSON.parse(raw);
-        if (!Array.isArray(links)) links = [];
-      } catch (e) {
-        console.warn('[PATREON] Failed to parse existing links file:', e.message);
-        links = [];
-      }
-    }
-    
-    // Remove existing link for this discordId
-    links = links.filter(l => String(l.discordId) !== String(linkData.discordId));
-    
-    // Add new link
-    links.push(linkData);
-    
-    fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(links, null, 2), 'utf8');
-    console.log('[PATREON] Saved link to file:', PATREON_LINKS_FILE);
-  } catch (e) {
-    console.error('[PATREON] Failed to save link:', e);
-    throw e;
-  }
-}
-
-// Helper: append to Patreon callback log
-function appendPatreonCallbackLog(entry) {
-  try {
-    const logFile = path.join('/tmp', 'data', 'patreon_callback.log');
-    const dir = path.dirname(logFile);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
-  } catch (e) {
-    console.warn('[PATREON] Failed to append callback log:', e.message);
-  }
-}
-
-// Helper: get Patreon link for a user
-async function getPatreonLink(discordId) {
-  try {
-    if (!fs.existsSync(PATREON_LINKS_FILE)) return null;
-    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
-    const links = JSON.parse(raw);
-    if (!Array.isArray(links)) return null;
-    return links.find(l => String(l.discordId) === String(discordId)) || null;
-  } catch (e) {
-    console.warn('[PATREON] Failed to get link:', e.message);
-    return null;
-  }
-}
-
-// Global dictionary cache
-const GLOBAL_DICT_CACHE = {
-  entries: null,
-  fetchedAt: null,
-  errorUntil: null
-};
-const GLOBAL_DICT_CACHE_TTL = parseInt(process.env.GLOBAL_DICT_CACHE_TTL_MS || String(5 * 60 * 1000), 10);
-
-// Patreon OAuth callback handler
-app.get('/auth/patreon/callback', async (req, res) => {
-   const { code, state } = req.query;
-   try {
-     console.log('[PATREON] Callback received:', { code: code ? `***${String(code).slice(-4)}` : 'missing', state: state || 'missing', ip: req.ip });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), ip: req.ip, ua: req.headers['user-agent'], event: 'callback_received', code: code ? ('***' + String(code).slice(-4)) : null, state: state || null });
-   } catch (e) { /* non-fatal */ }
-
-   if (!code || !state) {
-     console.error('[PATREON] Missing required parameters:', { code: !!code, state: !!state });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_missing_params', state: state || null });
-     return res.status(400).send('Missing required parameters. Please try linking again.');
-   }
-   if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) {
-     console.error('[PATREON] Client credentials not configured in callback');
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_not_configured' });
-     return res.status(500).send('Patreon client not configured. Please contact administrator.');
-   }
-   if (!PATREON_REDIRECT_URI) {
-     console.error('[PATREON] REDIRECT_URI not configured in callback');
-     return res.status(500).send('Patreon redirect URI not configured. Please contact administrator.');
-   }
-
-   // exchange code for token
-   try {
-     console.log('[PATREON] Attempting token exchange...');
-     const tokenResp = await axios.post('https://www.patreon.com/api/oauth2/token', new URLSearchParams({
-       grant_type: 'authorization_code',
-       code: String(code),
-       client_id: PATREON_CLIENT_ID,
-       client_secret: PATREON_CLIENT_SECRET,
-       redirect_uri: PATREON_REDIRECT_URI
-     }).toString(), { 
-       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-       timeout: 10000
-     });
-
-     const tokenData = tokenResp.data;
-     console.log('[PATREON] Token exchange successful');
-     
-     // get patreon identity
-     console.log('[PATREON] Fetching Patreon identity...');
-     const meResp = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', { 
-       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-       timeout: 10000
-     });
-     const patreonId = meResp.data?.data?.id || null;
-     console.log('[PATREON] Identity fetched, patreonId:', patreonId);
-
-     // Parse state to extract discordId
-     let discordId = null;
-     let guildId = undefined;
-
-     console.log('[PATREON] Parsing state:', state);
-     
-     // Strategy 1: Check if state contains colon (format: "discordId:random" or "base64:random")
-     if (String(state).includes(':')) {
-       const left = String(state).split(':', 1)[0];
-       console.log('[PATREON] State contains colon, left part:', left);
-       
-       // Try to decode left part as base64
-       const decoded = tryDecodeBase64Json(left);
-       if (decoded) {
-         discordId = decoded;
-         console.log('[PATREON] Decoded discordId from colon-separated base64:', discordId);
-       } else if (/^\d{15,22}$/.test(left)) {
-         // Left part is already a plain numeric ID
-         discordId = left;
-         console.log('[PATREON] Extracted plain discordId from colon-separated state:', discordId);
-       }
-     }
-     
-     // Strategy 2: If no colon, try direct base64 decode
-     if (!discordId) {
-       console.log('[PATREON] No colon found, trying direct base64 decode');
-       const decoded = tryDecodeBase64Json(state);
-       if (decoded) {
-         discordId = decoded;
-         console.log('[PATREON] Decoded discordId from direct base64:', discordId);
-       }
-     }
-     
-     // Strategy 3: Check if state itself is a plain numeric ID
-     if (!discordId && /^\d{15,22}$/.test(String(state))) {
-       discordId = String(state);
-       console.log('[PATREON] State is plain numeric Discord ID:', discordId);
-     }
-
-     if (!discordId) {
-       console.error('[PATREON] Failed to extract discordId from state:', state);
-       appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_invalid_state', state: state || null });
-       return res.status(400).send('Invalid state parameter. Please try linking again.');
-     }
-
-     // Save the link and persist
-     savePatreonLink({ discordId: discordId || '', patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
-
-     console.log('[PATREON] Link saved successfully:', { discordId, patreonId });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_success', discordId: String(discordId), patreonId: patreonId || null });
-
-     // Redirect to success page
-     const successPath = `/auth/patreon/success.html?discordId=${encodeURIComponent(discordId)}&patreonId=${encodeURIComponent(patreonId || '')}&ts=${Date.now()}`;
-     return res.redirect(successPath);
-   } catch (e) {
-     const errStatus = e?.response?.status || 'no-status';
-     const errBody = e?.response?.data ? (typeof e.response.data === 'string' ? e.response.data.slice(0,1000) : JSON.stringify(e.response.data).slice(0,1000)) : (e.message || String(e));
-     console.error('[PATREON] Callback error:', { status: errStatus, message: e.message, body: errBody });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_error', error: errBody, state: state || null });
-     return res.status(500).send(`Failed to link Patreon account. Error: ${e.message || 'Unknown error'}. Please try again or contact support.`);
-   }
- });
-
-// ギルドのチャンネル一覧を取得
-app.get('/api/guilds/:guildId', async (req, res) => {
-  const { guildId } = req.params;
-  console.log(`[API /api/guilds/${guildId}] Request received`);
-  
-  try {
-    // 認証チェック
-    const isAuth = req.isAuthenticated && req.isAuthenticated();
-    if (!isAuth || !req.user) {
-      console.log(`[API /api/guilds/${guildId}] Not authenticated`);
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const BOTS = [
-      { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
-      { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
-      { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
-      { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
-      { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
-      { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
-      { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
-    ];
-
-    // 各Botからチャンネル情報を取得（並列処理で高速化）
-    const channelPromises = BOTS.map(async (bot) => {
-      try {
-        console.log(`[API /api/guilds/${guildId}] Trying ${bot.name}`);
-        const response = await axios.get(`${bot.baseUrl}/api/guilds/${guildId}`, {
-          timeout: 3000,
-          validateStatus: (status) => status < 500
-        });
-        
-        if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0) {
-          console.log(`[API /api/guilds/${guildId}] Got ${response.data.length} channels from ${bot.name}`);
-          return { success: true, data: response.data, bot: bot.name };
-        }
-        
-        return { success: false, bot: bot.name, reason: 'empty_or_invalid_response' };
-      } catch (error) {
-        console.warn(`[API /api/guilds/${guildId}] ${bot.name} failed:`, error.message);
-        return { success: false, bot: bot.name, error: error.message };
-      }
-    });
-
-    const results = await Promise.all(channelPromises);
-    
-    // 最初に成功したBotのチャンネル情報を返す
-    const successResult = results.find(r => r.success);
-    
-    if (successResult) {
-      console.log(`[API /api/guilds/${guildId}] Returning ${successResult.data.length} channels from ${successResult.bot}`);
-      return res.json(successResult.data);
-    }
-    
-    // すべてのBotが失敗した場合
-    console.error(`[API /api/guilds/${guildId}] All bots failed:`, results);
-    res.status(503).json({ 
-      error: 'No channels available',
-      details: results.map(r => ({ bot: r.bot, success: r.success, reason: r.reason || r.error }))
-    });
-    
-  } catch (error) {
-    console.error(`[API /api/guilds/${guildId}] Fatal error:`, error);
-    res.status(500).json({ error: 'Internal Server Error', message: error.message });
-  }
-});
-
-// ダッシュボードページ（認証必須）
-app.get('/dashboard', requireAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'dashboard.html'));
-});
-
-// ダッシュボード関連の静的ファイル（パスパラメータ対応）
-app.get('/dashboard/:path(*)?', requireAuth, (req, res) => {
-    // 末尾のバックスラッシュやスラッシュを除去してリダイレクト
-    const cleanPath = req.path.replace(/[\\\/]+$/, '');
-    if (cleanPath !== req.path) {
-        return res.redirect(cleanPath || '/dashboard');
-    }
-    res.sendFile(path.join(__dirname, 'dashboard.html'));
-});
+module.exports = app;
