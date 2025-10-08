@@ -1575,111 +1575,89 @@ class Dashboard {
             sel.disabled = true;
         });
 
-        // HTTPSページからの混在コンテンツブロックを回避
-        const isSecure = window.location.protocol === 'https:';
-        
-        const tryUrls = [
-            '/api/speakers',          // サーバー側プロキシ（推奨）
-            `/api/guilds/${guildId}/speakers`,
-            `/api/bots/${guildId}/speakers`,
-            '/speakers'               // 直接エンドポイント（CORSやHTTPS制約あり）
-        ];
+        // 話者情報の取得（単一エンドポイント）
+        try {
+            console.log(`[Dashboard] Fetching speakers from: /api/speakers`);
+            const resp = await fetch('/api/speakers', { 
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            console.log(`[Dashboard] Speaker response:`, resp.status, resp.statusText);
+            
+            if (resp && resp.ok) {
+                const body = await resp.json();
+                console.log(`[Dashboard] Speaker response body:`, body);
 
-        console.log(`[Dashboard] Trying speaker URLs:`, tryUrls);
-
-        for (const url of tryUrls) {
-            try {
-                console.log(`[Dashboard] Fetching speakers from: ${url}`);
-                const resp = await fetch(url, { 
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
-                });
+                // レスポンス形式の正規化
+                let candidate = [];
                 
-                console.log(`[Dashboard] Speaker response from ${url}:`, resp.status, resp.statusText);
-                
-                if (resp && resp.ok) {
-                    let body;
-                    try {
-                        body = await resp.json();
-                        console.log(`[Dashboard] Speaker response body from ${url}:`, body);
-                    } catch (e) {
-                        console.warn(`[Dashboard] Failed to parse JSON from ${url}:`, e.message);
-                        continue;
-                    }
-
-                    // レスポンス形式の正規化
-                    let candidate = [];
-                    
-                    if (Array.isArray(body) && body.length > 0) {
-                        candidate = body;
-                    } else if (body && Array.isArray(body.speakers) && body.speakers.length > 0) {
-                        candidate = body.speakers;
-                    } else if (body && typeof body === 'object' && !Array.isArray(body)) {
-                        // オブジェクト形式 { "1": "話者1", "2": "話者2" } を配列に変換
-                        const entries = Object.entries(body);
-                        if (entries.length > 0) {
-                            candidate = entries.map(([k, v]) => {
-                                if (typeof v === 'string') {
-                                    return { id: k, name: v, styles: [] };
-                                } else if (v && typeof v === 'object') {
-                                    return {
-                                        id: v.id || k,
-                                        name: v.name || k,
-                                        styles: Array.isArray(v.styles) ? v.styles : []
-                                    };
-                                }
-                                return null;
-                            }).filter(Boolean);
-                        }
-                    }
-
-                    if (candidate.length > 0) {
-                        // 話者情報を正規化
-                        speakers = candidate.map(s => {
-                            if (typeof s === 'string') {
-                                return { id: s, name: s, styles: [] };
+                if (Array.isArray(body) && body.length > 0) {
+                    candidate = body;
+                } else if (body && Array.isArray(body.speakers) && body.speakers.length > 0) {
+                    candidate = body.speakers;
+                } else if (body && typeof body === 'object' && !Array.isArray(body)) {
+                    // オブジェクト形式 { "1": "話者1", "2": "話者2" } を配列に変換
+                    const entries = Object.entries(body);
+                    if (entries.length > 0) {
+                        candidate = entries.map(([k, v]) => {
+                            if (typeof v === 'string') {
+                                return { id: k, name: v, styles: [] };
+                            } else if (v && typeof v === 'object') {
+                                return {
+                                    id: v.id || k,
+                                    name: v.name || k,
+                                    styles: Array.isArray(v.styles) ? v.styles : []
+                                };
                             }
-                            
-                            const id = s.id || s.name || String(Math.random());
-                            const name = s.name || s.id || id;
-                            
-                            // スタイル配列を正規化
-                            let rawStyles = Array.isArray(s.styles) ? s.styles
-                                : Array.isArray(s.voice_styles) ? s.voice_styles
-                                : Array.isArray(s.variants) ? s.variants
-                                : [];
-                            
-                            const styles = rawStyles.map(st => {
-                                if (typeof st === 'string') return st;
-                                if (st && typeof st === 'object') {
-                                    return st.name || st.id || String(st);
-                                }
-                                return String(st);
-                            });
-                            
-                            return { id, name, styles };
-                        });
-                        
-                        console.log(`[Dashboard] Successfully loaded ${speakers.length} speakers from ${url}`);
-                        logger.success(`Loaded ${speakers.length} speakers from ${url}`);
-                        
-                        // キャッシュに保存
-                        try {
-                            localStorage.setItem('cached-speakers', JSON.stringify(speakers));
-                            console.log('[Dashboard] Speakers cached to localStorage');
-                        } catch (e) {
-                            console.warn('[Dashboard] Failed to cache speakers:', e.message);
-                        }
-                        
-                        break;
-                    } else {
-                        console.warn(`[Dashboard] Speaker endpoint ${url} returned empty or unsupported format`);
+                            return null;
+                        }).filter(Boolean);
                     }
                 }
-            } catch (e) {
-                console.warn(`[Dashboard] Speaker fetch failed for ${url}:`, e.message);
-                continue;
+
+                if (candidate.length > 0) {
+                    // 話者情報を正規化
+                    speakers = candidate.map(s => {
+                        if (typeof s === 'string') {
+                            return { id: s, name: s, styles: [] };
+                        }
+                        
+                        const id = s.id || s.name || String(Math.random());
+                        const name = s.name || s.id || id;
+                        
+                        // スタイル配列を正規化
+                        let rawStyles = Array.isArray(s.styles) ? s.styles
+                            : Array.isArray(s.voice_styles) ? s.voice_styles
+                            : Array.isArray(s.variants) ? s.variants
+                            : [];
+                        
+                        const styles = rawStyles.map(st => {
+                            if (typeof st === 'string') return st;
+                            if (st && typeof st === 'object') {
+                                return st.name || st.id || String(st);
+                            }
+                            return String(st);
+                        });
+                        
+                        return { id, name, styles };
+                    });
+                    
+                    console.log(`[Dashboard] Successfully loaded ${speakers.length} speakers`);
+                    logger.success(`Loaded ${speakers.length} speakers`);
+                    
+                    // キャッシュに保存
+                    try {
+                        localStorage.setItem('cached-speakers', JSON.stringify(speakers));
+                        console.log('[Dashboard] Speakers cached to localStorage');
+                    } catch (e) {
+                        console.warn('[Dashboard] Failed to cache speakers:', e.message);
+                    }
+                }
+            } else {
+                console.warn(`[Dashboard] Failed to fetch speakers: ${resp.status}`);
             }
+        } catch (e) {
+            console.error(`[Dashboard] Speaker fetch failed:`, e.message);
         }
 
         // キャッシュからフォールバック
@@ -1696,7 +1674,7 @@ class Dashboard {
             }
         }
 
-        // DOMに反映
+        // DOMに話者を反映
         speakerSelectIds.forEach(id => {
             const sel = document.getElementById(id);
             if (!sel) return;
@@ -1749,44 +1727,46 @@ class Dashboard {
             }
         });
 
-        // 2) チャンネル一覧の取得と反映
+        // 2) チャンネル一覧の取得（/api/guilds/:guildId から取得）
         let channels = [];
-        const channelUrls = [
-            `/api/guilds/${guildId}/channels`,
-            `/api/bots/${guildId}/channels`
-        ];
-
-        for (const url of channelUrls) {
-            try {
-                console.log(`[Dashboard] Fetching channels from: ${url}`);
-                const chResp = await fetch(url, { 
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
-                });
+        
+        try {
+            console.log(`[Dashboard] Fetching guild data (including channels) from: /api/guilds/${guildId}`);
+            const guildResp = await fetch(`/api/guilds/${guildId}`, { 
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            console.log(`[Dashboard] Guild response:`, guildResp.status, guildResp.statusText);
+            
+            if (guildResp && guildResp.ok) {
+                const guildData = await guildResp.json();
+                console.log(`[Dashboard] Guild data:`, guildData);
                 
-                console.log(`[Dashboard] Channel response from ${url}:`, chResp.status);
-                
-                if (chResp && chResp.ok) {
-                    const chBody = await chResp.json();
-                    if (Array.isArray(chBody) && chBody.length > 0) {
-                        channels = chBody.map(c => ({ 
-                            id: c.id, 
-                            name: c.name, 
-                            type: c.type 
-                        }));
-                        console.log(`[Dashboard] Loaded ${channels.length} channels from ${url}`);
-                        logger.success(`Loaded ${channels.length} channels`);
-                        break;
-                    }
+                // チャンネル情報を抽出
+                if (Array.isArray(guildData.channels) && guildData.channels.length > 0) {
+                    channels = guildData.channels.map(c => ({ 
+                        id: c.id, 
+                        name: c.name, 
+                        type: c.type 
+                    }));
+                    console.log(`[Dashboard] Loaded ${channels.length} channels from guild data`);
+                    logger.success(`Loaded ${channels.length} channels`);
                 }
-            } catch (e) {
-                console.warn(`[Dashboard] Channel fetch failed for ${url}:`, e.message);
+            } else {
+                console.warn(`[Dashboard] Failed to fetch guild data: ${guildResp.status}`);
+                logger.warn(`ギルド情報の取得に失敗しました (${guildResp.status})`);
             }
+        } catch (e) {
+            console.error(`[Dashboard] Guild data fetch failed:`, e);
+            logger.error(`ギルド情報の取得に失敗: ${e.message}`);
         }
 
         // チャンネルをDOMに反映
         const voiceSel = document.getElementById('auto-join-voice');
         const textSel = document.getElementById('auto-join-text');
+
+        console.log(`[Dashboard] Processing ${channels.length} channels for UI`);
 
         if (channels.length === 0) {
             [voiceSel, textSel].forEach(s => {
@@ -1796,13 +1776,22 @@ class Dashboard {
             });
             logger.warn('No channels available');
         } else {
-            // チャンネルタイプでフィルタリング
-            const isVoice = t => t === 2 || t === 13 || (typeof t === 'string' && t.toLowerCase().includes('voice'));
-            const isText = t => t === 0 || t === 5 || (typeof t === 'string' && (t.toLowerCase().includes('text') || t.toLowerCase().includes('forum')));
+            // Discord チャンネルタイプの定義
+            // 0: GUILD_TEXT, 2: GUILD_VOICE, 4: GUILD_CATEGORY, 5: GUILD_NEWS, 13: GUILD_STAGE_VOICE, 15: GUILD_FORUM
+            const isVoiceChannel = (type) => {
+                return type === 2 || type === 13; // GUILD_VOICE または GUILD_STAGE_VOICE
+            };
+            
+            const isTextChannel = (type) => {
+                return type === 0 || type === 5 || type === 15; // GUILD_TEXT, GUILD_NEWS, GUILD_FORUM
+            };
 
-            const voiceChannels = channels.filter(c => isVoice(c.type));
-            const textChannels = channels.filter(c => isText(c.type));
+            const voiceChannels = channels.filter(c => isVoiceChannel(c.type));
+            const textChannels = channels.filter(c => isTextChannel(c.type));
 
+            console.log(`[Dashboard] Filtered channels: ${voiceChannels.length} voice, ${textChannels.length} text`);
+
+            // 自動接続ボイスチャンネル: ボイスチャンネルのみ
             if (voiceSel) {
                 voiceSel.innerHTML = '<option value="">（ボイスチャンネルを選択）</option>';
                 voiceChannels.forEach(ch => {
@@ -1812,20 +1801,34 @@ class Dashboard {
                     voiceSel.appendChild(opt);
                 });
                 voiceSel.disabled = voiceChannels.length === 0;
+                console.log(`[Dashboard] Populated auto-join-voice with ${voiceChannels.length} voice channels`);
             }
 
+            // 自動接続テキストチャンネル: ボイスチャンネルとテキストチャンネルの両方
             if (textSel) {
-                textSel.innerHTML = '<option value="">（テキストチャンネルを選択）</option>';
+                textSel.innerHTML = '<option value="">（読み上げるチャンネルを選択）</option>';
+                
+                // ボイスチャンネルを追加
+                voiceChannels.forEach(ch => {
+                    const opt = document.createElement('option');
+                    opt.value = ch.id;
+                    opt.textContent = `🔈 ${ch.name}`;
+                    textSel.appendChild(opt);
+                });
+                
+                // テキストチャンネルを追加
                 textChannels.forEach(ch => {
                     const opt = document.createElement('option');
                     opt.value = ch.id;
                     opt.textContent = `💬 ${ch.name}`;
                     textSel.appendChild(opt);
                 });
-                textSel.disabled = textChannels.length === 0;
+                
+                textSel.disabled = (voiceChannels.length + textChannels.length) === 0;
+                console.log(`[Dashboard] Populated auto-join-text with ${voiceChannels.length + textChannels.length} channels`);
             }
 
-            console.log(`[Dashboard] Populated channels: ${voiceChannels.length} voice, ${textChannels.length} text`);
+            logger.success(`チャンネル情報が読み込まれました: ボイス ${voiceChannels.length}件、テキスト ${textChannels.length}件`);
         }
 
         return { speakers, channels };
