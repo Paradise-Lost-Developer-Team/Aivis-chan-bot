@@ -225,6 +225,7 @@ class Dashboard {
         this.servers = [];
         this.guildUpdateInterval = null;
         this.version = null;
+        this.currentUserId = null; // ユーザーIDを保持
         
         logger.info('[Dashboard] Constructor initialized');
     }
@@ -278,6 +279,9 @@ class Dashboard {
                 window.location.href = `/login?error=version_mismatch&message=${encodeURIComponent('認証バージョンが一致しません')}`;
                 return;
             }
+            
+            // ユーザーIDを保存
+            this.currentUserId = sessionData.user.id;
             
             // ユーザー情報表示
             this.displayUserInfo(sessionData.user);
@@ -549,110 +553,534 @@ class Dashboard {
         
         logger.info(`[Dashboard] Channels breakdown: Text=${textChannels.length}, Voice=${voiceChannels.length}`);
         
-        // 設定UIを表示
+        // タブシステムを含む設定UIを表示
         settingsEl.style.display = 'block';
         settingsEl.innerHTML = `
             <div class="settings-header">
                 <h2>⚙️ ${this.escapeHtml(serverName)} の設定</h2>
             </div>
+            
+            <!-- タブナビゲーション -->
+            <div class="settings-tabs">
+                <button class="tab-button active" data-tab="info">📊 サーバー情報</button>
+                <button class="tab-button" data-tab="server-settings">🔧 サーバー設定</button>
+                <button class="tab-button" data-tab="dictionary">📖 辞書機能</button>
+                <button class="tab-button" data-tab="personal">👤 個人設定</button>
+            </div>
+            
             <div class="settings-content">
-                <div class="settings-section">
-                    <h3>📊 サーバー情報</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">🤖 Bot:</span>
-                            <span class="info-value">${this.escapeHtml(guildData.botName || '不明')}</span>
+                <!-- サーバー情報タブ -->
+                <div class="tab-content active" data-tab="info">
+                    <div class="settings-section">
+                        <h3>📊 サーバー情報</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">🤖 Bot:</span>
+                                <span class="info-value">${this.escapeHtml(guildData.botName || '不明')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">💬 テキストチャンネル:</span>
+                                <span class="info-value">${textChannels.length}個</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🔊 ボイスチャンネル:</span>
+                                <span class="info-value">${voiceChannels.length}個</span>
+                            </div>
+                            ${guildData.memberCount ? `
+                            <div class="info-item">
+                                <span class="info-label">👥 メンバー数:</span>
+                                <span class="info-value">${guildData.memberCount}人</span>
+                            </div>
+                            ` : ''}
                         </div>
-                        <div class="info-item">
-                            <span class="info-label">💬 テキストチャンネル:</span>
-                            <span class="info-value">${textChannels.length}個</span>
+                    </div>
+                    
+                    ${textChannels.length > 0 ? `
+                    <div class="settings-section">
+                        <h3>💬 テキストチャンネル一覧</h3>
+                        <ul class="channel-list">
+                            ${textChannels.slice(0, 10).map(ch => `
+                                <li class="channel-item">
+                                    <span class="channel-icon">#</span>
+                                    <span class="channel-name">${this.escapeHtml(ch.name)}</span>
+                                </li>
+                            `).join('')}
+                            ${textChannels.length > 10 ? `<li class="channel-item">... 他 ${textChannels.length - 10}個</li>` : ''}
+                        </ul>
+                    </div>
+                    ` : ''}
+                    
+                    ${voiceChannels.length > 0 ? `
+                    <div class="settings-section">
+                        <h3>🔊 ボイスチャンネル一覧</h3>
+                        <ul class="channel-list">
+                            ${voiceChannels.slice(0, 10).map(ch => `
+                                <li class="channel-item">
+                                    <span class="channel-icon">🔊</span>
+                                    <span class="channel-name">${this.escapeHtml(ch.name)}</span>
+                                </li>
+                            `).join('')}
+                            ${voiceChannels.length > 10 ? `<li class="channel-item">... 他 ${voiceChannels.length - 10}個</li>` : ''}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <!-- サーバー設定タブ -->
+                <div class="tab-content" data-tab="server-settings">
+                    <div class="settings-section">
+                        <h3>🔧 サーバー設定</h3>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label for="default-speaker">🗣️ デフォルト話者</label>
+                                <select id="default-speaker" class="form-control">
+                                    <option value="">選択してください</option>
+                                    <option value="speaker1">話者1</option>
+                                    <option value="speaker2">話者2</option>
+                                    <option value="speaker3">話者3</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="default-speed">⚡ 速度</label>
+                                <input type="range" id="default-speed" class="form-range" min="0.5" max="2.0" step="0.1" value="${settings.defaultSpeed || 1.0}">
+                                <span class="range-value">${settings.defaultSpeed || 1.0}</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="default-pitch">🎵 ピッチ</label>
+                                <input type="range" id="default-pitch" class="form-range" min="0.5" max="2.0" step="0.1" value="${settings.defaultPitch || 1.0}">
+                                <span class="range-value">${settings.defaultPitch || 1.0}</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="default-volume">🔊 音量</label>
+                                <input type="range" id="default-volume" class="form-range" min="0.0" max="2.0" step="0.1" value="${settings.defaultVolume || 1.0}">
+                                <span class="range-value">${settings.defaultVolume || 1.0}</span>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <label>
+                                    <input type="checkbox" id="auto-leave" ${settings.autoLeave ? 'checked' : ''}>
+                                    <span>🚪 誰もいなくなったら自動退出</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group checkbox-group">
+                                <label>
+                                    <input type="checkbox" id="ignore-bots" ${settings.ignoreBots ? 'checked' : ''}>
+                                    <span>🤖 他のBotのメッセージを無視</span>
+                                </label>
+                            </div>
+                            
+                            <button id="save-server-settings" class="btn btn-primary">💾 設定を保存</button>
                         </div>
-                        <div class="info-item">
-                            <span class="info-label">🔊 ボイスチャンネル:</span>
-                            <span class="info-value">${voiceChannels.length}個</span>
-                        </div>
-                        ${guildData.memberCount ? `
-                        <div class="info-item">
-                            <span class="info-label">👥 メンバー数:</span>
-                            <span class="info-value">${guildData.memberCount}人</span>
-                        </div>
-                        ` : ''}
-                        ${guildData.roles ? `
-                        <div class="info-item">
-                            <span class="info-label">🎭 役職数:</span>
-                            <span class="info-value">${guildData.roles.length}個</span>
-                        </div>
-                        ` : ''}
                     </div>
                 </div>
                 
-                <div class="settings-section">
-                    <h3>🔧 基本設定</h3>
-                    <p class="info-text">設定機能は開発中です。近日公開予定！</p>
+                <!-- 辞書機能タブ -->
+                <div class="tab-content" data-tab="dictionary">
+                    <div class="settings-section">
+                        <h3>📖 辞書機能</h3>
+                        <p class="info-text">特定の単語の読み方をカスタマイズできます</p>
+                        
+                        <div class="dictionary-controls">
+                            <button id="add-dictionary-entry" class="btn btn-success">➕ エントリーを追加</button>
+                            <button id="save-dictionary" class="btn btn-primary">💾 辞書を保存</button>
+                        </div>
+                        
+                        <div id="dictionary-list" class="dictionary-list">
+                            <!-- 辞書エントリーがここに表示される -->
+                        </div>
+                    </div>
                 </div>
                 
-                ${textChannels.length > 0 ? `
-                <div class="settings-section">
-                    <h3>💬 テキストチャンネル一覧</h3>
-                    <ul class="channel-list">
-                        ${textChannels.slice(0, 10).map(ch => `
-                            <li class="channel-item">
-                                <span class="channel-icon">#</span>
-                                <span class="channel-name">${this.escapeHtml(ch.name)}</span>
-                            </li>
-                        `).join('')}
-                        ${textChannels.length > 10 ? `<li class="channel-item">... 他 ${textChannels.length - 10}個</li>` : ''}
-                    </ul>
+                <!-- 個人設定タブ -->
+                <div class="tab-content" data-tab="personal">
+                    <div class="settings-section">
+                        <h3>👤 個人設定</h3>
+                        <p class="info-text">あなた専用の音声設定です</p>
+                        
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label for="personal-speaker">🗣️ 話者</label>
+                                <select id="personal-speaker" class="form-control">
+                                    <option value="">デフォルト設定を使用</option>
+                                    <option value="speaker1">話者1</option>
+                                    <option value="speaker2">話者2</option>
+                                    <option value="speaker3">話者3</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="personal-speed">⚡ 速度</label>
+                                <input type="range" id="personal-speed" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
+                                <span class="range-value">1.0</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="personal-pitch">🎵 ピッチ</label>
+                                <input type="range" id="personal-pitch" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
+                                <span class="range-value">1.0</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="personal-volume">🔊 音量</label>
+                                <input type="range" id="personal-volume" class="form-range" min="0.0" max="2.0" step="0.1" value="1.0">
+                                <span class="range-value">1.0</span>
+                            </div>
+                            
+                            <button id="save-personal-settings" class="btn btn-primary">💾 個人設定を保存</button>
+                            <button id="reset-personal-settings" class="btn btn-secondary">🔄 デフォルトに戻す</button>
+                        </div>
+                    </div>
                 </div>
-                ` : ''}
-                
-                ${voiceChannels.length > 0 ? `
-                <div class="settings-section">
-                    <h3>🔊 ボイスチャンネル一覧</h3>
-                    <ul class="channel-list">
-                        ${voiceChannels.slice(0, 10).map(ch => `
-                            <li class="channel-item">
-                                <span class="channel-icon">🔊</span>
-                                <span class="channel-name">${this.escapeHtml(ch.name)}</span>
-                            </li>
-                        `).join('')}
-                        ${voiceChannels.length > 10 ? `<li class="channel-item">... 他 ${voiceChannels.length - 10}個</li>` : ''}
-                    </ul>
-                </div>
-                ` : ''}
             </div>
         `;
         
-        logger.success('Settings panel displayed');
+        // タブ切り替えイベント
+        this.setupTabs();
+        
+        // レンジスライダーのリアルタイム更新
+        this.setupRangeInputs();
+        
+        // サーバー設定の保存
+        this.setupServerSettings(guildId);
+        
+        // 辞書機能の初期化
+        this.setupDictionary(guildId);
+        
+        // 個人設定の初期化
+        this.setupPersonalSettings(guildId);
+        
+        logger.success('Settings panel displayed with all features');
     }
 
-    showError(message) {
-        logger.error('[Dashboard] Error: ' + message);
+    setupTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
         
-        // エラー表示UIを実装
-        const errorEl = document.createElement('div');
-        errorEl.className = 'error-message';
-        errorEl.textContent = message;
-        errorEl.style.cssText = `
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                
+                // すべてのタブとコンテンツから active を削除
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // 選択されたタブとコンテンツに active を追加
+                button.classList.add('active');
+                document.querySelector(`.tab-content[data-tab="${targetTab}"]`).classList.add('active');
+                
+                logger.info(`[Dashboard] Switched to tab: ${targetTab}`);
+            });
+        });
+    }
+
+    setupRangeInputs() {
+        const rangeInputs = document.querySelectorAll('.form-range');
+        rangeInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const valueDisplay = e.target.nextElementSibling;
+                if (valueDisplay && valueDisplay.classList.contains('range-value')) {
+                    valueDisplay.textContent = e.target.value;
+                }
+            });
+        });
+    }
+
+    setupServerSettings(guildId) {
+        const saveBtn = document.getElementById('save-server-settings');
+        if (!saveBtn) return;
+        
+        saveBtn.addEventListener('click', async () => {
+            try {
+                logger.info('[Dashboard] Saving server settings...');
+                
+                const settings = {
+                    defaultSpeaker: document.getElementById('default-speaker').value,
+                    defaultSpeed: parseFloat(document.getElementById('default-speed').value),
+                    defaultPitch: parseFloat(document.getElementById('default-pitch').value),
+                    defaultVolume: parseFloat(document.getElementById('default-volume').value),
+                    autoLeave: document.getElementById('auto-leave').checked,
+                    ignoreBots: document.getElementById('ignore-bots').checked
+                };
+                
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        guildId: guildId,
+                        settings: settings
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('設定の保存に失敗しました');
+                }
+                
+                const result = await response.json();
+                logger.success('Server settings saved successfully');
+                this.showSuccess('サーバー設定を保存しました');
+                
+            } catch (error) {
+                logger.error('[Dashboard] Failed to save server settings: ' + error.message);
+                this.showError('設定の保存に失敗しました: ' + error.message);
+            }
+        });
+    }
+
+    async setupDictionary(guildId) {
+        try {
+            logger.info('[Dashboard] Loading dictionary...');
+            
+            // 辞書データを取得
+            const response = await fetch(`/api/dictionary/${guildId}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('辞書の読み込みに失敗しました');
+            }
+            
+            const data = await response.json();
+            const dictionary = data.dictionary || [];
+            
+            logger.info(`[Dashboard] Dictionary loaded: ${dictionary.length} entries`);
+            
+            // 辞書エントリーを表示
+            this.renderDictionary(dictionary);
+            
+            // 追加ボタンのイベント
+            document.getElementById('add-dictionary-entry').addEventListener('click', () => {
+                this.addDictionaryEntry();
+            });
+            
+            // 保存ボタンのイベント
+            document.getElementById('save-dictionary').addEventListener('click', async () => {
+                await this.saveDictionary(guildId);
+            });
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to setup dictionary: ' + error.message);
+        }
+    }
+
+    renderDictionary(dictionary) {
+        const listEl = document.getElementById('dictionary-list');
+        if (!listEl) return;
+        
+        if (dictionary.length === 0) {
+            listEl.innerHTML = '<p class="info-text">辞書エントリーがありません</p>';
+            return;
+        }
+        
+        listEl.innerHTML = dictionary.map((entry, index) => `
+            <div class="dictionary-entry" data-index="${index}">
+                <input type="text" class="dict-word" placeholder="単語" value="${this.escapeHtml(entry.word || '')}">
+                <input type="text" class="dict-pronunciation" placeholder="読み方" value="${this.escapeHtml(entry.pronunciation || '')}">
+                <button class="btn btn-danger btn-sm remove-entry" data-index="${index}">🗑️</button>
+            </div>
+        `).join('');
+        
+        // 削除ボタンのイベント
+        document.querySelectorAll('.remove-entry').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                dictionary.splice(index, 1);
+                this.renderDictionary(dictionary);
+            });
+        });
+    }
+
+    addDictionaryEntry() {
+        const listEl = document.getElementById('dictionary-list');
+        if (!listEl) return;
+        
+        const entryHtml = `
+            <div class="dictionary-entry new-entry">
+                <input type="text" class="dict-word" placeholder="単語">
+                <input type="text" class="dict-pronunciation" placeholder="読み方">
+                <button class="btn btn-danger btn-sm remove-entry">🗑️</button>
+            </div>
+        `;
+        
+        if (listEl.querySelector('.info-text')) {
+            listEl.innerHTML = entryHtml;
+        } else {
+            listEl.insertAdjacentHTML('beforeend', entryHtml);
+        }
+        
+        // 削除ボタンのイベント
+        const newEntry = listEl.querySelector('.new-entry');
+        newEntry.querySelector('.remove-entry').addEventListener('click', () => {
+            newEntry.remove();
+        });
+        
+        newEntry.classList.remove('new-entry');
+    }
+
+    async saveDictionary(guildId) {
+        try {
+            logger.info('[Dashboard] Saving dictionary...');
+            
+            const entries = Array.from(document.querySelectorAll('.dictionary-entry')).map(entry => ({
+                word: entry.querySelector('.dict-word').value.trim(),
+                pronunciation: entry.querySelector('.dict-pronunciation').value.trim()
+            })).filter(entry => entry.word && entry.pronunciation);
+            
+            const response = await fetch('/api/dictionary', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    guildId: guildId,
+                    dictionary: entries
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('辞書の保存に失敗しました');
+            }
+            
+            const result = await response.json();
+            logger.success(`Dictionary saved: ${result.validatedCount}/${result.totalCount} entries`);
+            this.showSuccess('辞書を保存しました');
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to save dictionary: ' + error.message);
+            this.showError('辞書の保存に失敗しました: ' + error.message);
+        }
+    }
+
+    async setupPersonalSettings(guildId) {
+        try {
+            logger.info('[Dashboard] Loading personal settings...');
+            
+            // 個人設定を取得
+            const response = await fetch(`/api/personal-settings?guildId=${guildId}&userId=${this.currentUserId}`, {
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const settings = data.settings || {};
+                
+                // フォームに設定を反映
+                if (settings.speaker) {
+                    document.getElementById('personal-speaker').value = settings.speaker;
+                }
+                if (settings.speed) {
+                    document.getElementById('personal-speed').value = settings.speed;
+                    document.querySelector('#personal-speed + .range-value').textContent = settings.speed;
+                }
+                if (settings.pitch) {
+                    document.getElementById('personal-pitch').value = settings.pitch;
+                    document.querySelector('#personal-pitch + .range-value').textContent = settings.pitch;
+                }
+                if (settings.volume) {
+                    document.getElementById('personal-volume').value = settings.volume;
+                    document.querySelector('#personal-volume + .range-value').textContent = settings.volume;
+                }
+                
+                logger.info('[Dashboard] Personal settings loaded');
+            }
+            
+            // 保存ボタンのイベント
+            document.getElementById('save-personal-settings').addEventListener('click', async () => {
+                await this.savePersonalSettings(guildId);
+            });
+            
+            // リセットボタンのイベント
+            document.getElementById('reset-personal-settings').addEventListener('click', () => {
+                document.getElementById('personal-speaker').value = '';
+                document.getElementById('personal-speed').value = 1.0;
+                document.getElementById('personal-pitch').value = 1.0;
+                document.getElementById('personal-volume').value = 1.0;
+                
+                document.querySelectorAll('.range-value').forEach(el => {
+                    el.textContent = '1.0';
+                });
+                
+                logger.info('[Dashboard] Personal settings reset to default');
+            });
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to setup personal settings: ' + error.message);
+        }
+    }
+
+    async savePersonalSettings(guildId) {
+        try {
+            logger.info('[Dashboard] Saving personal settings...');
+            
+            const settings = {
+                speaker: document.getElementById('personal-speaker').value || null,
+                speed: parseFloat(document.getElementById('personal-speed').value),
+                pitch: parseFloat(document.getElementById('personal-pitch').value),
+                volume: parseFloat(document.getElementById('personal-volume').value)
+            };
+            
+            const response = await fetch('/api/personal-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    guildId: guildId,
+                    userId: this.currentUserId,
+                    settings: settings
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('個人設定の保存に失敗しました');
+            }
+            
+            const result = await response.json();
+            logger.success('Personal settings saved successfully');
+            this.showSuccess('個人設定を保存しました');
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to save personal settings: ' + error.message);
+            this.showError('個人設定の保存に失敗しました: ' + error.message);
+        }
+    }
+
+    showSuccess(message) {
+        logger.success('[Dashboard] Success: ' + message);
+        
+        const successEl = document.createElement('div');
+        successEl.className = 'success-message';
+        successEl.textContent = message;
+        successEl.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
             color: white;
             padding: 16px 24px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(244, 67, 54, 0.3);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
             z-index: 10000;
             animation: slideInRight 0.3s ease-out;
         `;
         
-        document.body.appendChild(errorEl);
+        document.body.appendChild(successEl);
         
         setTimeout(() => {
-            errorEl.style.animation = 'slideOutRight 0.3s ease-out';
-            setTimeout(() => errorEl.remove(), 300);
-        }, 5000);
+            successEl.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => successEl.remove(), 300);
+        }, 3000);
     }
+
+    // ...existing code...
 }
 
 // ページ読み込み時に初期化
