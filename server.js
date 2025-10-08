@@ -73,13 +73,13 @@ console.log('[PATREON] Config:', {
 
 // Bot インスタンス設定
 const BOT_INSTANCES = [
-  { name: '1st', url: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
-  { name: '2nd', url: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
-  { name: '3rd', url: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
-  { name: '4th', url: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
-  { name: '5th', url: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
-  { name: '6th', url: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
-  { name: 'pro-premium', url: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+  { name: '1st', url: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002', version: 'free' },
+  { name: '2nd', url: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003', version: 'both' },
+  { name: '3rd', url: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004', version: 'both' },
+  { name: '4th', url: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005', version: 'both' },
+  { name: '5th', url: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006', version: 'both' },
+  { name: '6th', url: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007', version: 'both' },
+  { name: 'pro-premium', url: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012', version: 'pro' }
 ];
 
 const BOT_ID_MAP = {
@@ -357,11 +357,16 @@ app.get('/api/guilds', requireAuth, async (req, res) => {
   console.log(`[API /api/guilds][${requestId}] User version: ${userVersion}`);
   
   const relevantBots = BOT_INSTANCES.filter(bot => {
+    // 'both'は両方のバージョンで使用可能
+    if (bot.version === 'both') {
+      return true;
+    }
+    // Free版ユーザーはfreeのみ
     if (userVersion === 'free') {
       return bot.version === 'free';
-    } else {
-      return bot.version === 'pro' || bot.version === 'premium';
     }
+    // Pro版ユーザーはproとpremium
+    return bot.version === 'pro' || bot.version === 'premium';
   });
 
   console.log(`[API /api/guilds][${requestId}] Relevant bots: ${relevantBots.length}`);
