@@ -496,7 +496,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         const existing = (voiceClients as any)[guildId];
         if (existing && existing.state?.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
-            return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
+            return res.status(409).json({ error: 'already-connected_other-channel', current: existing.joinConfig.channelId });
         }
 
         // 明示的 textChannelId が渡された場合はその ID をそのまま受け入れて保存する（存在や権限が無くても自動フォールバックしない）
@@ -596,8 +596,12 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
         // voice 接続処理（text チャンネル決定とは独立）
-        const prev = getVoiceConnection(voiceChannelId);
-        if (prev) { try { prev.destroy(); } catch {} try { delete (voiceClients as any)[voiceChannelId]; } catch {} try { delete (voiceClients as any)[guildId]; } catch {} }
+        const prev = (typeof getVoiceConnection === 'function') ? (getVoiceConnection(guildId) || getVoiceConnection(voiceChannelId)) : undefined;
+        if (prev) {
+             try { prev.destroy(); } catch {}
+             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+             try { delete (voiceClients as any)[guildId]; } catch {}
+         }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
         try { (voiceClients as any)[guildId] = connection; } catch {}
@@ -673,38 +677,86 @@ client.login(TOKEN).catch(error => {
     process.exit(1);
 });
 
+// Fallback helpers: prefer TTS-Engine exported functions if present, otherwise mutate in-memory textChannels map
+function removeTextChannelByVoiceChannelId(voiceChannelId: string) {
+    try {
+        // try to use implementation from TTS-Engine if exported
+        // use require to keep this synchronous and compatible with existing code usage
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const mod = require('./utils/TTS-Engine');
+        if (mod && typeof mod.removeTextChannelByVoiceChannelId === 'function') {
+            try { mod.removeTextChannelByVoiceChannelId(voiceChannelId); return; } catch (_) { /* fallback below */ }
+        }
+    } catch (_) { /* ignore */ }
+
+    // fallback: clean entries in in-memory textChannels mapping
+    try {
+        const tc = textChannels as Record<string, any>;
+        if (!tc) return;
+        for (const key of Object.keys(tc)) {
+            try {
+                const ch = tc[key];
+                if (!ch) { delete tc[key]; continue; }
+                if (ch.voiceChannelId === voiceChannelId || ch.id === voiceChannelId) {
+                    delete tc[key];
+                }
+            } catch (_) { /* ignore per-entry errors */ }
+        }
+    } catch (_) { /* ignore */ }
+}
+
+function removeTextChannelForGuildInMap(guildId: string) {
+    try {
+        // try to use implementation from TTS-Engine if exported
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const mod = require('./utils/TTS-Engine');
+        if (mod && typeof mod.removeTextChannelForGuildInMap === 'function') {
+            try { mod.removeTextChannelForGuildInMap(guildId); return; } catch (_) { /* fallback below */ }
+        }
+    } catch (_) { /* ignore */ }
+
+    // fallback: remove any textChannels entries associated with the guild id
+    try {
+        const tc = textChannels as Record<string, any>;
+        if (!tc) return;
+        for (const key of Object.keys(tc)) {
+            try {
+                const ch = tc[key];
+                if (!ch) { delete tc[key]; continue; }
+                if (ch.guild?.id === guildId || ch.guildId === guildId || key === guildId) {
+                    delete tc[key];
+                }
+            } catch (_) { /* ignore per-entry errors */ }
+        }
+    } catch (_) { /* ignore */ }
+}
+
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
-        // 即時応答（クリーンアップは非同期で実行）
-        try {
-            res.json({ ok: true });
-        } catch (e) {
-            console.warn('[internal/leave:5th] 応答送信エラー:', e);
+        const ids = [guildId, voiceChannelId].filter(Boolean);
+        for (const id of ids) {
+            try { const c = getVoiceConnection(id); if (c) try { c.destroy(); } catch {} } catch {}
         }
-
-        (async () => {
+        try { if (voiceChannelId) delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { if (guildId) delete (voiceClients as any)[guildId]; } catch {}
+        try { if (voiceChannelId) removeTextChannelByVoiceChannelId(voiceChannelId); } catch {}
+        try { if (guildId) removeTextChannelForGuildInMap(guildId); } catch {}
+        try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
+        try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
+        const saveVoiceState = (cli: any) => {
             try {
-                if (voiceChannelId) {
-                    try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
-                    try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-                    try { const { removeTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); removeTextChannelForGuildInMap(voiceChannelId); } catch {}
-                    try { delete (global as any).players?.[voiceChannelId]; } catch {}
-                } else if (guildId) {
-                    try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
-                    try { delete (voiceClients as any)[guildId]; } catch {}
-                    try { const { removeTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); removeTextChannelForGuildInMap(guildId); } catch {}
-                    try { delete (global as any).players?.[guildId]; } catch {}
-                }
-            } catch (err) {
-                console.warn('[internal/leave:5th] 非同期クリーンアップ中にエラー:', err);
-            }
-        })();
-
-        // 5th Botではボイス状態の保存をスキップ（1st Botが管理）
-        // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
-        return; 
+                const state: any = {
+                    voiceClients: Object.keys(voiceClients || {}),
+                    textChannels: textChannels || {}
+                };
+                const file = path.join(DATA_DIR, 'voice_state.json');
+                fs.writeFileSync(file, JSON.stringify(state, null, 2), 'utf8');
+            } catch (e) { console.warn('saveVoiceState failed', e); }
+        };
+        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
         return res.status(500).json({ error: 'leave-failed' });
