@@ -546,13 +546,6 @@ class Dashboard {
         const server = this.servers.find(s => s.id === guildId);
         const serverName = guildData.name || (server ? server.name : 'サーバー');
         
-        // チャンネルをカテゴリごとに分類
-        const channels = guildData.channels || [];
-        const textChannels = channels.filter(ch => ch.type === 0 || ch.type === 'GUILD_TEXT');
-        const voiceChannels = channels.filter(ch => ch.type === 2 || ch.type === 'GUILD_VOICE');
-        
-        logger.info(`[Dashboard] Channels breakdown: Text=${textChannels.length}, Voice=${voiceChannels.length}`);
-        
         // タブシステムを含む設定UIを表示
         settingsEl.style.display = 'block';
         settingsEl.innerHTML = `
@@ -562,72 +555,14 @@ class Dashboard {
             
             <!-- タブナビゲーション -->
             <div class="settings-tabs">
-                <button class="tab-button active" data-tab="info">📊 サーバー情報</button>
-                <button class="tab-button" data-tab="server-settings">🔧 サーバー設定</button>
-                <button class="tab-button" data-tab="dictionary">📖 辞書機能</button>
-                <button class="tab-button" data-tab="personal">👤 個人設定</button>
+                <button class="settings-tab-button active" data-tab="server-settings">🔧 サーバー設定</button>
+                <button class="settings-tab-button" data-tab="dictionary">📖 辞書機能</button>
+                <button class="settings-tab-button" data-tab="personal">👤 個人設定</button>
             </div>
             
-            <div class="settings-content">
-                <!-- サーバー情報タブ -->
-                <div class="tab-content active" data-tab="info">
-                    <div class="settings-section">
-                        <h3>📊 サーバー情報</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">🤖 Bot:</span>
-                                <span class="info-value">${this.escapeHtml(guildData.botName || '不明')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">💬 テキストチャンネル:</span>
-                                <span class="info-value">${textChannels.length}個</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🔊 ボイスチャンネル:</span>
-                                <span class="info-value">${voiceChannels.length}個</span>
-                            </div>
-                            ${guildData.memberCount ? `
-                            <div class="info-item">
-                                <span class="info-label">👥 メンバー数:</span>
-                                <span class="info-value">${guildData.memberCount}人</span>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    ${textChannels.length > 0 ? `
-                    <div class="settings-section">
-                        <h3>💬 テキストチャンネル一覧</h3>
-                        <ul class="channel-list">
-                            ${textChannels.slice(0, 10).map(ch => `
-                                <li class="channel-item">
-                                    <span class="channel-icon">#</span>
-                                    <span class="channel-name">${this.escapeHtml(ch.name)}</span>
-                                </li>
-                            `).join('')}
-                            ${textChannels.length > 10 ? `<li class="channel-item">... 他 ${textChannels.length - 10}個</li>` : ''}
-                        </ul>
-                    </div>
-                    ` : ''}
-                    
-                    ${voiceChannels.length > 0 ? `
-                    <div class="settings-section">
-                        <h3>🔊 ボイスチャンネル一覧</h3>
-                        <ul class="channel-list">
-                            ${voiceChannels.slice(0, 10).map(ch => `
-                                <li class="channel-item">
-                                    <span class="channel-icon">🔊</span>
-                                    <span class="channel-name">${this.escapeHtml(ch.name)}</span>
-                                </li>
-                            `).join('')}
-                            ${voiceChannels.length > 10 ? `<li class="channel-item">... 他 ${voiceChannels.length - 10}個</li>` : ''}
-                        </ul>
-                    </div>
-                    ` : ''}
-                </div>
-                
+            <div class="settings-tab-content">
                 <!-- サーバー設定タブ -->
-                <div class="tab-content" data-tab="server-settings">
+                <div class="settings-tab-panel active" data-tab="server-settings">
                     <div class="settings-section">
                         <h3>🔧 サーバー設定</h3>
                         <div class="settings-form">
@@ -679,7 +614,7 @@ class Dashboard {
                 </div>
                 
                 <!-- 辞書機能タブ -->
-                <div class="tab-content" data-tab="dictionary">
+                <div class="settings-tab-panel" data-tab="dictionary">
                     <div class="settings-section">
                         <h3>📖 辞書機能</h3>
                         <p class="info-text">特定の単語の読み方をカスタマイズできます</p>
@@ -690,13 +625,13 @@ class Dashboard {
                         </div>
                         
                         <div id="dictionary-list" class="dictionary-list">
-                            <!-- 辞書エントリーがここに表示される -->
+                            <p class="loading-text">辞書を読み込み中...</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 個人設定タブ -->
-                <div class="tab-content" data-tab="personal">
+                <div class="settings-tab-panel" data-tab="personal">
                     <div class="settings-section">
                         <h3>👤 個人設定</h3>
                         <p class="info-text">あなた専用の音声設定です</p>
@@ -739,7 +674,7 @@ class Dashboard {
         `;
         
         // タブ切り替えイベント
-        this.setupTabs();
+        this.setupSettingsTabs();
         
         // レンジスライダーのリアルタイム更新
         this.setupRangeInputs();
@@ -756,21 +691,21 @@ class Dashboard {
         logger.success('Settings panel displayed with all features');
     }
 
-    setupTabs() {
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
+    setupSettingsTabs() {
+        const tabButtons = document.querySelectorAll('.settings-tab-button');
+        const tabPanels = document.querySelectorAll('.settings-tab-panel');
         
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetTab = button.dataset.tab;
                 
-                // すべてのタブとコンテンツから active を削除
+                // すべてのタブとパネルから active を削除
                 tabButtons.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
                 
-                // 選択されたタブとコンテンツに active を追加
+                // 選択されたタブとパネルに active を追加
                 button.classList.add('active');
-                document.querySelector(`.tab-content[data-tab="${targetTab}"]`).classList.add('active');
+                document.querySelector(`.settings-tab-panel[data-tab="${targetTab}"]`).classList.add('active');
                 
                 logger.info(`[Dashboard] Switched to tab: ${targetTab}`);
             });
@@ -866,6 +801,10 @@ class Dashboard {
             
         } catch (error) {
             logger.error('[Dashboard] Failed to setup dictionary: ' + error.message);
+            const listEl = document.getElementById('dictionary-list');
+            if (listEl) {
+                listEl.innerHTML = '<p class="error-text">辞書の読み込みに失敗しました</p>';
+            }
         }
     }
 
@@ -880,8 +819,8 @@ class Dashboard {
         
         listEl.innerHTML = dictionary.map((entry, index) => `
             <div class="dictionary-entry" data-index="${index}">
-                <input type="text" class="dict-word" placeholder="単語" value="${this.escapeHtml(entry.word || '')}">
-                <input type="text" class="dict-pronunciation" placeholder="読み方" value="${this.escapeHtml(entry.pronunciation || '')}">
+                <input type="text" class="dict-word form-control" placeholder="単語" value="${this.escapeHtml(entry.word || '')}">
+                <input type="text" class="dict-pronunciation form-control" placeholder="読み方" value="${this.escapeHtml(entry.pronunciation || '')}">
                 <button class="btn btn-danger btn-sm remove-entry" data-index="${index}">🗑️</button>
             </div>
         `).join('');
@@ -902,13 +841,13 @@ class Dashboard {
         
         const entryHtml = `
             <div class="dictionary-entry new-entry">
-                <input type="text" class="dict-word" placeholder="単語">
-                <input type="text" class="dict-pronunciation" placeholder="読み方">
+                <input type="text" class="dict-word form-control" placeholder="単語">
+                <input type="text" class="dict-pronunciation form-control" placeholder="読み方">
                 <button class="btn btn-danger btn-sm remove-entry">🗑️</button>
             </div>
         `;
         
-        if (listEl.querySelector('.info-text')) {
+        if (listEl.querySelector('.info-text') || listEl.querySelector('.error-text')) {
             listEl.innerHTML = entryHtml;
         } else {
             listEl.insertAdjacentHTML('beforeend', entryHtml);
@@ -918,6 +857,9 @@ class Dashboard {
         const newEntry = listEl.querySelector('.new-entry');
         newEntry.querySelector('.remove-entry').addEventListener('click', () => {
             newEntry.remove();
+            if (listEl.children.length === 0) {
+                listEl.innerHTML = '<p class="info-text">辞書エントリーがありません</p>';
+            }
         });
         
         newEntry.classList.remove('new-entry');
@@ -950,7 +892,7 @@ class Dashboard {
             
             const result = await response.json();
             logger.success(`Dictionary saved: ${result.validatedCount}/${result.totalCount} entries`);
-            this.showSuccess('辞書を保存しました');
+            this.showSuccess(`辞書を保存しました (${result.validatedCount}件)`);
             
         } catch (error) {
             logger.error('[Dashboard] Failed to save dictionary: ' + error.message);
@@ -1003,7 +945,7 @@ class Dashboard {
                 document.getElementById('personal-pitch').value = 1.0;
                 document.getElementById('personal-volume').value = 1.0;
                 
-                document.querySelectorAll('.range-value').forEach(el => {
+                document.querySelectorAll('.settings-tab-panel[data-tab="personal"] .range-value').forEach(el => {
                     el.textContent = '1.0';
                 });
                 
