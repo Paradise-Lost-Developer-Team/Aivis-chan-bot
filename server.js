@@ -1251,14 +1251,42 @@ app.get(['/dashboard', '/dashboard/'], requireAuth, (req, res) => {
 // サーバーリストを返すエンドポイント
 app.get('/api/servers', async (req, res) => {
   try {
-    // Allow anonymous access: if not authenticated, treat as empty guild list
+    // 認証チェックを修正: req.user を使用
     let userGuilds = [];
     const isAuth = req.isAuthenticated && req.isAuthenticated();
-    if (isAuth) {
-      userGuilds = req.user && Array.isArray(req.user.guilds) ? req.user.guilds : [];
+    
+    console.log(`[DEBUG] /api/servers called`);
+    console.log(`[DEBUG] isAuthenticated:`, isAuth);
+    console.log(`[DEBUG] req.user:`, req.user ? { id: req.user.id, username: req.user.username } : 'null');
+    console.log(`[DEBUG] req.session:`, req.session ? 'exists' : 'null');
+    console.log(`[DEBUG] sessionID:`, req.sessionID);
+    
+    if (isAuth && req.user) {
+      // ユーザーのギルド情報を取得
+      if (Array.isArray(req.user.guilds)) {
+        userGuilds = req.user.guilds;
+      } else {
+        // guildsがない場合、Discord APIから取得を試みる
+        const accessToken = req.session?.accessToken || req.user?.accessToken;
+        if (accessToken) {
+          try {
+            console.log(`[DEBUG] Fetching guilds from Discord API using access token`);
+            const guildsResponse = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
+              headers: { Authorization: `Bearer ${accessToken}` },
+              timeout: 5000
+            });
+            userGuilds = guildsResponse.data || [];
+            console.log(`[DEBUG] Fetched ${userGuilds.length} guilds from Discord API`);
+          } catch (e) {
+            console.warn(`[DEBUG] Failed to fetch guilds from Discord API:`, e.message);
+          }
+        }
+      }
+    } else {
+      console.log(`[DEBUG] User not authenticated, returning empty list`);
+      return res.json([]);
     }
 
-    console.log(`[DEBUG] Authenticated: ${isAuth}`);
     console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
         
     // Botが参加しているギルドIDを取得
@@ -1304,7 +1332,7 @@ app.get('/api/servers', async (req, res) => {
                     if (guildIds.length > 0) {
                         console.log(`[DEBUG] ${bot.name} has ${guildIds.length} guilds`);
                         return { bot: bot.name, guildIds };
-                    }
+                      }
                 }
             } catch (error) {
                 console.debug(`[DEBUG] ${bot.name} failed at ${endpoint}:`, error.message);
@@ -1358,7 +1386,7 @@ app.get('/api/servers', async (req, res) => {
 
     res.json(serversWithUserInfo);
   } catch (error) {
-    console.error('Failed to fetch servers:', error);
+    console.error('[ERROR] Failed to fetch servers:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -1488,6 +1516,7 @@ app.get('/api/guilds/:guildId/channels', requireAuth, async (req, res) => {
 // Redisヘルスチェックエンドポイント
 app.get('/health/redis', async (req, res) => {
   if (!redisStoreInstance) {
+   
     return res.status(503).json({ status: 'Redis not configured' });
   }
 
