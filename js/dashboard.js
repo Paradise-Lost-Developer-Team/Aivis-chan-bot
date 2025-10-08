@@ -1296,13 +1296,8 @@ class Dashboard {
     }
 
     // ギルド情報を読み込む
-    loadGuilds(isManualRefresh = false) {
-        if (isManualRefresh) {
-            logger.info('Manually refreshing server list...');
-        } else {
-            logger.info('Loading server information...');
-        }
-        
+    loadGuilds() {
+        logger.info('Loading server information...');
         console.log('[Dashboard] Loading server information...');
         
         const serverListContainer = document.getElementById('server-list');
@@ -1422,14 +1417,10 @@ class Dashboard {
                     });
                 });
                 
-                // 自動で最初のサーバーを選択して設定を読み込む（初回のみ）
-                if (!isManualRefresh && data.length > 0) {
+                // 自動で最初のサーバーを選択して設定を読み込む
+                if (data.length > 0) {
                     const firstId = data[0].id;
                     setTimeout(() => this.selectServer(firstId), 100);
-                }
-                
-                if (isManualRefresh) {
-                    this.showSuccessToast('サーバー一覧を更新しました');
                 }
             })
             .catch(error => {
@@ -1440,28 +1431,15 @@ class Dashboard {
                 if (serverListContainer) {
                     serverListContainer.innerHTML = '<li class="server-item error"><span>サーバー一覧の読み込みに失敗しました</span></li>';
                 }
-                
-                if (isManualRefresh) {
-                    this.showErrorToast('サーバー一覧の更新に失敗しました');
-                }
             });
     }
 
-    // ギルド情報の定期更新を開始（削除または無効化）
+    // ギルド情報の定期更新を無効化（削除）
     startGuildUpdates() {
-        // 定期的な自動更新は無効化
-        // ユーザーが手動で更新ボタンを押すまでリロードしない
-        console.log('Automatic guild updates disabled. Use manual refresh button.');
-        logger.info('自動更新は無効です。更新が必要な場合は手動で更新してください。');
-        
-        // 手動更新ボタンのイベントリスナーを設定
-        const refreshButton = document.getElementById('refresh-servers-btn');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', () => {
-                console.log('Manual refresh triggered');
-                this.loadGuilds(true); // 手動更新フラグを立てる
-            });
-        }
+        // 定期的な自動更新は完全に無効化
+        // 初回ロード時のみサーバー一覧を取得し、その後は再ロードしない
+        console.log('[Dashboard] Automatic guild updates are disabled. Server list is loaded only once on page load.');
+        logger.info('サーバー一覧は初回読み込み時のみ取得されます。');
     }
 }
 
