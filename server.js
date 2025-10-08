@@ -1778,3 +1778,54 @@ app.get('/auth/patreon/callback', async (req, res) => {
      return res.status(500).send(`Failed to link Patreon account. Error: ${e.message || 'Unknown error'}. Please try again or contact support.`);
    }
  });
+
+// ギルドのチャンネル一覧を取得
+app.get('/api/guilds/:guildId', async (req, res) => {
+  const { guildId } = req.params;
+  console.log(`[API /api/guilds/${guildId}] Request received`);
+  
+  try {
+    // 認証チェック
+    const isAuth = req.isAuthenticated && req.isAuthenticated();
+    if (!isAuth || !req.user) {
+      console.log(`[API /api/guilds/${guildId}] Not authenticated`);
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const BOTS = [
+      { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
+      { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
+      { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
+      { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
+      { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
+      { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
+      { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+    ];
+
+    // 各Botからチャンネル情報を取得
+    for (const bot of BOTS) {
+      try {
+        console.log(`[API /api/guilds/${guildId}] Trying ${bot.name}`);
+        const response = await axios.get(`${bot.baseUrl}/api/guilds/${guildId}`, {
+          timeout: 3000
+        });
+        
+        if (response.status === 200 && Array.isArray(response.data)) {
+          console.log(`[API /api/guilds/${guildId}] Got ${response.data.length} channels from ${bot.name}`);
+          return res.json(response.data);
+        }
+      } catch (error) {
+        console.warn(`[API /api/guilds/${guildId}] ${bot.name} failed:`, error.message);
+        continue;
+      }
+    }
+    
+    // すべてのBotが失敗した場合
+    console.error(`[API /api/guilds/${guildId}] All bots failed`);
+    res.status(503).json({ error: 'No channels available' });
+    
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}] Fatal error:`, error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
