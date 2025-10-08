@@ -1802,30 +1802,46 @@ app.get('/api/guilds/:guildId', async (req, res) => {
       { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
     ];
 
-    // 各Botからチャンネル情報を取得
-    for (const bot of BOTS) {
+    // 各Botからチャンネル情報を取得（並列処理で高速化）
+    const channelPromises = BOTS.map(async (bot) => {
       try {
         console.log(`[API /api/guilds/${guildId}] Trying ${bot.name}`);
         const response = await axios.get(`${bot.baseUrl}/api/guilds/${guildId}`, {
-          timeout: 3000
+          timeout: 3000,
+          validateStatus: (status) => status < 500
         });
         
-        if (response.status === 200 && Array.isArray(response.data)) {
+        if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0) {
           console.log(`[API /api/guilds/${guildId}] Got ${response.data.length} channels from ${bot.name}`);
-          return res.json(response.data);
+          return { success: true, data: response.data, bot: bot.name };
         }
+        
+        return { success: false, bot: bot.name, reason: 'empty_or_invalid_response' };
       } catch (error) {
         console.warn(`[API /api/guilds/${guildId}] ${bot.name} failed:`, error.message);
-        continue;
+        return { success: false, bot: bot.name, error: error.message };
       }
+    });
+
+    const results = await Promise.all(channelPromises);
+    
+    // 最初に成功したBotのチャンネル情報を返す
+    const successResult = results.find(r => r.success);
+    
+    if (successResult) {
+      console.log(`[API /api/guilds/${guildId}] Returning ${successResult.data.length} channels from ${successResult.bot}`);
+      return res.json(successResult.data);
     }
     
     // すべてのBotが失敗した場合
-    console.error(`[API /api/guilds/${guildId}] All bots failed`);
-    res.status(503).json({ error: 'No channels available' });
+    console.error(`[API /api/guilds/${guildId}] All bots failed:`, results);
+    res.status(503).json({ 
+      error: 'No channels available',
+      details: results.map(r => ({ bot: r.bot, success: r.success, reason: r.reason || r.error }))
+    });
     
   } catch (error) {
     console.error(`[API /api/guilds/${guildId}] Fatal error:`, error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
