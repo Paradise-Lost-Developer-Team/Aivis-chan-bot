@@ -316,14 +316,15 @@ class Dashboard {
         logger.info('[Dashboard] Loading server information...');
         
         try {
-            const response = await fetch('/api/servers', {
+            // /api/servers から /api/guilds に変更
+            const response = await fetch('/api/guilds', {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json'
                 }
             });
             
-            logger.info(`[Dashboard] /api/servers response status: ${response.status}`);
+            logger.info(`[Dashboard] /api/guilds response status: ${response.status}`);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -373,15 +374,21 @@ class Dashboard {
             <div class="no-servers-message">
                 <div class="icon">🤖</div>
                 <h3>Botが参加しているサーバーが見つかりません</h3>
-                <p>以下の点を確認してください：</p>
+                <p>以下の原因が考えられます：</p>
                 <ul>
-                    <li>Botがサーバーに参加していますか？</li>
-                    <li>サーバーの管理権限を持っていますか？</li>
-                    <li>Discord側で認証を許可しましたか？</li>
+                    <li><strong>Botがオフライン：</strong> Discord Developer Portalで確認してください</li>
+                    <li><strong>サーバーに未参加：</strong> Botを招待してください</li>
+                    <li><strong>管理権限がない：</strong> サーバー設定を確認してください</li>
+                    <li><strong>認証バージョン違い：</strong> Free版とPro版を確認してください</li>
                 </ul>
-                <button onclick="location.reload()" class="reload-btn">
-                    🔄 再読み込み
-                </button>
+                <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+                    <button onclick="location.reload()" class="reload-btn" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                        🔄 再読み込み
+                    </button>
+                    <a href="https://discord.com/developers/applications" target="_blank" class="dev-portal-btn" style="padding: 12px 24px; background: #5865F2; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block;">
+                        🔧 Developer Portal
+                    </a>
+                </div>
             </div>
         `;
     }
