@@ -941,536 +941,141 @@ app.get('/api/premium-stats', requireAuth, (req, res) => {
     }
 });
 
-// Bot設定保存・取得API
-app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
+// 設定保存エンドポイント
+app.post('/api/settings', async (req, res) => {
     try {
-        const userId = req.user.id;
-        const guildId = req.body.guildId;
-        const settings = req.body.settings;
-
-        if (!guildId || !settings) {
-            return res.status(400).json({ error: 'guildId and settings are required' });
+        const { guildId, settings } = req.body;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
         }
 
-        // 設定をファイルに保存
-        const settingsDir = path.join('/tmp', 'data', 'settings');
-        if (!fs.existsSync(settingsDir)) {
-            fs.mkdirSync(settingsDir, { recursive: true });
-        }
-
-        const settingsFile = path.join(settingsDir, `${guildId}.json`);
-        const settingsData = {
-            guildId,
-            userId,
-            settings,
-            lastUpdated: new Date().toISOString()
-        };
-
-        fs.writeFileSync(settingsFile, JSON.stringify(settingsData, null, 2));
-
-        // 全Botに即座に設定更新を通知
-        await notifyBotsSettingsUpdate(guildId, 'settings');
-
-        res.json({ success: true, message: '設定を保存しました' });
-    } catch (error) {
-        console.error('Settings save error:', error);
-        res.status(500).json({ error: '設定の保存に失敗しました' });
-    }
-});
-
-app.get('/api/settings/:guildId', requireAuth, (req, res) => {
-    try {
-        const guildId = req.params.guildId;
-        const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
-
-        if (!fs.existsSync(settingsFile)) {
-            return res.json({ settings: null });
-        }
-
-        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-        res.json(settingsData);
-    } catch (error) {
-        console.error('Settings load error:', error);
-        res.status(500).json({ error: '設定の読み込みに失敗しました' });
-    }
-});
-
-// Bot内部アクセス用の設定読み込みAPI（認証不要）
-app.get('/internal/settings/:guildId', (req, res) => {
-    console.log(`[INTERNAL] Settings request for guild: ${req.params.guildId} from ${req.ip}`);
-    try {
-        const guildId = req.params.guildId;
-        const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
-
-        if (!fs.existsSync(settingsFile)) {
-            console.log(`[INTERNAL] Settings file not found: ${settingsFile}`);
-            return res.json({ settings: null });
-        }
-
-        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-        console.log(`[INTERNAL] Settings loaded for guild ${guildId}:`, Object.keys(settingsData));
-        res.json(settingsData);
-    } catch (error) {
-        console.error('Settings load error:', error);
-        res.status(500).json({ error: '設定の読み込みに失敗しました' });
-    }
-});
-
-// Bot内部アクセス用の辞書読み込みAPI（認証不要）
-app.get('/internal/dictionary/:guildId', (req, res) => {
-    console.log(`[INTERNAL] Dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
-    try {
-        const guildId = req.params.guildId;
-        const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
-
-        if (!fs.existsSync(dictionaryFile)) {
-            console.log(`[INTERNAL] Dictionary file not found: ${dictionaryFile}`);
-            return res.json({ dictionary: [] });
-        }
-
-        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
-        console.log(`[INTERNAL] Dictionary loaded for guild ${guildId}: ${dictionaryData.dictionary ? dictionaryData.dictionary.length : 0} entries`);
-        res.json(dictionaryData);
-    } catch (error) {
-        console.error('Dictionary load error:', error);
-        res.status(500).json({ error: '辞書の読み込みに失敗しました' });
-    }
-});
-
-// Bot内部アクセス用のグローバル辞書取得API
-// 返却フォーマット: { local: [...], global: [...] }
-app.get('/internal/global-dictionary/:guildId', async (req, res) => {
-  console.log(`[INTERNAL] Global dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
-  try {
-    const now = Date.now();
-
-    // キャッシュが新しければそれを返す
-    if (GLOBAL_DICT_CACHE.fetchedAt && (now - GLOBAL_DICT_CACHE.fetchedAt) < GLOBAL_DICT_CACHE_TTL) {
-      return res.json({ local: await loadLocalDictionary(req.params.guildId), global: GLOBAL_DICT_CACHE.entries || [] });
-    }
-
-    // 直近に外部フェッチでエラーがあれば一定時間スキップ（バックオフ）
-    if (GLOBAL_DICT_CACHE.errorUntil && now < GLOBAL_DICT_CACHE.errorUntil) {
-      console.debug('[INTERNAL] Skipping global dictionary fetch due to recent error, using cached/empty list');
-      GLOBAL_DICT_CACHE.fetchedAt = now;
-      return res.json({ local: await loadLocalDictionary(req.params.guildId), global: GLOBAL_DICT_CACHE.entries || [] });
-    }
-
-    const GLOBAL_DICT_API_URL = process.env.GLOBAL_DICT_API_URL || 'https://dictapi.libertasmc.xyz';
-    const GLOBAL_DICT_API_KEY = process.env.GLOBAL_DICT_API_KEY;
-    let globalEntries = [];
-
-    if (GLOBAL_DICT_API_URL && GLOBAL_DICT_API_KEY) {
-      try {
-        const listUrl = `${String(GLOBAL_DICT_API_URL).replace(/\/$/, '')}/list?per_page=200`;
-        const r = await axios.get(listUrl, { headers: { 'X-API-Key': GLOBAL_DICT_API_KEY }, timeout: 7000 });
-        if (r && r.data && Array.isArray(r.data.entries)) {
-          globalEntries = r.data.entries;
-          GLOBAL_DICT_CACHE.entries = globalEntries;
-          GLOBAL_DICT_CACHE.fetchedAt = Date.now();
-          console.log(`[INTERNAL] Fetched ${globalEntries.length} global dictionary entries`);
-        } else {
-          console.debug('[INTERNAL] Global dictionary service returned unexpected shape, caching empty result');
-          GLOBAL_DICT_CACHE.entries = [];
-          GLOBAL_DICT_CACHE.fetchedAt = Date.now();
-        }
-      } catch (e) {
-        const status = e?.response?.status;
-        const msg = e?.message || String(e);
-        console.warn('[INTERNAL] failed to fetch global dictionary:', status || msg);
-        const errorBackoffMs = parseInt(process.env.GLOBAL_DICT_ERROR_BACKOFF_MS || String(2 * 60 * 1000), 10);
-        GLOBAL_DICT_CACHE.errorUntil = Date.now() + errorBackoffMs;
-        GLOBAL_DICT_CACHE.entries = GLOBAL_DICT_CACHE.entries || [];
-        GLOBAL_DICT_CACHE.fetchedAt = Date.now();
-      }
-    } else {
-      console.debug('[INTERNAL] GLOBAL_DICT_API_URL or GLOBAL_DICT_API_KEY not configured; skipping external fetch');
-      GLOBAL_DICT_CACHE.entries = GLOBAL_DICT_CACHE.entries || [];
-      GLOBAL_DICT_CACHE.fetchedAt = Date.now();
-    }
-
-    const localEntries = await loadLocalDictionary(req.params.guildId);
-    return res.json({ local: localEntries, global: GLOBAL_DICT_CACHE.entries || [] });
-  } catch (error) {
-    console.error('Global dictionary load error:', error);
-    res.status(500).json({ error: 'グローバル辞書の読み込みに失敗しました' });
-  }
-});
-
-// helper to load local dictionary safely
-async function loadLocalDictionary(guildId) {
-  try {
-    const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
-    if (!fs.existsSync(dictionaryFile)) return [];
-    const raw = fs.readFileSync(dictionaryFile, 'utf8') || '{}';
-    const parsed = JSON.parse(raw);
-    if (parsed && Array.isArray(parsed.dictionary)) return parsed.dictionary;
-    if (Array.isArray(parsed)) return parsed;
-    return [];
-  } catch (e) {
-    console.warn('[INTERNAL] loadLocalDictionary error', e && e.message);
-    return [];
-  }
-}
-
-// API: return saved patreon link for a given discordId (used by bots to synchronize)
-app.get('/api/patreon/link/:discordId', (req, res) => {
-  try {
-    const discordId = req.params.discordId;
-    if (!fs.existsSync(PATREON_LINKS_FILE)) return res.status(404).json({ linked: false });
-    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8') || '[]';
-    const arr = JSON.parse(raw);
-    // direct match
-    let found = arr.find(x => String(x.discordId) === String(discordId));
-    // reuse global tryDecodeBase64Json which now also handles plain base64-encoded numeric IDs
-    const tryDecodeBase64JsonLocal = tryDecodeBase64Json;
-
-    if (!found) {
-      // if stored entries contain base64-encoded states, decode them and compare
-      for (const entry of arr) {
-        const stored = String(entry.discordId || '');
-        const decoded = tryDecodeBase64Json(stored);
-        if (decoded && decoded === String(discordId)) {
-          found = entry;
-          break;
-        }
-      }
-    }
-
-    if (!found) {
-      // also try if the requested discordId is itself base64-encoded JSON that refers to a numeric id
-      const reqDecoded = tryDecodeBase64Json(discordId);
-      if (reqDecoded) {
-        found = arr.find(x => String(x.discordId) === String(reqDecoded));
-        if (!found) {
-          for (const entry of arr) {
-            const stored = String(entry.discordId || '');
-            const decoded = tryDecodeBase64Json(stored);
-            if (decoded && decoded === reqDecoded) {
-              found = entry;
-              break;
+        console.log(`[API /api/settings] Saving settings for guild: ${guildId}`);
+        
+        // ファイルに保存
+        const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
+        await fs.mkdir(path.dirname(settingsPath), { recursive: true });
+        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+        
+        // 全Botに通知
+        const notifyResults = await Promise.allSettled(
+            BOT_INSTANCES.map(async (bot) => {
+                const url = `${bot.url}/api/settings/notify`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guildId, settings })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`${response.status}`);
+                }
+                return { bot: bot.name, success: true };
+            })
+        );
+        
+        notifyResults.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.log(`Failed to notify bot at ${BOT_INSTANCES[index].url}: ${result.reason.message}`);
             }
-          }
-        }
-      }
-    }
-
-    if (!found) return res.status(404).json({ linked: false });
-    return res.json(Object.assign({ linked: true }, found));
-  } catch (e) {
-    console.error('get patreon link error', e);
-    return res.status(500).json({ linked: false, error: String(e?.message || e) });
-  }
-});
-
-app.get('/auth/patreon/start', (req, res) => {
-  const discordId = req.query.discordId;
-  if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) {
-    console.error('[PATREON] Client credentials not configured:', { CLIENT_ID: !!PATREON_CLIENT_ID, CLIENT_SECRET: !!PATREON_CLIENT_SECRET });
-    return res.status(500).send('Patreon client not configured. Please contact administrator.');
-  }
-  if (!PATREON_REDIRECT_URI) {
-    console.error('[PATREON] REDIRECT_URI not configured');
-    return res.status(500).send('Patreon redirect URI not configured. Please contact administrator.');
-  }
-  if (!discordId) return res.status(400).send('discordId is required as query param');
-  
-  // discordId のバリデーション（Discord ID は数値の文字列のはず）
-  if (!/^\d{15,22}$/.test(String(discordId))) {
-    console.warn('[PATREON] Invalid discordId format:', discordId);
-    return res.status(400).send('Invalid discordId format');
-  }
-  
-  const state = `${discordId}:${Math.random().toString(36).slice(2,10)}`;
-  const params = new URLSearchParams({
-    response_type: 'code',
-    client_id: PATREON_CLIENT_ID,
-    redirect_uri: PATREON_REDIRECT_URI,
-    scope: 'identity',
-    state
-  });
-  const authUrl = `https://www.patreon.com/oauth2/authorize?${params.toString()}`;
-  console.log('[PATREON] Generated auth URL for discordId:', discordId, 'state:', state);
-  return res.redirect(authUrl);
- });
- 
-// ダッシュボードのルートを明示 (認証必須)
-// express.static は '/dashboard.html' を配信するが '/dashboard/' ではディレクトリ探索になるため明示ルートを追加
-app.get(['/dashboard', '/dashboard/'], requireAuth, (req, res) => {
-  try {
-    return res.sendFile(path.join(__dirname, 'dashboard.html'));
-  } catch (e) {
-    console.error('[ROUTE] failed to serve dashboard.html:', e && (e.stack || e.message || e));
-    return res.status(500).send('Failed to load dashboard');
-  }
-});
-
-// サーバーリストを返すエンドポイント
-app.get('/api/servers', async (req, res) => {
-  const startTime = Date.now();
-  console.log(`[API /api/servers] Request received at ${new Date().toISOString()}`);
-  
-  try {
-    // 認証チェック
-    const isAuth = req.isAuthenticated && req.isAuthenticated();
-    
-    console.log(`[API /api/servers] isAuthenticated: ${isAuth}`);
-    console.log(`[API /api/servers] req.user:`, req.user ? {
-      id: req.user.id,
-      username: req.user.username,
-      hasGuilds: Array.isArray(req.user.guilds),
-      guildsCount: req.user.guilds?.length || 0
-    } : 'null');
-    console.log(`[API /api/servers] sessionID: ${req.sessionID}`);
-    
-    // 認証されていない場合は空配列を返す
-    if (!isAuth || !req.user) {
-      console.log(`[API /api/servers] Not authenticated, returning empty array`);
-      return res.json([]);
-    }
-
-    // ユーザーのギルド情報を取得
-    let userGuilds = [];
-    
-    if (Array.isArray(req.user.guilds) && req.user.guilds.length > 0) {
-      userGuilds = req.user.guilds;
-      console.log(`[API /api/servers] Using ${userGuilds.length} guilds from session`);
-    } else {
-      // Discord APIから直接取得
-      const accessToken = req.session?.accessToken || req.user?.accessToken;
-      console.log(`[API /api/servers] Access token available: ${!!accessToken}`);
-      
-      if (accessToken) {
-        try {
-          console.log(`[API /api/servers] Fetching guilds from Discord API...`);
-          const guildsResponse = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            timeout: 5000
-          });
-          
-          userGuilds = guildsResponse.data || [];
-          console.log(`[API /api/servers] Fetched ${userGuilds.length} guilds from Discord API`);
-          
-          // セッションに保存
-          if (req.user) {
-            req.user.guilds = userGuilds;
-          }
-        } catch (e) {
-          console.error(`[API /api/servers] Failed to fetch guilds from Discord API:`, e.message);
-        }
-      }
-    }
-
-    console.log(`[API /api/servers] Total user guilds: ${userGuilds.length}`);
-    
-    // Botが参加しているギルドIDを取得
-    const botGuildIds = new Set();
-    const BOTS = [
-      { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
-      { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
-      { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
-      { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
-      { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
-      { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
-      { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
-    ];
-
-    console.log(`[API /api/servers] Fetching guild info from ${BOTS.length} bots...`);
-
-    // 各Botからギルド情報を並列取得
-    const botInfoPromises = BOTS.map(async (bot) => {
-      const endpoints = [
-        `${bot.baseUrl}/internal/info`,
-        `${bot.baseUrl}/api/servers`
-      ];
-      
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get(endpoint, {
-            timeout: 3000,
-            validateStatus: (status) => status < 500
-          });
-          
-          if (response.status === 200 && response.data) {
-            let guildIds = [];
-            
-            if (Array.isArray(response.data.guildIds)) {
-              guildIds = response.data.guildIds;
-            } else if (Array.isArray(response.data)) {
-              guildIds = response.data.map(g => g.id).filter(Boolean);
-            }
-            
-            if (guildIds.length > 0) {
-              console.log(`[API /api/servers] ${bot.name} returned ${guildIds.length} guilds from ${endpoint}`);
-              return { bot: bot.name, guildIds, endpoint };
-            }
-          }
-        } catch (error) {
-          // Silent failure for each endpoint attempt
-          continue;
-        }
-      }
-      
-      console.warn(`[API /api/servers] ${bot.name} failed all endpoints`);
-      return { bot: bot.name, guildIds: [], endpoint: null };
-    });
-
-    const botResults = await Promise.all(botInfoPromises);
-    
-    // 全BotのギルドIDを統合
-    botResults.forEach(result => {
-      result.guildIds.forEach(guildId => botGuildIds.add(guildId));
-    });
-
-    console.log(`[API /api/servers] Total bot guilds: ${botGuildIds.size}`);
-
-    // ユーザーのギルドとBotのギルドの共通部分をフィルタリング
-    const filteredServers = userGuilds.filter(guild => botGuildIds.has(guild.id));
-    
-    console.log(`[API /api/servers] Filtered servers: ${filteredServers.length}`);
-    
-    // アイコンURLを正規化
-    const normalizedServers = filteredServers.map(s => {
-      let iconUrl = s.iconUrl || null;
-      if (!iconUrl) {
-        const iconHash = s.icon || s.iconHash || null;
-        if (iconHash) {
-          iconUrl = `https://cdn.discordapp.com/icons/${s.id}/${iconHash}.png`;
-        }
-      }
-      return {
-        id: s.id,
-        name: s.name,
-        icon: s.icon || null,
-        iconUrl,
-        owner: s.owner || false,
-        permissions: s.permissions || null
-      };
-    });
-
-    // ユーザー情報を追加
-    const serversWithUserInfo = normalizedServers.map(server => ({
-      ...server,
-      nickname: req.user.nickname || req.user.username || null,
-      userIconUrl: req.user.avatarUrl || 
-        (req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` : null)
-    }));
-
-    const elapsed = Date.now() - startTime;
-    console.log(`[API /api/servers] Returning ${serversWithUserInfo.length} servers (took ${elapsed}ms)`);
-    res.json(serversWithUserInfo);
-    
-  } catch (error) {
-    console.error('[API /api/servers] Fatal error:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: error.message 
-    });
-  }
-});
-
-// Discord OAuth2を使用してユーザーに関連するサーバーリストを取得する関数
-async function fetchServersForUser(accessToken) {
-    try {
-        // Discord APIを使用してユーザーのサーバーリストを取得
-        const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
-
-        if (guildsResponse.status !== 200) {
-            throw new Error(`Failed to fetch servers: ${guildsResponse.statusText}`);
-        }
-
-        const userResponse = await axios.get('https://discord.com/api/users/@me', {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
-
-        if (userResponse.status !== 200) {
-            throw new Error(`Failed to fetch user info: ${userResponse.statusText}`);
-        }
-
-        const userIconUrl = userResponse.data.avatar
-            ? `https://cdn.discordapp.com/avatars/${userResponse.data.id}/${userResponse.data.avatar}.png`
-            : null;
-
-        const userNickname = userResponse.data.username;
-
-        return guildsResponse.data.map(guild => ({
-            id: guild.id,
-            name: guild.name,
-            iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null,
-            nickname: userNickname, // ユーザーニックネームを追加
-            userIconUrl // ユーザーアイコンを追加
-        }));
-    } catch (error) {
-        console.error('Error fetching servers for user:', error);
-        throw new Error('Failed to fetch servers');
-    }
-}
-
-// TTS エンジンの話者一覧をプロキシするエンドポイント
-// フロントは CORS やネットワーク制約を避けるためこのエンドポイントを優先して叩きます
-app.get('/api/tts/speakers', async (req, res) => {
-  const ttsBase = process.env.TTS_ENGINE_URL || process.env.AIVIS_TTS_URL || 'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101';
-  const url = `${String(ttsBase).replace(/\/$/, '')}/speakers`;
-  try {
-    const r = await axios.get(url, { timeout: 5000 });
-    if (r && r.data) {
-      // 期待は配列（文字列またはオブジェクト）
-      return res.json(r.data);
-    }
-    return res.json([]);
-  } catch (e) {
-    console.warn('[api/tts/speakers] fetch failed:', e.message || e);
-    return res.status(502).json({ error: 'Failed to fetch speakers from TTS engine' });
-  }
-});
-
-// 話者一覧を返すエンドポイント（全Botから集約）
-app.get('/api/speakers', async (req, res) => {
-  console.log(`[API /api/speakers] Request received`);
-  
-  try {
-    const BOTS = [
-      { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
-      { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
-      { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
-      { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
-      { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
-      { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
-      { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
-    ];
-
-    // 最初に応答したBotから話者情報を取得
-    for (const bot of BOTS) {
-      try {
-        console.log(`[API /api/speakers] Trying ${bot.name}`);
-        const response = await axios.get(`${bot.baseUrl}/api/speakers`, {
-          timeout: 3000
         });
         
-        if (response.status === 200 && response.data) {
-          console.log(`[API /api/speakers] Got speakers from ${bot.name}`);
-          return res.json(response.data);
-        }
-      } catch (error) {
-        console.warn(`[API /api/speakers] ${bot.name} failed:`, error.message);
-        continue;
-      }
+        res.json({ success: true, message: 'Settings saved successfully' });
+    } catch (error) {
+        console.error('[API /api/settings] Error:', error);
+        res.status(500).json({ error: 'Failed to save settings' });
     }
-    
-    // すべてのBotが失敗した場合
-    console.error('[API /api/speakers] All bots failed to provide speakers');
-    res.status(503).json({ error: 'No speakers available' });
-    
-  } catch (error) {
-    console.error('[API /api/speakers] Fatal error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+});
+
+// 個人設定保存エンドポイント
+app.post('/api/personal-settings', async (req, res) => {
+    try {
+        const { guildId, settings } = req.body;
+        const userId = req.user?.id;
+        
+        if (!guildId || !userId) {
+            return res.status(400).json({ error: 'guildId and userId are required' });
+        }
+
+        console.log(`[API /api/personal-settings] Saving personal settings for guild: ${guildId}, user: ${userId}`);
+        
+        const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'personal', `${userId}.json`);
+        await fs.mkdir(path.dirname(settingsPath), { recursive: true });
+        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+        
+        // 全Botに通知
+        const notifyResults = await Promise.allSettled(
+            BOT_INSTANCES.map(async (bot) => {
+                const url = `${bot.url}/api/personal-settings/notify`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guildId, userId, settings })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`${response.status}`);
+                }
+                return { bot: bot.name, success: true };
+            })
+        );
+        
+        notifyResults.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.log(`Failed to notify bot at ${BOT_INSTANCES[index].url}: ${result.reason.message}`);
+            }
+        });
+        
+        res.json({ success: true, message: 'Personal settings saved successfully' });
+    } catch (error) {
+        console.error('[API /api/personal-settings] Error:', error);
+        res.status(500).json({ error: 'Failed to save personal settings' });
+    }
+});
+
+// 辞書保存エンドポイント
+app.post('/api/dictionary', async (req, res) => {
+    try {
+        const { guildId, dictionary } = req.body;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        console.log(`[API /api/dictionary] Saving dictionary for guild: ${guildId}`);
+        
+        const dictPath = path.join(__dirname, 'data', 'guilds', guildId, 'dictionary.json');
+        await fs.mkdir(path.dirname(dictPath), { recursive: true });
+        await fs.writeFile(dictPath, JSON.stringify(dictionary, null, 2));
+        
+        // 全Botに通知
+        const notifyResults = await Promise.allSettled(
+            BOT_INSTANCES.map(async (bot) => {
+                const url = `${bot.url}/api/dictionary/notify`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ guildId, dictionary })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`${response.status}`);
+                }
+                return { bot: bot.name, success: true };
+            })
+        );
+        
+        notifyResults.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.log(`Failed to notify bot at ${BOT_INSTANCES[index].url}: ${result.reason.message}`);
+            }
+        });
+        
+        res.json({ success: true, message: 'Dictionary saved successfully' });
+    } catch (error) {
+        console.error('[API /api/dictionary] Error:', error);
+        res.status(500).json({ error: 'Failed to save dictionary' });
+    }
 });
 
 // Redisヘルスチェックエンドポイント
