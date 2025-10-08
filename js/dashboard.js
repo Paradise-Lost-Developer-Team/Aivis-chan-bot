@@ -778,107 +778,262 @@ class Dashboard {
         });
     }
 
-    async setupPersonalSettings(guildId, speakers) {
+    setupSettingsTabs() {
+        const tabButtons = document.querySelectorAll('.settings-tab-button');
+        const tabPanels = document.querySelectorAll('.settings-tab-panel');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                
+                // すべてのタブを非アクティブ化
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabPanels.forEach(panel => panel.classList.remove('active'));
+                
+                // 選択したタブをアクティブ化
+                button.classList.add('active');
+                document.querySelector(`.settings-tab-panel[data-tab="${targetTab}"]`).classList.add('active');
+                
+                logger.info(`[Dashboard] Switched to tab: ${targetTab}`);
+            });
+        });
+    }
+    
+    setupRangeInputs() {
+        const rangeInputs = document.querySelectorAll('.form-range');
+        rangeInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const valueDisplay = e.target.nextElementSibling;
+                if (valueDisplay && valueDisplay.classList.contains('range-value')) {
+                    valueDisplay.textContent = e.target.value;
+                }
+            });
+        });
+    }
+    
+    async setupDictionary(guildId) {
+        logger.info('[Dashboard] Setting up dictionary...');
+        
         try {
-            logger.info('[Dashboard] Loading personal settings...');
-            
-            // 個人設定を取得
-            const response = await fetch(`/api/personal-settings?guildId=${guildId}&userId=${this.currentUserId}`, {
+            // 辞書データを取得
+            const response = await fetch(`/api/dictionary?guildId=${guildId}`, {
                 credentials: 'include'
             });
             
-            if (response.ok) {
-                const data = await response.json();
-                const settings = data.settings || {};
-                
-                logger.info('[Dashboard] Personal settings received:', settings);
-                
-                // フォームに設定を反映
-                if (settings.speaker) {
-                    const speakerSelect = document.getElementById('personal-speaker');
-                    if (speakerSelect) {
-                        speakerSelect.value = settings.speaker;
-                    }
-                }
-                if (settings.speed) {
-                    const speedInput = document.getElementById('personal-speed');
-                    if (speedInput) {
-                        speedInput.value = settings.speed;
-                        const valueDisplay = speedInput.nextElementSibling;
-                        if (valueDisplay) {
-                            valueDisplay.textContent = settings.speed;
-                        }
-                    }
-                }
-                if (settings.pitch) {
-                    const pitchInput = document.getElementById('personal-pitch');
-                    if (pitchInput) {
-                        pitchInput.value = settings.pitch;
-                        const valueDisplay = pitchInput.nextElementSibling;
-                        if (valueDisplay) {
-                            valueDisplay.textContent = settings.pitch;
-                        }
-                    }
-                }
-                if (settings.volume) {
-                    const volumeInput = document.getElementById('personal-volume');
-                    if (volumeInput) {
-                        volumeInput.value = settings.volume;
-                        const valueDisplay = volumeInput.nextElementSibling;
-                        if (valueDisplay) {
-                            valueDisplay.textContent = settings.volume;
-                        }
-                    }
-                }
-                
-                logger.success('[Dashboard] Personal settings loaded and applied');
-            } else {
-                logger.info('[Dashboard] No personal settings found, using defaults');
+            if (!response.ok) {
+                throw new Error('辞書の読み込みに失敗しました');
             }
             
-            // 保存ボタンのイベント
-            const saveBtn = document.getElementById('save-personal-settings');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', async () => {
-                    await this.savePersonalSettings(guildId);
+            const data = await response.json();
+            const dictionary = data.dictionary || [];
+            
+            logger.info(`[Dashboard] Dictionary loaded: ${dictionary.length} entries`);
+            
+            // 辞書一覧を表示
+            this.renderDictionary(dictionary);
+            
+            // エントリー追加ボタン
+            const addBtn = document.getElementById('add-dictionary-entry');
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    this.addDictionaryEntry();
                 });
             }
             
-            // リセットボタンのイベント
-            const resetBtn = document.getElementById('reset-personal-settings');
-            if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
-                    const speakerSelect = document.getElementById('personal-speaker');
-                    const speedInput = document.getElementById('personal-speed');
-                    const pitchInput = document.getElementById('personal-pitch');
-                    const volumeInput = document.getElementById('personal-volume');
-                    
-                    if (speakerSelect) speakerSelect.value = '';
-                    if (speedInput) {
-                        speedInput.value = 1.0;
-                        const valueDisplay = speedInput.nextElementSibling;
-                        if (valueDisplay) valueDisplay.textContent = '1.0';
-                    }
-                    if (pitchInput) {
-                        pitchInput.value = 1.0;
-                        const valueDisplay = pitchInput.nextElementSibling;
-                        if (valueDisplay) valueDisplay.textContent = '1.0';
-                    }
-                    if (volumeInput) {
-                        volumeInput.value = 1.0;
-                        const valueDisplay = volumeInput.nextElementSibling;
-                        if (valueDisplay) valueDisplay.textContent = '1.0';
-                    }
-                    
-                    logger.info('[Dashboard] Personal settings reset to default');
+            // 保存ボタン
+            const saveBtn = document.getElementById('save-dictionary');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', async () => {
+                    await this.saveDictionary(guildId);
                 });
             }
             
         } catch (error) {
-            logger.error('[Dashboard] Failed to setup personal settings: ' + error.message);
+            logger.error('[Dashboard] Failed to setup dictionary: ' + error.message);
+            this.showError('辞書の読み込みに失敗しました: ' + error.message);
         }
     }
-
+    
+    renderDictionary(dictionary) {
+        const listEl = document.getElementById('dictionary-list');
+        if (!listEl) return;
+        
+        if (dictionary.length === 0) {
+            listEl.innerHTML = '<p class="info-text">辞書にエントリーがありません。「➕ エントリーを追加」ボタンから追加してください。</p>';
+            return;
+        }
+        
+        listEl.innerHTML = dictionary.map((entry, index) => `
+            <div class="dictionary-entry" data-index="${index}">
+                <div class="dictionary-entry-info">
+                    <div class="dictionary-word">
+                        <strong>単語:</strong> <input type="text" class="dict-word-input" value="${this.escapeHtml(entry.word || '')}" />
+                    </div>
+                    <div class="dictionary-pronunciation">
+                        <strong>読み:</strong> <input type="text" class="dict-pronunciation-input" value="${this.escapeHtml(entry.pronunciation || '')}" />
+                    </div>
+                    ${entry.accent !== undefined ? `
+                    <div class="dictionary-accent">
+                        <strong>アクセント:</strong> <input type="number" class="dict-accent-input" value="${entry.accent}" min="0" />
+                    </div>
+                    ` : ''}
+                    ${entry.wordType ? `
+                    <div class="dictionary-wordtype">
+                        <strong>品詞:</strong> 
+                        <select class="dict-wordtype-input">
+                            <option value="PROPER_NOUN" ${entry.wordType === 'PROPER_NOUN' ? 'selected' : ''}>固有名詞</option>
+                            <option value="COMMON_NOUN" ${entry.wordType === 'COMMON_NOUN' ? 'selected' : ''}>普通名詞</option>
+                            <option value="VERB" ${entry.wordType === 'VERB' ? 'selected' : ''}>動詞</option>
+                            <option value="ADJECTIVE" ${entry.wordType === 'ADJECTIVE' ? 'selected' : ''}>形容詞</option>
+                            <option value="SUFFIX" ${entry.wordType === 'SUFFIX' ? 'selected' : ''}>語尾</option>
+                        </select>
+                    </div>
+                    ` : ''}
+                </div>
+                <button class="btn btn-danger btn-small remove-dictionary-entry" data-index="${index}">🗑️ 削除</button>
+            </div>
+        `).join('');
+        
+        // 削除ボタンのイベント
+        document.querySelectorAll('.remove-dictionary-entry').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.removeDictionaryEntry(index);
+            });
+        });
+    }
+    
+    addDictionaryEntry() {
+        const listEl = document.getElementById('dictionary-list');
+        if (!listEl) return;
+        
+        // 既存の辞書エントリーを取得
+        const existingEntries = this.getDictionaryFromUI();
+        
+        // 新しいエントリーを追加
+        existingEntries.push({
+            word: '',
+            pronunciation: '',
+            accent: 0,
+            wordType: 'PROPER_NOUN'
+        });
+        
+        this.renderDictionary(existingEntries);
+        logger.info('[Dashboard] Dictionary entry added');
+    }
+    
+    removeDictionaryEntry(index) {
+        const entries = this.getDictionaryFromUI();
+        entries.splice(index, 1);
+        this.renderDictionary(entries);
+        logger.info(`[Dashboard] Dictionary entry removed: index ${index}`);
+    }
+    
+    getDictionaryFromUI() {
+        const entries = [];
+        document.querySelectorAll('.dictionary-entry').forEach(entryEl => {
+            const word = entryEl.querySelector('.dict-word-input')?.value || '';
+            const pronunciation = entryEl.querySelector('.dict-pronunciation-input')?.value || '';
+            const accentInput = entryEl.querySelector('.dict-accent-input');
+            const wordTypeInput = entryEl.querySelector('.dict-wordtype-input');
+            
+            if (word && pronunciation) {
+                const entry = {
+                    word: word,
+                    pronunciation: pronunciation
+                };
+                
+                if (accentInput) {
+                    entry.accent = parseInt(accentInput.value) || 0;
+                }
+                
+                if (wordTypeInput) {
+                    entry.wordType = wordTypeInput.value;
+                }
+                
+                entries.push(entry);
+            }
+        });
+        
+        return entries;
+    }
+    
+    async saveDictionary(guildId) {
+        try {
+            logger.info('[Dashboard] Saving dictionary...');
+            
+            const dictionary = this.getDictionaryFromUI();
+            
+            logger.info(`[Dashboard] Dictionary entries to save: ${dictionary.length}`);
+            
+            const response = await fetch('/api/dictionary', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    guildId: guildId,
+                    dictionary: dictionary
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || '辞書の保存に失敗しました');
+            }
+            
+            const result = await response.json();
+            logger.success('Dictionary saved successfully:', result);
+            this.showSuccess('辞書を保存しました');
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to save dictionary: ' + error.message);
+            this.showError('辞書の保存に失敗しました: ' + error.message);
+        }
+    }
+    
+    async savePersonalSettings(guildId) {
+        try {
+            logger.info('[Dashboard] Saving personal settings...');
+            
+            const settings = {
+                speaker: document.getElementById('personal-speaker').value || null,
+                speed: parseFloat(document.getElementById('personal-speed').value),
+                pitch: parseFloat(document.getElementById('personal-pitch').value),
+                volume: parseFloat(document.getElementById('personal-volume').value)
+            };
+            
+            logger.info('[Dashboard] Personal settings to save:', settings);
+            
+            const response = await fetch('/api/personal-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    guildId: guildId,
+                    userId: this.currentUserId,
+                    settings: settings
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || '個人設定の保存に失敗しました');
+            }
+            
+            const result = await response.json();
+            logger.success('Personal settings saved successfully:', result);
+            this.showSuccess('個人設定を保存しました');
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to save personal settings: ' + error.message);
+            this.showError('個人設定の保存に失敗しました: ' + error.message);
+        }
+    }
+    
     showSuccess(message) {
         logger.success('[Dashboard] Success: ' + message);
         
@@ -904,6 +1059,33 @@ class Dashboard {
             successEl.style.animation = 'slideOutRight 0.3s ease-out';
             setTimeout(() => successEl.remove(), 300);
         }, 3000);
+    }
+
+    showError(message) {
+        logger.error('[Dashboard] Error: ' + message);
+        
+        const errorEl = document.createElement('div');
+        errorEl.className = 'error-message';
+        errorEl.textContent = message;
+        errorEl.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(244, 67, 54, 0.3);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(errorEl);
+        
+        setTimeout(() => {
+            errorEl.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => errorEl.remove(), 300);
+        }, 5000);
     }
 
     // ...existing code...
