@@ -1271,9 +1271,13 @@ app.get('/health/redis', async (req, res) => {
   }
 });
 
-// Patreon defaults
+// Patreon defaults (k8s: avoid localhost fallback)
 const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
 const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
-const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || `${process.env.BASE_URL || 'https://aivis-chan-bot.com'}/auth/patreon/callback`;
+const PATREON_REDIRECT_URI = process.env.PATREON_REDIRECT_URI || (process.env.BASE_URL ? `${String(process.env.BASE_URL).replace(/\/$/, '')}/auth/patreon/callback` : undefined);
 const PATREON_REDIRECT_PATH = process.env.PATREON_REDIRECT_PATH || '/auth/patreon/callback';
 const PATREON_LINKS_FILE = process.env.PATREON_LINKS_FILE || path.join('/tmp', 'data', 'patreon_links.json');
+
+if (!PATREON_REDIRECT_URI) {
+  console.warn('[PATREON] PATREON_REDIRECT_URI not configured. /auth/patreon/start will return 500 until configured. Set BASE_URL or PATREON_REDIRECT_URI to your ingress domain (e.g. https://example.com).');
+}
