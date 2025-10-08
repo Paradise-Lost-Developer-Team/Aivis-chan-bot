@@ -475,6 +475,49 @@ apiApp.listen(3004, () => {
 import { joinVoiceChannel, getVoiceConnection } from '@discordjs/voice';
 import { textChannels, voiceClients, setTextChannelForGuildInMap, setTextChannelForGuildInMap as __setTextChannelForGuildInMap, removeTextChannelForGuildInMap } from './utils/TTS-Engine';
 
+// Backwards-compatibility shim: utils/TTS-Engine may not export removeTextChannelByVoiceChannelId.
+// Provide a local synchronous helper that delegates to the module if available, otherwise falls back
+// to scanning and removing entries from the in-memory textChannels mapping.
+function removeTextChannelByVoiceChannelId(voiceChannelId: string) {
+    // Try to delegate to the TTS-Engine module implementation if it exists.
+    try {
+        // use require to keep this synchronous and compatible with mixed import/require usage in the codebase
+        // (some places in this project use require(...) already).
+        const mod = require('./utils/TTS-Engine');
+        if (mod && typeof mod.removeTextChannelByVoiceChannelId === 'function') {
+            try {
+                mod.removeTextChannelByVoiceChannelId(voiceChannelId);
+                return;
+            } catch (e) {
+                // fall through to fallback implementation
+            }
+        }
+    } catch (e) {
+        // module or function not available — proceed to fallback
+    }
+
+    // Fallback: remove any mapping entries in the in-memory textChannels map that reference the voiceChannelId.
+    try {
+        const tc = textChannels as Record<string, any>;
+        for (const key of Object.keys(tc)) {
+            try {
+                const ch = tc[key];
+                if (!ch) {
+                    delete tc[key];
+                    continue;
+                }
+                if (ch.voiceChannelId === voiceChannelId || ch.id === voiceChannelId || ch.guild?.id === voiceChannelId) {
+                    delete tc[key];
+                }
+            } catch (e) {
+                // ignore per-entry errors
+            }
+        }
+    } catch (e) {
+        // not critical — swallow
+    }
+}
+
 apiApp.post('/internal/join', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId, textChannelId, requestingChannelId } = req.body || {};
@@ -486,7 +529,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         const existing = voiceClients[guildId];
         if (existing && existing.state.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
-            return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
+            return res.status(409).json({ error: 'already-connected_other-channel', current: existing.joinConfig.channelId });
         }
 
         // 新ルール: 明示的な textChannelId が渡された場合は「そのまま」受け入れる（自動フォールバックは行わない）。
@@ -569,8 +612,12 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
         // voice 接続処理（text チャンネル決定とは独立）
-        const prev = getVoiceConnection(voiceChannelId);
-        if (prev) { try { prev.destroy(); } catch {} try { delete (voiceClients as any)[voiceChannelId]; } catch {} }
+        const prev = (typeof getVoiceConnection === 'function') ? (getVoiceConnection(guildId) || getVoiceConnection(voiceChannelId)) : undefined;
+        if (prev) {
+             try { prev.destroy(); } catch {}
+             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+             try { delete (voiceClients as any)[guildId]; } catch {}
+         }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
 
@@ -655,21 +702,32 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
-
-        if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
-            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { removeTextChannelForGuildInMap(voiceChannelId); } catch {}
-            try { delete (global as any).players?.[voiceChannelId]; } catch {}
-        } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
-            try { delete (voiceClients as any)[guildId]; } catch {}
-            try { removeTextChannelForGuildInMap(guildId); } catch {}
-            try { delete (global as any).players?.[guildId]; } catch {}
+        const ids = [guildId, voiceChannelId].filter(Boolean);
+        for (const id of ids) {
+            try { const c = getVoiceConnection(id); if (c) try { c.destroy(); } catch {} } catch {}
         }
-
-        // 3rd Botではボイス状態の保存をスキップ（1st Botが管理）
-        // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        try { if (voiceChannelId) delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { if (guildId) delete (voiceClients as any)[guildId]; } catch {}
+        try { if (voiceChannelId) removeTextChannelByVoiceChannelId(voiceChannelId); } catch {}
+        try { if (guildId) removeTextChannelForGuildInMap(guildId); } catch {}
+        try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
+        try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
+        // Attempt to call saveVoiceState if it exists in the TTS-Engine module or as a global function,
+        // using dynamic import and a safe fallback to avoid compile-time "not found" errors.
+        setTimeout(() => {
+            (async () => {
+                try {
+                    const mod = await import('./utils/TTS-Engine').catch(() => null) as any;
+                    if (mod && typeof mod.saveVoiceState === 'function') {
+                        try { await mod.saveVoiceState(client); } catch (e) { /* ignore */ }
+                    } else if (typeof (global as any).saveVoiceState === 'function') {
+                        try { (global as any).saveVoiceState(client); } catch (e) { /* ignore */ }
+                    }
+                } catch (e) {
+                    // swallow errors during best-effort save
+                }
+            })();
+        }, 500);
         return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
