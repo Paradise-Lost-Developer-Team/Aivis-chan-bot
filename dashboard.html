@@ -3,76 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>ダッシュボード - Aivis-chan Bot</title>
+    <title>Aivis chan Bot - ダッシュボード</title>
+    <meta name="description" content="Aivis chan Botの管理ダッシュボード">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard-toast.css">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- ヘッダー -->
-        <header class="dashboard-header">
-            <div class="header-left">
-                <h1>🎵 Aivis-chan Bot</h1>
-                <span class="version-tag" id="version-tag">Loading...</span>
-            </div>
-            <div class="header-right">
-                <div class="user-info">
-                    <img src="/default-icon.svg" alt="User Avatar" id="user-avatar" class="user-avatar">
-                    <span id="user-name">Loading...</span>
-                </div>
-                <a href="/logout" class="logout-btn">ログアウト</a>
-            </div>
-        </header>
-
-        <!-- メインコンテンツ -->
-        <div class="dashboard-content">
-            <!-- サイドバー：サーバー一覧 -->
-            <aside class="sidebar">
+        <!-- サイドバー -->
+        <div id="sidebar">
+            <div class="sidebar-header">
                 <h2>サーバー一覧</h2>
-                <div id="server-list" class="server-list">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>サーバーを読み込んでいます...</p>
+            </div>
+            <div id="server-list">
+                <!-- サーバーリストは動的に生成されます -->
+            </div>
+        </div>
+
+        <!-- メインのダッシュボード -->
+        <div id="main-dashboard" class="main-dashboard">
+            <header class="dashboard-header">
+                <h1>Aivis chan Bot ダッシュボード</h1>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <img id="user-avatar" class="user-avatar" src="" alt="Avatar" style="display: none;">
+                        <span id="user-display">読み込み中...</span>
+                        <a href="#" id="logout-btn" class="logout-btn">ログアウト</a>
                     </div>
                 </div>
-            </aside>
+                <nav class="dashboard-nav">
+                    <button class="nav-tab active" data-tab="overview">概要</button>
+                    <button class="nav-tab" data-tab="dictionary">辞書</button>
+                    <button class="nav-tab" data-tab="settings">設定</button>
+                    <button class="nav-tab" data-tab="personal">個人の設定</button>
+                    <button class="nav-tab" data-tab="logs">ログ</button>
+                    <button class="nav-tab premium-tab" data-tab="premium" id="premium-tab" style="display: none;">プレミアム</button>
+                </nav>
+            </header>
 
-            <!-- メインエリア：設定パネル -->
-            <main class="main-content">
-                <div id="welcome-screen" class="welcome-screen">
-                    <div class="welcome-icon">🎤</div>
-                    <h2>ようこそ！</h2>
-                    <p>左側のリストからサーバーを選択して設定を開始してください</p>
+            <main class="dashboard-content">
+            <!-- 概要タブ -->
+            <section id="overview" class="tab-content active">
+                <h2>概要</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>総サーバー数</h3>
+                        <div class="stat-value" id="total-servers">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>総ユーザー数</h3>
+                        <div class="stat-value" id="total-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>オンラインBot数</h3>
+                        <div class="stat-value" id="online-bots">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>VC接続数</h3>
+                        <div class="stat-value" id="vc-connections">0</div>
+                    </div>
                 </div>
 
-                <div id="settings-panel" class="settings-panel" style="display: none;">
-                    <!-- サーバー設定がここに表示されます -->
+                <!-- 参加ギルドリスト -->
+                <!-- guilds-sectionはサイドバーに移動済み -->
+
+                <div class="bot-list">
+                    <h3>Botステータス</h3>
+                    <div id="bot-status-list"></div>
                 </div>
+            </section>
+
+            <!-- 辞書タブ -->
+            <section id="dictionary" class="tab-content">
+                <h2>辞書管理</h2>
+                <div class="dictionary-settings">
+                    <div class="setting-group">
+                        <h3>辞書エントリー管理</h3>
+                        <div class="dictionary-controls">
+                            <div class="add-entry">
+                                <input type="text" id="new-word" placeholder="単語を入力">
+                                <input type="text" id="new-pronunciation" placeholder="発音を入力">
+                                <input type="text" id="new-accent" placeholder="アクセント指定（省略可）">
+                                <select id="new-word-type">
+                                    <option value="">品詞指定（省略可）</option>
+                                    <option value="PROPER_NOUN">固有名詞</option>
+                                    <option value="LOCATION_NAME">地名</option>
+                                    <option value="ORGANIZATION_NAME">組織名</option>
+                                    <option value="PERSON_NAME">人名</option>
+                                    <option value="FAMILY_NAME">姓</option>
+                                    <option value="GIVEN_NAME">名</option>
+                                    <option value="COMMON_NOUN">普通名詞</option>
+                                    <option value="VERB">動詞</option>
+                                    <option value="ADJECTIVE">形容詞</option>
+                                    <option value="SUFFIX">語尾</option>
+                                </select>
+                                <button id="add-dictionary-entry">エントリー追加</button>
+                            </div>
+                            <div class="dictionary-list">
+                                <h4>現在の辞書エントリー</h4>
+                                <ul id="dictionary-entries">
+                                    <!-- 辞書エントリーは動的に読み込まれます -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="save-dictionary">
+                    <span class="button-text">辞書設定を保存</span>
+                    <span class="loading-spinner" style="display: none;">💫 保存中...</span>
+                </button>
+            </section>
+
+            <!-- 設定タブ -->
+            <section id="settings" class="tab-content">
+                <h2>音声設定</h2>
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <h3>基本音声設定</h3>
+                        <div class="setting-item">
+                            <label for="default-speaker">デフォルト話者</label>
+                            <select id="default-speaker">
+                                <!-- 話者オプションは動的に読み込まれます -->
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-speed">話速</label>
+                            <input type="range" id="default-speed" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="speed-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-pitch">音高</label>
+                            <input type="range" id="default-pitch" min="-0.15" max="0.15" step="0.01" value="0.0">
+                            <span id="pitch-value">0.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-tempo">テンポ</label>
+                            <input type="range" id="default-tempo" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="tempo-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-volume">音量</label>
+                            <input type="range" id="default-volume" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="volume-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="default-intonation">感情表現の強さ</label>
+                            <input type="range" id="default-intonation" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="intonation-value">1.0</span>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>自動接続設定</h3>
+                        <div class="setting-item">
+                            <label for="auto-join-voice">自動接続ボイスチャンネル</label>
+                            <select id="auto-join-voice">
+                                <option value="">選択してください</option>
+                                <!-- ボイスチャンネルオプションは動的に読み込まれます -->
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="auto-join-text">自動接続テキストチャンネル</label>
+                            <select id="auto-join-text">
+                                <option value="">選択してください</option>
+                                <!-- テキストチャンネルオプションは動的に読み込まれます -->
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="temp-voice">一時ボイス機能</label>
+                            <input type="checkbox" id="temp-voice">
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>自動退出設定</h3>
+                        <div class="setting-item">
+                            <label for="auto-leave">自動退出機能</label>
+                            <input type="checkbox" id="auto-leave">
+                            <span class="setting-description">ボイスチャンネルに誰もいなくなったら自動的に退出します</span>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>メッセージフィルタ設定</h3>
+                        <div class="setting-item">
+                            <label for="ignore-bots">Botメッセージ無視</label>
+                            <input type="checkbox" id="ignore-bots" checked>
+                            <span class="setting-description">他のBotからのメッセージを読み上げません</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="save-settings">
+                    <span class="button-text">設定を保存</span>
+                    <span class="loading-spinner" style="display: none;">💫 保存中...</span>
+                </button>
+            </section>
+
+            <!-- ログタブ -->
+            <section id="logs" class="tab-content">
+                <h2>システムログ</h2>
+                <div class="log-viewer">
+                    <div class="log-controls">
+                        <div class="log-filters">
+                            <button class="log-filter active" data-level="all">All</button>
+                            <button class="log-filter" data-level="info">Info</button>
+                            <button class="log-filter" data-level="warn">Warning</button>
+                            <button class="log-filter" data-level="error">Error</button>
+                            <button class="log-filter" data-level="success">Success</button>
+                        </div>
+                        <div class="log-actions">
+                            <input type="text" id="log-search" placeholder="ログを検索..." class="log-search">
+                            <button id="clear-logs" class="clear-logs-btn">🗑️ クリア</button>
+                            <button id="download-logs" class="download-logs-btn">📥 ダウンロード</button>
+                        </div>
+                    </div>
+                    <div class="log-container" id="log-container">
+                        <div class="log-entry info" data-level="info">
+                            <span class="log-timestamp">2024-01-01 00:00:00</span>
+                            <span class="log-level">INFO</span>
+                            <span class="log-message">ダッシュボードが初期化されました</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 個人の設定タブ -->
+            <section id="personal" class="tab-content">
+                <h2>個人の音声設定</h2>
+                <div class="personal-settings">
+                    <div class="setting-group">
+                        <h3>個人音声設定</h3>
+                        <div class="setting-item">
+                            <label for="personal-speaker">個人話者</label>
+                            <select id="personal-speaker">
+                                <!-- 話者オプションは動的に読み込まれます -->
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-speed">話速</label>
+                            <input type="range" id="personal-speed" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-speed-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-pitch">音高</label>
+                            <input type="range" id="personal-pitch" min="-0.15" max="0.15" step="0.01" value="0.0">
+                            <span id="personal-pitch-value">0.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-tempo">テンポ</label>
+                            <input type="range" id="personal-tempo" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-tempo-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-volume">音量</label>
+                            <input type="range" id="personal-volume" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-volume-value">1.0</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="personal-intonation">感情表現の強さ</label>
+                            <input type="range" id="personal-intonation" min="0.0" max="2.0" step="0.1" value="1.0">
+                            <span id="personal-intonation-value">1.0</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="save-personal">
+                    <span class="button-text">個人設定を保存</span>
+                    <span class="loading-spinner" style="display: none;">💫 保存中...</span>
+                </button>
+            </section>
+
+            <!-- プレミアムタブ -->
+            <section id="premium" class="tab-content">
+                <h2>プレミアム機能</h2>
+
+                <!-- プレミアムステータス -->
+                <div class="premium-status-card">
+                    <div class="premium-header">
+                        <h3>プレミアムステータス</h3>
+                        <div class="premium-badge" id="premium-badge">確認中...</div>
+                    </div>
+                    <div class="premium-details" id="premium-details">
+                        <div class="loading">プレミアム情報を読み込み中...</div>
+                    </div>
+                </div>
+
+                <!-- プレミアム機能設定 -->
+                <div class="premium-features">
+                    <h3>プレミアム機能設定</h3>
+
+                    <div class="premium-feature-grid">
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>高度なTTS設定</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-tts-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>感情表現、話速調整、ピッチ制御などの高度なTTS設定</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>優先処理</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-priority-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>メッセージの優先処理と高速応答</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>カスタム辞書</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-dict-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>サーバー固有の拡張辞書機能</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>統計分析</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-analytics-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>詳細な使用統計と分析レポート</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>自動バックアップ</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-backup-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>設定とデータの自動バックアップ</p>
+                        </div>
+
+                        <div class="premium-feature-card">
+                            <div class="feature-header">
+                                <h4>サポート優先</h4>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="premium-support-enabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <p>優先的なサポート対応</p>
+                        </div>
+                    </div>
+
+                    <button id="save-premium-settings" class="premium-save-btn">プレミアム設定を保存</button>
+                </div>
+
+                <!-- プレミアム統計 -->
+                <div class="premium-stats">
+                    <h3>プレミアム統計</h3>
+                    <div class="premium-stats-grid">
+                        <div class="premium-stat-card">
+                            <h4>使用時間</h4>
+                            <div class="stat-value" id="premium-usage-time">0時間</div>
+                        </div>
+                        <div class="premium-stat-card">
+                            <h4>処理メッセージ数</h4>
+                            <div class="stat-value" id="premium-messages-processed">0</div>
+                        </div>
+                        <div class="premium-stat-card">
+                            <h4>平均応答時間</h4>
+                            <div class="stat-value" id="premium-response-time">0ms</div>
+                        </div>
+                        <div class="premium-stat-card">
+                            <h4>利用率</h4>
+                            <div class="stat-value" id="premium-utilization">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             </main>
         </div>
-
-        <!-- ログビューア（開発用） -->
-        <div class="log-viewer" id="log-viewer">
-            <div class="log-header">
-                <h3>システムログ</h3>
-                <div class="log-controls">
-                    <button class="log-filter active" data-level="all">すべて</button>
-                    <button class="log-filter" data-level="info">INFO</button>
-                    <button class="log-filter" data-level="warn">WARN</button>
-                    <button class="log-filter" data-level="error">ERROR</button>
-                    <button class="log-filter" data-level="success">SUCCESS</button>
-                    <input type="text" id="log-search" placeholder="検索..." class="log-search">
-                    <button id="clear-logs" class="log-btn">クリア</button>
-                    <button id="download-logs" class="log-btn">ダウンロード</button>
-                    <button id="toggle-logs" class="log-btn">閉じる</button>
-                </div>
-            </div>
-            <div id="log-container" class="log-container"></div>
-        </div>
-        
-        <button id="open-logs" class="floating-log-btn" style="display: none;">
-            📋 ログを表示
-        </button>
     </div>
 
     <script src="/js/dashboard.js"></script>
