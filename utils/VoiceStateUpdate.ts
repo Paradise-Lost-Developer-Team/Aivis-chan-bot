@@ -41,22 +41,22 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
             if (!oldState.channelId && newState.channelId === botVoiceChannelId) {
                 // 入室
                 const message = `${member.displayName}さんが入室しました`;
-                console.log(`[2nd Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
+                console.log(`[SUB Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
                     await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
-                    console.error(`[2nd Bot] 入室アナウンスエラー:`, error);
+                    console.error(`[SUB Bot] 入室アナウンスエラー:`, error);
                 }
             } else if (oldState.channelId === botVoiceChannelId && !newState.channelId) {
                 // 退室
                 const message = `${member.displayName}さんが退室しました`;
-                console.log(`[2nd Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
+                console.log(`[SUB Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
                     await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
-                    console.error(`[2nd Bot] 退室アナウンスエラー:`, error);
+                    console.error(`[SUB Bot] 退室アナウンスエラー:`, error);
                 }
 
                 // 全員退出チェック
@@ -64,7 +64,7 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
             }
 
         } catch (error) {
-            console.error(`[2nd Bot] VoiceStateUpdate エラー:`, error);
+            console.error(`[SUB Bot] VoiceStateUpdate エラー:`, error);
         } finally {
             // メモリ使用状況をチェック
             monitorMemoryUsage();
@@ -76,8 +76,8 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
         try {
             if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
                 const guild = newState.member!.guild;
-                // 既に永続化されたテキストチャンネルがあるか確認（TTS-Engine側でローカル/1st APIを参照する）
-                determineMessageTargetChannel(guild.id).then((persisted) => {
+                // 既に永続化されたテキストチャンネルがあるか確認（TTS-Engine側でローカル/primary APIを参照する）
+                determineMessageTargetChannel(guild.id).then((persisted: boolean) => {
                     if (!persisted) {
                         try {
                             const vc = newState.channel;
@@ -119,28 +119,28 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                                                     if (vcId && typeof updateJoinChannelsConfig === 'function') {
                                                         updateJoinChannelsConfig(guild.id, vcId, (preferred as any).id);
                                                     }
-                                                } catch (e) { console.warn('[BotJoin:2nd] updateJoinChannelsConfig failed:', e); }
+                                                } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
                                                 try { loadAutoJoinChannels(); } catch (_) {}
-                                                console.log(`[BotJoin:2nd] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+                                                console.log(`[BotJoin] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
                                             } catch (e) {
-                                                console.error('[BotJoin:2nd] persist selected text channel error:', e);
+                                                console.error('[BotJoin] persist selected text channel error:', e);
                                             }
                                         }
                                     } catch (e) {
-                                        console.error('[BotJoin:2nd] 優先チャネル選択エラー:', e);
+                                        console.error('[BotJoin] 優先チャネル選択エラー:', e);
                                     }
                                 }
                             }
                         } catch (e) {
-                            console.error('[BotJoin:2nd] 内部処理エラー:', e);
+                            console.error('[BotJoin] 内部処理エラー:', e);
                         }
                     }
-                }).catch(e => {
-                    console.error('[BotJoin:2nd] determineMessageTargetChannel エラー:', e);
+                }).catch((e: unknown) => {
+                    console.error('[BotJoin] determineMessageTargetChannel エラー:', e);
                 });
             }
         } catch (e) {
-            console.error('[BotJoin:2nd] エラー:', e);
+            console.error('[BotJoin] エラー:', e);
         }
     });
 }
@@ -155,7 +155,7 @@ async function checkAndLeaveIfEmpty(guildId: string, voiceChannelId: string, gui
         const humanMembers = membersCollection.filter((member) => !member.user.bot);
 
         if (humanMembers.size === 0) {
-            console.log(`[2nd Bot] 全員退出により自動退出: ギルド ${guild.name}`);
+            console.log(`[SUB Bot] 全員退出により自動退出: ギルド ${guild.name}`);
             
             // ボイス接続を切断
             const voiceClient = voiceClients[guildId];
@@ -163,13 +163,13 @@ async function checkAndLeaveIfEmpty(guildId: string, voiceChannelId: string, gui
                 try {
                     voiceClient.destroy();
                     delete voiceClients[guildId];
-                    console.log(`[2nd Bot] ボイス接続を切断しました: ギルド ${guild.name}`);
+                    console.log(`[SUB Bot] ボイス接続を切断しました: ギルド ${guild.name}`);
                 } catch (error) {
-                    console.error(`[2nd Bot] ボイス接続切断エラー:`, error);
+                    console.error(`[SUB Bot] ボイス接続切断エラー:`, error);
                 }
             }
         }
     } catch (error) {
-        console.error(`[2nd Bot] 全員退出チェックエラー:`, error);
+        console.error(`[SUB Bot] 全員退出チェックエラー:`, error);
     }
 }
