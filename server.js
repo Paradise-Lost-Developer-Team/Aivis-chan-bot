@@ -1181,60 +1181,85 @@ app.get('/api/servers', async (req, res) => {
 
     console.log(`[DEBUG] Authenticated: ${isAuth}`);
     console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
-    console.log(`[DEBUG] User guilds:`, userGuilds.map(g => ({ id: g.id, name: g.name })));
-        console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
-        console.log(`[DEBUG] User guilds:`, userGuilds.map(g => ({ id: g.id, name: g.name })));
         
-        // Botが参加しているギルドIDを取得
-        const botGuildIds = new Set();
-        const BOTS = [
-            { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
-            { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
-            { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
-            { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
-            { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
-            { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
-            { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+    // Botが参加しているギルドIDを取得
+    const botGuildIds = new Set();
+    const BOTS = [
+        { name: '1st', baseUrl: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
+        { name: '2nd', baseUrl: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
+        { name: '3rd', baseUrl: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
+        { name: '4th', baseUrl: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
+        { name: '5th', baseUrl: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
+        { name: '6th', baseUrl: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
+        { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+    ];
+
+    // 各Botインスタンスからギルド情報を取得（複数のエンドポイントを試行）
+    const botInfoPromises = BOTS.map(async (bot) => {
+        const endpoints = [
+            `${bot.baseUrl}/internal/info`,
+            `${bot.baseUrl}/api/servers`,
+            `${bot.baseUrl}/health`
         ];
-
-        // 各Botインスタンスからギルド情報を取得
-        const botInfoPromises = BOTS.map(async (bot) => {
+        
+        for (const endpoint of endpoints) {
             try {
-                console.log(`[DEBUG] Fetching info from ${bot.name} at ${bot.baseUrl}`);
-                const response = await axios.get(`${bot.baseUrl}/internal/info`, {
-                    timeout: 5000
+                console.log(`[DEBUG] Trying ${bot.name} at ${endpoint}`);
+                const response = await axios.get(endpoint, {
+                    timeout: 5000,
+                    validateStatus: (status) => status < 500 // 4xx も成功扱い
                 });
-                console.log(`[DEBUG] ${bot.name} response:`, response.data);
-                return { bot: bot.name, guildIds: response.data.guildIds || [] };
+                
+                if (response.status === 200 && response.data) {
+                    console.log(`[DEBUG] ${bot.name} response from ${endpoint}:`, response.data);
+                    
+                    // レスポンス形式を正規化
+                    let guildIds = [];
+                    if (Array.isArray(response.data.guildIds)) {
+                        guildIds = response.data.guildIds;
+                    } else if (Array.isArray(response.data)) {
+                        // /api/servers の場合、配列で返される
+                        guildIds = response.data.map(g => g.id);
+                    }
+                    
+                    if (guildIds.length > 0) {
+                        console.log(`[DEBUG] ${bot.name} has ${guildIds.length} guilds`);
+                        return { bot: bot.name, guildIds };
+                    }
+                }
             } catch (error) {
-                console.warn(`[DEBUG] Failed to fetch info from ${bot.name}:`, error.message);
-                return { bot: bot.name, guildIds: [] };
+                console.debug(`[DEBUG] ${bot.name} failed at ${endpoint}:`, error.message);
+                // 次のエンドポイントを試行
+                continue;
             }
-        });
-
-        const botResults = await Promise.all(botInfoPromises);
-        console.log(`[DEBUG] Bot results:`, botResults);
+        }
         
-        // 全BotインスタンスのギルドIDを統合
-        botResults.forEach(result => {
-            result.guildIds.forEach(guildId => botGuildIds.add(guildId));
-        });
+        // すべてのエンドポイントが失敗
+        console.warn(`[DEBUG] All endpoints failed for ${bot.name}`);
+        return { bot: bot.name, guildIds: [] };
+    });
 
-        console.log(`[DEBUG] Bot guild IDs:`, Array.from(botGuildIds));
+    const botResults = await Promise.all(botInfoPromises);
+    console.log(`[DEBUG] Bot results:`, botResults);
+        
+    // 全BotインスタンスのギルドIDを統合
+    botResults.forEach(result => {
+        result.guildIds.forEach(guildId => botGuildIds.add(guildId));
+    });
 
-        // ユーザーのギルドの中で、Botが参加しているもののみをフィルタリング
-        const filteredServers = userGuilds.filter(guild => botGuildIds.has(guild.id));
-        console.log(`[DEBUG] Filtered servers count: ${filteredServers.length}`);
-        console.log(`[DEBUG] Filtered servers:`, filteredServers.map(g => ({ id: g.id, name: g.name })));
+    console.log(`[DEBUG] Bot guild IDs (${botGuildIds.size} total):`, Array.from(botGuildIds));
+
+    // ユーザーのギルドの中で、Botが参加しているもののみをフィルタリング
+    const filteredServers = userGuilds.filter(guild => botGuildIds.has(guild.id));
+    console.log(`[DEBUG] Filtered servers count: ${filteredServers.length}`);
         
-        // デバッグモード: フィルタリングせずにすべてのユーザーギルドを返す（一時的）
-        const DEBUG_MODE = process.env.DEBUG_SERVERS === 'true';
-        const finalServers = DEBUG_MODE ? userGuilds : filteredServers;
-        console.log(`[DEBUG] Debug mode: ${DEBUG_MODE}, Final servers count: ${finalServers.length}`);
+    // デバッグモード: フィルタリングせずにすべてのユーザーギルドを返す（一時的）
+    const DEBUG_MODE = process.env.DEBUG_SERVERS === 'true';
+    const finalServers = DEBUG_MODE ? userGuilds : filteredServers;
+    console.log(`[DEBUG] Debug mode: ${DEBUG_MODE}, Final servers count: ${finalServers.length}`);
         
-    // サーバーの iconUrl を正規化する（可能なら CDN の URL を組み立てる）
+    // サーバーの iconUrl を正規化する
     const normalizedServers = finalServers.map(s => {
-      // s may already contain iconUrl, or may include an 'icon' hash from Discord
       let iconUrl = s.iconUrl || null;
       if (!iconUrl) {
         const iconHash = s.icon || s.iconHash || null;
@@ -1252,11 +1277,11 @@ app.get('/api/servers', async (req, res) => {
       userIconUrl: req.user && req.user.avatarUrl ? req.user.avatarUrl : (req.user && req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` : null)
     }));
 
-        res.json(serversWithUserInfo);
-    } catch (error) {
-        console.error('Failed to fetch servers:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    res.json(serversWithUserInfo);
+  } catch (error) {
+    console.error('Failed to fetch servers:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Discord OAuth2を使用してユーザーに関連するサーバーリストを取得する関数
@@ -1446,7 +1471,7 @@ app.get('/auth/discord/callback/pro', (req, res, next) => {
 
 // Helper function to notify all bot instances of settings changes
 async function notifyBotsSettingsUpdate(guildId, settings) {
-    const botUrls = [
+       const botUrls = [
         process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
         process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
         process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
