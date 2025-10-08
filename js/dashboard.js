@@ -542,6 +542,214 @@ class Dashboard {
         }
     }
 
+    async setupPersonalSettings(guildId, speakers) {
+        try {
+            logger.info('[Dashboard] Loading personal settings...');
+            
+            // 個人設定を取得
+            const response = await fetch(`/api/personal-settings?guildId=${guildId}&userId=${this.currentUserId}`, {
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const settings = data.settings || {};
+                
+                logger.info('[Dashboard] Personal settings received:', settings);
+                
+                // フォームに設定を反映
+                if (settings.speaker) {
+                    const speakerSelect = document.getElementById('personal-speaker');
+                    if (speakerSelect) {
+                        speakerSelect.value = settings.speaker;
+                    }
+                }
+                if (settings.speed !== undefined) {
+                    const speedInput = document.getElementById('personal-speed');
+                    if (speedInput) {
+                        speedInput.value = settings.speed;
+                        const valueDisplay = speedInput.nextElementSibling;
+                        if (valueDisplay) {
+                            valueDisplay.textContent = settings.speed;
+                        }
+                    }
+                }
+                if (settings.pitch !== undefined) {
+                    const pitchInput = document.getElementById('personal-pitch');
+                    if (pitchInput) {
+                        pitchInput.value = settings.pitch;
+                        const valueDisplay = pitchInput.nextElementSibling;
+                        if (valueDisplay) {
+                            valueDisplay.textContent = settings.pitch;
+                        }
+                    }
+                }
+                if (settings.volume !== undefined) {
+                    const volumeInput = document.getElementById('personal-volume');
+                    if (volumeInput) {
+                        volumeInput.value = settings.volume;
+                        const valueDisplay = volumeInput.nextElementSibling;
+                        if (valueDisplay) {
+                            valueDisplay.textContent = settings.volume;
+                        }
+                    }
+                }
+                if (settings.tempo !== undefined) {
+                    const tempoInput = document.getElementById('personal-tempo');
+                    if (tempoInput) {
+                        tempoInput.value = settings.tempo;
+                        const valueDisplay = tempoInput.nextElementSibling;
+                        if (valueDisplay) {
+                            valueDisplay.textContent = settings.tempo;
+                        }
+                    }
+                }
+                if (settings.intonation !== undefined) {
+                    const intonationInput = document.getElementById('personal-intonation');
+                    if (intonationInput) {
+                        intonationInput.value = settings.intonation;
+                        const valueDisplay = intonationInput.nextElementSibling;
+                        if (valueDisplay) {
+                            valueDisplay.textContent = settings.intonation;
+                        }
+                    }
+                }
+                
+                logger.success('[Dashboard] Personal settings loaded and applied');
+            } else {
+                logger.info('[Dashboard] No personal settings found, using defaults');
+            }
+            
+            // 保存ボタンのイベント
+            const saveBtn = document.getElementById('save-personal-settings');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', async () => {
+                    await this.savePersonalSettings(guildId);
+                });
+            }
+            
+            // リセットボタンのイベント
+            const resetBtn = document.getElementById('reset-personal-settings');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    // デフォルト値にリセット
+                    const defaults = {
+                        speaker: '',
+                        speed: 1.0,
+                        pitch: 0.0,
+                        volume: 1.0,
+                        tempo: 1.0,
+                        intonation: 1.0
+                    };
+                    
+                    const speakerSelect = document.getElementById('personal-speaker');
+                    const speedInput = document.getElementById('personal-speed');
+                    const pitchInput = document.getElementById('personal-pitch');
+                    const volumeInput = document.getElementById('personal-volume');
+                    const tempoInput = document.getElementById('personal-tempo');
+                    const intonationInput = document.getElementById('personal-intonation');
+                    
+                    if (speakerSelect) speakerSelect.value = defaults.speaker;
+                    
+                    if (speedInput) {
+                        speedInput.value = defaults.speed;
+                        const valueDisplay = speedInput.nextElementSibling;
+                        if (valueDisplay) valueDisplay.textContent = defaults.speed;
+                    }
+                    
+                    if (pitchInput) {
+                        pitchInput.value = defaults.pitch;
+                        const valueDisplay = pitchInput.nextElementSibling;
+                        if (valueDisplay) valueDisplay.textContent = defaults.pitch;
+                    }
+                    
+                    if (volumeInput) {
+                        volumeInput.value = defaults.volume;
+                        const valueDisplay = volumeInput.nextElementSibling;
+                        if (valueDisplay) valueDisplay.textContent = defaults.volume;
+                    }
+                    
+                    if (tempoInput) {
+                        tempoInput.value = defaults.tempo;
+                        const valueDisplay = tempoInput.nextElementSibling;
+                        if (valueDisplay) valueDisplay.textContent = defaults.tempo;
+                    }
+                    
+                    if (intonationInput) {
+                        intonationInput.value = defaults.intonation;
+                        const valueDisplay = intonationInput.nextElementSibling;
+                        if (valueDisplay) valueDisplay.textContent = defaults.intonation;
+                    }
+                    
+                    logger.info('[Dashboard] Personal settings reset to default');
+                });
+            }
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to setup personal settings: ' + error.message);
+        }
+    }
+
+    async savePersonalSettings(guildId) {
+        try {
+            logger.info('[Dashboard] Saving personal settings...');
+            
+            const settings = {
+                speaker: document.getElementById('personal-speaker').value || null,
+                speed: parseFloat(document.getElementById('personal-speed').value),
+                pitch: parseFloat(document.getElementById('personal-pitch').value),
+                volume: parseFloat(document.getElementById('personal-volume').value),
+                tempo: parseFloat(document.getElementById('personal-tempo').value),
+                intonation: parseFloat(document.getElementById('personal-intonation').value)
+            };
+            
+            // 値の検証
+            if (settings.speed < 0.5 || settings.speed > 2.0) {
+                throw new Error('話速は 0.5 から 2.0 の間でなければなりません');
+            }
+            if (settings.pitch < -0.15 || settings.pitch > 0.15) {
+                throw new Error('ピッチは -0.15 から 0.15 の間でなければなりません');
+            }
+            if (settings.volume < 0.0 || settings.volume > 2.0) {
+                throw new Error('音量は 0.0 から 2.0 の間でなければなりません');
+            }
+            if (settings.tempo < 0.5 || settings.tempo > 2.0) {
+                throw new Error('テンポは 0.5 から 2.0 の間でなければなりません');
+            }
+            if (settings.intonation < 0.0 || settings.intonation > 2.0) {
+                throw new Error('感情表現強度は 0.0 から 2.0 の間でなければなりません');
+            }
+            
+            logger.info('[Dashboard] Personal settings to save:', settings);
+            
+            const response = await fetch('/api/personal-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    guildId: guildId,
+                    userId: this.currentUserId,
+                    settings: settings
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || '個人設定の保存に失敗しました');
+            }
+            
+            const result = await response.json();
+            logger.success('Personal settings saved successfully:', result);
+            this.showSuccess('個人設定を保存しました');
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to save personal settings: ' + error.message);
+            this.showError('個人設定の保存に失敗しました: ' + error.message);
+        }
+    }
+
     renderSettings(guildId, guildData, settings, speakers) {
         logger.info(`[Dashboard] Rendering settings for: ${guildId}`);
         
@@ -561,10 +769,12 @@ class Dashboard {
         
         logger.info(`[Dashboard] Channels: Text=${textChannels.length}, Voice=${voiceChannels.length}`);
         
-        // 話者オプションを生成
-        const speakerOptions = speakers.map(speaker => 
-            `<option value="${speaker.id}" ${settings.defaultSpeaker === speaker.id ? 'selected' : ''}>${this.escapeHtml(speaker.name)}</option>`
-        ).join('');
+        // 話者オプションを生成（スタイル情報を含む）
+        const speakerOptions = speakers.map(speaker => {
+            const speakerName = speaker.name || speaker.label || 'Unknown';
+            const speakerId = speaker.id || speaker.value;
+            return `<option value="${speakerId}">${this.escapeHtml(speakerName)}</option>`;
+        }).join('');
         
         // タブシステムを含む設定UIを表示
         settingsEl.style.display = 'block';
@@ -584,7 +794,7 @@ class Dashboard {
                 <!-- サーバー設定タブ -->
                 <div class="settings-tab-panel active" data-tab="server-settings">
                     <div class="settings-section">
-                        <h3>🔧 サーバー設定</h3>
+                        <h3>🔧 TTS設定</h3>
                         <div class="settings-form">
                             <div class="form-group">
                                 <label for="default-speaker">🗣️ デフォルト話者</label>
@@ -592,26 +802,44 @@ class Dashboard {
                                     <option value="">選択してください</option>
                                     ${speakerOptions}
                                 </select>
+                                <small class="form-text">サーバー全体のデフォルト話者</small>
                             </div>
                             
                             <div class="form-group">
-                                <label for="default-speed">⚡ 速度</label>
+                                <label for="default-speed">⚡ 話速 (0.5 - 2.0)</label>
                                 <input type="range" id="default-speed" class="form-range" min="0.5" max="2.0" step="0.1" value="${settings.defaultSpeed || 1.0}">
                                 <span class="range-value">${settings.defaultSpeed || 1.0}</span>
                             </div>
                             
                             <div class="form-group">
-                                <label for="default-pitch">🎵 ピッチ</label>
-                                <input type="range" id="default-pitch" class="form-range" min="0.5" max="2.0" step="0.1" value="${settings.defaultPitch || 1.0}">
-                                <span class="range-value">${settings.defaultPitch || 1.0}</span>
+                                <label for="default-pitch">🎵 音高 (-0.15 - 0.15)</label>
+                                <input type="range" id="default-pitch" class="form-range" min="-0.15" max="0.15" step="0.01" value="${settings.defaultPitch || 0.0}">
+                                <span class="range-value">${settings.defaultPitch || 0.0}</span>
                             </div>
                             
                             <div class="form-group">
-                                <label for="default-volume">🔊 音量</label>
+                                <label for="default-tempo">🎼 テンポ (0.5 - 2.0)</label>
+                                <input type="range" id="default-tempo" class="form-range" min="0.5" max="2.0" step="0.1" value="${settings.defaultTempo || 1.0}">
+                                <span class="range-value">${settings.defaultTempo || 1.0}</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="default-volume">🔊 音量 (0.0 - 2.0)</label>
                                 <input type="range" id="default-volume" class="form-range" min="0.0" max="2.0" step="0.1" value="${settings.defaultVolume || 1.0}">
                                 <span class="range-value">${settings.defaultVolume || 1.0}</span>
                             </div>
                             
+                            <div class="form-group">
+                                <label for="default-intonation">😊 感情表現強度 (0.0 - 2.0)</label>
+                                <input type="range" id="default-intonation" class="form-range" min="0.0" max="2.0" step="0.1" value="${settings.defaultIntonation || 1.0}">
+                                <span class="range-value">${settings.defaultIntonation || 1.0}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>🔗 自動接続設定</h3>
+                        <div class="settings-form">
                             <div class="form-group">
                                 <label for="auto-join-voice">🔊 自動接続ボイスチャンネル</label>
                                 <select id="auto-join-voice" class="form-control">
@@ -674,7 +902,7 @@ class Dashboard {
                 <div class="settings-tab-panel" data-tab="personal">
                     <div class="settings-section">
                         <h3>👤 個人設定</h3>
-                        <p class="info-text">あなた専用の音声設定です</p>
+                        <p class="info-text">あなた専用の音声設定です（空欄はサーバーのデフォルト設定を使用）</p>
                         
                         <div class="settings-form">
                             <div class="form-group">
@@ -686,20 +914,32 @@ class Dashboard {
                             </div>
                             
                             <div class="form-group">
-                                <label for="personal-speed">⚡ 速度</label>
+                                <label for="personal-speed">⚡ 話速 (0.5 - 2.0)</label>
                                 <input type="range" id="personal-speed" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
                                 <span class="range-value">1.0</span>
                             </div>
                             
                             <div class="form-group">
-                                <label for="personal-pitch">🎵 ピッチ</label>
-                                <input type="range" id="personal-pitch" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
+                                <label for="personal-pitch">🎵 音高 (-0.15 - 0.15)</label>
+                                <input type="range" id="personal-pitch" class="form-range" min="-0.15" max="0.15" step="0.01" value="0.0">
+                                <span class="range-value">0.0</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="personal-tempo">🎼 テンポ (0.5 - 2.0)</label>
+                                <input type="range" id="personal-tempo" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
                                 <span class="range-value">1.0</span>
                             </div>
                             
                             <div class="form-group">
-                                <label for="personal-volume">🔊 音量</label>
+                                <label for="personal-volume">🔊 音量 (0.0 - 2.0)</label>
                                 <input type="range" id="personal-volume" class="form-range" min="0.0" max="2.0" step="0.1" value="1.0">
+                                <span class="range-value">1.0</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="personal-intonation">😊 感情表現強度 (0.0 - 2.0)</label>
+                                <input type="range" id="personal-intonation" class="form-range" min="0.0" max="2.0" step="0.1" value="1.0">
                                 <span class="range-value">1.0</span>
                             </div>
                             
@@ -738,10 +978,12 @@ class Dashboard {
                 logger.info('[Dashboard] Saving server settings...');
                 
                 const settings = {
-                    defaultSpeaker: document.getElementById('default-speaker').value,
+                    defaultSpeaker: document.getElementById('default-speaker').value || null,
                     defaultSpeed: parseFloat(document.getElementById('default-speed').value),
                     defaultPitch: parseFloat(document.getElementById('default-pitch').value),
+                    defaultTempo: parseFloat(document.getElementById('default-tempo').value),
                     defaultVolume: parseFloat(document.getElementById('default-volume').value),
+                    defaultIntonation: parseFloat(document.getElementById('default-intonation').value),
                     autoJoinVoiceChannel: document.getElementById('auto-join-voice').value || null,
                     autoJoinTextChannel: document.getElementById('auto-join-text').value || null,
                     autoLeave: document.getElementById('auto-leave').checked,
@@ -816,41 +1058,49 @@ class Dashboard {
         
         try {
             // 辞書データを取得
-            const response = await fetch(`/api/dictionary?guildId=${guildId}`, {
+            fetch(`/api/dictionary?guildId=${guildId}`, {
                 credentials: 'include'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('辞書の読み込みに失敗しました');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const dictionary = data.dictionary || [];
+                
+                logger.info(`[Dashboard] Dictionary loaded: ${dictionary.length} entries`);
+                
+                // 辞書一覧を表示
+                this.renderDictionary(dictionary);
+                
+                // エントリー追加ボタン
+                const addBtn = document.getElementById('add-dictionary-entry');
+                if (addBtn) {
+                    addBtn.addEventListener('click', () => {
+                        this.addDictionaryEntry();
+                    });
+                }
+                
+                // 保存ボタン
+                const saveBtn = document.getElementById('save-dictionary');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', async () => {
+                        await this.saveDictionary(guildId);
+                    });
+                }
+            })
+            .catch(error => {
+                logger.error('[Dashboard] Failed to setup dictionary: ' + error.message);
+                const listEl = document.getElementById('dictionary-list');
+                if (listEl) {
+                    listEl.innerHTML = '<p class="error-text">辞書の読み込みに失敗しました</p>';
+                }
             });
-            
-            if (!response.ok) {
-                throw new Error('辞書の読み込みに失敗しました');
-            }
-            
-            const data = await response.json();
-            const dictionary = data.dictionary || [];
-            
-            logger.info(`[Dashboard] Dictionary loaded: ${dictionary.length} entries`);
-            
-            // 辞書一覧を表示
-            this.renderDictionary(dictionary);
-            
-            // エントリー追加ボタン
-            const addBtn = document.getElementById('add-dictionary-entry');
-            if (addBtn) {
-                addBtn.addEventListener('click', () => {
-                    this.addDictionaryEntry();
-                });
-            }
-            
-            // 保存ボタン
-            const saveBtn = document.getElementById('save-dictionary');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', async () => {
-                    await this.saveDictionary(guildId);
-                });
-            }
             
         } catch (error) {
             logger.error('[Dashboard] Failed to setup dictionary: ' + error.message);
-            this.showError('辞書の読み込みに失敗しました: ' + error.message);
         }
     }
     
@@ -859,46 +1109,81 @@ class Dashboard {
         if (!listEl) return;
         
         if (dictionary.length === 0) {
-            listEl.innerHTML = '<p class="info-text">辞書にエントリーがありません。「➕ エントリーを追加」ボタンから追加してください。</p>';
+            listEl.innerHTML = `
+                <div class="empty-dictionary">
+                    <p class="info-text">📖 辞書にエントリーがありません</p>
+                    <p class="info-subtext">「➕ エントリーを追加」ボタンから単語を追加してください</p>
+                </div>
+            `;
             return;
         }
         
         listEl.innerHTML = dictionary.map((entry, index) => `
             <div class="dictionary-entry" data-index="${index}">
-                <div class="dictionary-entry-info">
-                    <div class="dictionary-word">
-                        <strong>単語:</strong> <input type="text" class="dict-word-input" value="${this.escapeHtml(entry.word || '')}" />
-                    </div>
-                    <div class="dictionary-pronunciation">
-                        <strong>読み:</strong> <input type="text" class="dict-pronunciation-input" value="${this.escapeHtml(entry.pronunciation || '')}" />
-                    </div>
-                    ${entry.accent !== undefined ? `
-                    <div class="dictionary-accent">
-                        <strong>アクセント:</strong> <input type="number" class="dict-accent-input" value="${entry.accent}" min="0" />
-                    </div>
-                    ` : ''}
-                    ${entry.wordType ? `
-                    <div class="dictionary-wordtype">
-                        <strong>品詞:</strong> 
-                        <select class="dict-wordtype-input">
-                            <option value="PROPER_NOUN" ${entry.wordType === 'PROPER_NOUN' ? 'selected' : ''}>固有名詞</option>
-                            <option value="COMMON_NOUN" ${entry.wordType === 'COMMON_NOUN' ? 'selected' : ''}>普通名詞</option>
-                            <option value="VERB" ${entry.wordType === 'VERB' ? 'selected' : ''}>動詞</option>
-                            <option value="ADJECTIVE" ${entry.wordType === 'ADJECTIVE' ? 'selected' : ''}>形容詞</option>
-                            <option value="SUFFIX" ${entry.wordType === 'SUFFIX' ? 'selected' : ''}>語尾</option>
-                        </select>
-                    </div>
-                    ` : ''}
+                <div class="dictionary-entry-header">
+                    <span class="entry-number">#${index + 1}</span>
+                    <button class="btn-icon btn-danger-icon remove-dictionary-entry" data-index="${index}" title="削除">
+                        🗑️
+                    </button>
                 </div>
-                <button class="btn btn-danger btn-small remove-dictionary-entry" data-index="${index}">🗑️ 削除</button>
+                <div class="dictionary-entry-body">
+                    <div class="form-row">
+                        <div class="form-col form-col-6">
+                            <label class="form-label">単語</label>
+                            <input type="text" 
+                                   class="form-control dict-word-input" 
+                                   placeholder="例: Discord" 
+                                   value="${this.escapeHtml(entry.word || '')}" />
+                        </div>
+                        <div class="form-col form-col-6">
+                            <label class="form-label">読み（カタカナ）</label>
+                            <input type="text" 
+                                   class="form-control dict-pronunciation-input" 
+                                   placeholder="例: ディスコード" 
+                                   value="${this.escapeHtml(entry.pronunciation || '')}" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col form-col-4">
+                            <label class="form-label">アクセント型</label>
+                            <input type="number" 
+                                   class="form-control dict-accent-input" 
+                                   placeholder="0" 
+                                   min="0" 
+                                   value="${entry.accentType !== undefined ? entry.accentType : (entry.accent !== undefined ? entry.accent : 0)}" />
+                            <small class="form-hint">0から始まる整数</small>
+                        </div>
+                        <div class="form-col form-col-8">
+                            <label class="form-label">品詞</label>
+                            <select class="form-control dict-wordtype-input">
+                                <option value="PROPER_NOUN" ${(entry.wordType || entry.word_type) === 'PROPER_NOUN' ? 'selected' : ''}>固有名詞</option>
+                                <option value="PLACE_NAME" ${(entry.wordType || entry.word_type) === 'PLACE_NAME' ? 'selected' : ''}>地名</option>
+                                <option value="ORGANIZATION_NAME" ${(entry.wordType || entry.word_type) === 'ORGANIZATION_NAME' ? 'selected' : ''}>組織名</option>
+                                <option value="PERSON_NAME" ${(entry.wordType || entry.word_type) === 'PERSON_NAME' ? 'selected' : ''}>人名</option>
+                                <option value="PERSON_FAMILY_NAME" ${(entry.wordType || entry.word_type) === 'PERSON_FAMILY_NAME' ? 'selected' : ''}>姓</option>
+                                <option value="PERSON_GIVEN_NAME" ${(entry.wordType || entry.word_type) === 'PERSON_GIVEN_NAME' ? 'selected' : ''}>名</option>
+                                <option value="COMMON_NOUN" ${(entry.wordType || entry.word_type) === 'COMMON_NOUN' ? 'selected' : ''}>普通名詞</option>
+                                <option value="VERB" ${(entry.wordType || entry.word_type) === 'VERB' ? 'selected' : ''}>動詞</option>
+                                <option value="ADJECTIVE" ${(entry.wordType || entry.word_type) === 'ADJECTIVE' ? 'selected' : ''}>形容詞</option>
+                                <option value="SUFFIX" ${(entry.wordType || entry.word_type) === 'SUFFIX' ? 'selected' : ''}>語尾</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         `).join('');
         
         // 削除ボタンのイベント
         document.querySelectorAll('.remove-dictionary-entry').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                this.removeDictionaryEntry(index);
+                e.preventDefault();
+                e.stopPropagation();
+                const index = parseInt(e.currentTarget.dataset.index);
+                
+                // 確認ダイアログ
+                if (confirm(`エントリー "${dictionary[index].word}" を削除しますか？`)) {
+                    this.removeDictionaryEntry(index);
+                }
             });
         });
     }
@@ -914,11 +1199,23 @@ class Dashboard {
         existingEntries.push({
             word: '',
             pronunciation: '',
-            accent: 0,
+            accentType: 0,
             wordType: 'PROPER_NOUN'
         });
         
         this.renderDictionary(existingEntries);
+        
+        // 最後のエントリーにスクロール
+        const lastEntry = listEl.querySelector('.dictionary-entry:last-child');
+        if (lastEntry) {
+            lastEntry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // 最初の入力フィールドにフォーカス
+            const firstInput = lastEntry.querySelector('.dict-word-input');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+        }
+        
         logger.info('[Dashboard] Dictionary entry added');
     }
     
@@ -932,24 +1229,18 @@ class Dashboard {
     getDictionaryFromUI() {
         const entries = [];
         document.querySelectorAll('.dictionary-entry').forEach(entryEl => {
-            const word = entryEl.querySelector('.dict-word-input')?.value || '';
-            const pronunciation = entryEl.querySelector('.dict-pronunciation-input')?.value || '';
+            const word = entryEl.querySelector('.dict-word-input')?.value.trim() || '';
+            const pronunciation = entryEl.querySelector('.dict-pronunciation-input')?.value.trim() || '';
             const accentInput = entryEl.querySelector('.dict-accent-input');
             const wordTypeInput = entryEl.querySelector('.dict-wordtype-input');
             
             if (word && pronunciation) {
                 const entry = {
                     word: word,
-                    pronunciation: pronunciation
+                    pronunciation: pronunciation,
+                    accentType: accentInput ? (parseInt(accentInput.value) || 0) : 0,
+                    wordType: wordTypeInput ? wordTypeInput.value : 'PROPER_NOUN'
                 };
-                
-                if (accentInput) {
-                    entry.accent = parseInt(accentInput.value) || 0;
-                }
-                
-                if (wordTypeInput) {
-                    entry.wordType = wordTypeInput.value;
-                }
                 
                 entries.push(entry);
             }
@@ -963,6 +1254,12 @@ class Dashboard {
             logger.info('[Dashboard] Saving dictionary...');
             
             const dictionary = this.getDictionaryFromUI();
+            
+            if (dictionary.length === 0) {
+                logger.warn('[Dashboard] No dictionary entries to save');
+                this.showError('保存する辞書エントリーがありません');
+                return;
+            }
             
             logger.info(`[Dashboard] Dictionary entries to save: ${dictionary.length}`);
             
@@ -985,55 +1282,14 @@ class Dashboard {
             
             const result = await response.json();
             logger.success('Dictionary saved successfully:', result);
-            this.showSuccess('辞書を保存しました');
+            this.showSuccess(`辞書を保存しました (${dictionary.length}件)`);
             
         } catch (error) {
             logger.error('[Dashboard] Failed to save dictionary: ' + error.message);
             this.showError('辞書の保存に失敗しました: ' + error.message);
         }
     }
-    
-    async savePersonalSettings(guildId) {
-        try {
-            logger.info('[Dashboard] Saving personal settings...');
-            
-            const settings = {
-                speaker: document.getElementById('personal-speaker').value || null,
-                speed: parseFloat(document.getElementById('personal-speed').value),
-                pitch: parseFloat(document.getElementById('personal-pitch').value),
-                volume: parseFloat(document.getElementById('personal-volume').value)
-            };
-            
-            logger.info('[Dashboard] Personal settings to save:', settings);
-            
-            const response = await fetch('/api/personal-settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    guildId: guildId,
-                    userId: this.currentUserId,
-                    settings: settings
-                })
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || '個人設定の保存に失敗しました');
-            }
-            
-            const result = await response.json();
-            logger.success('Personal settings saved successfully:', result);
-            this.showSuccess('個人設定を保存しました');
-            
-        } catch (error) {
-            logger.error('[Dashboard] Failed to save personal settings: ' + error.message);
-            this.showError('個人設定の保存に失敗しました: ' + error.message);
-        }
-    }
-    
+
     showSuccess(message) {
         logger.success('[Dashboard] Success: ' + message);
         
