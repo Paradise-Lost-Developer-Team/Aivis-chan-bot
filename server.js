@@ -461,7 +461,339 @@ app.post('/api/dictionary', requireAuth, async (req, res) => {
   }
 });
 
+// ギルド設定取得
+app.get('/api/guilds/:guildId/settings', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  console.log(`[API /api/guilds/${guildId}/settings] Request received`);
+  
+  try {
+    const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
+    
+    try {
+      const data = await fsPromises.readFile(settingsPath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // ファイルが存在しない場合はデフォルト設定を返す
+        res.json({});
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}/settings] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 個人設定取得
+app.get('/api/guilds/:guildId/personal-settings', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  const userId = req.user?.id;
+  
+  if (!userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  console.log(`[API /api/guilds/${guildId}/personal-settings] Request for user ${userId}`);
+  
+  try {
+    const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'personal', `${userId}.json`);
+    
+    try {
+      const data = await fsPromises.readFile(settingsPath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        res.json({});
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}/personal-settings] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 辞書取得
+app.get('/api/guilds/:guildId/dictionary', requireAuth, async (req, res) => {
+  const { guildId } = req.params;
+  console.log(`[API /api/guilds/${guildId}/dictionary] Request received`);
+  
+  try {
+    const dictPath = path.join(__dirname, 'data', 'guilds', guildId, 'dictionary.json');
+    
+    try {
+      const data = await fsPromises.readFile(dictPath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        res.json([]);
+      } else {
+        throw error;
+      }
+    }
+  } catch (error) {
+    console.error(`[API /api/guilds/${guildId}/dictionary] Error:`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 話者一覧取得
+app.get('/api/speakers', async (req, res) => {
+  console.log('[API /api/speakers] Request received');
+  
+  try {
+    // いずれかのBotから話者一覧を取得
+    for (const bot of BOT_INSTANCES) {
+      try {
+        console.log(`[API /api/speakers] Trying ${bot.name}`);
+        const response = await axios.get(`${bot.url}/api/speakers`, { 
+          timeout: 3000,
+          validateStatus: (status) => status < 500
+        });
+        
+        if (response.status === 200 && Array.isArray(response.data)) {
+          console.log(`[API /api/speakers] Got speakers from ${bot.name}`);
+          return res.json(response.data);
+        }
+      } catch (error) {
+        console.warn(`[API /api/speakers] ${bot.name} failed:`, error.message);
+        continue;
+      }
+    }
+    
+    res.status(503).json({ error: 'No speakers available' });
+  } catch (error) {
+    console.error('[API /api/speakers] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bot間通信エンドポイント（内部用）
+app.post('/api/receive', express.json(), (req, res) => {
+  console.log('[API /api/receive] Received data from bot:', {
+    body: req.body ? Object.keys(req.body) : 'empty',
+    headers: req.headers['user-agent']
+  });
+  
+  // Bot間の通信データを処理（必要に応じて）
+  res.json({ success: true, message: 'Data received' });
+});
+
+// Patreon認証（既存コードがある場合）
+if (PATREON_CLIENT_ID && PATREON_CLIENT_SECRET) {
+  app.get('/auth/patreon', (req, res) => {
+    const state = Buffer.from(JSON.stringify({ 
+      userId: req.user?.id,
+      timestamp: Date.now() 
+    })).toString('base64');
+    
+    const authUrl = `https://www.patreon.com/oauth2/authorize?` +
+      `response_type=code&` +
+      `client_id=${PATREON_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(PATREON_REDIRECT_URI)}&` +
+      `scope=identity identity[email] campaigns campaigns.members&` +
+      `state=${state}`;
+    
+    res.redirect(authUrl);
+  });
+
+  app.get('/auth/patreon/callback', async (req, res) => {
+    const { code, state } = req.query;
+    
+    if (!code) {
+      return res.redirect('/dashboard?error=patreon_auth_failed');
+    }
+    
+    try {
+      const tokenResponse = await axios.post('https://www.patreon.com/api/oauth2/token', {
+        code,
+        grant_type: 'authorization_code',
+        client_id: PATREON_CLIENT_ID,
+        client_secret: PATREON_CLIENT_SECRET,
+        redirect_uri: PATREON_REDIRECT_URI
+      });
+      
+      const accessToken = tokenResponse.data.access_token;
+      
+      const userResponse = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {
+          'include': 'memberships',
+          'fields[user]': 'email,full_name',
+          'fields[member]': 'patron_status,currently_entitled_amount_cents'
+        }
+      });
+      
+      // Patreonデータを保存
+      const patreonData = {
+        patreon_id: userResponse.data.data.id,
+        discord_id: req.user?.id,
+        email: userResponse.data.data.attributes.email,
+        full_name: userResponse.data.data.attributes.full_name,
+        memberships: userResponse.data.included || [],
+        linked_at: new Date().toISOString()
+      };
+      
+      // ファイルに保存
+      await fsPromises.mkdir(path.dirname(PATREON_LINKS_FILE), { recursive: true });
+      
+      let existingLinks = [];
+      try {
+        const data = await fsPromises.readFile(PATREON_LINKS_FILE, 'utf8');
+        existingLinks = JSON.parse(data);
+      } catch (error) {
+        // ファイルが存在しない場合は新規作成
+      }
+      
+      // 既存データを更新または追加
+      const index = existingLinks.findIndex(link => link.discord_id === req.user?.id);
+      if (index >= 0) {
+        existingLinks[index] = patreonData;
+      } else {
+        existingLinks.push(patreonData);
+      }
+      
+      await fsPromises.writeFile(PATREON_LINKS_FILE, JSON.stringify(existingLinks, null, 2));
+      
+      res.redirect('/dashboard?patreon=linked');
+    } catch (error) {
+      console.error('[PATREON] Auth error:', error);
+      res.redirect('/dashboard?error=patreon_link_failed');
+    }
+  });
+}
+
+// Solana関連エンドポイント（既存コードがある場合）
+app.get('/api/solana/balance/:address', async (req, res) => {
+  const { address } = req.params;
+  
+  try {
+    const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+    const publicKey = new PublicKey(address);
+    const balance = await connection.getBalance(publicKey);
+    
+    res.json({ 
+      address,
+      balance: balance / 1e9, // SOL単位に変換
+      lamports: balance
+    });
+  } catch (error) {
+    console.error('[SOLANA] Balance check error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Google Analytics関連（既存コードがある場合）
+if (process.env.GOOGLE_ANALYTICS_PROPERTY_ID) {
+  app.get('/api/analytics/pageviews', requireAuth, async (req, res) => {
+    try {
+      const auth = new google.auth.GoogleAuth({
+        credentials: JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON || '{}'),
+        scopes: ['https://www.googleapis.com/auth/analytics.readonly']
+      });
+      
+      const analyticsData = google.analyticsdata('v1beta');
+      const response = await analyticsData.properties.runReport({
+        auth,
+        property: `properties/${process.env.GOOGLE_ANALYTICS_PROPERTY_ID}`,
+        requestBody: {
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          metrics: [{ name: 'screenPageViews' }],
+          dimensions: [{ name: 'pagePath' }]
+        }
+      });
+      
+      res.json(response.data);
+    } catch (error) {
+      console.error('[ANALYTICS] Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+}
+
+// ===== 認証ルート =====
+
+// ログインページ
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Discord OAuth - Free版
+app.get('/auth/discord/free', passport.authenticate('discord-free'));
+
+app.get('/auth/discord/callback/free', 
+  passport.authenticate('discord-free', { 
+    failureRedirect: '/login?error=auth_failed' 
+  }), 
+  (req, res) => {
+    const redirectTo = req.session.returnTo || '/dashboard?version=free';
+    delete req.session.returnTo;
+    res.redirect(redirectTo);
+  }
+);
+
+// Discord OAuth - Pro版
+app.get('/auth/discord/pro', passport.authenticate('discord-pro'));
+
+app.get('/auth/discord/callback/pro', 
+  passport.authenticate('discord-pro', { 
+    failureRedirect: '/login?error=auth_failed' 
+  }), 
+  (req, res) => {
+    const redirectTo = req.session.returnTo || '/dashboard?version=pro';
+    delete req.session.returnTo;
+    res.redirect(redirectTo);
+  }
+);
+
+// ログアウト
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('[AUTH] Logout error:', err);
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('[AUTH] Session destroy error:', err);
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/');
+    });
+  });
+});
+
+// セッション情報取得（デバッグ用）
+app.get('/api/session', (req, res) => {
+  console.log('[DEBUG] /api/session called');
+  console.log('[DEBUG] isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
+  console.log('[DEBUG] req.user:', req.user ? { id: req.user.id, username: req.user.username, guilds: req.user.guilds?.length } : null);
+  console.log('[DEBUG] sessionID:', req.sessionID);
+  
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    res.json({
+      authenticated: true,
+      user: {
+        id: req.user.id,
+        username: req.user.username || req.user.nickname,
+        discriminator: req.user.discriminator,
+        avatar: req.user.avatarUrl || req.user.avatar,
+        version: req.user.version
+      }
+    });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
 // ===== ページルート =====
+
+// トップページ
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // ダッシュボード
 app.get('/dashboard', requireAuth, (req, res) => {
