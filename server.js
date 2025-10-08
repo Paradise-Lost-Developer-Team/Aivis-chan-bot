@@ -89,17 +89,21 @@ if (!PATREON_REDIRECT_URI) {
 }
 
 // Discord OAuth2設定（無料版とPro/Premium版）
+// Ensure callbackURL includes versioned callback path to match Discord Developer Portal settings
+const BASE = (process.env.BASE_URL || 'https://aivis-chan-bot.com').replace(/\/$/, '');
 const DISCORD_CONFIG_FREE = {
   clientId: process.env.DISCORD_CLIENT_ID_FREE || process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET_FREE || process.env.DISCORD_CLIENT_SECRET,
-  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'https://aivis-chan-bot.com'}/auth/discord/callback`,
+  // use explicit /auth/discord/callback/free by default
+  redirectUri: process.env.DISCORD_REDIRECT_URI_FREE || process.env.DISCORD_REDIRECT_URI || `${BASE}/auth/discord/callback/free`,
   version: 'free'
 };
 
 const DISCORD_CONFIG_PRO = {
   clientId: process.env.DISCORD_CLIENT_ID_PRO,
   clientSecret: process.env.DISCORD_CLIENT_SECRET_PRO,
-  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${process.env.BASE_URL || 'https://aivis-chan-bot.com'}/auth/discord/callback`,
+  // use explicit /auth/discord/callback/pro by default
+  redirectUri: process.env.DISCORD_REDIRECT_URI_PRO || process.env.DISCORD_REDIRECT_URI || `${BASE}/auth/discord/callback/pro`,
   version: 'pro'
 };
 
@@ -625,7 +629,17 @@ app.get('/auth/discord/callback/:version', (req, res, next) => {
     try {
       console.log('[AUTH DEBUG] passport callback raw:', { err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
       if (err) {
-        console.error('[AUTH DEBUG] authenticate error:', err && (err.stack || err.message || err));
+        // 詳細ログ（token exchange のレスポンス本文などを含めて出力）
+        console.error('[AUTH DEBUG] authenticate error:', err && (err.stack || err));
+        try {
+          // oauth2 の詳細フィールドがあれば出す
+          console.error('[AUTH DEBUG] oauth error details:', {
+            name: err.name,
+            message: err.message,
+            status: err.status || err.statusCode || null,
+            data: err.data || err.oauthError || (err.response && err.response.data) || null
+          });
+        } catch (ee) {}
         return res.status(500).send('authentication error');
       }
       if (!user) {
