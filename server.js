@@ -117,35 +117,88 @@ async function enrichProfile(profile, accessToken, version) {
     const [userResp, guildsResp] = await Promise.all([
       axios.get('https://discord.com/api/users/@me', { 
         headers: { Authorization: `Bearer ${accessToken}` },
-        timeout: 5000 
+        timeout: 10000 
       }),
       axios.get('https://discord.com/api/users/@me/guilds', { 
         headers: { Authorization: `Bearer ${accessToken}` },
-        timeout: 5000
+        timeout: 10000
       })
     ]);
     
     if (userResp.status === 200) {
-      profile.avatarUrl = userResp.data.avatar 
-        ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` 
-        : null;
-      profile.nickname = userResp.data.username;
-      profile.discriminator = userResp.data.discriminator;
-      profile.email = userResp.data.email || null;
+      const userData = userResp.data;
+      
+      // アバターURL生成（拡張子の優先順位: gif > png）
+      if (userData.avatar) {
+        const isAnimated = userData.avatar.startsWith('a_');
+        const extension = isAnimated ? 'gif' : 'png';
+        profile.avatarUrl = `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.${extension}?size=256`;
+        profile.avatar = userData.avatar;
+      } else {
+        // デフォルトアバター（discriminatorベース、または新しいシステム）
+        const defaultAvatarIndex = userData.discriminator === '0' 
+          ? (parseInt(userData.id) >> 22) % 6 
+          : parseInt(userData.discriminator) % 5;
+        profile.avatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
+        profile.avatar = null;
+      }
+      
+      profile.id = userData.id;
+      profile.username = userData.username;
+      profile.nickname = userData.global_name || userData.username;
+      profile.discriminator = userData.discriminator;
+      profile.email = userData.email || null;
+      
+      console.log(`[passport][${version}] User profile enriched:`, {
+        id: profile.id,
+        username: profile.username,
+        avatarUrl: profile.avatarUrl,
+        hasEmail: !!profile.email
+      });
     }
     
     if (guildsResp.status === 200) {
-      profile.guilds = guildsResp.data.map(guild => ({ 
-        id: guild.id, 
-        name: guild.name, 
-        icon: guild.icon,
-        iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null,
-        owner: guild.owner || false,
-        permissions: guild.permissions || null
-      }));
+      profile.guilds = guildsResp.data.map(guild => {
+        // 権限チェック: MANAGE_GUILD (0x20) または ADMINISTRATOR (0x8)
+        const permissions = BigInt(guild.permissions || '0');
+        const hasManageGuild = (permissions & BigInt(0x20)) !== BigInt(0);
+        const hasAdministrator = (permissions & BigInt(0x8)) !== BigInt(0);
+        const isOwner = guild.owner === true;
+        
+        // アイコンURL生成
+        let iconUrl = null;
+        if (guild.icon) {
+          const isAnimated = guild.icon.startsWith('a_');
+          const extension = isAnimated ? 'gif' : 'png';
+          iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${extension}?size=128`;
+        }
+        
+        return {
+          id: guild.id,
+          name: guild.name,
+          icon: guild.icon,
+          iconUrl,
+          owner: isOwner,
+          permissions: guild.permissions,
+          hasManageGuild,
+          hasAdministrator,
+          canManage: isOwner || hasManageGuild || hasAdministrator
+        };
+      });
+      
+      console.log(`[passport][${version}] Found ${profile.guilds.length} guilds, ${profile.guilds.filter(g => g.canManage).length} manageable`);
+    } else {
+      profile.guilds = [];
     }
   } catch (e) {
-    console.warn(`[passport][${version}] failed to enrich profile:`, e.message);
+    console.error(`[passport][${version}] failed to enrich profile:`, e.message);
+    if (e.response) {
+      console.error(`[passport][${version}] Discord API error:`, {
+        status: e.response.status,
+        data: e.response.data
+      });
+    }
+    profile.guilds = [];
   }
   
   return profile;
@@ -225,7 +278,9 @@ app.use(passport.session());
 
 // リクエストロガー
 app.use((req, res, next) => {
-  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.url} Host:${req.headers.host}`);
+  req.startTime = Date.now();
+  const userAgent = req.headers['user-agent']?.substring(0, 100) || 'unknown';
+  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.url} Host:${req.headers.host} UA:${userAgent}`);
   next();
 });
 
@@ -282,21 +337,36 @@ app.get('/api/bot-stats', async (req, res) => {
 // ギルド一覧取得
 app.get('/api/servers', requireAuth, async (req, res) => {
   try {
-    console.log('[API /api/servers] Request received');
+    console.log('[API /api/servers] Request received at', new Date().toISOString());
+    console.log('[API /api/servers] isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
+    console.log('[API /api/servers] req.user:', req.user ? {
+      id: req.user.id,
+      username: req.user.username,
+      hasGuilds: !!req.user.guilds,
+      guildsCount: req.user.guilds?.length
+    } : null);
+    console.log('[API /api/servers] sessionID:', req.sessionID);
     
     if (!req.user || !req.user.guilds) {
+      console.warn('[API /api/servers] No user or guilds in session');
       return res.status(401).json({ error: 'Not authenticated or no guilds' });
     }
 
-    const userGuilds = req.user.guilds;
-    console.log(`[API /api/servers] User has ${userGuilds.length} guilds`);
+    // 管理可能なギルドのみフィルタリング
+    const userGuilds = req.user.guilds.filter(g => g.canManage);
+    console.log(`[API /api/servers] Using ${userGuilds.length} guilds from session`);
+    console.log(`[API /api/servers] Total user guilds: ${req.user.guilds.length}`);
 
     // 各Botからギルド情報を取得
+    console.log(`[API /api/servers] Fetching guild info from ${BOT_INSTANCES.length} bots...`);
     const botResults = await Promise.all(
       BOT_INSTANCES.map(async (bot) => {
         try {
-          const response = await axios.get(`${bot.url}/internal/info`, { timeout: 3000 });
-          console.log(`[API /api/servers] ${bot.name} returned ${response.data?.guilds?.length || 0} guilds`);
+          const response = await axios.get(`${bot.url}/internal/info`, { 
+            timeout: 5000,
+            validateStatus: (status) => status < 500
+          });
+          console.log(`[API /api/servers] ${bot.name} returned ${response.data?.guilds?.length || 0} guilds from ${bot.url}/internal/info`);
           return { name: bot.name, guilds: response.data?.guilds || [] };
         } catch (error) {
           console.warn(`[API /api/servers] ${bot.name} failed:`, error.message);
@@ -307,25 +377,49 @@ app.get('/api/servers', requireAuth, async (req, res) => {
 
     // Botがいるギルドをマージ
     const botGuildIds = new Set();
+    const botGuildDetails = new Map();
+    let totalBotGuilds = 0;
+    
     botResults.forEach(result => {
-      result.guilds.forEach(guild => botGuildIds.add(guild.id));
+      result.guilds.forEach(guild => {
+        botGuildIds.add(guild.id);
+        botGuildDetails.set(guild.id, {
+          name: guild.name,
+          memberCount: guild.memberCount,
+          botName: result.name
+        });
+      });
+      totalBotGuilds += result.guilds.length;
     });
+    
+    console.log(`[API /api/servers] Total bot guilds: ${totalBotGuilds}`);
+    console.log(`[API /api/servers] Unique bot guild IDs: ${botGuildIds.size}`);
 
     // ユーザーが管理権限を持ち、Botがいるギルドのみ返す
     const filteredServers = userGuilds
       .filter(guild => {
-        const hasManagePerms = (BigInt(guild.permissions || 0) & BigInt(0x20)) === BigInt(0x20);
         const hasBotInGuild = botGuildIds.has(guild.id);
-        return hasManagePerms && hasBotInGuild;
+        if (!hasBotInGuild) {
+          console.log(`[API /api/servers] Guild ${guild.id} (${guild.name}) filtered out - bot not present`);
+        }
+        return hasBotInGuild;
       })
-      .map(guild => ({
-        id: guild.id,
-        name: guild.name,
-        icon: guild.icon,
-        iconUrl: guild.iconUrl
-      }));
+      .map(guild => {
+        const botDetails = botGuildDetails.get(guild.id);
+        return {
+          id: guild.id,
+          name: guild.name,
+          icon: guild.icon,
+          iconUrl: guild.iconUrl,
+          owner: guild.owner,
+          memberCount: botDetails?.memberCount,
+          botName: botDetails?.botName
+        };
+      });
 
-    console.log(`[API /api/servers] Returning ${filteredServers.length} servers`);
+    console.log(`[API /api/servers] Filtered servers: ${filteredServers.length}`);
+    console.log(`[API /api/servers] Returning ${filteredServers.length} servers (took ${Date.now() - req.startTime}ms)`);
+    
     res.json(filteredServers);
   } catch (error) {
     console.error('[API /api/servers] Error:', error);
@@ -769,8 +863,14 @@ app.get('/logout', (req, res) => {
 app.get('/api/session', (req, res) => {
   console.log('[DEBUG] /api/session called');
   console.log('[DEBUG] isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
-  console.log('[DEBUG] req.user:', req.user ? { id: req.user.id, username: req.user.username, guilds: req.user.guilds?.length } : null);
+  console.log('[DEBUG] req.user:', req.user ? { 
+    id: req.user.id, 
+    username: req.user.username, 
+    guilds: req.user.guilds?.length 
+  } : null);
   console.log('[DEBUG] sessionID:', req.sessionID);
+  console.log('[DEBUG] session.cookie:', req.session?.cookie);
+  console.log('[DEBUG] cookies from request:', Object.keys(req.cookies || {}));
   
   if (req.isAuthenticated && req.isAuthenticated()) {
     res.json({
@@ -780,7 +880,9 @@ app.get('/api/session', (req, res) => {
         username: req.user.username || req.user.nickname,
         discriminator: req.user.discriminator,
         avatar: req.user.avatarUrl || req.user.avatar,
-        version: req.user.version
+        avatarUrl: req.user.avatarUrl,
+        version: req.user.version,
+        guildsCount: req.user.guilds?.length || 0
       }
     });
   } else {
