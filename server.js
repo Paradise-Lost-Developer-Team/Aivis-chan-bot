@@ -122,32 +122,62 @@ if (DISCORD_CONFIG_FREE.clientId && DISCORD_CONFIG_FREE.clientSecret) {
       clientSecret: DISCORD_CONFIG_FREE.clientSecret,
       callbackURL: DISCORD_CONFIG_FREE.redirectUri,
       scope: ['identify', 'guilds']
-  }, (accessToken, refreshToken, profile, done) => {
+  }, async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log('[PASSPORT DEBUG] verify start', { version: profile && profile.version ? profile.version : '(unknown)', accessTokenPresent: Boolean(accessToken), refreshTokenPresent: Boolean(refreshToken) });
+        console.log('[PASSPORT DEBUG] verify start', { 
+          version: 'free', 
+          accessTokenPresent: Boolean(accessToken), 
+          refreshTokenPresent: Boolean(refreshToken),
+          profileId: profile?.id 
+        });
       } catch (e) {}
+      
       // バージョン情報を追加
       profile.version = 'free';
-      // Try to enrich profile with avatar/guild icon info like the default strategy
-      (async () => {
-        try {
-          const [userResp, guildsResp] = await Promise.all([
-            axios.get('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${accessToken}` } }),
-            axios.get('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bearer ${accessToken}` } })
-          ]);
-          if (userResp.status === 200) {
-            profile.avatarUrl = userResp.data.avatar ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` : null;
-            profile.nickname = userResp.data.username;
-          }
-          if (guildsResp.status === 200) {
-            profile.guilds = guildsResp.data.map(guild => ({ id: guild.id, name: guild.name, iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null }));
-          }
-        } catch (e) {
-          console.warn('[passport][discord-free] failed to enrich profile:', e.message || e);
-          // proceed without enrichment
+      profile.accessToken = accessToken;
+      
+      // プロフィール情報を取得して補完
+      try {
+        const [userResp, guildsResp] = await Promise.all([
+          axios.get('https://discord.com/api/users/@me', { 
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 5000 
+          }),
+          axios.get('https://discord.com/api/users/@me/guilds', { 
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 5000
+          })
+        ]);
+        
+        if (userResp.status === 200) {
+          profile.avatarUrl = userResp.data.avatar 
+            ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` 
+            : null;
+          profile.nickname = userResp.data.username;
+          profile.discriminator = userResp.data.discriminator;
+          profile.email = userResp.data.email || null;
         }
-        return done(null, profile);
-      })();
+        
+        if (guildsResp.status === 200) {
+          profile.guilds = guildsResp.data.map(guild => ({ 
+            id: guild.id, 
+            name: guild.name, 
+            icon: guild.icon,
+            iconUrl: guild.icon 
+              ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` 
+              : null,
+            owner: guild.owner || false,
+            permissions: guild.permissions || null
+          }));
+        }
+        
+        console.log('[PASSPORT DEBUG] Profile enriched for user:', profile.id, 
+          'guilds:', profile.guilds?.length || 0);
+      } catch (e) {
+        console.warn('[passport][discord-free] failed to enrich profile:', e.message || e);
+      }
+      
+      return done(null, profile, { accessToken });
   }));
 }
 
@@ -158,31 +188,62 @@ if (DISCORD_CONFIG_PRO.clientId && DISCORD_CONFIG_PRO.clientSecret) {
       clientSecret: DISCORD_CONFIG_PRO.clientSecret,
       callbackURL: DISCORD_CONFIG_PRO.redirectUri,
       scope: ['identify', 'guilds']
-  }, (accessToken, refreshToken, profile, done) => {
+  }, async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log('[PASSPORT DEBUG] verify start', { version: profile && profile.version ? profile.version : '(unknown)', accessTokenPresent: Boolean(accessToken), refreshTokenPresent: Boolean(refreshToken) });
+        console.log('[PASSPORT DEBUG] verify start', { 
+          version: 'pro', 
+          accessTokenPresent: Boolean(accessToken), 
+          refreshTokenPresent: Boolean(refreshToken),
+          profileId: profile?.id 
+        });
       } catch (e) {}
+      
       // バージョン情報を追加
       profile.version = 'pro';
-      // Enrich profile with avatar/guild icon info when possible
-      (async () => {
-        try {
-          const [userResp, guildsResp] = await Promise.all([
-            axios.get('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${accessToken}` } }),
-            axios.get('https://discord.com/api/users/@me/guilds', { headers: { Authorization: `Bearer ${accessToken}` } })
-          ]);
-          if (userResp.status === 200) {
-            profile.avatarUrl = userResp.data.avatar ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` : null;
-            profile.nickname = userResp.data.username;
-          }
-          if (guildsResp.status === 200) {
-            profile.guilds = guildsResp.data.map(guild => ({ id: guild.id, name: guild.name, iconUrl: guild.icon ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` : null }));
-          }
-        } catch (e) {
-          console.warn('[passport][discord-pro] failed to enrich profile:', e.message || e);
+      profile.accessToken = accessToken;
+      
+      // プロフィール情報を取得して補完
+      try {
+        const [userResp, guildsResp] = await Promise.all([
+          axios.get('https://discord.com/api/users/@me', { 
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 5000
+          }),
+          axios.get('https://discord.com/api/users/@me/guilds', { 
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 5000
+          })
+        ]);
+        
+        if (userResp.status === 200) {
+          profile.avatarUrl = userResp.data.avatar 
+            ? `https://cdn.discordapp.com/avatars/${userResp.data.id}/${userResp.data.avatar}.png` 
+            : null;
+          profile.nickname = userResp.data.username;
+          profile.discriminator = userResp.data.discriminator;
+          profile.email = userResp.data.email || null;
         }
-        return done(null, profile);
-      })();
+        
+        if (guildsResp.status === 200) {
+          profile.guilds = guildsResp.data.map(guild => ({ 
+            id: guild.id, 
+            name: guild.name, 
+            icon: guild.icon,
+            iconUrl: guild.icon 
+              ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png` 
+              : null,
+            owner: guild.owner || false,
+            permissions: guild.permissions || null
+          }));
+        }
+        
+        console.log('[PASSPORT DEBUG] Profile enriched for user:', profile.id, 
+          'guilds:', profile.guilds?.length || 0);
+      } catch (e) {
+        console.warn('[passport][discord-pro] failed to enrich profile:', e.message || e);
+      }
+      
+      return done(null, profile, { accessToken });
   }));
 }
 
@@ -688,7 +749,7 @@ app.get('/auth/discord', (req, res, next) => {
   return passport.authenticate('discord')(req, res, next);
 });
 
-// Discord認証コールバック（無料版）
+// Discord認証コールバック（無料版/Pro版共通）
 app.get('/auth/discord/callback/:version', (req, res, next) => {
   const version = req.params.version || 'free';
   const strategy = `discord-${version}`;
@@ -699,12 +760,17 @@ app.get('/auth/discord/callback/:version', (req, res, next) => {
 
   passport.authenticate(strategy, { session: true }, (err, user, info) => {
     try {
-      console.log('[AUTH DEBUG] passport callback raw:', { err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
+      console.log('[AUTH DEBUG] passport callback raw:', { 
+        err: err && String(err.message || err), 
+        user: user ? (user.id || user.username || '[user]') : null, 
+        info,
+        userType: typeof user,
+        userKeys: user ? Object.keys(user) : []
+      });
+      
       if (err) {
-        // 詳細ログ（token exchange のレスポンス本文などを含めて出力）
         console.error('[AUTH DEBUG] authenticate error:', err && (err.stack || err));
         try {
-          // oauth2 の詳細フィールドがあれば出す
           console.error('[AUTH DEBUG] oauth error details:', {
             name: err.name,
             message: err.message,
@@ -714,20 +780,33 @@ app.get('/auth/discord/callback/:version', (req, res, next) => {
         } catch (ee) {}
         return res.status(500).send('authentication error');
       }
+      
       if (!user) {
         console.warn('[AUTH DEBUG] authenticate returned no user, info=', info);
         return res.redirect('/login');
       }
-      // ensure login establishes session
+      
+      // アクセストークンをセッションに保存
+      if (info && info.accessToken) {
+        req.session.accessToken = info.accessToken;
+        console.log('[AUTH DEBUG] Access token saved to session');
+      } else if (user && user.accessToken) {
+        req.session.accessToken = user.accessToken;
+        console.log('[AUTH DEBUG] Access token saved from user object');
+      }
+      
+      // ログイン処理
       req.logIn(user, (loginErr) => {
         if (loginErr) {
           console.error('[AUTH DEBUG] req.logIn failed:', loginErr && (loginErr.stack || loginErr.message || loginErr));
           return res.status(500).send('login failed');
         }
+        
         if (req.session) {
           req.session.save((saveErr) => {
             if (saveErr) console.warn('[SESSION] save after oauth failed:', saveErr && (saveErr.message || saveErr));
-            console.log('[AUTH DEBUG] login success sessionID=', req.sessionID);
+            console.log('[AUTH DEBUG] login success sessionID=', req.sessionID, 
+              'user.id=', user.id, 'guilds=', user.guilds?.length || 0);
             return res.redirect(`/dashboard?version=${version}`);
           });
         } else {
