@@ -486,7 +486,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
 
         const existing = (voiceClients as any)[guildId];
         if (existing && existing.state?.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
-            return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
+            return res.status(409).json({ error: 'already-connected_other-channel', current: existing.joinConfig.channelId });
         }
 
         // 明示的 textChannelId が渡された場合はその ID をそのまま受け入れて保存する（存在や権限が無くても自動フォールバックしない）
@@ -564,8 +564,12 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
         // voice 接続処理（text channel 決定とは独立）
-        const prev = getVoiceConnection(voiceChannelId);
-        if (prev) { try { prev.destroy(); } catch {} try { delete (voiceClients as any)[voiceChannelId]; } catch {} try { delete (voiceClients as any)[guildId]; } catch {} }
+        const prev = (typeof getVoiceConnection === 'function') ? (getVoiceConnection(guildId) || getVoiceConnection(voiceChannelId)) : undefined;
+        if (prev) {
+             try { prev.destroy(); } catch {}
+             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+             try { delete (voiceClients as any)[guildId]; } catch {}
+         }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
         try { (voiceClients as any)[guildId] = connection; } catch {}
@@ -646,21 +650,73 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
-
-        if (voiceChannelId) {
-            try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
-            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { const { removeTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); removeTextChannelForGuildInMap(voiceChannelId); } catch {}
-            try { delete (global as any).players?.[voiceChannelId]; } catch {}
-        } else if (guildId) {
-            try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
-            try { delete (voiceClients as any)[guildId]; } catch {}
-            try { const { removeTextChannelForGuildInMap } = await import('./utils/TTS-Engine'); removeTextChannelForGuildInMap(guildId); } catch {}
-            try { delete (global as any).players?.[guildId]; } catch {}
+        const tryIds = [];
+        if (guildId) tryIds.push(guildId);
+        if (voiceChannelId) tryIds.push(voiceChannelId);
+        for (const id of tryIds) {
+            try { const conn = getVoiceConnection(id); if (conn) { try { conn.destroy(); } catch {} } } catch {}
         }
-
-        // 4th Botではボイス状態の保存をスキップ（1st Botが管理）
-        // setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
+        try { if (voiceChannelId) delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { if (guildId) delete (voiceClients as any)[guildId]; } catch {}
+        try {
+            if (voiceChannelId) {
+                try {
+                    const mod = await import('./utils/TTS-Engine');
+                    if (typeof (mod as any).removeTextChannelByVoiceChannelId === 'function') {
+                        await (mod as any).removeTextChannelByVoiceChannelId(voiceChannelId);
+                    } else {
+                        // Fallback: remove entries in in-memory textChannels mapping that reference this voice channel
+                        try {
+                            const tc = textChannels as Record<string, any>;
+                            for (const key of Object.keys(tc)) {
+                                try {
+                                    const ch = tc[key];
+                                    if (!ch) { delete tc[key]; continue; }
+                                    if (ch.voiceChannelId === voiceChannelId || ch.id === voiceChannelId) {
+                                        delete tc[key];
+                                    }
+                                } catch (_) { /* ignore per-entry errors */ }
+                            }
+                        } catch (_) { /* ignore fallback errors */ }
+                    }
+                } catch (_) { /* ignore import / execution errors */ }
+            }
+        } catch {}
+        try {
+            if (guildId) {
+                try {
+                    const mod = await import('./utils/TTS-Engine');
+                    if (typeof (mod as any).removeTextChannelForGuildInMap === 'function') {
+                        await (mod as any).removeTextChannelForGuildInMap(guildId);
+                    } else {
+                        // Fallback: remove entries in in-memory textChannels mapping that reference this guild
+                        try {
+                            const tc = textChannels as Record<string, any>;
+                            for (const key of Object.keys(tc)) {
+                                try {
+                                    const ch = tc[key];
+                                    if (!ch) { delete tc[key]; continue; }
+                                    if ((ch.guild && ch.guild.id === guildId) || ch.guildId === guildId || key === guildId) {
+                                        delete tc[key];
+                                    }
+                                } catch (_) { /* ignore per-entry errors */ }
+                            }
+                            // also attempt direct key delete
+                            try { if ((textChannels as any)[guildId]) delete (textChannels as any)[guildId]; } catch (_) {}
+                        } catch (_) { /* ignore fallback errors */ }
+                    }
+                } catch (_) { /* ignore import / execution errors */ }
+            }
+        } catch {}
+        try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
+        try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
+        // saveVoiceState may be provided on the global object by other modules; call it safely if present
+        setTimeout(() => {
+            try {
+                const fn = (global as any).saveVoiceState;
+                if (typeof fn === 'function') fn(client as any);
+            } catch {}
+        }, 500);
         return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
