@@ -1490,4 +1490,115 @@ const GLOBAL_DICT_CACHE = {
   fetchedAt: null,
   errorUntil: null
 };
-const GLOBAL_DICT_CACHE_TTL = parseInt(process.env.GLOBAL_DICT_CACHE_TTL_MS || String(5 * 60 * 1000), 10); 
+const GLOBAL_DICT_CACHE_TTL = parseInt(process.env.GLOBAL_DICT_CACHE_TTL_MS || String(5 * 60 * 1000), 10);
+
+// Patreon OAuth callback handler
+app.get('/auth/patreon/callback', async (req, res) => {
+   const { code, state } = req.query;
+   try {
+     console.log('[PATREON] Callback received:', { code: code ? `***${String(code).slice(-4)}` : 'missing', state: state || 'missing', ip: req.ip });
+     appendPatreonCallbackLog({ ts: new Date().toISOString(), ip: req.ip, ua: req.headers['user-agent'], event: 'callback_received', code: code ? ('***' + String(code).slice(-4)) : null, state: state || null });
+   } catch (e) { /* non-fatal */ }
+
+   if (!code || !state) {
+     console.error('[PATREON] Missing required parameters:', { code: !!code, state: !!state });
+     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_missing_params', state: state || null });
+     return res.status(400).send('Missing required parameters. Please try linking again.');
+   }
+   if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) {
+     console.error('[PATREON] Client credentials not configured in callback');
+     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_not_configured' });
+     return res.status(500).send('Patreon client not configured. Please contact administrator.');
+   }
+   if (!PATREON_REDIRECT_URI) {
+     console.error('[PATREON] REDIRECT_URI not configured in callback');
+     return res.status(500).send('Patreon redirect URI not configured. Please contact administrator.');
+   }
+
+   // exchange code for token
+   try {
+     console.log('[PATREON] Attempting token exchange...');
+     const tokenResp = await axios.post('https://www.patreon.com/api/oauth2/token', new URLSearchParams({
+       grant_type: 'authorization_code',
+       code: String(code),
+       client_id: PATREON_CLIENT_ID,
+       client_secret: PATREON_CLIENT_SECRET,
+       redirect_uri: PATREON_REDIRECT_URI
+     }).toString(), { 
+       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+       timeout: 10000
+     });
+
+     const tokenData = tokenResp.data;
+     console.log('[PATREON] Token exchange successful');
+     
+     // get patreon identity
+     console.log('[PATREON] Fetching Patreon identity...');
+     const meResp = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', { 
+       headers: { Authorization: `Bearer ${tokenData.access_token}` },
+       timeout: 10000
+     });
+     const patreonId = meResp.data?.data?.id || null;
+     console.log('[PATREON] Identity fetched, patreonId:', patreonId);
+
+     // Parse state to extract discordId
+     let discordId = null;
+     let guildId = undefined;
+
+     // 1) Try base64 JSON decode (most explicit form)
+     try {
+       const txt = Buffer.from(String(state), 'base64').toString('utf8');
+       const parsed = JSON.parse(txt);
+       if (parsed && parsed.discordId) {
+         discordId = String(parsed.discordId);
+         if (parsed.guildId) guildId = String(parsed.guildId);
+         console.log('[PATREON] Decoded state from base64 JSON:', { discordId, guildId });
+       }
+     } catch (e) {
+       // not base64-json, fall through
+     }
+
+     // 2) If not decoded yet, handle colon-delimited forms
+     if (!discordId && String(state).includes(':')) {
+       const left = String(state).split(':', 1)[0];
+       const tryDecoded = tryDecodeBase64Json(left);
+       if (tryDecoded) {
+         discordId = tryDecoded;
+         console.log('[PATREON] Decoded discordId from base64:', discordId);
+       } else if (/^\d{15,22}$/.test(left)) {
+         discordId = left;
+         console.log('[PATREON] Extracted discordId from plain state:', discordId);
+       }
+     }
+
+     // 3) If still not found, maybe state is directly base64-encoded numeric or plain numeric
+     if (!discordId) {
+       const directDecoded = tryDecodeBase64Json(state);
+       if (directDecoded) discordId = directDecoded;
+       else if (/^\d{15,22}$/.test(String(state))) discordId = String(state);
+       if (discordId) console.log('[PATREON] Extracted discordId from direct decode:', discordId);
+     }
+
+     if (!discordId) {
+       console.error('[PATREON] Failed to extract discordId from state:', state);
+       appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_invalid_state', state: state || null });
+       return res.status(400).send('Invalid state parameter. Please try linking again.');
+     }
+
+     // Save the link and persist
+     savePatreonLink({ discordId: discordId || '', patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
+
+     console.log('[PATREON] Link saved successfully:', { discordId, patreonId });
+     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_success', discordId: String(discordId), patreonId: patreonId || null });
+
+     // Redirect to success page
+     const successPath = `/auth/patreon/success.html?discordId=${encodeURIComponent(discordId)}&patreonId=${encodeURIComponent(patreonId || '')}&ts=${Date.now()}`;
+     return res.redirect(successPath);
+   } catch (e) {
+     const errStatus = e?.response?.status || 'no-status';
+     const errBody = e?.response?.data ? (typeof e.response.data === 'string' ? e.response.data.slice(0,1000) : JSON.stringify(e.response.data).slice(0,1000)) : (e.message || String(e));
+     console.error('[PATREON] Callback error:', { status: errStatus, message: e.message, body: errBody });
+     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_error', error: errBody, state: state || null });
+     return res.status(500).send(`Failed to link Patreon account. Error: ${e.message || 'Unknown error'}. Please try again or contact support.`);
+   }
+ });
