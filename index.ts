@@ -602,18 +602,18 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
             console.warn(`[internal/join] ギルド ${guildId} の適切なテキストチャンネルが見つかりませんでした`);
         }
 
-        // 既存のvoiceClientsをvoiceChannelIdで管理
-        const prev = getVoiceConnection(voiceChannelId);
-        if (prev) {
-            try { prev.destroy(); } catch {}
-            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { delete (voiceClients as any)[guildId]; } catch {}
-        }
-        const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
-        // store under both keys for compatibility with TTS-Engine lookup (voiceChannelId and guildId)
-        try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
-        try { (voiceClients as any)[guildId] = connection; } catch {}
-        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
+        // VoiceConnection は guildId で管理されることが多いため guildId を優先して探し、なければ voiceChannelId を試す
+        const prev = (typeof getVoiceConnection === 'function') ? (getVoiceConnection(guildId) || getVoiceConnection(voiceChannelId)) : undefined;
+         if (prev) {
+             try { prev.destroy(); } catch {}
+             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+             try { delete (voiceClients as any)[guildId]; } catch {}
+         }
+         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
+         // store under both keys for compatibility with TTS-Engine lookup (voiceChannelId and guildId)
+         try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
+         try { (voiceClients as any)[guildId] = connection; } catch {}
+         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
 
         // 即時応答してアナウンスは非同期で実行
         try {

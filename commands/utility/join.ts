@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { VoiceConnectionStatus } from '@discordjs/voice';
+import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
@@ -87,7 +87,10 @@ module.exports = {
         const guildId = interaction.guildId!;
         
     // 既に接続しているかチェック（本Bot）
-    let voiceClient = voiceClients[guildId];
+    // getVoiceConnection で guildId を優先して確認し、なければ voiceChannel.id でも確認。
+    // さらに utils/TTS-Engine 側で voiceClients を voiceChannelId で保持している可能性もあるため両方確認する。
+    const vcByGet = (typeof getVoiceConnection === 'function') ? (getVoiceConnection(guildId) || getVoiceConnection(voiceChannel.id)) : undefined;
+    let voiceClient = vcByGet || voiceClients[guildId] || voiceClients[voiceChannel.id];
     if (voiceClient) {
             // 現在Botが接続しているボイスチャンネルを取得
             const currentVoiceChannel = interaction.guild?.channels.cache.find(
