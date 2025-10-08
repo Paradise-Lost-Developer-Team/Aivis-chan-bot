@@ -611,18 +611,24 @@ app.get('/auth/discord/callback/:version', (req, res, next) => {
   const version = req.params.version || "free";
   if (!passport._strategies[`discord-${version}`]) return res.redirect('/login');
   return passport.authenticate(`discord-${version}`, { failureRedirect: '/login' })(req, res, () => {
-    res.redirect(`/dashboard?version=${version}`);
+    // ensure session is persisted before redirect to avoid race where cookie not set in browser
+    if (req.session) {
+      req.session.save((err) => {
+        if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
+        return res.redirect(`/dashboard?version=${version}`);
+      });
+    } else {
+      return res.redirect(`/dashboard?version=${version}`);
+    }
   });
 });
 
 // Backwards-compatible callback route: handle redirects to /auth/discord/callback (no :version)
 app.get('/auth/discord/callback', (req, res, next) => {
   try {
-    // Allow ?version=free|pro or fallback to 'free'
     const versionQuery = req.query.version || req.query.v;
     const version = String(versionQuery || 'free');
 
-    // Prefer explicit named strategy (discord-free / discord-pro), then default 'discord'
     let strategyName = null;
     if (passport._strategies && passport._strategies[`discord-${version}`]) {
       strategyName = `discord-${version}`;
@@ -638,7 +644,14 @@ app.get('/auth/discord/callback', (req, res, next) => {
     }
 
     return passport.authenticate(strategyName, { failureRedirect: '/login' })(req, res, () => {
-      res.redirect(`/dashboard?version=${version}`);
+      if (req.session) {
+        req.session.save((err) => {
+          if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
+          return res.redirect(`/dashboard?version=${version}`);
+        });
+      } else {
+        return res.redirect(`/dashboard?version=${version}`);
+      }
     });
   } catch (e) {
     console.error('[auth] callback (no-version) handler error:', e);
