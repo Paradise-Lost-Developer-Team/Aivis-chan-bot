@@ -1206,3 +1206,374 @@ apiApp.get('/internal/guilds/:guildId/channels', async (req: Request, res: Respo
         return res.status(500).json({ error: 'channels-failed' });
     }
 });
+
+// WEBダッシュボード用: サーバー設定を保存
+apiApp.post('/api/settings', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, settings } = req.body;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        // 設定をファイルに保存
+        const settingsDir = path.join(DATA_DIR, 'guild-settings');
+        if (!fs.existsSync(settingsDir)) {
+            fs.mkdirSync(settingsDir, { recursive: true });
+        }
+        
+        const settingsFile = path.join(settingsDir, `${guildId}.json`);
+        fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+
+        // TTS設定を即座に反映
+        if (settings) {
+            const { voiceSettings } = await import('./utils/TTS-Engine');
+            
+            if (!voiceSettings[guildId]) {
+                voiceSettings[guildId] = {};
+            }
+
+            // 明示的な値だけ上書き
+            const ttsKeys = ['defaultSpeaker','defaultSpeed','defaultPitch','defaultTempo','defaultVolume','defaultIntonation','autoLeave','ignoreBots'];
+            for (const k of ttsKeys) {
+                if (settings[k] !== undefined && settings[k] !== null) {
+                    voiceSettings[guildId][k] = settings[k];
+                }
+            }
+            
+            // 設定を保存
+            const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+            fs.writeFileSync(settingsPath, JSON.stringify(voiceSettings, null, 2));
+
+            // 即時反映
+            try {
+                await loadUserVoiceSettings();
+                console.log(`[api/settings] voiceSettings reloaded for guild=${guildId}`);
+            } catch (e) {
+                console.warn(`[api/settings] failed to reload voice settings for guild=${guildId}:`, e);
+            }
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Settings save error:', error);
+        res.status(500).json({ error: 'Failed to save settings' });
+    }
+});
+
+// WEBダッシュボード用: サーバー設定を取得
+apiApp.get('/api/settings/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        // 設定ファイルから読み込み
+        const settingsFile = path.join(DATA_DIR, 'guild-settings', `${guildId}.json`);
+        
+        if (!fs.existsSync(settingsFile)) {
+            // デフォルト設定を返す
+            return res.json({ 
+                settings: {
+                    defaultSpeaker: null,
+                    defaultSpeed: 1.0,
+                    defaultPitch: 0,
+                    defaultTempo: 1.0,
+                    defaultVolume: 1.0,
+                    defaultIntonation: 1.0,
+                    autoLeave: true,
+                    ignoreBots: true
+                }
+            });
+        }
+
+        const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+        res.json({ settings });
+    } catch (error) {
+        console.error('Settings fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+});
+
+// WEBダッシュボード用: 個人設定を保存
+apiApp.post('/api/personal-settings', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, userId, settings } = req.body;
+        
+        if (!guildId || !userId) {
+            return res.status(400).json({ error: 'guildId and userId are required' });
+        }
+
+        // 個人設定をファイルに保存
+        const personalDir = path.join(DATA_DIR, 'personal-settings');
+        if (!fs.existsSync(personalDir)) {
+            fs.mkdirSync(personalDir, { recursive: true });
+        }
+        
+        const personalFile = path.join(personalDir, `${guildId}_${userId}.json`);
+        fs.writeFileSync(personalFile, JSON.stringify(settings, null, 2));
+
+        // TTS設定を即座に反映
+        if (settings) {
+            const { voiceSettings } = await import('./utils/TTS-Engine');
+            
+            if (!voiceSettings[userId]) {
+                voiceSettings[userId] = {};
+            }
+
+            // ユーザー固有の設定を保存
+            const userKeys = ['speaker','speed','pitch','tempo','volume','intonation'];
+            for (const k of userKeys) {
+                if (settings[k] !== undefined && settings[k] !== null) {
+                    voiceSettings[userId][k] = settings[k];
+                }
+            }
+            
+            // 設定を保存
+            const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+            fs.writeFileSync(settingsPath, JSON.stringify(voiceSettings, null, 2));
+
+            // 即時反映
+            try {
+                await loadUserVoiceSettings();
+                console.log(`[api/personal-settings] voiceSettings reloaded for user=${userId} in guild=${guildId}`);
+            } catch (e) {
+                console.warn(`[api/personal-settings] failed to reload voice settings:`, e);
+            }
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Personal settings save error:', error);
+        res.status(500).json({ error: 'Failed to save personal settings' });
+    }
+});
+
+// WEBダッシュボード用: 個人設定を取得
+apiApp.get('/api/personal-settings/:guildId/:userId', async (req: Request, res: Response) => {
+    try {
+        const { guildId, userId } = req.params;
+        
+        if (!guildId || !userId) {
+            return res.status(400).json({ error: 'guildId and userId are required' });
+        }
+
+        // 個人設定ファイルから読み込み
+        const personalFile = path.join(DATA_DIR, 'personal-settings', `${guildId}_${userId}.json`);
+        
+        if (!fs.existsSync(personalFile)) {
+            // デフォルト設定を返す
+            return res.json({ 
+                settings: {
+                    speaker: null,
+                    speed: 1.0,
+                    pitch: 0,
+                    tempo: 1.0,
+                    volume: 1.0,
+                    intonation: 1.0
+                }
+            });
+        }
+
+        const settings = JSON.parse(fs.readFileSync(personalFile, 'utf8'));
+        res.json({ settings });
+    } catch (error) {
+        console.error('Personal settings fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch personal settings' });
+    }
+});
+
+// WEBダッシュボード用: 辞書を保存
+apiApp.post('/api/dictionary', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, dictionary } = req.body;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        // 辞書を適用
+        if (dictionary && Array.isArray(dictionary)) {
+            const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+            
+            let guildDictionaries: Record<string, any> = {};
+            if (fs.existsSync(dictionariesPath)) {
+                try {
+                    guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+                } catch (e) {
+                    console.warn('Failed to parse existing dictionaries:', e);
+                }
+            }
+
+            // 辞書エントリーを適切な形式に変換
+            const convertedDictionary: Record<string, any> = {};
+            dictionary.forEach((entry: any) => {
+                if (entry.word && entry.pronunciation) {
+                    convertedDictionary[entry.word] = {
+                        pronunciation: entry.pronunciation,
+                        accent: entry.accent || '',
+                        wordType: entry.wordType || ''
+                    };
+                }
+            });
+
+            guildDictionaries[guildId] = convertedDictionary;
+            fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+            
+            console.log(`[api/dictionary] Dictionary updated for guild=${guildId}, entries=${dictionary.length}`);
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Dictionary save error:', error);
+        res.status(500).json({ error: 'Failed to save dictionary' });
+    }
+});
+
+// WEBダッシュボード用: 辞書を取得
+apiApp.get('/api/dictionary/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+        
+        if (!fs.existsSync(dictionariesPath)) {
+            return res.json({ dictionary: [] });
+        }
+
+        const guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+        const dictionary = guildDictionaries[guildId] || {};
+        
+        // オブジェクトを配列形式に変換
+        const dictionaryArray = Object.entries(dictionary).map(([word, data]: [string, any]) => ({
+            word,
+            pronunciation: data.pronunciation || '',
+            accent: data.accent || '',
+            wordType: data.wordType || ''
+        }));
+
+        res.json({ dictionary: dictionaryArray });
+    } catch (error) {
+        console.error('Dictionary fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch dictionary' });
+    }
+});
+
+// WEBダッシュボード用: 話者一覧を取得
+apiApp.get('/api/speakers', async (req: Request, res: Response) => {
+    try {
+        const speakersPath = path.resolve(process.cwd(), 'data', 'speakers.json');
+        
+        if (!fs.existsSync(speakersPath)) {
+            return res.json([]);
+        }
+
+        const speakersData = JSON.parse(fs.readFileSync(speakersPath, 'utf8'));
+        const speakers = Array.isArray(speakersData) ? speakersData : (speakersData.speakers || []);
+        
+        res.json(speakers);
+    } catch (error) {
+        console.error('Speakers fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch speakers' });
+    }
+});
+
+// WEBダッシュボード用: ギルド情報を取得
+apiApp.get('/api/guilds/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            return res.status(404).json({ error: 'guild-not-found' });
+        }
+
+        const guildInfo = {
+            id: guild.id,
+            name: guild.name,
+            icon: guild.iconURL(),
+            memberCount: guild.memberCount,
+            channels: {
+                voice: guild.channels.cache.filter(ch => ch.type === 2).map(ch => ({
+                    id: ch.id,
+                    name: ch.name
+                })),
+                text: guild.channels.cache.filter(ch => ch.type === 0).map(ch => ({
+                    id: ch.id,
+                    name: ch.name
+                }))
+            }
+        };
+
+        res.json(guildInfo);
+    } catch (error) {
+        console.error('Guild info fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch guild info' });
+    }
+});
+
+// WEBダッシュボード用: 現在のボイス接続状態を取得
+apiApp.get('/api/voice-status/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        const connection = voiceClients[guildId];
+        
+        if (!connection) {
+            return res.json({ 
+                connected: false,
+                voiceChannelId: null,
+                textChannelId: null
+            });
+        }
+
+        const textChannelId = getTextChannelForGuild(guildId);
+        
+        res.json({
+            connected: connection.state.status === VoiceConnectionStatus.Ready,
+            voiceChannelId: connection.joinConfig.channelId,
+            textChannelId: textChannelId || null,
+            status: connection.state.status
+        });
+    } catch (error) {
+        console.error('Voice status fetch error:', error);
+        res.status(500).json({ error: 'Failed to fetch voice status' });
+    }
+});
+
+// Helper: Bot設定変更を他のBotインスタンスに通知
+async function notifyBotsSettingsUpdate(guildId: string, settings: any) {
+    const botUrls = [
+        process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st:3002',
+        process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd:3003',
+        process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd:3004',
+        process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th:3005',
+        process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th:3006',
+        process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th:3007'
+    ];
+
+    const notifyPromises = botUrls.map(async (url) => {
+        try {
+            const response = await axios.post(`${url}/internal/apply-web-settings/${guildId}`, 
+                { settings },
+                { 
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 5000
+                }
+            );
+            if (!response || response.status !== 200) {
+                console.warn(`Failed to notify bot at ${url}: ${response?.status || 'no response'}`);
+            }
+        } catch (error: any) {
+            console.warn(`Error notifying bot at ${url}:`, error.message);
+        }
+    });
+
+    await Promise.allSettled(notifyPromises);
+}
