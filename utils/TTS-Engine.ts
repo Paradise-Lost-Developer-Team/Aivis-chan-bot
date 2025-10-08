@@ -3,17 +3,15 @@ import config from '../data/config.json'; // 本番環境用
 import { AudioPlayer, AudioPlayerStatus, createAudioResource, StreamType, AudioResource, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, joinVoiceChannel, NoSubscriberBehavior, entersState, getVoiceConnection } from "@discordjs/voice";
 import * as fs from "fs";
 import path from "path";
-import { TextChannel } from "discord.js";
+import { ChannelType, TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
-import { getTextChannelForGuild, setTextChannelForGuild } from './voiceStateManager';
-import { ChannelType, TextChannel as DjTextChannel } from 'discord.js';
+import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
 import { spawn, ChildProcess } from "child_process";
 import PQueue from 'p-queue';
 import fetch from 'node-fetch';
-import type { TTSEngineExports } from './tts-engine-types';
 // config.jsonを使う
 
 export const TTS_BASE_URL = process.env.TTS_SERVICE_URL || config.speechEngineUrl;
@@ -71,7 +69,7 @@ function markTTSDown() {
 
 // voiceChannelIdベースで管理
 export const textChannels: { [voiceChannelId: string]: TextChannel } = {};
-// 新: ボイスチャンネルIDに紐付けてテキストチャンネルを管理するマップ
+// explicit mapping: voiceChannelId -> TextChannel (preferred when present)
 export const textChannelByVoice: { [voiceChannelId: string]: TextChannel } = {};
 export const voiceClients: { [voiceChannelId: string]: VoiceConnection } = {};
 export const currentSpeaker: { [userId: string]: number } = {};
@@ -81,73 +79,31 @@ export const joinCommandChannels: { [guildId: string]: string } = {};
 export let autoJoinChannels: { [key: string]: { voiceChannelId: string, textChannelId?: string, tempVoice?: boolean, isManualTextChannelId?: boolean } } = {};
 export const players: { [voiceChannelId: string]: AudioPlayer } = {};
 
+// --- Compatibility helpers: allow guildId-keyed access while keeping legacy voiceChannelId keys ---
 /**
- * 互換レイヤー: textChannels マップを guildId でも参照できるようにするヘルパ
- * - 古い実装では voiceChannelId をキーにしていたため、誤って guildId をキーにすると
- *   全チャンネルが読み上げ対象になってしまうケースがある。
- * - このモジュールでは起動時に normalizeTextChannelsMap() を呼び出して
- *   値から guildId を key にした参照を補完する（既存キーは破壊しない）。
+ * Normalize existing textChannels map: if entries are stored under voiceChannelId keys,
+ * try to populate equivalent guildId keys (non-destructive).
  */
-export function normalizeTextChannelsMap(): void {
+export function normalizeTextChannelsMap() {
     try {
-        const vals = Object.values(textChannels || {});
-        for (const tc of vals) {
+        for (const key of Object.keys(textChannels)) {
+            const tc = (textChannels as any)[key] as TextChannel | undefined;
+            if (!tc) continue;
             try {
-                if (!tc) continue;
-                // 登録はチャンネルIDベースで行う（暗黙的に guildId キーを作らない）
-                const cid = (tc as any).id;
-                if (!cid) continue;
-                if (!(textChannels as any)[cid]) {
-                    try { (textChannels as any)[cid] = tc; } catch (_) { /* ignore */ }
+                const gid = tc.guild?.id;
+                if (gid && !(textChannels as any)[gid]) {
+                    (textChannels as any)[gid] = tc;
                 }
-            } catch (e) {
-                continue;
-            }
-        }
-        // 追加: 同一ギルドに複数のチャンネルが登録されている場合は単一にまとめるマイグレーション
-        try {
-            const byGuild: Record<string, any[]> = {};
-            for (const [k, v] of Object.entries((textChannels as any) || {})) {
+                // if the key equals the channel id, treat it as a voice-keyed entry
+                // and populate the voice-specific map for stricter matching
                 try {
-                    const gid = v?.guild?.id;
-                    if (!gid) continue;
-                    if (!byGuild[gid]) byGuild[gid] = [];
-                    // 保存キーとオブジェクトを記録
-                    byGuild[gid].push({ key: k, channel: v });
-                } catch (e) { continue; }
-            }
-            for (const gid of Object.keys(byGuild)) {
-                try {
-                    const entries = byGuild[gid];
-                    if (!entries || entries.length === 0) continue;
-                    // 既に guildId キーが存在すればそれを優先
-                    let preferredEntry = entries.find(en => en.key === gid) || entries[0];
-                    // もし guildIdキーがなくても channel id をキーに残しつつ guildId キーを追加する
-                    try {
-                        (textChannels as any)[preferredEntry.key] = preferredEntry.channel;
-                        // guildId キーにもセットして参照の一貫性を確保
-                        (textChannels as any)[gid] = preferredEntry.channel;
-                    } catch (_) {}
-
-                    // 他の同ギルドのエントリは削除して冗長なマッピングを解消
-                    for (const en of entries) {
-                        try {
-                            if (en.key === preferredEntry.key || en.key === gid) continue;
-                            delete (textChannels as any)[en.key];
-                        } catch (_) { continue; }
+                    if (tc.id && key === tc.id) {
+                        (textChannelByVoice as any)[key] = tc;
                     }
-
-                    // 永続化可能なら voiceStateManager を通じて保存（textChannelId を保存）
-                    try {
-                        const tcid = (preferredEntry.channel && preferredEntry.channel.id) ? preferredEntry.channel.id : undefined;
-                        if (typeof setTextChannelForGuild === 'function' && tcid) {
-                            try { setTextChannelForGuild(gid, tcid); } catch (_) { /* ignore */ }
-                        }
-                    } catch (_) {}
-                } catch (e) { continue; }
+                } catch (_) {}
+            } catch (e) {
+                // ignore
             }
-        } catch (e) {
-            // ignore migration errors
         }
     } catch (e) {
         // ignore
@@ -156,50 +112,59 @@ export function normalizeTextChannelsMap(): void {
 
 export function getTextChannelFromMapByGuild(guildId: string): TextChannel | undefined {
     try {
-        // まず guildId キーで直接参照
-        const byKey = (textChannels as any)[guildId];
-        if (byKey) return byKey as TextChannel;
-
-        // 次に値を走査して guild.id と一致するものを探す
-        const vals = Object.values(textChannels || {});
-        for (const tc of vals) {
+        // direct guildId key
+        if ((textChannels as any)[guildId]) return (textChannels as any)[guildId];
+        // fallback: find by value whose guild.id matches
+        for (const k of Object.keys(textChannels)) {
+            const tc = (textChannels as any)[k] as TextChannel | undefined;
+            if (!tc) continue;
             try {
-                if (!tc) continue;
-                if ((tc as any).guild && (tc as any).guild.id === guildId) return tc as TextChannel;
-            } catch {}
+                if (tc.guild && tc.guild.id === guildId) return tc;
+            } catch (e) {
+                continue;
+            }
         }
     } catch (e) {}
     return undefined;
 }
 
-export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel | null | undefined, persist: boolean = true): void {
+export function setTextChannelForGuildInMap(guildId: string, channel: TextChannel | null | undefined) {
     try {
         if (!channel) {
-            try { delete (textChannels as any)[guildId]; } catch (_) {}
+            delete (textChannels as any)[guildId];
             return;
         }
-        if (persist) {
-            try { (textChannels as any)[guildId] = channel; } catch (_) { /* ignore */ }
-        } else {
-            try { (textChannels as any)[(channel as any).id] = channel; } catch (_) { /* ignore */ }
-        }
-    } catch (e) {
-        console.warn('setTextChannelForGuildInMap error:', e);
-    }
+        (textChannels as any)[guildId] = channel;
+    } catch (e) {}
 }
 
-// voiceChannelId に紐づくテキストチャンネルを設定するヘルパ
-export function setTextChannelForVoice(voiceChannelId: string, channel: TextChannel | null | undefined): void {
+/**
+ * Set an explicit mapping from a voice channel id to a text channel.
+ * This is the authoritative mapping when present and is used by isChannelAllowedForTTS.
+ */
+export function setTextChannelForVoice(voiceChannelId: string, channel: TextChannel | null | undefined) {
     try {
         if (!voiceChannelId) return;
         if (!channel) {
-            try { delete (textChannelByVoice as any)[voiceChannelId]; } catch (_) {}
+            delete (textChannelByVoice as any)[voiceChannelId];
             return;
         }
-        try { (textChannelByVoice as any)[voiceChannelId] = channel; } catch (_) {}
-        try { (textChannels as any)[(channel as any).id] = channel; } catch (_) {}
+        (textChannelByVoice as any)[voiceChannelId] = channel;
+        // keep guild-keyed map in sync for backward compatibility
+        try {
+            const gid = channel.guild?.id;
+            if (gid) (textChannels as any)[gid] = channel;
+        } catch (_) {}
     } catch (e) {
-        console.warn('setTextChannelForVoice error:', e);
+        // ignore
+    }
+}
+
+export function getTextChannelForVoice(voiceChannelId: string): TextChannel | undefined {
+    try {
+        return (textChannelByVoice as any)[voiceChannelId];
+    } catch (e) {
+        return undefined;
     }
 }
 
@@ -207,11 +172,11 @@ export function setTextChannelForVoice(voiceChannelId: string, channel: TextChan
 export function addTextChannelsForGuildInMap(guildId: string, channels: TextChannel[] | undefined) {
     try {
         if (!channels || channels.length === 0) return;
+        // 既存の guildId キーがあれば上書きせず、先に登録されているものは残す
         for (const ch of channels) {
             try {
-                // 重要: ここでは guildId キーを暗黙的に書き込まないこと。
-                // 永続化（ギルド->チャンネルのマッピング）が必要な場合は
-                // setTextChannelForGuildInMap(guildId, channel, persist = true) を使ってください。
+                // keyとして guildId と voiceChannelId の両方に登録する互換性を維持
+                (textChannels as any)[guildId] = ch;
                 try { (textChannels as any)[ch.id] = ch; } catch (_) { /* ignore */ }
             } catch (_) { continue; }
         }
@@ -220,45 +185,35 @@ export function addTextChannelsForGuildInMap(guildId: string, channels: TextChan
     }
 }
 
-export function removeTextChannelForGuildInMap(guildId: string): void {
+export function removeTextChannelForGuildInMap(guildId: string) {
     try {
-        // 削除対象のキーを列挙して削除
-        for (const key of Object.keys((textChannels as any) || {})) {
-            try {
-                const tc = (textChannels as any)[key];
-                if (!tc) continue;
-                if ((key === guildId) || ((tc as any).guild && (tc as any).guild.id === guildId)) {
-                    try { delete (textChannels as any)[key]; } catch (_) { /* ignore */ }
-                }
-            } catch (_) { continue; }
-        }
-    } catch (e) {
-        console.warn('removeTextChannelForGuildInMap error:', e);
-    }
+        delete (textChannels as any)[guildId];
+    } catch (e) {}
 }
 
+// run normalization at module load to populate guildId keys where possible
+try { normalizeTextChannelsMap(); } catch (e) {}
+
 /**
- * 指定された voiceChannelId に紐づくテキストチャンネルのマッピングを削除します。
- * (voiceChannelId をキーに保存されているケースに対応)
+ * Remove text channel entries keyed by voiceChannelId. Also remove any guildId keys that reference the same channel id.
  */
-export function removeTextChannelByVoiceChannelId(voiceChannelId: string): void {
+export function removeTextChannelByVoiceChannelId(voiceChannelId: string) {
     try {
         const tc = (textChannels as any)[voiceChannelId] as TextChannel | undefined;
         if (tc && tc.id) {
-            for (const k of Object.keys((textChannels as any) || {})) {
+            // remove all keys that reference this channel id
+            for (const k of Object.keys(textChannels)) {
                 try {
                     const v = (textChannels as any)[k] as TextChannel | undefined;
                     if (v && v.id === tc.id) {
-                        try { delete (textChannels as any)[k]; } catch (_) { /* ignore */ }
+                        delete (textChannels as any)[k];
                     }
-                } catch (_) { continue; }
+                } catch (e) { continue; }
             }
         } else {
-            try { delete (textChannels as any)[voiceChannelId]; } catch (e) { /* ignore */ }
+            try { delete (textChannels as any)[voiceChannelId]; } catch (e) {}
         }
-    } catch (e) {
-        console.warn('removeTextChannelByVoiceChannelId error:', e);
-    }
+    } catch (e) {}
 }
 
 // デフォルトのスピーカー設定
@@ -754,10 +709,47 @@ export async function postSynthesis(audioQuery: any, speaker: number): Promise<B
         if (!response.ok) {
             throw new Error(`Error in postSynthesis: ${response.statusText}`);
         }
-    const arrayBuffer = await response.arrayBuffer();
-    const synthRequestEnd = Date.now();
-    console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart}`);
-    return Buffer.from(arrayBuffer);
+        // Prevent huge responses from being fully buffered into memory.
+        const MAX_AUDIO_BYTES = parseInt(process.env.MAX_AUDIO_BYTES || String(5 * 1024 * 1024), 10); // default 5MB
+        const contentLengthHeader = response.headers.get && response.headers.get('content-length');
+        if (contentLengthHeader) {
+            const contentLength = parseInt(contentLengthHeader, 10);
+            if (!Number.isNaN(contentLength) && contentLength > MAX_AUDIO_BYTES) {
+                throw new Error(`postSynthesis: audio too large (Content-Length=${contentLength} > ${MAX_AUDIO_BYTES})`);
+            }
+        }
+
+        // If body is a Node stream, read incrementally and guard the total size.
+        if (response.body && typeof (response.body as any).on === 'function') {
+            const nodeStream = response.body as NodeJS.ReadableStream;
+            const chunks: Buffer[] = [];
+            let total = 0;
+            await new Promise<void>((resolve, reject) => {
+                nodeStream.on('data', (chunk: Buffer) => {
+                    total += chunk.length;
+                    if (total > MAX_AUDIO_BYTES) {
+                        // destroy stream and reject
+                        try { (nodeStream as any).destroy(new Error('audio-too-large')); } catch (_) {}
+                        return reject(new Error('postSynthesis: audio-too-large'));
+                    }
+                    chunks.push(Buffer.from(chunk));
+                });
+                nodeStream.on('end', () => resolve());
+                nodeStream.on('error', (err: any) => reject(err));
+            });
+            const synthRequestEnd = Date.now();
+            console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart} size=${chunks.reduce((s, c) => s + c.length, 0)}`);
+            return Buffer.concat(chunks);
+        }
+
+        // Fallback for environments where arrayBuffer is available
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength > (parseInt(process.env.MAX_AUDIO_BYTES || String(5 * 1024 * 1024), 10))) {
+            throw new Error('postSynthesis: audio-too-large (arrayBuffer)');
+        }
+        const synthRequestEnd = Date.now();
+        console.log(`[TTS] postSynthesis: speaker=${speaker} status=${response.status} fetchMs=${synthRequestEnd - synthRequestStart} size=${arrayBuffer.byteLength}`);
+        return Buffer.from(arrayBuffer);
     } catch (error) {
         console.error("Error in postSynthesis:", error);
         throw error;
@@ -856,6 +848,94 @@ export const MAX_TEXT_LENGTH = 200;
 // 最大読み上げ文字数の修正（サブスクリプションに基づく）
 export function getMaxTextLength(guildId: string): number {
     return getSubscriptionMaxTextLength(guildId);
+}
+
+export function isChannelAllowedForTTS(guildId: string, currentChannelId: string, client?: any, voiceClient?: VoiceConnection): { allowed: boolean, reason?: string } {
+    try {
+        if (!guildId || !currentChannelId) return { allowed: false, reason: 'invalid-args' };
+        try {
+            const maybe = (typeof getTextChannelForGuild === 'function') ? (getTextChannelForGuild as any)(guildId) : undefined;
+            let savedId: string | undefined;
+            if (maybe && typeof maybe.then !== 'function') {
+                if (typeof maybe === 'string') savedId = maybe;
+                else if ((maybe as any).id) savedId = (maybe as any).id;
+            }
+            if (savedId && savedId === currentChannelId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=saved-text-channel`); return { allowed: true, reason: 'saved-text-channel' }; }
+        } catch (e) {}
+
+        try { const auto = autoJoinChannels[guildId]; if (auto && auto.textChannelId === currentChannelId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=auto-join-setting`); return { allowed: true, reason: 'auto-join-setting' }; } } catch (e) {}
+
+        try {
+            let joinCmd: string | undefined;
+            try { if (typeof getJoinCommandChannel === 'function') joinCmd = (getJoinCommandChannel as any)(guildId); } catch (e) {}
+            if (!joinCmd && typeof joinCommandChannels === 'object') joinCmd = (joinCommandChannels as any)[guildId];
+            if (joinCmd && joinCmd === currentChannelId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=join-command-channel`); return { allowed: true, reason: 'join-command-channel' }; }
+        } catch (e) {}
+
+
+        // まず、voice->text の明示マッピングが存在する場合はそれを優先して許可を与える
+        try {
+            const voiceChannelId = voiceClient?.joinConfig?.channelId;
+            if (voiceChannelId) {
+                const mapped = getTextChannelForVoice(voiceChannelId);
+                if (mapped && mapped.id === currentChannelId) {
+                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped`);
+                    return { allowed: true, reason: 'voice-mapped' };
+                }
+            }
+        } catch (e) {}
+
+        // 次に、古い api/textChannels マップに guildKey または channelId キーとして登録されている場合を許可
+        try {
+            const vals = Object.values(textChannels || {});
+            for (const tc of vals) {
+                try {
+                    if (!tc) continue;
+                    const tcGuildId = (tc as any).guild?.id;
+                    const tcId = (tc as any).id;
+                    if (tcGuildId && tcId && tcGuildId === guildId && tcId === currentChannelId) { console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-setting`); return { allowed: true, reason: 'api-setting' }; }
+                } catch (e) { continue; }
+            }
+        } catch (e) {}
+
+        try {
+            // Only allow relation-based matches when there is a clear mapping or name match.
+            // Avoid allowing any text channel merely because it shares the same category as the
+            // voice channel (that was too permissive and caused reading from all sibling channels).
+            const voiceChannelId = voiceClient?.joinConfig?.channelId;
+            if (voiceChannelId && client) {
+                const guild = client.guilds?.cache?.get(guildId);
+                if (guild) {
+                    const vc = guild.channels.cache.get(voiceChannelId) as any;
+                    const tc = guild.channels.cache.get(currentChannelId) as any;
+                    if (vc && tc && tc.type === ChannelType.GuildText) {
+                        // 1) Strict same-name match (voice and text channel share the same name)
+                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
+                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
+                            return { allowed: true, reason: 'matching-text-channel' };
+                        }
+
+                        // 2) API/in-memory map contains this text channel (explicit mapping)
+                        try {
+                            const mapped = (textChannels as any)[currentChannelId] || (textChannels as any)[guildId] && ((textChannels as any)[guildId] as any).id === currentChannelId;
+                            if (mapped) {
+                                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-mapped-channel`);
+                                return { allowed: true, reason: 'api-mapped-channel' };
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+
+        console.debug(`[TTS-DENY] guild=${guildId} channel=${currentChannelId} reason=no-match`);
+        return { allowed: false, reason: 'no-match' };
+    } catch (err) {
+        console.error('isChannelAllowedForTTS error:', err);
+        return { allowed: false, reason: 'error' };
+    }
 }
 
 // 追加：句点読点とコンマとピリオド、半角クエスチョンマークと改行で分割
@@ -1067,20 +1147,72 @@ export function ensureVoiceConnection(guildId: string, voiceChannel: any): Voice
     return connection;
 }
 async function speakVoiceImpl(text: string, speaker: number, guildId: string, userId?: string, client?: any): Promise<void> {
-    let vc = voiceClients[guildId];
-    // VoiceConnectionがない or Readyでなければ再接続
-    if (!vc || vc.state.status !== VoiceConnectionStatus.Ready) {
-        // 再接続にはvoiceChannel情報が必要なので、autoJoinChannelsやjoinChannelsから取得
+    // Try to resolve existing VoiceConnection by multiple strategies
+    let vc: VoiceConnection | undefined = undefined;
+
+    // 1) direct guildId-keyed entry in voiceClients
+    try { vc = (voiceClients as any)[guildId]; } catch (e) { vc = undefined; }
+
+    // 2) if not found, try to find any entry whose joinConfig.guildId matches
+    if (!vc) {
+        try {
+            for (const k of Object.keys(voiceClients)) {
+                const cand = (voiceClients as any)[k] as VoiceConnection | undefined;
+                if (!cand) continue;
+                try {
+                    if ((cand.joinConfig as any)?.guildId === guildId) { vc = cand; break; }
+                } catch (_) { continue; }
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    // 3) if we found a connection that is destroyed, ignore it
+    if (vc && vc.state && vc.state.status === VoiceConnectionStatus.Destroyed) vc = undefined;
+
+    // If we have an existing connection but it's not Ready, wait briefly for it to reach Ready
+    if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
+        try {
+            console.log(`[VC DEBUG] waiting for existing VoiceConnection to become Ready: guild=${guildId} status=${vc.state.status}`);
+            await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
+            console.log(`[VC DEBUG] existing VoiceConnection became Ready: guild=${guildId} status=${vc.state.status}`);
+        } catch (e) {
+            console.warn(`[VC DEBUG] existing VoiceConnection did not become Ready: guild=${guildId} status=${vc.state.status} error=${e}`);
+            // If it didn't become ready, treat as missing and continue to attempt a fresh connect below
+            try { if (vc) vc.destroy(); } catch (_) {}
+            vc = undefined;
+        }
+    }
+
+    // If still no connection, try to obtain voiceChannelId from autoJoin/joinChannels or from any voiceClients entry
+    if (!vc) {
+        // prefer persisted settings
         const auto = autoJoinChannels[guildId];
         const join = (typeof joinChannels === 'object' ? joinChannels[guildId] : undefined);
-        const voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+        let voiceChannelId = auto?.voiceChannelId || join?.voiceChannelId;
+
+        // fallback: inspect voiceClients entries for a joinConfig.channelId
+        if (!voiceChannelId) {
+            try {
+                for (const k of Object.keys(voiceClients)) {
+                    const cand = (voiceClients as any)[k] as VoiceConnection | undefined;
+                    if (!cand) continue;
+                    try {
+                        const cid = (cand.joinConfig as any)?.channelId;
+                        const gid = (cand.joinConfig as any)?.guildId;
+                        if (cid && gid === guildId) { voiceChannelId = cid; break; }
+                    } catch (_) { continue; }
+                }
+            } catch (e) { /* ignore */ }
+        }
+
         const guild = client?.guilds?.cache?.get(guildId);
         let voiceChannel = null;
         if (guild && voiceChannelId) {
             voiceChannel = guild.channels.cache.get(voiceChannelId);
         }
+
         if (voiceChannel) {
-            console.log(`[VC DEBUG] ensureVoiceConnection: guildId=${guildId}, channelId=${voiceChannelId}`);
+            console.log(`[VC DEBUG] ensureVoiceConnection (fresh): guildId=${guildId}, channelId=${voiceChannelId}`);
             vc = ensureVoiceConnection(guildId, voiceChannel);
             try {
                 console.log(`[VC DEBUG] entersState before: status=${vc.state.status}`);
@@ -1091,8 +1223,33 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
                 return;
             }
         } else {
-            console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${voiceChannelId}, guild=${!!guild}`);
-            return;
+            // Try one last strategy: if any voiceClients entry exists for this guild, derive the channelId from it
+            try {
+                for (const k of Object.keys(voiceClients)) {
+                    const cand = (voiceClients as any)[k] as VoiceConnection | undefined;
+                    if (!cand) continue;
+                    try {
+                        const cid = (cand.joinConfig as any)?.channelId;
+                        const gid = (cand.joinConfig as any)?.guildId;
+                        if (cid && gid === guildId) {
+                            console.log(`[VC DEBUG] derived voiceChannelId from existing voiceClients entry: ${cid} (guild=${gid})`);
+                            // Try to fetch channel object if possible
+                            const g = client?.guilds?.cache?.get(guildId);
+                            const ch = g ? g.channels.cache.get(cid) : null;
+                            if (ch) {
+                                vc = ensureVoiceConnection(guildId, ch);
+                                try { await entersState(vc, VoiceConnectionStatus.Ready, 10_000); } catch (e) { console.warn('derived ensureVoiceConnection failed', e); return; }
+                            }
+                            break;
+                        }
+                    } catch (_) { continue; }
+                }
+            } catch (e) { /* ignore */ }
+
+            if (!vc) {
+                console.warn(`[VC DEBUG] VoiceConnection/VoiceChannel情報が取得できません: guildId=${guildId}, voiceChannelId=${voiceChannelId}, guild=${!!guild}`);
+                return;
+            }
         }
     }
     // AudioPlayerを新規作成し、必ずsubscribe
@@ -1129,9 +1286,26 @@ function resolveGuildIdFromVoiceOrGuildId(id: string, client?: any): string | un
 }
 
 export function speakAnnounce(text: string, voiceOrGuildId: string, client?: any): Promise<void> {
-    const guildId = resolveGuildIdFromVoiceOrGuildId(voiceOrGuildId, client) ?? voiceOrGuildId;
+    const resolved = resolveGuildIdFromVoiceOrGuildId(voiceOrGuildId, client);
+    let guildId: string | undefined = resolved ?? undefined;
+    // If resolution failed, accept voiceOrGuildId only when it is clearly a guild id available in the provided client
+    if (!guildId) {
+        try {
+            if (client && client.guilds && client.guilds.cache && client.guilds.cache.has(voiceOrGuildId)) {
+                guildId = voiceOrGuildId;
+            }
+        } catch (e) {
+            // ignore and treat as unresolved
+        }
+    }
+
+    if (!guildId) {
+        console.warn(`[VC DEBUG] speakAnnounce: ギルドを解決できませんでした voiceOrGuildId=${voiceOrGuildId}`);
+        return Promise.resolve();
+    }
+
     const queue = getQueueForUser(guildId);
-    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId, undefined, client));
+    return queue.add(() => speakVoiceImpl(text, DEFAULT_SPEAKER_ID, guildId!, undefined, client));
 }
 
 // ユーザー／ギルドごとのキュー管理
@@ -1194,9 +1368,6 @@ let autoJoinChannelsLastModified = 0;
 
 // 初期化時に既存のデータを読み込む（キャッシュ付き）
 autoJoinChannels = loadAutoJoinChannels();
-
-// 互換性のために textChannels マップを正規化（guildId キーを補完）
-try { normalizeTextChannelsMap(); } catch (e) { /* ignore */ }
 
 export function loadAutoJoinChannels() {
     try {
@@ -1426,146 +1597,15 @@ export function deleteJoinChannelsConfig(guildId: string) {
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
-    // 保存されたテキストチャンネルIDを優先
-        const savedTextChannelId = getTextChannelForGuild(guildId);
-        if (savedTextChannelId) return savedTextChannelId;
-
-        // 安易に "最初に見つかった" チャンネルを既定として使わない。
-        // defaultChannelId を返すのは明示的または厳格に一致する場合のみ。
-        if (!defaultChannelId) return undefined;
-
-        // joinコマンドが実行されたチャンネルなら許可
-        const joinCmd = getJoinCommandChannel(guildId);
-        if (joinCmd && joinCmd === defaultChannelId) return defaultChannelId;
-
-        // 自動参加設定でこのチャンネルが設定されている場合は許可
-        try {
-                const autoJoin = getAutoJoinChannelForGuild(guildId);
-                if (autoJoin && autoJoin.textChannelId === defaultChannelId) return defaultChannelId;
-        } catch (e) {
-                // getAutoJoinChannelForGuild が存在しない実装もあるため安全に無視
-        }
-
-        // カテゴリや名前の厳密一致 (既存の addTextChannelsForGuildInMap 等と整合)
-        const candidates = textChannels[guildId];
-        if (candidates && candidates[defaultChannelId]) {
-                const cand = candidates[defaultChannelId];
-                // Voice->Text の候補として既に紐付いている場合のみ許可
-                if (cand && cand.source === 'mapped') return defaultChannelId;
-        }
-
-        // 上記どれにも当てはまらない場合は自動選択を避ける
-        return undefined;
-}
-
-/**
- * ギルド内の指定チャンネルが読み上げ対象かを判定するユーティリティ
- * 優先順:
- *  1. voiceStateManager の保存されたテキストチャンネル
- *  2. autoJoinChannels の textChannelId
- *  3. joinCommandChannels の記録
- *  4. voiceClient が接続するボイスチャンネルのカテゴリ内 / 同名テキストチャンネル
- */
-export function isChannelAllowedForTTS(guildId: string, currentChannelId: string, client?: any, voiceClient?: VoiceConnection): { allowed: boolean, reason?: string } {
-    try {
-        // argument validation
-        if (!guildId || !currentChannelId) return { allowed: false, reason: 'invalid-args' };
-
-        // 1) persisted setting via voiceStateManager (highest priority)
-        try {
-            const saved = getTextChannelForGuild(guildId);
-            let savedId: string | undefined;
-            if (!saved) savedId = undefined;
-            else if (typeof saved === 'string') savedId = saved;
-            else if ((saved as any).id) savedId = (saved as any).id;
-            if (savedId) {
-                if (savedId === currentChannelId) {
-                    console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=saved-text-channel`);
-                    return { allowed: true, reason: 'saved-text-channel' };
-                }
-                // explicit saved id differs -> deny further API map match unless matches other rules
-            }
-        } catch (e) {
-            // ignore and continue
-        }
-
-        // 2) autoJoinChannels
-        try {
-            const auto = autoJoinChannels[guildId];
-            if (auto && auto.textChannelId && auto.textChannelId === currentChannelId) {
-                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=auto-join-setting`);
-                return { allowed: true, reason: 'auto-join-setting' };
-            }
-        } catch (e) {}
-
-        // 3) joinCommandChannels
-        try {
-            const joinCmd = getJoinCommandChannel(guildId);
-            if (joinCmd && joinCmd === currentChannelId) {
-                console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=join-command-channel`);
-                return { allowed: true, reason: 'join-command-channel' };
-            }
-        } catch (e) {}
-
-        // 4) API map (in-memory textChannels) -- scan values and require both guild.id and channel.id to match
-        try {
-            const vals = Object.values(textChannels || {});
-            for (const tc of vals) {
-                try {
-                    if (!tc) continue;
-                    const tcGuildId = (tc as any).guild?.id;
-                    const tcId = (tc as any).id;
-                    if (tcGuildId && tcId && tcGuildId === guildId && tcId === currentChannelId) {
-                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=api-setting`);
-                        return { allowed: true, reason: 'api-setting' };
-                    }
-                } catch (e) { continue; }
-            }
-        } catch (e) {}
-
-        // 5) voiceClient relation: prefer a text channel explicitly mapped to the voice channel.
-        // Avoid allowing sibling text channels just because they share the category.
-        try {
-            const voiceChannelId = voiceClient?.joinConfig?.channelId;
-            if (voiceChannelId && client) {
-                // If there's a mapping of text channel for this voiceChannelId, only allow that one.
-                try {
-                    const mappedTc = (textChannelByVoice as any)[voiceChannelId];
-                    if (mappedTc && (mappedTc as any).id === currentChannelId) {
-                        console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=voice-mapped-text-channel`);
-                        return { allowed: true, reason: 'voice-mapped-text-channel' };
-                    }
-                } catch (e) {
-                    // ignore
-                }
-
-                // If no strict mapping exists, fall back to stricter same-name check only (avoid category-wide allowance)
-                const guild = client.guilds?.cache?.get(guildId);
-                if (guild) {
-                    const vc = guild.channels.cache.get(voiceChannelId) as any;
-                    const tc = guild.channels.cache.get(currentChannelId) as any;
-                    if (vc && tc && tc.type === ChannelType.GuildText) {
-                        if (typeof vc.name === 'string' && typeof tc.name === 'string' && vc.name.toLowerCase() === tc.name.toLowerCase()) {
-                            console.debug(`[TTS-ALLOW] guild=${guildId} channel=${currentChannelId} reason=matching-text-channel`);
-                            return { allowed: true, reason: 'matching-text-channel' };
-                        }
-                    }
-                }
-            }
-        } catch (e) {}
-
-        console.debug(`[TTS-DENY] guild=${guildId} channel=${currentChannelId} reason=no-match`);
-        return { allowed: false, reason: 'no-match' };
-    } catch (err) {
-        console.error('isChannelAllowedForTTS error:', err);
-        return { allowed: false, reason: 'error' };
-    }
+  // 保存されたテキストチャンネルIDを優先
+    const savedTextChannelId = getTextChannelForGuild(guildId);
+    return savedTextChannelId || defaultChannelId;
 }
 
 // joinコマンド実行チャンネルを記録する関数
 export function setJoinCommandChannel(guildId: string, channelId: string) {
     joinCommandChannels[guildId] = channelId;
-    console.log(`[Join:1st] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
+    console.log(`[Join] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
 }
 
 // joinコマンド実行チャンネルを取得する関数
@@ -1861,16 +1901,3 @@ process.on('SIGTERM', () => {
         process.exit(0);
     }
 });
-
-// Canonical typed export for other modules to import safely
-export const ttsEngine: TTSEngineExports = {
-    voiceSettings,
-    saveUserVoiceSettings: typeof saveUserVoiceSettings === 'function' ? saveUserVoiceSettings : undefined,
-    loadUserVoiceSettings: typeof loadUserVoiceSettings === 'function' ? loadUserVoiceSettings : undefined,
-    setTextChannelForGuildInMap: typeof setTextChannelForGuildInMap === 'function' ? setTextChannelForGuildInMap : undefined,
-    addTextChannelsForGuildInMap: typeof addTextChannelsForGuildInMap === 'function' ? addTextChannelsForGuildInMap : undefined,
-    removeTextChannelForGuildInMap: typeof removeTextChannelForGuildInMap === 'function' ? removeTextChannelForGuildInMap : undefined,
-    textChannels,
-    voiceClients,
-    autoJoinChannels,
-};

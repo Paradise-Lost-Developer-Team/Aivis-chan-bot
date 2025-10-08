@@ -1,4 +1,4 @@
-import { Events, Client, VoiceState, ChannelType } from 'discord.js';
+import { Events, Client, VoiceState } from 'discord.js';
 import { VoiceConnectionStatus } from '@discordjs/voice';
 import { speakAnnounce, loadAutoJoinChannels, voiceClients, currentSpeaker, updateLastSpeechTime, monitorMemoryUsage, autoJoinChannels, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap, updateJoinChannelsConfig } from './TTS-Engine';
 import { saveVoiceState, setTextChannelForGuild, getTextChannelForGuild } from './voiceStateManager';
@@ -13,18 +13,18 @@ async function sendAutoJoinEmbed(member: any, channel: any, client: Client, text
         if (!textChannel || !textChannel.isTextBased()) return;
         const botUser = client.user;
         const embed = new EmbedBuilder()
-            .setTitle('🤖 自動接続通知')
-            .setDescription(`<@${member.id}> がボイスチャンネルに参加したため、自動接続を実行しました。`)
+            .setTitle('自動接続通知')
+            .setDescription(`最も空いているBotに <#${channel ? channel.id : '不明'}> への接続を指示しました。`)
             .addFields(
                 { name: '接続先', value: `<#${channel ? channel.id : '不明'}>`, inline: true },
-                { name: 'テキストチャンネル', value: `<#${textChannelId}>`, inline: true },
-                { name: '実行者', value: `<@${member.id}>`, inline: true }
+                { name: 'テキストチャンネル', value: `<#${textChannelId}>`, inline: true }
             )
-            .setColor(0x00bfff)
+            .addFields(
+                { name: '選択Bot', value: pickedBaseUrl ?? '不明', inline: true }
+            )
             .setThumbnail(botUser?.displayAvatarURL() ?? null)
             .setTimestamp();
         await textChannel.send({ embeds: [embed] });
-        console.log(`[自動接続] アナウンス送信完了: ギルド ${member.guild.id} チャンネル ${textChannelId}`);
     } catch (err) {
         console.error('[自動接続Embed送信失敗]:', err);
     }
@@ -55,82 +55,11 @@ async function sendAutoLeaveEmbed(member: any, channel: any, client: Client, tex
     }
 }
 
-/**
- * Find preferred text channel for a given voice channel.
- * Priority:
- *  1. Text channel(s) in the same category as the voice channel (with send permission)
- *  2. Text channel with the same name as the voice channel (case-insensitive)
- *  3. Guild system channel
- *  4. First viewable text channel
- */
-function findPreferredTextChannel(member: any, voiceChannel: any): string | undefined {
-    try {
-        const guild = member.guild;
-        const me = guild.members.cache.get(member.client?.user?.id || '');
-
-        // 1) same category
-        const parentId = voiceChannel?.parentId || (voiceChannel?.parent && (voiceChannel.parent as any).id);
-        if (parentId) {
-            const candidates = guild.channels.cache.filter((c: any) => c.type === ChannelType.GuildText && c.parentId === parentId);
-            for (const ch of candidates.values()) {
-                try {
-                    if (!me) return ch.id; // if we can't check perms, return first candidate
-                    if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) return ch.id;
-                } catch (e) {
-                    continue;
-                }
-            }
-        }
-
-        // 2) same name
-        if (voiceChannel && typeof voiceChannel.name === 'string') {
-            const name = voiceChannel.name.toLowerCase();
-            const same = guild.channels.cache.find((c: any) => c.type === ChannelType.GuildText && (c.name || '').toLowerCase() === name);
-            if (same) return same.id;
-        }
-
-    // Do NOT fall back to guild.systemChannelId or the first viewable channel.
-    // If no category-related or same-name channel is found, leave undefined so
-    // callers know there is no preferred text channel.
-    } catch (e) {
-        // ignore
-    }
-    return undefined;
-}
-
-/**
- * Return the first text channel that the bot can send messages to.
- * Sorted deterministically by position then id.
- */
-function findFirstSendableTextChannel(guild: any, botUser: any): string | undefined {
-    try {
-        const me = guild.members.cache.get(botUser?.id || '');
-        const textChannels: any[] = Array.from(guild.channels.cache.values())
-            .filter((c: any) => c.type === ChannelType.GuildText && (c as any).viewable);
-        textChannels.sort((a: any, b: any) => {
-            if (a.position !== b.position) return a.position - b.position;
-            return (a.id || '').localeCompare(b.id || '');
-        });
-        for (const ch of textChannels) {
-            try {
-                if (!me) continue;
-                if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) return ch.id;
-            } catch (e) {
-                continue;
-            }
-        }
-    } catch (e) {
-        // ignore
-    }
-    return undefined;
-}
-
 export function VoiceStateUpdate(client: Client) {
     client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         const member = newState.member!;
-    const guildId = member.guild.id;
-    const voiceClient = voiceClients[guildId];
-    const speakTargetVoiceChannelId = voiceClient?.joinConfig?.channelId ?? guildId;
+        const guildId = member.guild.id;
+        const voiceClient = voiceClients[guildId];
     
         if (member.user.bot) return;
 
@@ -176,12 +105,10 @@ export function VoiceStateUpdate(client: Client) {
                     let textChannelId = autoJoinData?.textChannelId;
                     
                     // テキストチャンネルが指定されていない場合のフォールバック
-                        if (!textChannelId) {
-                            // Prefer a text channel related to the voice channel (same category or same name)
-                            textChannelId = findPreferredTextChannel(member, newState.channel);
-                            // Do not use system channel or first-sendable fallback automatically; leave undefined if not found
-                            console.log(`[TempVC:pro] テキストチャンネルは未指定のまま: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
-                        }
+                    if (!textChannelId) {
+                        // テキストチャンネル未指定時はコード側で勝手に選択しません（システムチャンネルも使用しません）。
+                        console.log(`[TempVC] テキストチャンネルは未指定のまま: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
+                    }
                     
                     const infos = await getBotInfos();
                     const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
@@ -189,7 +116,7 @@ export function VoiceStateUpdate(client: Client) {
                     if (picked) {
                         await instructJoin(picked.bot, { guildId, voiceChannelId: newState.channel!.id, textChannelId });
                         await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
-                        console.log(`[TempVC:pro] 追従接続指示完了: bot=${picked.bot.name} vc=${newState.channel!.name} tc=${textChannelId}`);
+                        console.log(`[TempVC] 追従接続指示完了: bot=${picked.bot.name} vc=${newState.channel!.name} tc=${textChannelId}`);
                     }
                     // TTSの再生先を確実にリセット（本Botが選ばれた場合に備える）
                     if (currentSpeaker[guildId] !== undefined) delete currentSpeaker[guildId];
@@ -246,16 +173,16 @@ export function VoiceStateUpdate(client: Client) {
                 // ユーザーがボイスチャンネルに参加したとき
                 if (voiceClient.joinConfig.channelId === newState.channel.id) {
                     const nickname = member.displayName;
-                    await speakAnnounce(`${nickname} さんが入室しました。`, speakTargetVoiceChannelId, client);
+                    await speakAnnounce(`${nickname} さんが入室しました。`, guildId, client);
                     updateLastSpeechTime(); // 発話時刻を更新
                 }
             } else if (oldState.channel && !newState.channel) {
                 // ユーザーがボイスチャンネルから退出したとき
                 if (voiceClient.joinConfig.channelId === oldState.channel.id) {
                     const nickname = member.displayName;
-                    await speakAnnounce(`${nickname} さんが退室しました。`, speakTargetVoiceChannelId, client);
+                    await speakAnnounce(`${nickname} さんが退室しました。`, guildId, client);
                     updateLastSpeechTime(); // 発話時刻を更新
-    
+
                     // ボイスチャンネルに誰もいなくなったら退室
                     if (oldState.channel && oldState.channel.members.filter(member => !member.user.bot).size === 0) {  // ボイスチャンネルにいるのがBOTだけの場合
                         // 自分自身のBotが接続している場合は直接切断
@@ -265,56 +192,48 @@ export function VoiceStateUpdate(client: Client) {
                 }
             }
         }
-    
+
         // Auto join channels handling
         try {
             const autoJoinChannelsData = loadAutoJoinChannels();
-    
+
             const guildData = autoJoinChannelsData[guildId];
             if (!guildData) return;
-    
+
             const voiceChannelId = guildData.voiceChannelId;
             const textChannelId = guildData.textChannelId;
-    
+
             if (!oldState.channel && newState.channel) {
                 // tempVoiceの場合は前段で処理済み。通常の自動接続のみ扱う
                 if (guildData.tempVoice !== true && voiceChannelId === newState.channel.id) {
                     if (!voiceClients[guildId] || voiceClients[guildId].state.status !== VoiceConnectionStatus.Ready) {
                         try {
-                            // テキストチャンネル確実指定
+                            // テキストチャンネル確実指定（システムチャンネルのみを試行）
                             let finalTextChannelId = textChannelId;
                             if (!finalTextChannelId) {
-                                // Prefer a text channel related to the voice channel
-                                finalTextChannelId = findPreferredTextChannel(member, newState.channel);
-                                if (!finalTextChannelId) {
-                                    // Try system channel only; do NOT pick the first sendable channel automatically
-                                    if (member.guild.systemChannelId) {
-                                        const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
-                                        try {
-                                            const me = member.guild.members.cache.get(client.user?.id || '');
-                                            if (!me) {
-                                                finalTextChannelId = member.guild.systemChannelId;
-                                            } else if (sys && (sys as any).permissionsFor && (sys as any).permissionsFor(me)?.has('SendMessages')) {
-                                                finalTextChannelId = member.guild.systemChannelId;
-                                            }
-                                        } catch (e) {
-                                            // ignore
+                                if (member.guild.systemChannelId) {
+                                    const sys = member.guild.channels.cache.get(member.guild.systemChannelId);
+                                    if (sys && (sys as any).isTextBased) {
+                                        const me = member.guild.members?.me;
+                                        const perms = me ? (sys as any).permissionsFor?.(me) : (sys as any).permissionsFor?.(client.user);
+                                        if (perms && perms.has && perms.has('ViewChannel') && perms.has('SendMessages')) {
+                                            finalTextChannelId = member.guild.systemChannelId;
                                         }
                                     }
                                 }
-                                console.log(`[AutoJoin:pro] テキストチャンネル自動選択結果: ${finalTextChannelId ?? '未指定'} (guild: ${member.guild.name})`);
+                                console.log(`[AutoJoin] テキストチャンネル自動選択は行いませんでした: ${finalTextChannelId ?? '未指定'} (guild: ${member.guild.name})`);
                             }
-                            
+
                             const infos = await getBotInfos();
                             const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
                             const picked = pickLeastBusyBot(eligible);
                             if (picked) {
                                 await instructJoin(picked.bot, { guildId, voiceChannelId, textChannelId: finalTextChannelId });
                                 await sendAutoJoinEmbed(member, newState.channel, client, finalTextChannelId, picked.bot.baseUrl);
-                                console.log(`[AutoJoin:pro] 自動接続完了: bot=${picked.bot.name} vc=${newState.channel.name} tc=${finalTextChannelId}`);
+                                console.log(`[AutoJoin] 自動接続完了: bot=${picked.bot.name} vc=${newState.channel.name} tc=${finalTextChannelId}`);
                             }
                         } catch (error) {
-                            console.error('[AutoJoin:pro] 自動接続エラー:', error);
+                            console.error('[AutoJoin] 自動接続エラー:', error);
                         }
                     }
                 }
@@ -339,67 +258,64 @@ export function VoiceStateUpdate(client: Client) {
         
         // ボットがボイスチャンネルに参加した場合（存在しなかった→存在する）
         if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
-                try {
-                    const guild = newState.member!.guild;
-                    // 既に永続化されたテキストチャンネルがあれば上書きしない
-                    const persisted = getTextChannelForGuild(guild.id);
-                    if (!persisted) {
-                        // ボイスチャンネルと同じカテゴリ内のテキストチャンネルを候補として登録
-                        const vc = newState.channel;
-                        const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
-                        if (categoryId) {
-                            const me = guild.members.cache.get(client.user?.id || '');
-                            const candidates: any[] = Array.from(guild.channels.cache.values()).filter((c: any) => c.type === ChannelType.GuildText && c.parentId === categoryId);
-                            const allowed: any[] = [];
-                            for (const ch of candidates) {
-                                try {
-                                    if (!me) {
-                                        allowed.push(ch);
-                                    } else if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) {
-                                        allowed.push(ch);
-                                    }
-                                } catch (e) {
-                                    continue;
+            try {
+                const guild = newState.member!.guild;
+                // 既に永続化されたテキストチャンネルがあれば上書きしない
+                const persisted = getTextChannelForGuild(guild.id);
+                if (!persisted) {
+                    // ボイスチャンネルと同じカテゴリ内のテキストチャンネルを候補として登録
+                    const vc = newState.channel;
+                    const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
+                    if (categoryId) {
+                        const me = guild.members.cache.get(client.user?.id || '');
+                        const candidates: any[] = Array.from(guild.channels.cache.values()).filter((c: any) => c.type === 0 && c.parentId === categoryId);
+                        const allowed: any[] = [];
+                        for (const ch of candidates) {
+                            try {
+                                if (!me) {
+                                    allowed.push(ch);
+                                } else if ((ch as any).permissionsFor && (ch as any).permissionsFor(me)?.has('SendMessages')) {
+                                    allowed.push(ch);
                                 }
+                            } catch (e) {
+                                continue;
                             }
-                            if (allowed.length > 0) {
+                        }
+                        if (allowed.length > 0) {
+                            try {
+                                // Prefer same-name channel, otherwise first allowed. Register only one.
+                                let preferred: any | undefined = undefined;
                                 try {
-                                    // Prefer a channel whose name matches the voice channel name (strict),
-                                    // otherwise pick the first allowed channel. Register only one preferred
-                                    // channel to avoid allowing multiple text channels in the same category.
-                                    let preferred: any | undefined = undefined;
-                                    try {
-                                        if (vc && typeof vc.name === 'string') {
-                                            const vname = vc.name.toLowerCase();
-                                            preferred = allowed.find((ch: any) => (ch && (ch.name || '').toLowerCase()) === vname);
-                                        }
-                                    } catch (e) { /* ignore */ }
-                                    if (!preferred) preferred = allowed[0];
-
-                                    if (preferred) {
-                                        try {
-                                            (preferred as any).source = 'mapped';
-                                            // Persist a strict mapping between this voice channel and the selected text channel
-                                            try { setTextChannelForVoice(vc.id, preferred); } catch (_) {}
-                                            try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
-                                            // Persist to join_channels.json so other bots can read authoritative mapping
-                                            try { if (typeof updateJoinChannelsConfig === 'function') updateJoinChannelsConfig(guild.id, vc.id, (preferred as any).id); } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
-                                            // refresh auto-join cache if needed
-                                            try { loadAutoJoinChannels(); } catch (_) {}
-                                            console.log(`[BotJoin] guild=${guild.id} voice=${vc.id} mapping-set selected=${(preferred && preferred.id) || preferred}`);
-                                        } catch (e) {
-                                            console.error('[BotJoin] mapping set エラー:', e);
-                                        }
+                                    if (vc && typeof vc.name === 'string') {
+                                        const vname = vc.name.toLowerCase();
+                                        preferred = allowed.find((ch: any) => (ch && (ch.name || '').toLowerCase()) === vname);
                                     }
-                                } catch (e) {
-                                    console.error('[BotJoin] 優先チャネル選択エラー:', e);
-                                }
+                                } catch (e) { /* ignore */ }
+                                if (!preferred) preferred = allowed[0];
+                                        if (preferred) {
+                                            (preferred as any).source = 'mapped';
+                                            try {
+                                                // Persist a single mapping: guild -> preferred text channel
+                                                try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
+                                                // Also map voiceChannelId -> textChannel for stricter relation
+                                                try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
+                                                // Persist to join_channels.json so other bots can read authoritative mapping
+                                                try { if (typeof updateJoinChannelsConfig === 'function') updateJoinChannelsConfig(guild.id, (vc && vc.id) || (newState.channel && newState.channel.id), (preferred as any).id); } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
+                                                try { loadAutoJoinChannels(); } catch (_) {}
+                                                console.log(`[BotJoin] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+                                            } catch (e) {
+                                                console.error('[BotJoin] persist selected text channel error:', e);
+                                            }
+                                        }
+                            } catch (e) {
+                                console.error('[BotJoin] 優先チャネル選択エラー:', e);
                             }
                         }
                     }
-                } catch (e) {
-                    console.error('Bot join処理中のエラー:', e);
                 }
+            } catch (e) {
+                console.error('Bot join処理中のエラー:', e);
+            }
         }
     });
 
@@ -438,15 +354,8 @@ export function VoiceStateUpdate(client: Client) {
             // ...既存のjoinChannelsData判定ロジック...
         }
         if (allow) {
-            // Only persist if the channel is explicitly allowed by the auto-join configuration
-            // or if it matches the stored textChannelId. Prevent broad unconditional allow.
             const storedTextChannelId = getTextChannelForGuild(guildId);
             const isStoredChannel = storedTextChannelId && storedTextChannelId === message.channel.id;
-
-            // When autoJoinData.tempVoice && no textChannelId, we previously set allow = true unconditionally
-            // for any message. Change behavior: only accept messages that are either the stored channel,
-            // or inside the same category as the bot's connected VC (if available). As a last resort,
-            // accept the channel if the bot is connected to a VC and the message author is in that VC.
             let shouldPersist = false;
 
             if (isStoredChannel) {
@@ -459,9 +368,6 @@ export function VoiceStateUpdate(client: Client) {
                         shouldPersist = true;
                     }
                 }
-
-                // Last-resort: if message author is currently in the same voice channel as the bot,
-                // allow persisting. This is stricter than unconditional true for any message.
                 if (!shouldPersist && message.member && message.member.voice && message.member.voice.channel && me?.voice.channel) {
                     if (message.member.voice.channel.id === me.voice.channel.id) {
                         shouldPersist = true;
@@ -484,3 +390,36 @@ export function VoiceStateUpdate(client: Client) {
     }, 5 * 60 * 1000); // 5分ごと
 }
 
+// ヘルパ: ギルド内で Bot が閲覧可能かつ送信可能な最初のテキストチャンネルを返す
+function findFirstSendableTextChannel(guild: any, botUser: any): any | undefined {
+    try {
+        if (!guild || !guild.channels || !guild.channels.cache) return undefined;
+        const channels = guild.channels.cache
+            .filter((ch: any) => ch && ch.type === 0) // GuildText
+            .sort((a: any, b: any) => { // deterministic order: by position then id
+                const pa = typeof a.position === 'number' ? a.position : 0;
+                const pb = typeof b.position === 'number' ? b.position : 0;
+                if (pa !== pb) return pa - pb;
+                return (a.id || '').localeCompare(b.id || '');
+            });
+        const me = guild.members?.me;
+        for (const [k, ch] of channels) {
+            try {
+                if (!ch) continue;
+                // チャンネルが見えているか
+                if (typeof ch.viewable === 'boolean' && !ch.viewable) {
+                    // viewable が false ならスキップ
+                    // console.debug(`[findFirstSendableTextChannel] skip not viewable: ${ch.id}`);
+                    continue;
+                }
+                // Bot が ViewChannel + SendMessages パーミッションを持っているか
+                if (!botUser) return ch; // 保険として botUser がない場合は返す
+                const perms = ch.permissionsFor ? ch.permissionsFor(me ?? botUser) : null;
+                if (perms && perms.has && perms.has('ViewChannel') && perms.has('SendMessages')) return ch;
+                // 権限不足であればログを残す（詳細確認用）
+                // console.debug(`[findFirstSendableTextChannel] insufficient perms for ${ch.id}`);
+            } catch (e) { continue; }
+        }
+    } catch (e) {}
+    return undefined;
+}
