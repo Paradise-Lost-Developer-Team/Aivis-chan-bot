@@ -650,341 +650,6 @@ app.get('/api/debug-aggregator', async (req, res) => {
   }
 });
 
-// Bot統計情報を取得（全ボットインスタンスのステータスを集約）
-app.get('/api/bot-stats', async (req, res) => {
-    try {
-        const botUrls = [
-            process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
-            process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
-            process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
-            process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
-            process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
-            process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
-            process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
-        ];
-
-        const botStatusPromises = botUrls.map(async (url) => {
-            try {
-                const response = await axios.get(`${url}/health`, { timeout: 5000 });
-                return { 
-                    url, 
-                    success: response.status === 200,
-                    status: response.status 
-                };
-            } catch (error) {
-                return { 
-                    url, 
-                    success: false, 
-                    error: error.message 
-                };
-            }
-        });
-
-        const results = await Promise.allSettled(botStatusPromises);
-        const bots = results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'timeout' });
-        
-        const stats = {
-            total_bots: bots.length,
-            online_bots: bots.filter(b => b.success).length,
-            offline_bots: bots.filter(b => !b.success).length,
-            bots: bots
-        };
-
-        res.json(stats);
-    } catch (error) {
-        console.error('Failed to get bot stats:', error);
-        res.status(500).json({ error: 'Failed to retrieve bot statistics' });
-    }
-});
-
-// 認証チェックミドルウェア
-function requireAuth(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    res.redirect('/login');
-}
-
-// ルートはindex.htmlを返す
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// ログインページ
-app.get('/login', (req, res) => {
-    if (req.isAuthenticated()) {
-        return res.redirect('/dashboard');
-    }
-    res.sendFile(path.join(__dirname, 'login.html'));
-});
-
-// Discord認証開始（無料版）
-app.get('/auth/discord/:version', (req, res, next) => {
-    const version = req.params.version || "free";
-  if (!passport._strategies[`discord-${version}`]) return res.status(500).send(`discord-${version} not configured`);
-  return passport.authenticate(`discord-${version}`)(req, res, next);
-});
-
-// Discord認証開始（デフォルト - 後方互換性）
-app.get('/auth/discord', (req, res, next) => {
-  if (!passport._strategies['discord']) return res.status(500).send('discord strategy not configured');
-  return passport.authenticate('discord')(req, res, next);
-});
-
-// Discord認証コールバック（無料版/Pro版共通）
-app.get('/auth/discord/callback/:version', (req, res, next) => {
-  const version = req.params.version || 'free';
-  const strategy = `discord-${version}`;
-  if (!passport._strategies || !passport._strategies[strategy]) {
-    console.warn('[AUTH] strategy not available:', strategy);
-    return res.redirect('/login');
-  }
-
-  passport.authenticate(strategy, { session: true }, (err, user, info) => {
-    try {
-      console.log('[AUTH DEBUG] passport callback raw:', { 
-        err: err && String(err.message || err), 
-        user: user ? (user.id || user.username || '[user]') : null, 
-        info,
-        userType: typeof user,
-        userKeys: user ? Object.keys(user) : []
-      });
-      
-      if (err) {
-        console.error('[AUTH DEBUG] authenticate error:', err && (err.stack || err));
-        try {
-          console.error('[AUTH DEBUG] oauth error details:', {
-            name: err.name,
-            message: err.message,
-            status: err.status || err.statusCode || null,
-            data: err.data || err.oauthError || (err.response && err.response.data) || null
-          });
-        } catch (ee) {}
-        return res.status(500).send('authentication error');
-      }
-      
-      if (!user) {
-        console.warn('[AUTH DEBUG] authenticate returned no user, info=', info);
-        return res.redirect('/login');
-      }
-      
-      // アクセストークンをセッションに保存
-      if (info && info.accessToken) {
-        req.session.accessToken = info.accessToken;
-        console.log('[AUTH DEBUG] Access token saved to session');
-      } else if (user && user.accessToken) {
-        req.session.accessToken = user.accessToken;
-        console.log('[AUTH DEBUG] Access token saved from user object');
-      }
-      
-      // ログイン処理
-      req.logIn(user, (loginErr) => {
-        if (loginErr) {
-          console.error('[AUTH DEBUG] req.logIn failed:', loginErr && (loginErr.stack || loginErr.message || loginErr));
-          return res.status(500).send('login failed');
-        }
-        
-        if (req.session) {
-          req.session.save((saveErr) => {
-            if (saveErr) console.warn('[SESSION] save after oauth failed:', saveErr && (saveErr.message || saveErr));
-            console.log('[AUTH DEBUG] login success sessionID=', req.sessionID, 
-              'user.id=', user.id, 'guilds=', user.guilds?.length || 0);
-            return res.redirect(`/dashboard?version=${version}`);
-          });
-        } else {
-          console.log('[AUTH DEBUG] login success but no session object');
-          return res.redirect(`/dashboard?version=${version}`);
-        }
-      });
-    } catch (inner) {
-      console.error('[AUTH DEBUG] unexpected error in callback handler:', inner && (inner.stack || inner.message || inner));
-      return res.status(500).send('internal handler error');
-    }
-  })(req, res, next);
-});
-
-// Backwards-compatible callback route: handle redirects to /auth/discord/callback (no :version)
-app.get('/auth/discord/callback', (req, res, next) => {
-  try {
-    const versionQuery = req.query.version || req.query.v;
-    const version = String(versionQuery || 'free');
-
-    let strategyName = null;
-    if (passport._strategies && passport._strategies[`discord-${version}`]) {
-      strategyName = `discord-${version}`;
-    } else if (passport._strategies && passport._strategies['discord']) {
-      strategyName = 'discord';
-    } else if (passport._strategies && passport._strategies['discord-free']) {
-      strategyName = 'discord-free';
-    }
-
-    if (!strategyName) {
-      console.warn('[auth] No Discord strategy available to handle callback');
-      return res.redirect('/login');
-    }
-
-    return passport.authenticate(strategyName, { failureRedirect: '/login' })(req, res, () => {
-      if (req.session) {
-        req.session.save((err) => {
-          if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
-          try {
-            console.log(`[AUTH DEBUG] callback(no-version) strategy=${strategyName} sessionID=${req.sessionID} isAuthenticated=${typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : '(n/a)'} user=${req.user ? (req.user.id || req.user.username || '[user]') : '(none)'}`);
-          } catch (e) {}
-          return res.redirect(`/dashboard?version=${version}`);
-        });
-      } else {
-        try {
-          console.log(`[AUTH DEBUG] callback(no-version) no session object present`);
-        } catch (e) {}
-        return res.redirect(`/dashboard?version=${version}`);
-      }
-    });
-  } catch (e) {
-    console.error('[auth] callback (no-version) handler error:', e);
-    return res.redirect('/login');
-  }
-});
-
-// ログアウト
-app.get('/logout', (req, res) => {
-  // Passport 0.6+: req.logout requires callback
-  req.logout(err => {
-    if (err) console.error('Logout error:', err);
-    // Destroy the session
-    req.session?.destroy(() => {
-      res.clearCookie('connect.sid');
-      return res.redirect('/login');
-    });
-  });
-});
-
-// クライアント用：現在のセッション状態を返す
-app.get('/api/session', (req, res) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  
-  const isAuth = req.isAuthenticated && req.isAuthenticated();
-  
-  console.log('[DEBUG] /api/session called');
-  console.log('[DEBUG] isAuthenticated:', isAuth);
-  console.log('[DEBUG] req.user:', req.user ? { id: req.user.id, username: req.user.username, guilds: req.user.guilds?.length || 0 } : 'null');
-  console.log('[DEBUG] sessionID:', req.sessionID);
-  console.log('[DEBUG] session.cookie:', req.session?.cookie);
-  console.log('[DEBUG] cookies from request:', req.headers.cookie?.split(';').map(c => c.trim().split('=')[0]));
-  
-  if (isAuth && req.user) {
-    return res.json({ 
-      authenticated: true, 
-      user: {
-        id: req.user.id,
-        username: req.user.username,
-        discriminator: req.user.discriminator,
-        avatar: req.user.avatar,
-        avatarUrl: req.user.avatarUrl,
-        guilds: req.user.guilds || []
-      }
-    });
-  }
-  return res.json({ authenticated: false });
-});
-
-// プレミアムステータス取得API
-app.get('/api/premium-status', requireAuth, async (req, res) => {
-    try {
-        // Patreon連携やデータベースからプレミアムステータスを確認
-        const userId = req.user.id;
-
-        // 仮の実装：Patreon連携データを確認
-        const patreonLink = await getPatreonLink(userId);
-        const isPremium = patreonLink && patreonLink.patreonId;
-
-        const premiumData = {
-            isPremium: isPremium,
-            tier: isPremium ? 'スタンダード' : null,
-            expiryDate: isPremium ? '2025-12-31' : null, // 仮の有効期限
-            features: isPremium ? ['tts', 'priority', 'dict', 'analytics', 'backup', 'support'] : []
-        };
-
-        res.json(premiumData);
-    } catch (error) {
-        console.error('Premium status error:', error);
-        res.status(500).json({ error: 'プレミアムステータスの取得に失敗しました' });
-    }
-});
-
-// プレミアム設定取得API
-app.get('/api/premium-settings', requireAuth, (req, res) => {
-    try {
-        // ローカルストレージやデータベースから設定を取得
-        const userId = req.user.id;
-        const settingsKey = `premium_settings_${userId}`;
-
-        // 仮の実装：デフォルト設定を返す
-        const defaultSettings = {
-            tts: false,
-            priority: false,
-            dict: false,
-            analytics: false,
-            backup: false,
-            support: false
-        };
-
-        // 実際の実装ではデータベースから取得
-        const settings = defaultSettings; // 仮
-
-        res.json(settings);
-    } catch (error) {
-        console.error('Premium settings error:', error);
-        res.status(500).json({ error: 'プレミアム設定の取得に失敗しました' });
-    }
-});
-
-// プレミアム設定保存API
-app.post('/api/premium-settings', requireAuth, express.json(), (req, res) => {
-    try {
-        const userId = req.user.id;
-        const settings = req.body;
-
-        // 設定を保存（データベースやファイルに）
-        const settingsKey = `premium_settings_${userId}`;
-
-        // 仮の実装：コンソールに出力
-        console.log(`Saving premium settings for user ${userId}:`, settings);
-
-        // 実際の実装ではデータベースに保存
-        // await saveToDatabase(settingsKey, settings);
-
-        res.json({ success: true, message: '設定を保存しました' });
-    } catch (error) {
-        console.error('Premium settings save error:', error);
-        res.status(500).json({ error: '設定の保存に失敗しました' });
-    }
-});
-
-// プレミアム統計取得API
-app.get('/api/premium-stats', requireAuth, (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        // 仮の実装：サンプル統計データを返す
-        const stats = {
-            usageTime: 42,
-            messagesProcessed: 1250,
-            responseTime: 150,
-            utilization: 75
-        };
-
-        // 実際の実装ではデータベースから取得
-        // const stats = await getPremiumStats(userId);
-
-        res.json(stats);
-    } catch (error) {
-        console.error('Premium stats error:', error);
-        res.status(500).json({ error: '統計データの取得に失敗しました' });
-    }
-});
-
 // 設定保存エンドポイント
 app.post('/api/settings', async (req, res) => {
     try {
@@ -998,23 +663,29 @@ app.post('/api/settings', async (req, res) => {
         
         // ファイルに保存
         const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
-        await fs.mkdir(path.dirname(settingsPath), { recursive: true });
+        await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
         await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
         
         // 全Botに通知
         const notifyResults = await Promise.allSettled(
             BOT_INSTANCES.map(async (bot) => {
-                const url = `${bot.url}/api/settings/notify`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ guildId, settings })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`${response.status}`);
+                try {
+                    const url = `${bot.url}/api/settings/notify`;
+                    const response = await axios.post(url, 
+                        { guildId, settings },
+                        { 
+                            headers: { 'Content-Type': 'application/json' },
+                            timeout: 5000
+                        }
+                    );
+                    
+                    if (response.status !== 200) {
+                        throw new Error(`${response.status}`);
+                    }
+                    return { bot: bot.name, success: true };
+                } catch (error) {
+                    throw new Error(`${error.message}`);
                 }
-                return { bot: bot.name, success: true };
             })
         );
         
@@ -1044,23 +715,29 @@ app.post('/api/personal-settings', async (req, res) => {
         console.log(`[API /api/personal-settings] Saving personal settings for guild: ${guildId}, user: ${userId}`);
         
         const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'personal', `${userId}.json`);
-        await fs.mkdir(path.dirname(settingsPath), { recursive: true });
-        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+        await fsPromises.mkdir(path.dirname(settingsPath), { recursive: true });
+        await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
         
         // 全Botに通知
         const notifyResults = await Promise.allSettled(
             BOT_INSTANCES.map(async (bot) => {
-                const url = `${bot.url}/api/personal-settings/notify`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ guildId, userId, settings })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`${response.status}`);
+                try {
+                    const url = `${bot.url}/api/personal-settings/notify`;
+                    const response = await axios.post(url,
+                        { guildId, userId, settings },
+                        {
+                            headers: { 'Content-Type': 'application/json' },
+                            timeout: 5000
+                        }
+                    );
+                    
+                    if (response.status !== 200) {
+                        throw new Error(`${response.status}`);
+                    }
+                    return { bot: bot.name, success: true };
+                } catch (error) {
+                    throw new Error(`${error.message}`);
                 }
-                return { bot: bot.name, success: true };
             })
         );
         
@@ -1089,23 +766,29 @@ app.post('/api/dictionary', async (req, res) => {
         console.log(`[API /api/dictionary] Saving dictionary for guild: ${guildId}`);
         
         const dictPath = path.join(__dirname, 'data', 'guilds', guildId, 'dictionary.json');
-        await fs.mkdir(path.dirname(dictPath), { recursive: true });
-        await fs.writeFile(dictPath, JSON.stringify(dictionary, null, 2));
+        await fsPromises.mkdir(path.dirname(dictPath), { recursive: true });
+        await fsPromises.writeFile(dictPath, JSON.stringify(dictionary, null, 2));
         
         // 全Botに通知
         const notifyResults = await Promise.allSettled(
             BOT_INSTANCES.map(async (bot) => {
-                const url = `${bot.url}/api/dictionary/notify`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ guildId, dictionary })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`${response.status}`);
+                try {
+                    const url = `${bot.url}/api/dictionary/notify`;
+                    const response = await axios.post(url,
+                        { guildId, dictionary },
+                        {
+                            headers: { 'Content-Type': 'application/json' },
+                            timeout: 5000
+                        }
+                    );
+                    
+                    if (response.status !== 200) {
+                        throw new Error(`${response.status}`);
+                    }
+                    return { bot: bot.name, success: true };
+                } catch (error) {
+                    throw new Error(`${error.message}`);
                 }
-                return { bot: bot.name, success: true };
             })
         );
         
