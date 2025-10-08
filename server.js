@@ -57,6 +57,26 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 
+// --- Diagnostics: log env summary and catch crashes early ---
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err && (err.stack || err.message || err));
+  // give logs a moment to flush
+  setTimeout(() => process.exit(1), 200);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] unhandledRejection:', reason);
+  setTimeout(() => process.exit(1), 200);
+});
+
+console.log('[STARTUP] server env summary:', {
+  PORT,
+  HOST,
+  BASE_URL: process.env.BASE_URL ? 'set' : 'unset',
+  SESSION_STORE: process.env.SESSION_STORE || 'memory',
+  REDIS_URL: process.env.REDIS_URL ? 'set' : 'unset',
+  PATREON_REDIRECT_URI: process.env.PATREON_REDIRECT_URI ? 'set' : (process.env.BASE_URL ? 'derived-from-BASE_URL' : 'unset')
+});
+
 // --- Patreon defaults (moved before any route that may reference them; k8s: avoid localhost fallback) ---
 const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
 const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
@@ -1281,3 +1301,10 @@ app.get('/health/redis', async (req, res) => {
     res.status(503).json({ status: 'Redis connection failed', error: error.message });
   }
 });
+
+// Ensure we actually start listening and log it (add/replace at end of file)
+if (require.main === module) {
+  app.listen(PORT, HOST, () => {
+    console.log(`[LISTEN] app listening on ${HOST}:${PORT} (PID ${process.pid})`);
+  });
+}
