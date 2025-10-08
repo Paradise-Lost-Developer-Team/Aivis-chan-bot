@@ -107,7 +107,7 @@ export function VoiceStateUpdate(client: Client) {
                     // テキストチャンネルが指定されていない場合のフォールバック
                     if (!textChannelId) {
                         // テキストチャンネル未指定時はコード側で勝手に選択しません（システムチャンネルも使用しません）。
-                        console.log(`[TempVC:1st] テキストチャンネルは未指定のまま: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
+                        console.log(`[TempVC] テキストチャンネルは未指定のまま: ${textChannelId ?? '未指定'} (guild: ${member.guild.name})`);
                     }
                     
                     const infos = await getBotInfos();
@@ -116,7 +116,7 @@ export function VoiceStateUpdate(client: Client) {
                     if (picked) {
                         await instructJoin(picked.bot, { guildId, voiceChannelId: newState.channel!.id, textChannelId });
                         await sendAutoJoinEmbed(member, newState.channel, client, textChannelId, picked.bot.baseUrl);
-                        console.log(`[TempVC:1st] 追従接続指示完了: bot=${picked.bot.name} vc=${newState.channel!.name} tc=${textChannelId}`);
+                        console.log(`[TempVC] 追従接続指示完了: bot=${picked.bot.name} vc=${newState.channel!.name} tc=${textChannelId}`);
                     }
                     // TTSの再生先を確実にリセット（本Botが選ばれた場合に備える）
                     if (currentSpeaker[guildId] !== undefined) delete currentSpeaker[guildId];
@@ -221,7 +221,7 @@ export function VoiceStateUpdate(client: Client) {
                                         }
                                     }
                                 }
-                                console.log(`[AutoJoin:1st] テキストチャンネル自動選択は行いませんでした: ${finalTextChannelId ?? '未指定'} (guild: ${member.guild.name})`);
+                                console.log(`[AutoJoin] テキストチャンネル自動選択は行いませんでした: ${finalTextChannelId ?? '未指定'} (guild: ${member.guild.name})`);
                             }
 
                             const infos = await getBotInfos();
@@ -230,10 +230,10 @@ export function VoiceStateUpdate(client: Client) {
                             if (picked) {
                                 await instructJoin(picked.bot, { guildId, voiceChannelId, textChannelId: finalTextChannelId });
                                 await sendAutoJoinEmbed(member, newState.channel, client, finalTextChannelId, picked.bot.baseUrl);
-                                console.log(`[AutoJoin:1st] 自動接続完了: bot=${picked.bot.name} vc=${newState.channel.name} tc=${finalTextChannelId}`);
+                                console.log(`[AutoJoin] 自動接続完了: bot=${picked.bot.name} vc=${newState.channel.name} tc=${finalTextChannelId}`);
                             }
                         } catch (error) {
-                            console.error('[AutoJoin:1st] 自動接続エラー:', error);
+                            console.error('[AutoJoin] 自動接続エラー:', error);
                         }
                     }
                 }
@@ -300,15 +300,15 @@ export function VoiceStateUpdate(client: Client) {
                                                 // Also map voiceChannelId -> textChannel for stricter relation
                                                 try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
                                                 // Persist to join_channels.json so other bots can read authoritative mapping
-                                                try { if (typeof updateJoinChannelsConfig === 'function') updateJoinChannelsConfig(guild.id, (vc && vc.id) || (newState.channel && newState.channel.id), (preferred as any).id); } catch (e) { console.warn('[BotJoin:1st] updateJoinChannelsConfig failed:', e); }
+                                                try { if (typeof updateJoinChannelsConfig === 'function') updateJoinChannelsConfig(guild.id, (vc && vc.id) || (newState.channel && newState.channel.id), (preferred as any).id); } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
                                                 try { loadAutoJoinChannels(); } catch (_) {}
-                                                console.log(`[BotJoin:1st] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+                                                console.log(`[BotJoin] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
                                             } catch (e) {
-                                                console.error('[BotJoin:1st] persist selected text channel error:', e);
+                                                console.error('[BotJoin] persist selected text channel error:', e);
                                             }
                                         }
                             } catch (e) {
-                                console.error('[BotJoin:1st] 優先チャネル選択エラー:', e);
+                                console.error('[BotJoin] 優先チャネル選択エラー:', e);
                             }
                         }
                     }

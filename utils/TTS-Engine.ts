@@ -1605,7 +1605,7 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
 // joinコマンド実行チャンネルを記録する関数
 export function setJoinCommandChannel(guildId: string, channelId: string) {
     joinCommandChannels[guildId] = channelId;
-    console.log(`[Join:1st] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
+    console.log(`[Join] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
 }
 
 // joinコマンド実行チャンネルを取得する関数

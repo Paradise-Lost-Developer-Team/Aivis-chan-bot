@@ -91,25 +91,14 @@ async function loadWebDashboardSettings() {
                         voiceSettings[guild.id] = {};
                     }
                     
-                    // ダッシュボードのTTS設定を反映（autoLeave / ignoreBots を追加）
                     Object.assign(voiceSettings[guild.id], {
                         defaultSpeaker: settings.defaultSpeaker,
                         defaultSpeed: settings.defaultSpeed,
                         defaultPitch: settings.defaultPitch,
                         defaultTempo: settings.defaultTempo,
                         defaultVolume: settings.defaultVolume,
-                        defaultIntonation: settings.defaultIntonation,
-                        autoLeave: typeof settings.autoLeave === 'boolean' ? settings.autoLeave : voiceSettings[guild.id].autoLeave,
-                        ignoreBots: typeof settings.ignoreBots === 'boolean' ? settings.ignoreBots : voiceSettings[guild.id].ignoreBots
+                        defaultIntonation: settings.defaultIntonation
                     });
-
-                    // 即時反映：メモリ上のユーザー/ギルド設定をリロード
-                    try {
-                        await loadUserVoiceSettings();
-                        console.log(`[loadWebDashboardSettings] voiceSettings reloaded for guild=${guild.id}`);
-                    } catch (e) {
-                        console.warn(`[loadWebDashboardSettings] failed to reload voice settings for guild=${guild.id}:`, e);
-                    }
                 }
 
                 // 辞書を適用（global-dictionary を優先して取得、空なら従来のエンドポイントへフォールバック）
@@ -195,29 +184,51 @@ client.once("ready", async () => {
         // 起動時にAivisSpeech Engineから話者情報を取得しspeakers.jsonに保存
         await fetchAndSaveSpeakers();
 
-        await deployCommands(client);
-        console.log("コマンドのデプロイ完了");
-        
-    // 再接続はオーケストレーションで最も空いている在籍Botへ
-    console.log('再接続オーケストレーションを開始...');
-    await orchestrateReconnectFromSavedState(client);
-    console.log('再接続オーケストレーションが完了しました');
-
-        // --- 追加: 各ギルドのVoiceConnectionがReadyになるまで待機 ---
-    const { voiceClients } = await import('./utils/TTS-Engine');
-        const waitForReady = async (vc: VoiceConnection, guildId: string) => {
-            try {
-                await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
-            } catch (e) {
-                console.warn(`ギルド${guildId}のVoiceConnectionがReadyになりませんでした:`, e);
-            }
-        };
-        for (const [guildId, vc] of Object.entries(voiceClients) as [string, VoiceConnection][]) {
-            if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
-                await waitForReady(vc, guildId);
-            }
+        try {
+            await deployCommands(client);
+        } catch (e) {
+            console.warn('コマンドのデプロイ中にエラーが発生しました:', e);
         }
-        // --- 追加ここまで ---
+        console.log("コマンドのデプロイ完了");
+
+        // 保存された状態からVoiceを再接続（voiceStateManagerのreconnectToVoiceChannelsを使用）
+        try {
+            // 関数が client を受け取るかどうかを柔軟に扱う
+            const fn: any = reconnectToVoiceChannels;
+            if (typeof fn === 'function') {
+            if (fn.length > 0) {
+                await fn(client);
+            } else {
+                await fn();
+            }
+            console.log('reconnectToVoiceChannels による再接続処理が完了しました');
+            } else {
+            console.warn('reconnectToVoiceChannels が関数ではありません');
+            }
+        } catch (e) {
+            console.warn('reconnectToVoiceChannels 実行中にエラーが発生しました:', e);
+        }
+            
+        // 再接続はオーケストレーションで最も空いている在籍Botへ
+        console.log('再接続オーケストレーションを開始...');
+        await orchestrateReconnectFromSavedState(client);
+        console.log('再接続オーケストレーションが完了しました');
+
+            // --- 追加: 各ギルドのVoiceConnectionがReadyになるまで待機 ---
+        const { voiceClients } = await import('./utils/TTS-Engine');
+            const waitForReady = async (vc: VoiceConnection, guildId: string) => {
+                try {
+                    await entersState(vc, VoiceConnectionStatus.Ready, 10_000);
+                } catch (e) {
+                    console.warn(`ギルド${guildId}のVoiceConnectionがReadyになりませんでした:`, e);
+                }
+            };
+            for (const [guildId, vc] of Object.entries(voiceClients) as [string, VoiceConnection][]) {
+                if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
+                    await waitForReady(vc, guildId);
+                }
+            }
+            // --- 追加ここまで ---
         
         // 会話統計トラッキングサービスの初期化
         console.log("会話分析サービスを初期化しています...");
@@ -732,34 +743,21 @@ apiApp.post('/internal/apply-web-settings/:guildId', express.json(), async (req:
         if (settings) {
             const { voiceSettings } = await import('./utils/TTS-Engine');
             
-            // デフォルト設定を適用（存在確認とフォールバックを厳密化）
+            // デフォルト設定を適用
             if (!voiceSettings[guildId]) {
                 voiceSettings[guildId] = {};
             }
-
-            // 明示的な値だけ上書き（false を許容するため nullish coalescing は使わない）
-            if (settings.defaultSpeaker !== undefined && settings.defaultSpeaker !== null) voiceSettings[guildId].defaultSpeaker = settings.defaultSpeaker;
-            if (settings.defaultSpeed !== undefined && settings.defaultSpeed !== null) voiceSettings[guildId].defaultSpeed = settings.defaultSpeed;
-            if (settings.defaultPitch !== undefined && settings.defaultPitch !== null) voiceSettings[guildId].defaultPitch = settings.defaultPitch;
-            if (settings.defaultTempo !== undefined && settings.defaultTempo !== null) voiceSettings[guildId].defaultTempo = settings.defaultTempo;
-            if (settings.defaultVolume !== undefined && settings.defaultVolume !== null) voiceSettings[guildId].defaultVolume = settings.defaultVolume;
-            if (settings.defaultIntonation !== undefined && settings.defaultIntonation !== null) voiceSettings[guildId].defaultIntonation = settings.defaultIntonation;
-
-            // autoLeave / ignoreBots を明示的に保存できるようにする
-            if (typeof settings.autoLeave === 'boolean') voiceSettings[guildId].autoLeave = settings.autoLeave;
-            if (typeof settings.ignoreBots === 'boolean') voiceSettings[guildId].ignoreBots = settings.ignoreBots;
+            
+            voiceSettings[guildId].defaultSpeaker = settings.defaultSpeaker || voiceSettings[guildId].defaultSpeaker;
+            voiceSettings[guildId].defaultSpeed = settings.defaultSpeed || voiceSettings[guildId].defaultSpeed;
+            voiceSettings[guildId].defaultPitch = settings.defaultPitch || voiceSettings[guildId].defaultPitch;
+            voiceSettings[guildId].defaultTempo = settings.defaultTempo || voiceSettings[guildId].defaultTempo;
+            voiceSettings[guildId].defaultVolume = settings.defaultVolume || voiceSettings[guildId].defaultVolume;
+            voiceSettings[guildId].defaultIntonation = settings.defaultIntonation || voiceSettings[guildId].defaultIntonation;
             
             // 設定を保存
             const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
             fs.writeFileSync(settingsPath, JSON.stringify(voiceSettings, null, 2));
-
-            // 即時反映
-            try {
-                await loadUserVoiceSettings();
-                console.log(`[apply-web-settings] voiceSettings reloaded for guild=${guildId}`);
-            } catch (e) {
-                console.warn(`[apply-web-settings] failed to reload voice settings for guild=${guildId}:`, e);
-            }
         }
 
         // 辞書を適用
@@ -956,24 +954,41 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
     }
 });
 
+// joinした順番に退出処理をしてしまう不具合を修正します
 apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
 
-        if (voiceChannelId) {
-            const prev = getVoiceConnection(voiceChannelId);
-            if (prev) { try { prev.destroy(); } catch {} }
-            try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-            try { removeTextChannelByVoiceChannelId(voiceChannelId); } catch {}
-            try { delete (global as any).players?.[voiceChannelId]; } catch {}
-        } else if (guildId) {
-            const prev = getVoiceConnection(guildId);
-            if (prev) { try { prev.destroy(); } catch {} }
-            try { delete (voiceClients as any)[guildId]; } catch {}
-            try { removeTextChannelForGuildInMap(guildId); } catch {}
-            try { delete (global as any).players?.[guildId]; } catch {}
+        // Try to resolve the connection by guildId first, then by voiceChannelId as a fallback.
+        let prev: any = undefined;
+        if (guildId) {
+            try { prev = getVoiceConnection(guildId); } catch {}
         }
+        if (!prev && voiceChannelId) {
+            try { prev = getVoiceConnection(voiceChannelId); } catch {}
+        }
+
+        if (prev) {
+            try { prev.destroy(); } catch (err) { console.warn('Failed to destroy voice connection:', err); }
+        }
+
+        // Ensure we remove stored references under BOTH possible keys to avoid stale entries
+        try { if (voiceChannelId) delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { if (guildId) delete (voiceClients as any)[guildId]; } catch {}
+
+        // Remove text-channel mapping based on what's available
+        try {
+            if (voiceChannelId) {
+                removeTextChannelByVoiceChannelId(voiceChannelId);
+            } else if (guildId) {
+                removeTextChannelForGuildInMap(guildId);
+            }
+        } catch (err) { /* ignore */ }
+
+        // Remove any global player state for either key
+        try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
+        try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
 
         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
