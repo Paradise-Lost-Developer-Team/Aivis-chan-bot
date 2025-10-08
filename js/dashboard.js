@@ -1549,59 +1549,69 @@ class Dashboard {
                     }
 
                     if (candidate.length > 0) {
-                        speakers = candidate.map(s => typeof s === 'string' ? { id: s, name: s } : { id: s.id || s.name, name: s.name || s.id });
-                        console.log(`Loaded speakers from ${url}`, speakers.length);
-                        // mark source for UI tooltip
-                        speakerSelectIds.forEach(id => {
-                            const sel = document.getElementById(id);
-                            if (sel) sel.title = `Loaded from: ${url}`;
+                        // Normalize and preserve style/variant arrays if present.
+                        speakers = candidate.map(s => {
+                            if (typeof s === 'string') return { id: s, name: s, styles: [] };
+                            const id = s.id || s.name || String(Math.random());
+                            const name = s.name || s.id || id;
+                            const styles = Array.isArray(s.styles) ? s.styles
+                                : Array.isArray(s.voice_styles) ? s.voice_styles
+                                : Array.isArray(s.variants) ? s.variants
+                                : [];
+                            return { id, name, styles };
                         });
-                        try {
-                            // cache for offline/fallback use
-                            localStorage.setItem('cached-speakers', JSON.stringify(speakers));
-                        } catch (e) {
-                            // ignore storage failures
-                        }
-                        break;
-                    } else {
-                        console.log(`Speaker endpoint ${url} returned empty or unsupported body shape`);
-                    }
-                }
-            } catch (e) {
-                // ignore and try next
+                         console.log(`Loaded speakers from ${url}`, speakers.length);
+                         // mark source for UI tooltip
+                         speakerSelectIds.forEach(id => {
+                             const sel = document.getElementById(id);
+                             if (sel) sel.title = `Loaded from: ${url}`;
+                         });
+                         try {
+                             // cache for offline/fallback use
+                             localStorage.setItem('cached-speakers', JSON.stringify(speakers));
+                         } catch (e) {
+                             // ignore storage failures
+                         }
+                         break;
+                     } else {
+                         console.log(`Speaker endpoint ${url} returned empty or unsupported body shape`);
+                     }
+                 }
+             } catch (e) {
+                 // ignore and try next
                 console.log(`Speaker fetch failed for ${url}:`, e && e.message ? e.message : e);
-            }
-        }
-
-        // If no speakers were loaded from remote endpoints, try cached speakers
-        if ((!speakers || speakers.length === 0)) {
-            try {
-                const cached = JSON.parse(localStorage.getItem('cached-speakers') || 'null');
-                if (Array.isArray(cached) && cached.length > 0) {
-                    speakers = cached;
-                    console.log('Using cached speakers from localStorage', speakers.length);
-                    speakerSelectIds.forEach(id => {
-                        const sel = document.getElementById(id);
-                        if (sel) sel.title = 'Loaded from local cache';
-                    });
-                }
-            } catch (e) {
-                // ignore cache errors
-            }
-        }
-
-        // 2) チャンネル一覧を取得（サーバー内の bot が保持しているチャンネル一覧を提供する内部APIがある場合を想定）
-        // 優先: /api/guilds/:guildId/channels, /api/bots/:guildId/channels → フォールバック: none
-        let channels = [];
+             }
+         }
+ 
+         // If no speakers were loaded from remote endpoints, try cached speakers
+         if ((!speakers || speakers.length === 0)) {
+             try {
+                 const cached = JSON.parse(localStorage.getItem('cached-speakers') || 'null');
+                 if (Array.isArray(cached) && cached.length > 0) {
+                     speakers = cached;
+                     console.log('Using cached speakers from localStorage', speakers.length);
+                     speakerSelectIds.forEach(id => {
+                         const sel = document.getElementById(id);
+                         if (sel) sel.title = 'Loaded from local cache';
+                     });
+                 }
+             } catch (e) {
+                 // ignore cache errors
+             }
+         }
+ 
+         // 2) チャンネル一覧を取得（サーバー内の bot が保持しているチャンネル一覧を提供する内部APIがある場合を想定）
+         // 優先: /api/guilds/:guildId/channels, /api/bots/:guildId/channels → フォールバック: none
+         let channels = [];
 
     // (チャンネルの select 要素は後で取得してプレースホルダ処理を行います)
 
-        const channelUrls = [
-            `/api/guilds/${guildId}/channels`,
-            `/api/bots/${guildId}/channels`,
-        ];
+         const channelUrls = [
+             `/api/guilds/${guildId}/channels`,
+             `/api/bots/${guildId}/channels`,
+         ];
 
-        for (const url of channelUrls) {
+         for (const url of channelUrls) {
             try {
                 console.log(`Trying channel URL: ${url}`);
                 const chResp = await fetch(url, { credentials: 'include' });
@@ -1647,15 +1657,36 @@ class Dashboard {
                 placeholder.textContent = '（選択してください）';
                 sel.appendChild(placeholder);
 
+                // Create option per style if available, otherwise single option per speaker.
                 speakers.forEach(sp => {
-                    const opt = document.createElement('option');
-                    opt.value = sp.id;
-                    opt.textContent = sp.name || sp.id;
-                    sel.appendChild(opt);
+                    if (Array.isArray(sp.styles) && sp.styles.length > 0) {
+                        sp.styles.forEach(style => {
+                            const opt = document.createElement('option');
+                            opt.value = `${sp.id}:${style}`;
+                            opt.textContent = `${sp.name} — ${style}`;
+                            sel.appendChild(opt);
+                        });
+                    } else {
+                        const opt = document.createElement('option');
+                        opt.value = sp.id;
+                        opt.textContent = sp.name || sp.id;
+                        sel.appendChild(opt);
+                    }
                 });
 
-                // 以前の設定があれば選択
-                if (previous) sel.value = previous;
+                // 以前の設定が存在すれば優先して再選択する。保存形式が "id" または "id:style" の両方に対応。
+                if (previous) {
+                    const found = Array.from(sel.options).some(o => o.value === previous);
+                    if (found) {
+                        sel.value = previous;
+                    } else {
+                        // 以前の値が speaker id だけだった場合、対応する最初の style option を選択する
+                        const idx = speakers.findIndex(s => s.id === previous);
+                        if (idx !== -1 && Array.isArray(speakers[idx].styles) && speakers[idx].styles.length > 0) {
+                            sel.value = `${speakers[idx].id}:${speakers[idx].styles[0]}`;
+                        }
+                    }
+                }
             }
         });
 
