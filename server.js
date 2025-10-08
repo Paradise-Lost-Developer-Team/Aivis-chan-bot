@@ -1077,6 +1077,17 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
   }
 });
 
+// ダッシュボードのルートを明示 (認証必須)
+// express.static は '/dashboard.html' を配信するが '/dashboard/' ではディレクトリ探索になるため明示ルートを追加
+app.get(['/dashboard', '/dashboard/'], requireAuth, (req, res) => {
+  try {
+    return res.sendFile(path.join(__dirname, 'dashboard.html'));
+  } catch (e) {
+    console.error('[ROUTE] failed to serve dashboard.html:', e && (e.stack || e.message || e));
+    return res.status(500).send('Failed to load dashboard');
+  }
+});
+
 // サーバーリストを返すエンドポイント
 app.get('/api/servers', async (req, res) => {
   try {
