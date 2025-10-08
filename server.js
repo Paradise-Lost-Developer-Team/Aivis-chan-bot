@@ -335,15 +335,23 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  proxy: true, // trust reverse proxy when determining req.secure
+  proxy: true,
   cookie: Object.assign({
     secure: cookieSecure,
     sameSite: cookieSameSite,
+    httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24時間
-  }, cookieDomain ? { domain: cookieDomain } : {})
+  }, cookieDomain ? { domain: cookieDomain } : {}),
+  name: 'connect.sid' // 明示的にCookie名を指定
 };
 
-console.log('[SESSION] cookie settings:', { secure: sessionConfig.cookie.secure, sameSite: sessionConfig.cookie.sameSite, domain: sessionConfig.cookie.domain || '(none)' });
+console.log('[SESSION] cookie settings:', { 
+  secure: sessionConfig.cookie.secure, 
+  sameSite: sessionConfig.cookie.sameSite, 
+  httpOnly: sessionConfig.cookie.httpOnly,
+  domain: sessionConfig.cookie.domain || '(none)',
+  name: sessionConfig.name
+});
 
 if (redisStoreInstance) sessionConfig.store = redisStoreInstance;
 
@@ -876,14 +884,33 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// クライアント用：現在のセッション状態を返す（フロントがlocalStorageではなくサーバーセッションを見るため）
+// クライアント用：現在のセッション状態を返す
 app.get('/api/session', (req, res) => {
-  // キャッシュさせない（SW/中継キャッシュ対策）
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
-  if (req.isAuthenticated && req.isAuthenticated()) {
-    return res.json({ authenticated: true, user: req.user });
+  
+  const isAuth = req.isAuthenticated && req.isAuthenticated();
+  
+  console.log('[DEBUG] /api/session called');
+  console.log('[DEBUG] isAuthenticated:', isAuth);
+  console.log('[DEBUG] req.user:', req.user ? { id: req.user.id, username: req.user.username, guilds: req.user.guilds?.length || 0 } : 'null');
+  console.log('[DEBUG] sessionID:', req.sessionID);
+  console.log('[DEBUG] session.cookie:', req.session?.cookie);
+  console.log('[DEBUG] cookies from request:', req.headers.cookie?.split(';').map(c => c.trim().split('=')[0]));
+  
+  if (isAuth && req.user) {
+    return res.json({ 
+      authenticated: true, 
+      user: {
+        id: req.user.id,
+        username: req.user.username,
+        discriminator: req.user.discriminator,
+        avatar: req.user.avatar,
+        avatarUrl: req.user.avatarUrl,
+        guilds: req.user.guilds || []
+      }
+    });
   }
   return res.json({ authenticated: false });
 });
@@ -1251,40 +1278,47 @@ app.get(['/dashboard', '/dashboard/'], requireAuth, (req, res) => {
 // サーバーリストを返すエンドポイント
 app.get('/api/servers', async (req, res) => {
   try {
-    // 認証チェックを修正: req.user を使用
-    let userGuilds = [];
+    // 認証チェック: Passport.jsの標準メソッドを使用
     const isAuth = req.isAuthenticated && req.isAuthenticated();
     
     console.log(`[DEBUG] /api/servers called`);
     console.log(`[DEBUG] isAuthenticated:`, isAuth);
     console.log(`[DEBUG] req.user:`, req.user ? { id: req.user.id, username: req.user.username } : 'null');
-    console.log(`[DEBUG] req.session:`, req.session ? 'exists' : 'null');
-    console.log(`[DEBUG] sessionID:`, req.sessionID);
+    console.log(`[DEBUG] req.sessionID:`, req.sessionID);
+    console.log(`[DEBUG] session cookie:`, req.headers.cookie?.includes('connect.sid') ? 'present' : 'missing');
     
-    if (isAuth && req.user) {
-      // ユーザーのギルド情報を取得
-      if (Array.isArray(req.user.guilds)) {
-        userGuilds = req.user.guilds;
-      } else {
-        // guildsがない場合、Discord APIから取得を試みる
-        const accessToken = req.session?.accessToken || req.user?.accessToken;
-        if (accessToken) {
-          try {
-            console.log(`[DEBUG] Fetching guilds from Discord API using access token`);
-            const guildsResponse = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
-              headers: { Authorization: `Bearer ${accessToken}` },
-              timeout: 5000
-            });
-            userGuilds = guildsResponse.data || [];
-            console.log(`[DEBUG] Fetched ${userGuilds.length} guilds from Discord API`);
-          } catch (e) {
-            console.warn(`[DEBUG] Failed to fetch guilds from Discord API:`, e.message);
-          }
-        }
-      }
-    } else {
+    // 認証されていない場合は空配列を返す（401を返さない）
+    if (!isAuth || !req.user) {
       console.log(`[DEBUG] User not authenticated, returning empty list`);
       return res.json([]);
+    }
+
+    // ユーザーのギルド情報を取得
+    let userGuilds = [];
+    if (Array.isArray(req.user.guilds)) {
+      userGuilds = req.user.guilds;
+      console.log(`[DEBUG] User guilds from session: ${userGuilds.length}`);
+    } else {
+      // guildsがない場合、Discord APIから取得を試みる
+      const accessToken = req.session?.accessToken || req.user?.accessToken;
+      if (accessToken) {
+        try {
+          console.log(`[DEBUG] Fetching guilds from Discord API`);
+          const guildsResponse = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            timeout: 5000
+          });
+          userGuilds = guildsResponse.data || [];
+          console.log(`[DEBUG] Fetched ${userGuilds.length} guilds from Discord API`);
+          
+          // セッションに保存して次回以降のリクエストで再利用
+          if (req.user && !req.user.guilds) {
+            req.user.guilds = userGuilds;
+          }
+        } catch (e) {
+          console.warn(`[DEBUG] Failed to fetch guilds from Discord API:`, e.message);
+        }
+      }
     }
 
     console.log(`[DEBUG] User guilds count: ${userGuilds.length}`);
@@ -1301,72 +1335,57 @@ app.get('/api/servers', async (req, res) => {
         { name: 'pro-premium', baseUrl: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
     ];
 
-    // 各Botインスタンスからギルド情報を取得（複数のエンドポイントを試行）
+    // 各Botインスタンスからギルド情報を取得
     const botInfoPromises = BOTS.map(async (bot) => {
         const endpoints = [
             `${bot.baseUrl}/internal/info`,
-            `${bot.baseUrl}/api/servers`,
-            `${bot.baseUrl}/health`
+            `${bot.baseUrl}/api/servers`
         ];
         
         for (const endpoint of endpoints) {
             try {
-                console.log(`[DEBUG] Trying ${bot.name} at ${endpoint}`);
                 const response = await axios.get(endpoint, {
                     timeout: 5000,
-                    validateStatus: (status) => status < 500 // 4xx も成功扱い
+                    validateStatus: (status) => status < 500
                 });
                 
                 if (response.status === 200 && response.data) {
-                    console.log(`[DEBUG] ${bot.name} response from ${endpoint}:`, response.data);
-                    
-                    // レスポンス形式を正規化
                     let guildIds = [];
                     if (Array.isArray(response.data.guildIds)) {
                         guildIds = response.data.guildIds;
                     } else if (Array.isArray(response.data)) {
-                        // /api/servers の場合、配列で返される
                         guildIds = response.data.map(g => g.id);
                     }
                     
                     if (guildIds.length > 0) {
-                        console.log(`[DEBUG] ${bot.name} has ${guildIds.length} guilds`);
+                        console.log(`[DEBUG] ${bot.name} has ${guildIds.length} guilds from ${endpoint}`);
                         return { bot: bot.name, guildIds };
-                      }
+                    }
                 }
             } catch (error) {
                 console.debug(`[DEBUG] ${bot.name} failed at ${endpoint}:`, error.message);
-                // 次のエンドポイントを試行
                 continue;
             }
         }
         
-        // すべてのエンドポイントが失敗
-        console.warn(`[DEBUG] All endpoints failed for ${bot.name}`);
         return { bot: bot.name, guildIds: [] };
     });
 
     const botResults = await Promise.all(botInfoPromises);
-    console.log(`[DEBUG] Bot results:`, botResults);
         
     // 全BotインスタンスのギルドIDを統合
     botResults.forEach(result => {
         result.guildIds.forEach(guildId => botGuildIds.add(guildId));
     });
 
-    console.log(`[DEBUG] Bot guild IDs (${botGuildIds.size} total):`, Array.from(botGuildIds));
+    console.log(`[DEBUG] Bot guild IDs (${botGuildIds.size} total)`);
 
     // ユーザーのギルドの中で、Botが参加しているもののみをフィルタリング
     const filteredServers = userGuilds.filter(guild => botGuildIds.has(guild.id));
     console.log(`[DEBUG] Filtered servers count: ${filteredServers.length}`);
         
-    // デバッグモード: フィルタリングせずにすべてのユーザーギルドを返す（一時的）
-    const DEBUG_MODE = process.env.DEBUG_SERVERS === 'true';
-    const finalServers = DEBUG_MODE ? userGuilds : filteredServers;
-    console.log(`[DEBUG] Debug mode: ${DEBUG_MODE}, Final servers count: ${finalServers.length}`);
-        
     // サーバーの iconUrl を正規化する
-    const normalizedServers = finalServers.map(s => {
+    const normalizedServers = filteredServers.map(s => {
       let iconUrl = s.iconUrl || null;
       if (!iconUrl) {
         const iconHash = s.icon || s.iconHash || null;
@@ -1380,8 +1399,8 @@ app.get('/api/servers', async (req, res) => {
     // ユーザー情報を各サーバーに追加
     const serversWithUserInfo = normalizedServers.map(server => ({
       ...server,
-      nickname: req.user && req.user.nickname ? req.user.nickname : req.user && req.user.username ? req.user.username : null,
-      userIconUrl: req.user && req.user.avatarUrl ? req.user.avatarUrl : (req.user && req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` : null)
+      nickname: req.user.nickname || req.user.username || null,
+      userIconUrl: req.user.avatarUrl || (req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` : null)
     }));
 
     res.json(serversWithUserInfo);
@@ -1489,6 +1508,7 @@ app.get('/api/guilds/:guildId/channels', requireAuth, async (req, res) => {
       } catch (e) {
         // ignore and try next
         console.debug(`[api/guilds/${guildId}/channels] bot ${bot.name} failed:`, e.message || e);
+        continue;
       }
     }
 
@@ -1516,6 +1536,7 @@ app.get('/api/guilds/:guildId/channels', requireAuth, async (req, res) => {
 // Redisヘルスチェックエンドポイント
 app.get('/health/redis', async (req, res) => {
   if (!redisStoreInstance) {
+   
    
     return res.status(503).json({ status: 'Redis not configured' });
   }
