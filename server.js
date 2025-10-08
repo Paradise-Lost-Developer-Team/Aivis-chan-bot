@@ -301,19 +301,19 @@ app.use(express.static(__dirname));
 
 // ===== API ルート =====
 
-// サーバー一覧取得（旧 /api/servers を /api/guilds に変更）
+// サーバー一覧取得
 app.get('/api/guilds', requireAuth, async (req, res) => {
   const requestId = Math.random().toString(36).substring(7);
   console.log(`[API /api/guilds][${requestId}] ========== START ==========`);
   console.log(`[API /api/guilds][${requestId}] Request received at ${new Date().toISOString()}`);
   console.log(`[API /api/guilds][${requestId}] isAuthenticated: ${req.isAuthenticated()}`);
-  console.log(`[API /api/guilds][${requestId}] req.user:`, {
+  console.log(`[API /api/guilds][${requestId}] req.user:`, JSON.stringify({
     id: req.user?.id,
     username: req.user?.username,
     version: req.user?.version,
     hasGuilds: !!req.user?.guilds,
     guildsCount: req.user?.guilds?.length
-  });
+  }, null, 2));
 
   if (!req.user || !req.user.guilds) {
     console.warn(`[API /api/guilds][${requestId}] No guilds in session`);
@@ -321,17 +321,41 @@ app.get('/api/guilds', requireAuth, async (req, res) => {
   }
 
   console.log(`[API /api/guilds][${requestId}] Total user guilds: ${req.user.guilds.length}`);
+  
+  // ユーザーのギルドの一部をログ出力（デバッグ用）
+  if (req.user.guilds.length > 0) {
+    console.log(`[API /api/guilds][${requestId}] Sample user guilds (first 3):`, 
+      JSON.stringify(req.user.guilds.slice(0, 3).map(g => ({
+        id: g.id,
+        name: g.name,
+        permissions: g.permissions
+      })), null, 2)
+    );
+  }
 
-  // 管理権限を持つギルドのみフィルタ (MANAGE_GUILD = 0x20)
-  const manageableGuilds = req.user.guilds.filter(g => 
-    (parseInt(g.permissions) & 0x20) === 0x20 || 
-    (parseInt(g.permissions) & 0x8) === 0x8
-  );
+  // 管理権限を持つギルドのみフィルタ (MANAGE_GUILD = 0x20, ADMINISTRATOR = 0x8)
+  const manageableGuilds = req.user.guilds.filter(g => {
+    const perms = parseInt(g.permissions);
+    const hasManageGuild = (perms & 0x20) === 0x20;
+    const hasAdmin = (perms & 0x8) === 0x8;
+    return hasManageGuild || hasAdmin;
+  });
 
   console.log(`[API /api/guilds][${requestId}] Manageable guilds: ${manageableGuilds.length}`);
+  
+  if (manageableGuilds.length > 0) {
+    console.log(`[API /api/guilds][${requestId}] Sample manageable guilds (first 3):`,
+      JSON.stringify(manageableGuilds.slice(0, 3).map(g => ({
+        id: g.id,
+        name: g.name
+      })), null, 2)
+    );
+  }
 
   // ユーザーのバージョンに応じてBotを選択
   const userVersion = req.user.version || 'free';
+  console.log(`[API /api/guilds][${requestId}] User version: ${userVersion}`);
+  
   const relevantBots = BOT_INSTANCES.filter(bot => {
     if (userVersion === 'free') {
       return bot.version === 'free';
@@ -340,37 +364,59 @@ app.get('/api/guilds', requireAuth, async (req, res) => {
     }
   });
 
-  console.log(`[API /api/guilds][${requestId}] Fetching guild info from ${relevantBots.length} bots...`);
+  console.log(`[API /api/guilds][${requestId}] Relevant bots: ${relevantBots.length}`);
+  console.log(`[API /api/guilds][${requestId}] Bot list:`, 
+    JSON.stringify(relevantBots.map(b => ({
+      name: b.name,
+      version: b.version,
+      url: b.url
+    })), null, 2)
+  );
 
   // 全Bot情報を取得
-  const botInfoPromises = relevantBots.map(bot => {
+  const botInfoPromises = relevantBots.map(async bot => {
     const url = `${bot.url}/internal/info`;
     console.log(`[API /api/guilds][${requestId}] Fetching from ${bot.name}: ${url}`);
     
-    return axios.get(url, { 
-      timeout: 5000,
-      headers: { 'User-Agent': 'Dashboard/1.0' }
-    })
-      .then(response => {
-        const guildIds = response.data.guildIds || [];
-        console.log(`[API /api/guilds][${requestId}] ${bot.name} - Status: ${response.status}, Guilds: ${guildIds.length}`);
-        return {
-          ...bot,
-          guildIds,
-          ready: response.data.ready || false,
-          botId: response.data.botId,
-          botTag: response.data.botTag
-        };
-      })
-      .catch(error => {
-        console.error(`[API /api/guilds][${requestId}] ${bot.name} - Error: ${error.message}`);
-        return {
-          ...bot,
-          guildIds: [],
-          ready: false,
-          error: error.message
-        };
+    try {
+      const response = await axios.get(url, { 
+        timeout: 5000,
+        headers: { 'User-Agent': 'Dashboard/1.0' }
       });
+      
+      const guildIds = response.data.guildIds || [];
+      const ready = response.data.ready || false;
+      
+      console.log(`[API /api/guilds][${requestId}] ${bot.name} - Status: ${response.status}, Ready: ${ready}, Guilds: ${guildIds.length}`);
+      
+      if (guildIds.length > 0) {
+        console.log(`[API /api/guilds][${requestId}] ${bot.name} - Sample guild IDs (first 5):`, 
+          guildIds.slice(0, 5)
+        );
+      }
+      
+      return {
+        ...bot,
+        guildIds,
+        ready,
+        botId: response.data.botId,
+        botTag: response.data.botTag,
+        serverCount: response.data.serverCount || 0
+      };
+    } catch (error) {
+      console.error(`[API /api/guilds][${requestId}] ${bot.name} - Error: ${error.message}`);
+      if (error.code === 'ECONNREFUSED') {
+        console.error(`[API /api/guilds][${requestId}] ${bot.name} - Connection refused. Bot may be offline.`);
+      } else if (error.code === 'ETIMEDOUT') {
+        console.error(`[API /api/guilds][${requestId}] ${bot.name} - Connection timeout.`);
+      }
+      return {
+        ...bot,
+        guildIds: [],
+        ready: false,
+        error: error.message
+      };
+    }
   });
 
   const botResults = await Promise.all(botInfoPromises);
@@ -385,16 +431,28 @@ app.get('/api/guilds', requireAuth, async (req, res) => {
   });
 
   console.log(`[API /api/guilds][${requestId}] Bot results summary:`);
-  console.log(`[API /api/guilds][${requestId}] - Successful bots: ${successfulBots.length}/${relevantBots.length}`);
+  console.log(`[API /api/guilds][${requestId}] - Total bots checked: ${relevantBots.length}`);
+  console.log(`[API /api/guilds][${requestId}] - Successful bots: ${successfulBots.length}`);
+  console.log(`[API /api/guilds][${requestId}] - Failed bots: ${relevantBots.length - successfulBots.length}`);
   console.log(`[API /api/guilds][${requestId}] - Unique bot guild IDs: ${botGuildIdSet.size}`);
+  
+  if (botGuildIdSet.size > 0) {
+    console.log(`[API /api/guilds][${requestId}] - Sample bot guild IDs (first 5):`, 
+      Array.from(botGuildIdSet).slice(0, 5)
+    );
+  }
 
   if (botGuildIdSet.size === 0) {
-    console.warn(`[API /api/guilds][${requestId}] No guilds found in any bot`);
-    console.warn(`[API /api/guilds][${requestId}] Bot details:`, JSON.stringify(successfulBots.map(b => ({
-      name: b.name,
-      ready: b.ready,
-      guildCount: b.guildIds?.length || 0
-    }))));
+    console.warn(`[API /api/guilds][${requestId}] ⚠️  No guilds found in any bot`);
+    console.warn(`[API /api/guilds][${requestId}] Bot details:`, 
+      JSON.stringify(botResults.map(b => ({
+        name: b.name,
+        ready: b.ready,
+        guildCount: b.guildIds?.length || 0,
+        serverCount: b.serverCount || 0,
+        error: b.error
+      })), null, 2)
+    );
   }
 
   // ユーザーが管理できて、かつBotが参加しているギルドのみ返す
@@ -403,6 +461,19 @@ app.get('/api/guilds', requireAuth, async (req, res) => {
   );
 
   console.log(`[API /api/guilds][${requestId}] Filtered guilds (manageable + bot joined): ${filteredGuilds.length}`);
+  
+  if (filteredGuilds.length === 0 && manageableGuilds.length > 0 && botGuildIdSet.size > 0) {
+    console.warn(`[API /api/guilds][${requestId}] ⚠️  No match between user guilds and bot guilds`);
+    console.warn(`[API /api/guilds][${requestId}] Checking overlap...`);
+    
+    const manageableGuildIds = new Set(manageableGuilds.map(g => g.id));
+    const overlap = Array.from(botGuildIdSet).filter(id => manageableGuildIds.has(id));
+    
+    console.warn(`[API /api/guilds][${requestId}] Overlap count: ${overlap.length}`);
+    if (overlap.length > 0) {
+      console.warn(`[API /api/guilds][${requestId}] Overlapping guild IDs:`, overlap);
+    }
+  }
 
   // 各ギルドにBot情報を追加
   const enrichedGuilds = filteredGuilds.map(guild => {
@@ -426,89 +497,24 @@ app.get('/api/guilds', requireAuth, async (req, res) => {
   });
 
   console.log(`[API /api/guilds][${requestId}] Returning ${enrichedGuilds.length} guilds`);
+  
+  if (enrichedGuilds.length > 0) {
+    console.log(`[API /api/guilds][${requestId}] Sample enriched guilds (first 3):`,
+      JSON.stringify(enrichedGuilds.slice(0, 3).map(g => ({
+        id: g.id,
+        name: g.name,
+        botName: g.botName
+      })), null, 2)
+    );
+  }
+  
   console.log(`[API /api/guilds][${requestId}] ========== END ==========`);
 
   res.json(enrichedGuilds);
 });
 
 // 個別ギルド情報取得（チャンネル一覧など）
-app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
-  const { guildId } = req.params;
-  console.log(`[API /api/guilds/:guildId] Request for guild: ${guildId}`);
-
-  if (!req.user || !req.user.guilds) {
-    console.warn(`[API /api/guilds/:guildId] User not authenticated or no guilds`);
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-
-  // ユーザーが管理権限を持っているか確認
-  const userGuild = req.user.guilds.find(g => g.id === guildId);
-  if (!userGuild) {
-    console.warn(`[API /api/guilds/:guildId] Guild ${guildId} not found in user guilds`);
-    return res.status(404).json({ error: 'guild-not-found' });
-  }
-
-  const hasPermission = (parseInt(userGuild.permissions) & 0x20) === 0x20 || 
-                        (parseInt(userGuild.permissions) & 0x8) === 0x8;
-
-  if (!hasPermission) {
-    console.warn(`[API /api/guilds/:guildId] User lacks permission for guild ${guildId}`);
-    return res.status(403).json({ error: 'insufficient-permissions' });
-  }
-
-  // ユーザーのバージョンに応じてBotを選択
-  const userVersion = req.user.version || 'free';
-  const relevantBots = BOT_INSTANCES.filter(bot => {
-    if (userVersion === 'free') {
-      return bot.version === 'free';
-    } else {
-      return bot.version === 'pro' || bot.version === 'premium';
-    }
-  });
-
-  // どのBotがこのギルドに参加しているか確認
-  let targetBot = null;
-  for (const bot of relevantBots) {
-    try {
-      const infoResp = await axios.get(`${bot.url}/internal/info`, { timeout: 5000 });
-      if (infoResp.data.guildIds && infoResp.data.guildIds.includes(guildId)) {
-        targetBot = bot;
-        break;
-      }
-    } catch (error) {
-      console.error(`[API /api/guilds/:guildId] Error checking bot ${bot.name}:`, error.message);
-    }
-  }
-
-  if (!targetBot) {
-    console.warn(`[API /api/guilds/:guildId] No bot found for guild ${guildId}`);
-    return res.status(404).json({ error: 'bot-not-found-for-guild' });
-  }
-
-  console.log(`[API /api/guilds/:guildId] Found bot: ${targetBot.name} for guild ${guildId}`);
-
-  // Botからチャンネル一覧を取得
-  try {
-    const channelsResp = await axios.get(`${targetBot.url}/internal/guilds/${guildId}`, {
-      timeout: 5000,
-      headers: { 'User-Agent': 'Dashboard/1.0' }
-    });
-
-    console.log(`[API /api/guilds/:guildId] Channels fetched: ${channelsResp.data.channels?.length || 0}`);
-
-    res.json({
-      id: guildId,
-      name: userGuild.name,
-      channels: channelsResp.data.channels || [],
-      botName: targetBot.name,
-      botId: channelsResp.data.botId
-    });
-
-  } catch (error) {
-    console.error(`[API /api/guilds/:guildId] Error fetching channels:`, error.message);
-    res.status(500).json({ error: 'failed-to-fetch-channels', message: error.message });
-  }
-});
+// ...existing code...
 
 // ギルド設定取得
 app.get('/api/guilds/:guildId/settings', requireAuth, async (req, res) => {
@@ -601,30 +607,6 @@ app.get('/api/guilds/:guildId/dictionary', requireAuth, async (req, res) => {
   }
 });
 
-// 話者一覧取得
-app.get('/api/speakers', async (req, res) => {
-  try {
-    for (const bot of BOT_INSTANCES) {
-      try {
-        const response = await axios.get(`${bot.url}/api/speakers`, { 
-          timeout: 3000,
-          validateStatus: (status) => status < 500
-        });
-        
-        if (response.status === 200 && Array.isArray(response.data)) {
-          return res.json(response.data);
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-    
-    res.status(503).json({ error: 'No speakers available' });
-  } catch (error) {
-    console.error('[API /api/speakers] Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // 設定保存エンドポイント
 app.post('/api/settings', requireAuth, async (req, res) => {

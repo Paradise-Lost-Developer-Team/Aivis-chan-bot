@@ -316,7 +316,6 @@ class Dashboard {
         logger.info('[Dashboard] Loading server information...');
         
         try {
-            // /api/servers から /api/guilds に変更
             const response = await fetch('/api/guilds', {
                 credentials: 'include',
                 headers: {
@@ -334,9 +333,13 @@ class Dashboard {
             
             const servers = await response.json();
             
-            logger.info(`[Dashboard] Data type: ${typeof servers}`);
+            logger.info(`[Dashboard] Response type: ${typeof servers}`);
             logger.info(`[Dashboard] Is array: ${Array.isArray(servers)}`);
-            logger.info(`[Dashboard] Servers loaded: ${JSON.stringify(servers).substring(0, 200)}`);
+            logger.info(`[Dashboard] Server count: ${servers.length}`);
+            
+            if (servers.length > 0) {
+                logger.info(`[Dashboard] First server sample: ${JSON.stringify(servers[0])}`);
+            }
             
             if (!Array.isArray(servers)) {
                 logger.error('[Dashboard] Invalid servers format: ' + typeof servers);
@@ -345,18 +348,23 @@ class Dashboard {
             
             this.servers = servers;
             
-            logger.info(`Servers loaded: ${servers.length} servers`);
-            
             if (servers.length === 0) {
-                logger.warn('[Dashboard] No servers returned');
+                logger.warn('[Dashboard] ⚠️  Empty server list returned');
+                logger.warn('[Dashboard] Possible causes:');
+                logger.warn('[Dashboard] 1. Bot instances are offline');
+                logger.warn('[Dashboard] 2. Bot not invited to any servers');
+                logger.warn('[Dashboard] 3. User lacks admin permissions');
+                logger.warn('[Dashboard] 4. Version mismatch (free vs pro)');
                 this.showNoServersMessage();
                 return;
             }
             
+            logger.success(`✅ Loaded ${servers.length} servers`);
             this.renderServerList(servers);
             
         } catch (error) {
-            logger.error('[Dashboard] Failed to load servers: ' + error.message);
+            logger.error(`[Dashboard] ❌ Failed to load servers: ${error.message}`);
+            logger.error(`[Dashboard] Stack: ${error.stack}`);
             this.showError('サーバー一覧の読み込みに失敗しました: ' + error.message);
         }
     }
