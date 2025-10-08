@@ -608,26 +608,46 @@ app.get('/auth/discord', (req, res, next) => {
 
 // Discord認証コールバック（無料版）
 app.get('/auth/discord/callback/:version', (req, res, next) => {
-  const version = req.params.version || "free";
-  if (!passport._strategies[`discord-${version}`]) return res.redirect('/login');
-  return passport.authenticate(`discord-${version}`, { failureRedirect: '/login' })(req, res, () => {
-    // ensure session is persisted before redirect to avoid race where cookie not set in browser
-    if (req.session) {
-      req.session.save((err) => {
-        if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
-        // debug: log session id and auth state
-        try {
-          console.log(`[AUTH DEBUG] callback version=${version} sessionID=${req.sessionID} isAuthenticated=${typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : '(n/a)'} user=${req.user ? (req.user.id || req.user.username || '[user]') : '(none)'}`);
-        } catch (e) { /* ignore */ }
-        return res.redirect(`/dashboard?version=${version}`);
+  const version = req.params.version || 'free';
+  const strategy = `discord-${version}`;
+  if (!passport._strategies || !passport._strategies[strategy]) {
+    console.warn('[AUTH] strategy not available:', strategy);
+    return res.redirect('/login');
+  }
+
+  passport.authenticate(strategy, { session: true }, (err, user, info) => {
+    try {
+      console.log('[AUTH DEBUG] passport callback raw:', { err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
+      if (err) {
+        console.error('[AUTH DEBUG] authenticate error:', err && (err.stack || err.message || err));
+        return res.status(500).send('authentication error');
+      }
+      if (!user) {
+        console.warn('[AUTH DEBUG] authenticate returned no user, info=', info);
+        return res.redirect('/login');
+      }
+      // ensure login establishes session
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error('[AUTH DEBUG] req.logIn failed:', loginErr && (loginErr.stack || loginErr.message || loginErr));
+          return res.status(500).send('login failed');
+        }
+        if (req.session) {
+          req.session.save((saveErr) => {
+            if (saveErr) console.warn('[SESSION] save after oauth failed:', saveErr && (saveErr.message || saveErr));
+            console.log('[AUTH DEBUG] login success sessionID=', req.sessionID);
+            return res.redirect(`/dashboard?version=${version}`);
+          });
+        } else {
+          console.log('[AUTH DEBUG] login success but no session object');
+          return res.redirect(`/dashboard?version=${version}`);
+        }
       });
-    } else {
-      try {
-        console.log(`[AUTH DEBUG] callback version=${version} no session object present`);
-      } catch (e) {}
-      return res.redirect(`/dashboard?version=${version}`);
+    } catch (inner) {
+      console.error('[AUTH DEBUG] unexpected error in callback handler:', inner && (inner.stack || inner.message || inner));
+      return res.status(500).send('internal handler error');
     }
-  });
+  })(req, res, next);
 });
 
 // Backwards-compatible callback route: handle redirects to /auth/discord/callback (no :version)
@@ -1365,23 +1385,44 @@ if (require.main === module) {
   });
 }
 
-// Fallback: if discord-pro not configured, handle /auth/discord/callback/pro by using available strategy
+// Replace fallback pro-callback with explicit callback handling too
 app.get('/auth/discord/callback/pro', (req, res, next) => {
-  const preferred = passport._strategies && passport._strategies['discord-pro'] ? 'discord-pro'
-                  : passport._strategies && passport._strategies['discord'] ? 'discord'
-                  : passport._strategies && passport._strategies['discord-free'] ? 'discord-free' : null;
+  const preferred = passport._strategies && (passport._strategies['discord-pro'] ? 'discord-pro' : (passport._strategies['discord'] ? 'discord' : (passport._strategies['discord-free'] ? 'discord-free' : null)));
   if (!preferred) {
     console.warn('[auth] no discord strategy available for pro callback');
     return res.redirect('/login');
   }
-  return passport.authenticate(preferred, { failureRedirect: '/login' })(req, res, () => {
-    if (req.session) {
-      req.session.save(err => {
-        if (err) console.warn('[SESSION] save after oauth failed:', err && err.message);
-        return res.redirect('/dashboard?version=pro');
+
+  passport.authenticate(preferred, { session: true }, (err, user, info) => {
+    try {
+      console.log('[AUTH DEBUG] pro callback raw:', { strategy: preferred, err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
+      if (err) {
+        console.error('[AUTH DEBUG] authenticate error (pro):', err && (err.stack || err.message || err));
+        return res.status(500).send('authentication error');
+      }
+      if (!user) {
+        console.warn('[AUTH DEBUG] authenticate returned no user (pro), info=', info);
+        return res.redirect('/login');
+      }
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error('[AUTH DEBUG] req.logIn failed (pro):', loginErr && (loginErr.stack || loginErr.message || loginErr));
+          return res.status(500).send('login failed');
+        }
+        if (req.session) {
+          req.session.save((saveErr) => {
+            if (saveErr) console.warn('[SESSION] save after oauth failed (pro):', saveErr && (saveErr.message || saveErr));
+            console.log('[AUTH DEBUG] pro login success sessionID=', req.sessionID);
+            return res.redirect('/dashboard?version=pro');
+          });
+        } else {
+          console.log('[AUTH DEBUG] pro login success but no session object');
+          return res.redirect('/dashboard?version=pro');
+        }
       });
-    } else {
-      return res.redirect('/dashboard?version=pro');
+    } catch (inner) {
+      console.error('[AUTH DEBUG] unexpected error in pro callback handler:', inner && (inner.stack || inner.message || inner));
+      return res.status(500).send('internal handler error');
     }
-  });
+  })(req, res, next);
 });
