@@ -237,20 +237,19 @@ passport.deserializeUser((user, done) => {
 // リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
 app.set('trust proxy', 1);
 
-// Session config - derive cookie security from BASE_URL / runtime env to ensure cookies are set behind k8s ingress
+// Session config - do not auto-set cookie.domain from BASE_URL (use explicit COOKIE_DOMAIN if needed)
 const BASE_URL = process.env.BASE_URL || '';
 let cookieSecure = false;
 let cookieSameSite = 'lax';
-let cookieDomain;
+let cookieDomain = process.env.COOKIE_DOMAIN || undefined; // only use explicit env override
+
 try {
   if (BASE_URL) {
     const parsedBase = new URL(BASE_URL);
     cookieSecure = parsedBase.protocol === 'https:';
-    cookieDomain = parsedBase.hostname; // omit port
-    // OAuth redirect from external provider: ensure cross-site cookie allowed
+    // Only set SameSite='none' when secure (required by browsers)
     if (cookieSecure) cookieSameSite = 'none';
   } else {
-    // If BASE_URL not set, rely on explicit env override
     cookieSecure = String(process.env.COOKIE_SECURE || '').toLowerCase() === 'true';
     cookieSameSite = process.env.COOKIE_SAMESITE || 'lax';
   }
@@ -262,7 +261,7 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  proxy: true, // trust reverse proxy when setting secure cookies
+  proxy: true, // trust reverse proxy when determining req.secure
   cookie: Object.assign({
     secure: cookieSecure,
     sameSite: cookieSameSite,
