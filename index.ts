@@ -1690,3 +1690,72 @@ apiApp.post('/api/dictionary/notify', async (req: Request, res: Response) => {
         });
     }
 });
+
+// ギルド情報を取得するAPI
+apiApp.get('/internal/guilds/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            return res.status(404).json({ error: 'guild-not-found' });
+        }
+
+        // アイコンURLを生成
+        const iconUrl = guild.icon 
+            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`
+            : null;
+
+        // ボイス接続状態を確認
+        const connection = voiceClients[guild.id];
+        const isConnected = connection && connection.state.status === VoiceConnectionStatus.Ready;
+        const textChannelId = getTextChannelForGuild(guild.id);
+
+        // チャンネル一覧を取得
+        const channels = Array.from(guild.channels.cache.values())
+            .filter(channel => {
+                return channel.type === 0 || // GUILD_TEXT
+                       channel.type === 2 || // GUILD_VOICE
+                       channel.type === 5 || // GUILD_NEWS
+                       channel.type === 13 || // GUILD_STAGE_VOICE
+                       channel.type === 15; // GUILD_FORUM
+            })
+            .map(channel => ({
+                id: channel.id,
+                name: channel.name,
+                type: channel.type,
+                position: channel.position || 0,
+                parentId: (channel as any).parentId || null
+            }))
+            .sort((a, b) => a.position - b.position);
+
+        // オーナー情報を取得
+        const owner = await guild.fetchOwner().catch(() => null);
+
+        const guildInfo = {
+            id: guild.id,
+            name: guild.name,
+            icon: guild.icon,
+            iconUrl: iconUrl,
+            memberCount: guild.memberCount,
+            ownerId: guild.ownerId,
+            ownerTag: owner ? `${owner.user.username}#${owner.user.discriminator}` : null,
+            voiceConnected: isConnected,
+            voiceChannelId: connection?.joinConfig.channelId || null,
+            textChannelId: textChannelId || null,
+            channels: channels,
+            createdAt: guild.createdAt.toISOString(),
+            joinedAt: guild.joinedAt?.toISOString() || null
+        };
+
+        console.log(`[API /internal/guilds/:guildId] Guild info returned for ${guildId}`);
+        res.json(guildInfo);
+    } catch (error) {
+        console.error('[API /internal/guilds/:guildId] Error fetching guild info:', error);
+        res.status(500).json({ error: 'Failed to fetch guild info' });
+    }
+});
