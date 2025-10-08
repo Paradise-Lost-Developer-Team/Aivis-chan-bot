@@ -543,8 +543,12 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
         // voice 接続処理（text channel の決定とは独立）
-        const prev = getVoiceConnection(voiceChannelId);
-        if (prev) { try { prev.destroy(); } catch {} delete voiceClients[voiceChannelId]; }
+        const prev = (typeof getVoiceConnection === 'function') ? (getVoiceConnection(guildId) || getVoiceConnection(voiceChannelId)) : undefined;
+        if (prev) {
+             try { prev.destroy(); } catch {}
+             try { delete (voiceClients as any)[voiceChannelId]; } catch {}
+             try { delete (voiceClients as any)[guildId]; } catch {}
+         }
         const connection = joinVoiceChannel({ channelId: voiceChannelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: true, selfMute: false });
         voiceClients[voiceChannelId] = connection;
 
@@ -626,28 +630,46 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
     try {
         const { guildId, voiceChannelId } = req.body || {};
         if (!guildId && !voiceChannelId) return res.status(400).json({ error: 'guildId or voiceChannelId is required' });
-
-        // respond immediately
-        try { res.json({ ok: true }); } catch (e) { console.warn('[internal/leave:6th] response send failed:', e); }
-
-        (async () => {
-            try {
-                if (voiceChannelId) {
-                    try { cleanupAudioResources(voiceChannelId); } catch (e) { console.warn('cleanupAudioResources by voiceChannelId failed', e); }
-                    try { delete (voiceClients as any)[voiceChannelId]; } catch {}
-                    try { removeTextChannelForGuildInMap(voiceChannelId); } catch {}
-                    try { delete (global as any).players?.[voiceChannelId]; } catch {}
-                } else if (guildId) {
-                    try { cleanupAudioResources(guildId); } catch (e) { console.warn('cleanupAudioResources by guildId failed', e); }
-                    try { delete (voiceClients as any)[guildId]; } catch {}
-                    try { removeTextChannelForGuildInMap(guildId); } catch {}
-                    try { delete (global as any).players?.[guildId]; } catch {}
+        const tryIds = [];
+        if (guildId) tryIds.push(guildId);
+        if (voiceChannelId) tryIds.push(voiceChannelId);
+        for (const id of tryIds) {
+            try { const conn = getVoiceConnection(id); if (conn) try { conn.destroy(); } catch {} } catch {}
+        }
+        try { if (voiceChannelId) delete (voiceClients as any)[voiceChannelId]; } catch {}
+        try { if (guildId) delete (voiceClients as any)[guildId]; } catch {}
+        // removeTextChannelByVoiceChannelId may not exist in this build; perform safe map cleanup instead
+        try {
+            if (voiceChannelId) {
+                try {
+                    const tc = textChannels as Record<string, any>;
+                    for (const key of Object.keys(tc)) {
+                        try {
+                            const ch = tc[key];
+                            if (!ch) { delete tc[key]; continue; }
+                            if (key === voiceChannelId || ch.id === voiceChannelId || ch.voiceChannelId === voiceChannelId) {
+                                delete tc[key];
+                            }
+                        } catch (_) { /* ignore per-entry errors */ }
+                    }
+                } catch (e) {
+                    // fallback: no-op if textChannels shape is unexpected
                 }
-            } catch (err) {
-                console.warn('[internal/leave:6th] async cleanup error:', err);
             }
-        })();
-        return;
+        } catch {}
+        try { if (guildId) removeTextChannelForGuildInMap(guildId); } catch {}
+        try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
+        try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
+        // saveVoiceState may not exist in all builds; import and call it only if available.
+        setTimeout(async () => {
+            try {
+                const mod = await import('./utils/TTS-Engine').catch(() => null);
+                if (mod && typeof (mod as any).saveVoiceState === 'function') {
+                    try { (mod as any).saveVoiceState(client as any); } catch (e) { /* ignore */ }
+                }
+            } catch (e) { /* ignore */ }
+        }, 500);
+        return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
         return res.status(500).json({ error: 'leave-failed' });
