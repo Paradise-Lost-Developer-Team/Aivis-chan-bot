@@ -237,22 +237,42 @@ passport.deserializeUser((user, done) => {
 // リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
 app.set('trust proxy', 1);
 
-// セッション設定（Redis or Memory）
+// Session config - derive cookie security from BASE_URL / runtime env to ensure cookies are set behind k8s ingress
+const BASE_URL = process.env.BASE_URL || '';
+let cookieSecure = false;
+let cookieSameSite = 'lax';
+let cookieDomain;
+try {
+  if (BASE_URL) {
+    const parsedBase = new URL(BASE_URL);
+    cookieSecure = parsedBase.protocol === 'https:';
+    cookieDomain = parsedBase.hostname; // omit port
+    // OAuth redirect from external provider: ensure cross-site cookie allowed
+    if (cookieSecure) cookieSameSite = 'none';
+  } else {
+    // If BASE_URL not set, rely on explicit env override
+    cookieSecure = String(process.env.COOKIE_SECURE || '').toLowerCase() === 'true';
+    cookieSameSite = process.env.COOKIE_SAMESITE || 'lax';
+  }
+} catch (e) {
+  console.warn('[SESSION] failed to parse BASE_URL for cookie settings:', e.message);
+}
+
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    secure: 'auto',            // HTTPS時のみSecure付与
-    sameSite: 'lax',           // OAuthリダイレクトで送られる
+  proxy: true, // trust reverse proxy when setting secure cookies
+  cookie: Object.assign({
+    secure: cookieSecure,
+    sameSite: cookieSameSite,
     maxAge: 24 * 60 * 60 * 1000 // 24時間
-  }
+  }, cookieDomain ? { domain: cookieDomain } : {})
 };
 
-// Redisストアが利用可能な場合は使用
-if (redisStoreInstance) {
-  sessionConfig.store = redisStoreInstance;
-}
+console.log('[SESSION] cookie settings:', { secure: sessionConfig.cookie.secure, sameSite: sessionConfig.cookie.sameSite, domain: sessionConfig.cookie.domain || '(none)' });
+
+if (redisStoreInstance) sessionConfig.store = redisStoreInstance;
 
 app.use(session(sessionConfig));
 app.use(passport.initialize());
