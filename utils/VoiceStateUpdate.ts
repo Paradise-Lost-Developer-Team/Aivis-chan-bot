@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState, GuildMember, Collection } from 'discord.js';
 import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel, setTextChannelForVoice, setTextChannelForGuildInMap, updateJoinChannelsConfig, loadAutoJoinChannels } from './TTS-Engine';
+import { speakAnnounce, voiceClients, addTextChannelsForGuildInMap, setTextChannelForVoice, setTextChannelForGuildInMap, loadAutoJoinChannels } from './TTS-Engine';
 
 export function setupVoiceStateUpdateHandlers(client: Client) {
     // ユーザーのボイス状態の変化を監視
@@ -44,7 +44,6 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                 console.log(`[SUB Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
                     await speakAnnounce(message, speakTargetVoiceChannelId);
-                    updateLastSpeechTime();
                 } catch (error) {
                     console.error(`[SUB Bot] 入室アナウンスエラー:`, error);
                 }
@@ -52,11 +51,10 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                 // 退室
                 const message = `${member.displayName}さんが退室しました`;
                 console.log(`[SUB Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
+                console.log(`[SUB Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
                     await speakAnnounce(message, speakTargetVoiceChannelId);
-                    updateLastSpeechTime();
                 } catch (error) {
-                    console.error(`[SUB Bot] 退室アナウンスエラー:`, error);
                 }
 
                 // 全員退出チェック
@@ -65,9 +63,6 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
 
         } catch (error) {
             console.error(`[SUB Bot] VoiceStateUpdate エラー:`, error);
-        } finally {
-            // メモリ使用状況をチェック
-            monitorMemoryUsage();
         }
     });
 
@@ -77,12 +72,14 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
             if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
                 const guild = newState.member!.guild;
                 // 既に永続化されたテキストチャンネルがあるか確認（TTS-Engine側でローカル/primary APIを参照する）
-                determineMessageTargetChannel(guild.id).then((persisted: boolean) => {
-                    if (!persisted) {
-                        try {
-                            const vc = newState.channel;
-                            const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
-                            if (categoryId) {
+                // determineMessageTargetChannel is not available, checking voiceClients instead
+                const voiceClient = voiceClients[guild.id];
+                const hasPersistedChannel = voiceClient ? true : false; // Check if voice client exists as a proxy for persisted channel
+                if (!hasPersistedChannel) {
+                    try {
+                        const vc = newState.channel;
+                        const categoryId = vc?.parentId || (vc?.parent && (vc.parent as any).id);
+                        if (categoryId) {
                                 const me = guild.members.cache.get(client.user?.id || '');
                                 const candidates: any[] = Array.from(guild.channels.cache.values()).filter((c: any) => c.type === 0 && c.parentId === categoryId);
                                 const allowed: any[] = [];
@@ -108,36 +105,26 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                                             }
                                         } catch (e) { /* ignore */ }
                                         if (!preferred) preferred = allowed[0];
-                                        if (preferred) {
-                                            (preferred as any).source = 'mapped';
-                                            try {
-                                                try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
-                                                try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
-                                                // Persist authoritative mapping for cross-bot resolution
-                                                try {
-                                                    const vcId = (vc && vc.id) || (newState.channel && newState.channel.id);
-                                                    if (vcId && typeof updateJoinChannelsConfig === 'function') {
-                                                        updateJoinChannelsConfig(guild.id, vcId, (preferred as any).id);
-                                                    }
-                                                } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
-                                                try { loadAutoJoinChannels(); } catch (_) {}
-                                                console.log(`[BotJoin] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
-                                            } catch (e) {
-                                                console.error('[BotJoin] persist selected text channel error:', e);
-                                            }
+                                    if (preferred) {
+                                        (preferred as any).source = 'mapped';
+                                        try {
+                                            try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
+                                            try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
+                                            try { loadAutoJoinChannels(); } catch (_) {}
+                                            console.log(`[BotJoin] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+                                        } catch (e) {
+                                            console.error('[BotJoin] persist selected text channel error:', e);
                                         }
-                                    } catch (e) {
-                                        console.error('[BotJoin] 優先チャネル選択エラー:', e);
                                     }
+                                } catch (e) {
+                                    console.error('[BotJoin] 優先チャネル選択エラー:', e);
                                 }
                             }
-                        } catch (e) {
-                            console.error('[BotJoin] 内部処理エラー:', e);
                         }
+                    } catch (e) {
+                        console.error('[BotJoin] カテゴリー内テキストチャンネル検索エラー:', e);
                     }
-                }).catch((e: unknown) => {
-                    console.error('[BotJoin] determineMessageTargetChannel エラー:', e);
-                });
+                }
             }
         } catch (e) {
             console.error('[BotJoin] エラー:', e);

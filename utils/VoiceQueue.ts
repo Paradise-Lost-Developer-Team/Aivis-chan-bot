@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { speakVoice, currentSpeaker, voiceClients, updateLastSpeechTime, chunkText } from './TTS-Engine';
+import { speakVoice, currentSpeaker, voiceClients, chunkText } from './TTS-Engine';
 import { VoiceConnectionStatus } from '@discordjs/voice';
 import { VoiceHistoryItem, saveVoiceHistoryItem } from './voiceHistory';
 import { isProFeatureAvailable } from './subscription';
@@ -110,7 +110,7 @@ async function processQueue(guildId: string): Promise<void> {
 
             // ボイスクライアントのチェック
             const voiceClient = voiceClients[guildId];
-            if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+            if (!voiceClient || voiceClient.state.status !== 'ready') {
                 console.log(`ボイスクライアントが利用できないため、キュー処理をスキップします: ${guildId}`);
                 continue;
             }
@@ -121,9 +121,6 @@ async function processQueue(guildId: string): Promise<void> {
                 // originalMessageがあればuserIdを渡す、なければデフォルト話者
                 const userId = item.originalMessage?.author.id ?? 'default';
                 await speakVoice(item.text, userId, guildId);
-                
-                // 最終発話時間を更新
-                updateLastSpeechTime();
 
                 // Pro版ユーザーの場合、履歴に保存
                 if (item.originalMessage && isProFeatureAvailable(guildId, 'voice-history')) {

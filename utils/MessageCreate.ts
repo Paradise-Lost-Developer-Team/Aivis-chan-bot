@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, getTextChannelFromMapByGuild, textChannelByVoice } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, textChannels, normalizeTextChannelsMap, getTextChannelFromMapByGuild, textChannelByVoice } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -15,6 +15,20 @@ try {
     Priority = VoiceQueue.Priority;
 } catch (error) {
     console.warn('VoiceQueue モジュールが見つかりません。直接読み上げ処理を使用します。');
+}
+
+// updateLastSpeechTime を安全に取得（存在しない場合は no-op を定義）
+let updateLastSpeechTime: () => void = () => {};
+try {
+    const TTS = require('./TTS-Engine');
+    if (typeof TTS.updateLastSpeechTime === 'function') {
+        updateLastSpeechTime = TTS.updateLastSpeechTime;
+    } else if (typeof TTS.updateLastSpokenTime === 'function') {
+        // もし似た名前のエクスポートがあればそれを使う
+        updateLastSpeechTime = TTS.updateLastSpokenTime;
+    }
+} catch (err) {
+    console.warn('TTS-Engine の updateLastSpeechTime を取得できませんでした。no-op を使用します。');
 }
 
 interface ExtendedClient extends Client {
@@ -40,10 +54,11 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
     
     try {
         // 1. API設定による明示的許可（textChannelsマップから）
-        try {
-            const tc = getTextChannelFromMapByGuild(guildId);
-            if (tc && tc.id === currentChannel.id) return { shouldTTS: true, reason: 'api-setting' };
-        } catch (e) { /* ignore */ }
+        try { normalizeTextChannelsMap(); } catch {}
+        const mapped = getTextChannelFromMapByGuild(guildId);
+        if (mapped && mapped.id === currentChannel.id) {
+            return { shouldTTS: true, reason: 'api-setting' };
+        }
         
         // 2. Botが接続しているボイスチャンネル（関連テキストチャンネル）
         const voiceChannelId = voiceClient.joinConfig?.channelId;
@@ -86,7 +101,7 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
         return { shouldTTS: false, reason: 'no-match' };
         
     } catch (error) {
-        console.error(`[TTS:4th] 動的判定エラー:`, error);
+        console.error(`[TTS:2nd] 動的判定エラー:`, error);
         return { shouldTTS: false, reason: 'error' };
     }
 };
@@ -108,11 +123,11 @@ export function MessageCreate(client: ExtendedClient) {
             const { shouldTTS, reason } = await shouldPerformTTS(message);
             
             if (!shouldTTS) {
-                console.log(`[TTS:4th] メッセージ無視: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
+                console.log(`[TTS:2nd] メッセージ無視: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
                 return;
             }
             
-            console.log(`[TTS:4th] TTS実行許可: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
+            console.log(`[TTS:2nd] TTS実行許可: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
     
             // メッセージ内容の加工
             // スポイラーを置換
@@ -247,7 +262,7 @@ export function MessageCreate(client: ExtendedClient) {
             if (!voiceInitMap[guildId]) {
                 if (voiceClient) {
                     // 接続状態を確認し、接続が切れていたら再取得
-                    if (voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+                    if (voiceClient.state.status !== 'ready') {
                         const reconnectedClient = getVoiceConnection(guildId);
                         if (reconnectedClient) {
                             voiceClients[guildId] = reconnectedClient;
@@ -277,7 +292,7 @@ export function MessageCreate(client: ExtendedClient) {
                         messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
                     }
                     
-                    // 優先度の決定（キューが利用可能な場合のみ）
+                                            await speakVoice(messageContent, message.author.id, speakTargetVoiceChannelId, client);
                     let priority = Priority?.NORMAL || 'normal';
                     
                     // システム通知やコマンド応答などは優先度高 & speakAnnounce使用
@@ -286,8 +301,8 @@ export function MessageCreate(client: ExtendedClient) {
                         messageContent.includes('退室しました')) {
                         priority = Priority?.HIGH || 'high';
                         // システム通知はspeakAnnounceで処理
-                        try {
-                            await speakAnnounce(messageContent, speakTargetVoiceChannelId, client);
+                            try {
+                                await speakAnnounce(messageContent, speakTargetVoiceChannelId, client);
                             updateLastSpeechTime();
                             console.log(`システム通知を読み上げ処理: "${messageContent.substring(0, 30)}..."`);
                         } catch (error) {
@@ -305,7 +320,7 @@ export function MessageCreate(client: ExtendedClient) {
                     try {
                         if (typeof enqueueText === 'function') {
                             enqueueText(guildId, messageContent, priority, message);
-                            console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
+                                await speakAnnounce(messageContent, speakTargetVoiceChannelId, client);
                         } else {
                             // キュー機能がない場合は直接読み上げ
                             await speakVoice(messageContent, message.author.id, guildId, client);
@@ -337,7 +352,7 @@ export function MessageCreate(client: ExtendedClient) {
                             const audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
                         } else {
                             // カスタム応答はアナウンス形式で読み上げ
-                            await speakAnnounce(replyText, speakTargetVoiceChannelId);
+                                await speakAnnounce(replyText, speakTargetVoiceChannelId, client);
                         }
                         updateLastSpeechTime();
                     } catch (error) {
@@ -348,9 +363,6 @@ export function MessageCreate(client: ExtendedClient) {
         } catch (error) {
             console.error(`メッセージの処理中にエラーが発生しました: ${error}`);
             logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
-        } finally {
-            // メモリ使用状況をチェック
-            monitorMemoryUsage();
         }
     });
 }
