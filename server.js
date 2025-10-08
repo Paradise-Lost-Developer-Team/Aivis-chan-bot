@@ -308,6 +308,45 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
+// 認証チェックミドルウェア
+function requireAuth(req, res, next) {
+  try {
+    console.log('[DEBUG] requireAuth check:', {
+      isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+      hasUser: !!req.user,
+      userId: req.user?.id,
+      sessionID: req.sessionID,
+      path: req.path
+    });
+    
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      return next();
+    }
+    
+    // 認証されていない場合はログインページへリダイレクト
+    console.log('[AUTH] Unauthorized access attempt to:', req.path);
+    return res.redirect('/login');
+  } catch (error) {
+    console.error('[AUTH] requireAuth error:', error);
+    return res.redirect('/login');
+  }
+}
+
+// オプション: 管理者権限チェック（必要に応じて）
+function requireAdmin(req, res, next) {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  // ここで管理者チェックロジックを追加
+  // 例: const ADMIN_IDS = (process.env.ADMIN_IDS || '').split(',');
+  // if (!ADMIN_IDS.includes(req.user.id)) {
+  //   return res.status(403).json({ error: 'Forbidden' });
+  // }
+  
+  next();
+}
+
 // ミドルウェア設定
 // リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
 app.set('trust proxy', 1);
