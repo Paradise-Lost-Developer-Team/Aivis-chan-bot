@@ -1221,8 +1221,8 @@ app.get('/dashboard', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
-// ダッシュボード関連の静的ファイル（末尾のバックスラッシュ対策）
-app.get('/dashboard/*', requireAuth, (req, res) => {
+// ダッシュボード関連の静的ファイル（パスパラメータ対応）
+app.get('/dashboard/:path(*)?', requireAuth, (req, res) => {
     // 末尾のバックスラッシュやスラッシュを除去してリダイレクト
     const cleanPath = req.path.replace(/[\\\/]+$/, '');
     if (cleanPath !== req.path) {
