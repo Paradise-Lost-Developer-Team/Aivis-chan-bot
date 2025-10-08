@@ -1410,16 +1410,28 @@ function tryDecodeBase64Json(input) {
   if (!input || typeof input !== 'string') return null;
   try {
     const decoded = Buffer.from(input, 'base64').toString('utf8');
-    // try JSON parse
+    console.log('[PATREON] Base64 decoded value:', decoded);
+    
+    // First check if it's a plain numeric ID (most common case)
+    if (/^\d{15,22}$/.test(decoded)) {
+      console.log('[PATREON] Decoded as plain numeric Discord ID:', decoded);
+      return decoded;
+    }
+    
+    // Try JSON parse for complex objects
     try {
       const parsed = JSON.parse(decoded);
-      if (parsed && parsed.discordId) return String(parsed.discordId);
+      if (parsed && parsed.discordId) {
+        console.log('[PATREON] Decoded as JSON with discordId:', parsed.discordId);
+        return String(parsed.discordId);
+      }
     } catch (e) {
-      // not JSON, check if it's a plain numeric ID
-      if (/^\d{15,22}$/.test(decoded)) return decoded;
+      // not JSON, already checked for numeric above
+      console.log('[PATREON] Base64 content is not JSON and not numeric:', decoded);
     }
   } catch (e) {
     // not valid base64
+    console.log('[PATREON] Failed to decode base64:', e.message);
   }
   return null;
 }
@@ -1545,38 +1557,39 @@ app.get('/auth/patreon/callback', async (req, res) => {
      let discordId = null;
      let guildId = undefined;
 
-     // 1) Try base64 JSON decode (most explicit form)
-     try {
-       const txt = Buffer.from(String(state), 'base64').toString('utf8');
-       const parsed = JSON.parse(txt);
-       if (parsed && parsed.discordId) {
-         discordId = String(parsed.discordId);
-         if (parsed.guildId) guildId = String(parsed.guildId);
-         console.log('[PATREON] Decoded state from base64 JSON:', { discordId, guildId });
-       }
-     } catch (e) {
-       // not base64-json, fall through
-     }
-
-     // 2) If not decoded yet, handle colon-delimited forms
-     if (!discordId && String(state).includes(':')) {
+     console.log('[PATREON] Parsing state:', state);
+     
+     // Strategy 1: Check if state contains colon (format: "discordId:random" or "base64:random")
+     if (String(state).includes(':')) {
        const left = String(state).split(':', 1)[0];
-       const tryDecoded = tryDecodeBase64Json(left);
-       if (tryDecoded) {
-         discordId = tryDecoded;
-         console.log('[PATREON] Decoded discordId from base64:', discordId);
+       console.log('[PATREON] State contains colon, left part:', left);
+       
+       // Try to decode left part as base64
+       const decoded = tryDecodeBase64Json(left);
+       if (decoded) {
+         discordId = decoded;
+         console.log('[PATREON] Decoded discordId from colon-separated base64:', discordId);
        } else if (/^\d{15,22}$/.test(left)) {
+         // Left part is already a plain numeric ID
          discordId = left;
-         console.log('[PATREON] Extracted discordId from plain state:', discordId);
+         console.log('[PATREON] Extracted plain discordId from colon-separated state:', discordId);
        }
      }
-
-     // 3) If still not found, maybe state is directly base64-encoded numeric or plain numeric
+     
+     // Strategy 2: If no colon, try direct base64 decode
      if (!discordId) {
-       const directDecoded = tryDecodeBase64Json(state);
-       if (directDecoded) discordId = directDecoded;
-       else if (/^\d{15,22}$/.test(String(state))) discordId = String(state);
-       if (discordId) console.log('[PATREON] Extracted discordId from direct decode:', discordId);
+       console.log('[PATREON] No colon found, trying direct base64 decode');
+       const decoded = tryDecodeBase64Json(state);
+       if (decoded) {
+         discordId = decoded;
+         console.log('[PATREON] Decoded discordId from direct base64:', discordId);
+       }
+     }
+     
+     // Strategy 3: Check if state itself is a plain numeric ID
+     if (!discordId && /^\d{15,22}$/.test(String(state))) {
+       discordId = String(state);
+       console.log('[PATREON] State is plain numeric Discord ID:', discordId);
      }
 
      if (!discordId) {
