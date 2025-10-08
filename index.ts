@@ -1177,41 +1177,6 @@ apiApp.get('/api/speakers', async (req: Request, res: Response) => {
     }
 });
 
-// WEBダッシュボード用: ギルド情報を取得
-apiApp.get('/api/guilds/:guildId', async (req: Request, res: Response) => {
-    try {
-        const { guildId } = req.params;
-        
-        const guild = client.guilds.cache.get(guildId);
-        if (!guild) {
-            return res.status(404).json({ error: 'guild-not-found' });
-        }
-
-        // ギルドの基本情報を返す
-        const guildInfo = {
-            id: guild.id,
-            name: guild.name,
-            icon: guild.iconURL(),
-            memberCount: guild.memberCount,
-            channels: {
-                voice: guild.channels.cache.filter(ch => ch.type === 2).map(ch => ({
-                    id: ch.id,
-                    name: ch.name
-                })),
-                text: guild.channels.cache.filter(ch => ch.type === 0).map(ch => ({
-                    id: ch.id,
-                    name: ch.name
-                }))
-            }
-        };
-
-        res.json(guildInfo);
-    } catch (error) {
-        console.error('Guild info fetch error:', error);
-        res.status(500).json({ error: 'Failed to fetch guild info' });
-    }
-});
-
 // WEBダッシュボード用: 現在のボイス接続状態を取得
 apiApp.get('/api/voice-status/:guildId', async (req: Request, res: Response) => {
     try {
@@ -1278,5 +1243,41 @@ apiApp.get('/api/servers', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Failed to fetch servers:', error);
         res.status(500).json({ error: 'Failed to retrieve server list' });
+    }
+});
+
+// ギルドのチャンネル一覧を取得
+apiApp.get('/api/guilds/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            return res.status(404).json({ error: 'Guild not found' });
+        }
+
+        // チャンネル一覧を取得（タイプ情報を含む）
+        const channels = Array.from(guild.channels.cache.values())
+            .filter(channel => {
+                // テキストチャンネル、ボイスチャンネル、ステージチャンネルのみ
+                return channel.type === 0 || // GUILD_TEXT
+                       channel.type === 2 || // GUILD_VOICE
+                       channel.type === 5 || // GUILD_NEWS
+                       channel.type === 13 || // GUILD_STAGE_VOICE
+                       channel.type === 15; // GUILD_FORUM
+            })
+            .map(channel => ({
+                id: channel.id,
+                name: channel.name,
+                type: channel.type,
+                position: channel.position || 0
+            }))
+            .sort((a, b) => a.position - b.position);
+
+        console.log(`[API] Returning ${channels.length} channels for guild ${guildId}`);
+        res.json(channels);
+    } catch (e) {
+        console.error('Failed to get guild channels:', e);
+        res.status(500).json({ error: 'Failed to get channels' });
     }
 });
