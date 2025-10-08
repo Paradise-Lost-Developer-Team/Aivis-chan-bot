@@ -1554,10 +1554,19 @@ class Dashboard {
                             if (typeof s === 'string') return { id: s, name: s, styles: [] };
                             const id = s.id || s.name || String(Math.random());
                             const name = s.name || s.id || id;
-                            const styles = Array.isArray(s.styles) ? s.styles
+                            // Extract styles array and normalize each style to a string
+                            let rawStyles = Array.isArray(s.styles) ? s.styles
                                 : Array.isArray(s.voice_styles) ? s.voice_styles
                                 : Array.isArray(s.variants) ? s.variants
                                 : [];
+                            // Normalize each style: if object, extract name/id; if string, use as-is
+                            const styles = rawStyles.map(st => {
+                                if (typeof st === 'string') return st;
+                                if (st && typeof st === 'object') {
+                                    return st.name || st.id || String(st);
+                                }
+                                return String(st);
+                            });
                             return { id, name, styles };
                         });
                          console.log(`Loaded speakers from ${url}`, speakers.length);
