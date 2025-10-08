@@ -416,16 +416,25 @@ apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
 
         if (req.body && req.body.voiceSettings) {
             try {
-                const mod = (await import('./utils/TTS-Engine')) as import('./utils/tts-engine-types').TTSEngineExports;
+                const mod = (await import('./utils/TTS-Engine')) as any;
                 try {
                     Object.assign(mod.voiceSettings, req.body.voiceSettings);
                 } catch (e) {
                     console.warn('voiceSettings merge failed:', e);
                 }
-                if (typeof mod.saveUserVoiceSettings === 'function') {
-                    try { mod.saveUserVoiceSettings(); } catch (e) { console.warn('saveUserVoiceSettings failed:', e); }
-                } else {
-                    try { const fs = await import('fs'); const path = await import('path'); fs.writeFileSync(path.resolve(process.cwd(), 'data', 'voice_settings.json'), JSON.stringify(mod.voiceSettings, null, 2), 'utf8'); } catch(e) { console.warn('fallback save voiceSettings failed:', e); }
+                // try to reload runtime settings if supported, fallback to save
+                try {
+                    if (typeof mod.loadUserVoiceSettings === 'function') {
+                        await mod.loadUserVoiceSettings();
+                        console.log('loadUserVoiceSettings executed after voice-settings-refresh');
+                    } else if (typeof mod.saveUserVoiceSettings === 'function') {
+                        try { await Promise.resolve(mod.saveUserVoiceSettings()); } catch (e) { console.warn('saveUserVoiceSettings failed:', e); }
+                    } else {
+                        const fs = await import('fs'); const path = await import('path');
+                        fs.writeFileSync(path.resolve(process.cwd(), 'data', 'voice_settings.json'), JSON.stringify(mod.voiceSettings, null, 2), 'utf8');
+                    }
+                } catch (e) {
+                    console.warn('Failed to persist or reload voiceSettings after refresh:', e);
                 }
                 console.log('[VOICE_SETTINGS_REFRESH] merged voiceSettings keys=', Object.keys(req.body.voiceSettings || {}).length);
             } catch (e) { console.warn('voiceSettings merge failed:', e); }
@@ -490,7 +499,7 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         if (!voiceChannel || !('type' in voiceChannel) || (voiceChannel as any).type !== 2) return res.status(400).json({ error: 'voice-channel-invalid' });
         const existing = voiceClients[guildId];
         if (existing && existing.state.status === VoiceConnectionStatus.Ready && existing.joinConfig.channelId !== voiceChannelId) {
-            return res.status(409).json({ error: 'already-connected-other-channel', current: existing.joinConfig.channelId });
+            return res.status(409).json({ error: 'already-connected_other-channel', current: existing.joinConfig.channelId });
         }
 
         // Decide text channel: only accept explicit textChannelId, primary's saved value, or autoJoin setting.
@@ -893,8 +902,8 @@ async function loadWebDashboardSettings() {
                 
                 if (settingsResponse.data && settingsResponse.data.settings) {
                     console.log(`ギルド ${guild.name} (${guildId}) の設定を読み込みました:`, settingsResponse.data.settings);
-                    // ここで設定を適用する処理を追加
-                    applyGuildSettings(guildId, settingsResponse.data.settings);
+                    // ここで設定を適用する処理を追加（即時反映のため await）
+                    await applyGuildSettings(guildId, settingsResponse.data.settings);
                 }
                 
                 // 辞書設定を読み込み（タイムアウト時間を15秒に延長）
@@ -968,8 +977,8 @@ async function loadWebDashboardSettings() {
     }
 }
 
-// ギルド設定を適用する関数
-function applyGuildSettings(guildId: string, settings: any) {
+// ギルド設定を適用する関数（TTS設定: defaultSpeaker / autoLeave / ignoreBots を反映し、即時ロードを試みる）
+async function applyGuildSettings(guildId: string, settings: any) {
     try {
         // 設定ファイルに保存
         const settingsDir = path.join(DATA_DIR, 'guild-settings');
@@ -979,8 +988,41 @@ function applyGuildSettings(guildId: string, settings: any) {
         
         const settingsFile = path.join(settingsDir, `${guildId}.json`);
         fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
-        
         console.log(`ギルド ${guildId} の設定を保存しました`);
+
+        // TTS側の voiceSettings があれば反映する（存在するキーのみ上書き）
+        const ttsKeys = ['defaultSpeaker','defaultSpeed','defaultPitch','defaultTempo','defaultVolume','defaultIntonation','autoLeave','ignoreBots'];
+        const hasTTS = ttsKeys.some(k => settings[k] !== undefined);
+        if (hasTTS) {
+            try {
+                const mod = (await import('./utils/TTS-Engine')) as any;
+                if (!mod.voiceSettings) mod.voiceSettings = {};
+                if (!mod.voiceSettings[guildId]) mod.voiceSettings[guildId] = {};
+                for (const k of ttsKeys) {
+                    if (settings[k] !== undefined && settings[k] !== null) {
+                        mod.voiceSettings[guildId][k] = settings[k];
+                    }
+                }
+                // persist or reload runtime settings
+                try {
+                    if (typeof mod.loadUserVoiceSettings === 'function') {
+                        await mod.loadUserVoiceSettings();
+                        console.log(`applyGuildSettings: loadUserVoiceSettings called for guild=${guildId}`);
+                    } else if (typeof mod.saveUserVoiceSettings === 'function') {
+                        await Promise.resolve(mod.saveUserVoiceSettings());
+                        console.log(`applyGuildSettings: saveUserVoiceSettings called for guild=${guildId}`);
+                    } else {
+                        // fallback write file
+                        const vsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+                        try { fs.writeFileSync(vsPath, JSON.stringify(mod.voiceSettings, null, 2), 'utf8'); } catch (e) { console.warn('failed to write voice_settings.json fallback:', e); }
+                    }
+                } catch (e) {
+                    console.warn('Failed to persist or reload voice settings after applyGuildSettings:', e);
+                }
+            } catch (e) {
+                console.warn('applyGuildSettings: failed to apply TTS voiceSettings:', e);
+            }
+        }
     } catch (error) {
         console.error(`ギルド ${guildId} の設定適用に失敗:`, error);
     }
