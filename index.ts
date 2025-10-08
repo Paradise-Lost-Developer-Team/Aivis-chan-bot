@@ -91,14 +91,25 @@ async function loadWebDashboardSettings() {
                         voiceSettings[guild.id] = {};
                     }
                     
+                    // ダッシュボードのTTS設定を反映（autoLeave / ignoreBots を追加）
                     Object.assign(voiceSettings[guild.id], {
                         defaultSpeaker: settings.defaultSpeaker,
                         defaultSpeed: settings.defaultSpeed,
                         defaultPitch: settings.defaultPitch,
                         defaultTempo: settings.defaultTempo,
                         defaultVolume: settings.defaultVolume,
-                        defaultIntonation: settings.defaultIntonation
+                        defaultIntonation: settings.defaultIntonation,
+                        autoLeave: typeof settings.autoLeave === 'boolean' ? settings.autoLeave : voiceSettings[guild.id].autoLeave,
+                        ignoreBots: typeof settings.ignoreBots === 'boolean' ? settings.ignoreBots : voiceSettings[guild.id].ignoreBots
                     });
+
+                    // 即時反映：メモリ上のユーザー/ギルド設定をリロード
+                    try {
+                        await loadUserVoiceSettings();
+                        console.log(`[loadWebDashboardSettings] voiceSettings reloaded for guild=${guild.id}`);
+                    } catch (e) {
+                        console.warn(`[loadWebDashboardSettings] failed to reload voice settings for guild=${guild.id}:`, e);
+                    }
                 }
 
                 // 辞書を適用（global-dictionary を優先して取得、空なら従来のエンドポイントへフォールバック）
@@ -721,21 +732,34 @@ apiApp.post('/internal/apply-web-settings/:guildId', express.json(), async (req:
         if (settings) {
             const { voiceSettings } = await import('./utils/TTS-Engine');
             
-            // デフォルト設定を適用
+            // デフォルト設定を適用（存在確認とフォールバックを厳密化）
             if (!voiceSettings[guildId]) {
                 voiceSettings[guildId] = {};
             }
-            
-            voiceSettings[guildId].defaultSpeaker = settings.defaultSpeaker || voiceSettings[guildId].defaultSpeaker;
-            voiceSettings[guildId].defaultSpeed = settings.defaultSpeed || voiceSettings[guildId].defaultSpeed;
-            voiceSettings[guildId].defaultPitch = settings.defaultPitch || voiceSettings[guildId].defaultPitch;
-            voiceSettings[guildId].defaultTempo = settings.defaultTempo || voiceSettings[guildId].defaultTempo;
-            voiceSettings[guildId].defaultVolume = settings.defaultVolume || voiceSettings[guildId].defaultVolume;
-            voiceSettings[guildId].defaultIntonation = settings.defaultIntonation || voiceSettings[guildId].defaultIntonation;
+
+            // 明示的な値だけ上書き（false を許容するため nullish coalescing は使わない）
+            if (settings.defaultSpeaker !== undefined && settings.defaultSpeaker !== null) voiceSettings[guildId].defaultSpeaker = settings.defaultSpeaker;
+            if (settings.defaultSpeed !== undefined && settings.defaultSpeed !== null) voiceSettings[guildId].defaultSpeed = settings.defaultSpeed;
+            if (settings.defaultPitch !== undefined && settings.defaultPitch !== null) voiceSettings[guildId].defaultPitch = settings.defaultPitch;
+            if (settings.defaultTempo !== undefined && settings.defaultTempo !== null) voiceSettings[guildId].defaultTempo = settings.defaultTempo;
+            if (settings.defaultVolume !== undefined && settings.defaultVolume !== null) voiceSettings[guildId].defaultVolume = settings.defaultVolume;
+            if (settings.defaultIntonation !== undefined && settings.defaultIntonation !== null) voiceSettings[guildId].defaultIntonation = settings.defaultIntonation;
+
+            // autoLeave / ignoreBots を明示的に保存できるようにする
+            if (typeof settings.autoLeave === 'boolean') voiceSettings[guildId].autoLeave = settings.autoLeave;
+            if (typeof settings.ignoreBots === 'boolean') voiceSettings[guildId].ignoreBots = settings.ignoreBots;
             
             // 設定を保存
             const settingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
             fs.writeFileSync(settingsPath, JSON.stringify(voiceSettings, null, 2));
+
+            // 即時反映
+            try {
+                await loadUserVoiceSettings();
+                console.log(`[apply-web-settings] voiceSettings reloaded for guild=${guildId}`);
+            } catch (e) {
+                console.warn(`[apply-web-settings] failed to reload voice settings for guild=${guildId}:`, e);
+            }
         }
 
         // 辞書を適用
