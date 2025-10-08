@@ -615,9 +615,16 @@ app.get('/auth/discord/callback/:version', (req, res, next) => {
     if (req.session) {
       req.session.save((err) => {
         if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
+        // debug: log session id and auth state
+        try {
+          console.log(`[AUTH DEBUG] callback version=${version} sessionID=${req.sessionID} isAuthenticated=${typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : '(n/a)'} user=${req.user ? (req.user.id || req.user.username || '[user]') : '(none)'}`);
+        } catch (e) { /* ignore */ }
         return res.redirect(`/dashboard?version=${version}`);
       });
     } else {
+      try {
+        console.log(`[AUTH DEBUG] callback version=${version} no session object present`);
+      } catch (e) {}
       return res.redirect(`/dashboard?version=${version}`);
     }
   });
@@ -647,9 +654,15 @@ app.get('/auth/discord/callback', (req, res, next) => {
       if (req.session) {
         req.session.save((err) => {
           if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
+          try {
+            console.log(`[AUTH DEBUG] callback(no-version) strategy=${strategyName} sessionID=${req.sessionID} isAuthenticated=${typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : '(n/a)'} user=${req.user ? (req.user.id || req.user.username || '[user]') : '(none)'}`);
+          } catch (e) {}
           return res.redirect(`/dashboard?version=${version}`);
         });
       } else {
+        try {
+          console.log(`[AUTH DEBUG] callback(no-version) no session object present`);
+        } catch (e) {}
         return res.redirect(`/dashboard?version=${version}`);
       }
     });
@@ -1351,3 +1364,24 @@ if (require.main === module) {
     console.log(`[LISTEN] app listening on ${HOST}:${PORT} (PID ${process.pid})`);
   });
 }
+
+// Fallback: if discord-pro not configured, handle /auth/discord/callback/pro by using available strategy
+app.get('/auth/discord/callback/pro', (req, res, next) => {
+  const preferred = passport._strategies && passport._strategies['discord-pro'] ? 'discord-pro'
+                  : passport._strategies && passport._strategies['discord'] ? 'discord'
+                  : passport._strategies && passport._strategies['discord-free'] ? 'discord-free' : null;
+  if (!preferred) {
+    console.warn('[auth] no discord strategy available for pro callback');
+    return res.redirect('/login');
+  }
+  return passport.authenticate(preferred, { failureRedirect: '/login' })(req, res, () => {
+    if (req.session) {
+      req.session.save(err => {
+        if (err) console.warn('[SESSION] save after oauth failed:', err && err.message);
+        return res.redirect('/dashboard?version=pro');
+      });
+    } else {
+      return res.redirect('/dashboard?version=pro');
+    }
+  });
+});
