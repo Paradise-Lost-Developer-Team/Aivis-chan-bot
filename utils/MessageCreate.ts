@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, monitorMemoryUsage, textChannels, normalizeTextChannelsMap, getTextChannelFromMapByGuild, textChannelByVoice } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, textChannels, normalizeTextChannelsMap, getTextChannelFromMapByGuild, textChannelByVoice } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -363,9 +363,6 @@ export function MessageCreate(client: ExtendedClient) {
         } catch (error) {
             console.error(`メッセージの処理中にエラーが発生しました: ${error}`);
             logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
-        } finally {
-            // メモリ使用状況をチェック
-            monitorMemoryUsage();
         }
     });
 }
