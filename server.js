@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
+const fsPromises = require('fs').promises; // 追加
 const { Connection, clusterApiUrl, PublicKey } = require('@solana/web3.js');
 const { google } = require('googleapis');
 const session = require('express-session');
@@ -445,6 +446,49 @@ const BOT_ID_MAP = {
   '1365633656173101086': BOT_API_URLS.sixth,
   '1415251855147008023': BOT_API_URLS.pro
 };
+
+// Bot インスタンス一覧（設定通知用）
+const BOT_INSTANCES = [
+    { name: '1st', url: 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002' },
+    { name: '2nd', url: 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003' },
+    { name: '3rd', url: 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004' },
+    { name: '4th', url: 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005' },
+    { name: '5th', url: 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006' },
+    { name: '6th', url: 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007' },
+    { name: 'pro-premium', url: 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012' }
+};
+
+// 追加: 簡易設定変更通知用エンドポイント
+app.post('/api/notify-settings-update', express.json(), async (req, res) => {
+  const { guildId, settings } = req.body;
+  console.log(`[API /api/notify-settings-update] Received settings update for guild: ${guildId}`);
+  
+  // 全Botに通知
+  const notifyResults = await Promise.allSettled(
+    BOT_INSTANCES.map(async (bot) => {
+      const url = `${bot.url}/api/settings/notify`;
+      try {
+        const response = await axios.post(url, { guildId, settings }, { timeout: 5000 });
+        return { bot: bot.name, success: response.status === 200 };
+      } catch (error) {
+        return { bot: bot.name, success: false, error: error.message };
+      }
+    })
+  );
+  
+  // 成功/失敗したBotのリストを作成
+  const successBots = notifyResults.filter(r => r.status === 'fulfilled' && r.value.success).map(r => r.value.bot);
+  const failedBots = notifyResults.filter(r => r.status === 'fulfilled' && !r.value.success).map(r => r.value.bot);
+  const errorDetails = notifyResults.filter(r => r.status === 'rejected').map(r => r.reason);
+  
+  console.log(`[API /api/notify-settings-update] Notification results - Success: ${successBots.length}, Failure: ${failedBots.length}, Errors: ${errorDetails.length}`);
+  
+  res.json({ 
+    success: true, 
+    message: 'Settings update notification processed', 
+    details: { success: successBots, failure: failedBots, errors: errorDetails }
+  });
+});
 
 // --- Internal fetch helper with multi-path fallback & structured debug ---
 // Tries sequentially: /api/stats (existing supplied url), then /stats, then /metrics
@@ -955,7 +999,7 @@ app.post('/api/settings', async (req, res) => {
         // ファイルに保存
         const settingsPath = path.join(__dirname, 'data', 'guilds', guildId, 'settings.json');
         await fs.mkdir(path.dirname(settingsPath), { recursive: true });
-        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+        await fsPromises.writeFile(settingsPath, JSON.stringify(settings, null, 2));
         
         // 全Botに通知
         const notifyResults = await Promise.allSettled(
@@ -1448,4 +1492,19 @@ app.get('/api/guilds/:guildId', async (req, res) => {
     console.error(`[API /api/guilds/${guildId}] Fatal error:`, error);
     res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
+});
+
+// ダッシュボードページ（認証必須）
+app.get('/dashboard', requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+// ダッシュボード関連の静的ファイル（末尾のバックスラッシュ対策）
+app.get('/dashboard/*', requireAuth, (req, res) => {
+    // 末尾のバックスラッシュやスラッシュを除去してリダイレクト
+    const cleanPath = req.path.replace(/[\\\/]+$/, '');
+    if (cleanPath !== req.path) {
+        return res.redirect(cleanPath || '/dashboard');
+    }
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
