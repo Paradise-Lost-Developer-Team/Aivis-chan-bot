@@ -1,6 +1,6 @@
 import { Events, Client, VoiceState, GuildMember, Collection } from 'discord.js';
 import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel, setTextChannelForVoice, setTextChannelForGuildInMap } from './TTS-Engine';
+import { speakAnnounce, voiceClients, updateLastSpeechTime, monitorMemoryUsage, addTextChannelsForGuildInMap, determineMessageTargetChannel, setTextChannelForVoice, setTextChannelForGuildInMap, updateJoinChannelsConfig, loadAutoJoinChannels } from './TTS-Engine';
 
 export function setupVoiceStateUpdateHandlers(client: Client) {
     // ユーザーのボイス状態の変化を監視
@@ -41,22 +41,22 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
             if (!oldState.channelId && newState.channelId === botVoiceChannelId) {
                 // 入室
                 const message = `${member.displayName}さんが入室しました`;
-                console.log(`[3rd Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
+                console.log(`[SUB Bot] 入室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
                     await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
-                    console.error(`[3rd Bot] 入室アナウンスエラー:`, error);
+                    console.error(`[SUB Bot] 入室アナウンスエラー:`, error);
                 }
             } else if (oldState.channelId === botVoiceChannelId && !newState.channelId) {
                 // 退室
                 const message = `${member.displayName}さんが退室しました`;
-                console.log(`[3rd Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
+                console.log(`[SUB Bot] 退室アナウンス: ${message} (ギルド: ${guild.name})`);
                 try {
                     await speakAnnounce(message, speakTargetVoiceChannelId);
                     updateLastSpeechTime();
                 } catch (error) {
-                    console.error(`[3rd Bot] 退室アナウンスエラー:`, error);
+                    console.error(`[SUB Bot] 退室アナウンスエラー:`, error);
                 }
 
                 // 全員退出チェック
@@ -64,7 +64,7 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
             }
 
         } catch (error) {
-            console.error(`[3rd Bot] VoiceStateUpdate エラー:`, error);
+            console.error(`[SUB Bot] VoiceStateUpdate エラー:`, error);
         } finally {
             // メモリ使用状況をチェック
             monitorMemoryUsage();
@@ -76,7 +76,8 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
         try {
             if (!oldState.channel && newState.channel && newState.member?.id === client.user?.id) {
                 const guild = newState.member!.guild;
-                determineMessageTargetChannel(guild.id).then((persisted) => {
+                // 既に永続化されたテキストチャンネルがあるか確認（TTS-Engine側でローカル/primary APIを参照する）
+                determineMessageTargetChannel(guild.id).then((persisted: boolean) => {
                     if (!persisted) {
                         try {
                             const vc = newState.channel;
@@ -112,26 +113,34 @@ export function setupVoiceStateUpdateHandlers(client: Client) {
                                             try {
                                                 try { setTextChannelForGuildInMap(guild.id, preferred); } catch (_) {}
                                                 try { const vcId = vc && vc.id ? vc.id : (newState.channel && newState.channel.id); if (vcId) setTextChannelForVoice(vcId, preferred); } catch (_) {}
-                                                console.log(`[BotJoin:3rd] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
+                                                // Persist authoritative mapping for cross-bot resolution
+                                                try {
+                                                    const vcId = (vc && vc.id) || (newState.channel && newState.channel.id);
+                                                    if (vcId && typeof updateJoinChannelsConfig === 'function') {
+                                                        updateJoinChannelsConfig(guild.id, vcId, (preferred as any).id);
+                                                    }
+                                                } catch (e) { console.warn('[BotJoin] updateJoinChannelsConfig failed:', e); }
+                                                try { loadAutoJoinChannels(); } catch (_) {}
+                                                console.log(`[BotJoin] guild=${guild.id} persisted text-channel selected=${(preferred && preferred.id) || preferred}`);
                                             } catch (e) {
-                                                console.error('[BotJoin:3rd] persist selected text channel error:', e);
+                                                console.error('[BotJoin] persist selected text channel error:', e);
                                             }
                                         }
                                     } catch (e) {
-                                        console.error('[BotJoin:3rd] 優先チャネル選択エラー:', e);
+                                        console.error('[BotJoin] 優先チャネル選択エラー:', e);
                                     }
                                 }
                             }
                         } catch (e) {
-                            console.error('[BotJoin:3rd] 内部処理エラー:', e);
+                            console.error('[BotJoin] 内部処理エラー:', e);
                         }
                     }
-                }).catch(e => {
-                    console.error('[BotJoin:3rd] determineMessageTargetChannel エラー:', e);
+                }).catch((e: unknown) => {
+                    console.error('[BotJoin] determineMessageTargetChannel エラー:', e);
                 });
             }
         } catch (e) {
-            console.error('[BotJoin:3rd] エラー:', e);
+            console.error('[BotJoin] エラー:', e);
         }
     });
 }
@@ -146,7 +155,7 @@ async function checkAndLeaveIfEmpty(guildId: string, voiceChannelId: string, gui
         const humanMembers = membersCollection.filter((member) => !member.user.bot);
 
         if (humanMembers.size === 0) {
-            console.log(`[3rd Bot] 全員退出により自動退出: ギルド ${guild.name}`);
+            console.log(`[SUB Bot] 全員退出により自動退出: ギルド ${guild.name}`);
             
             // ボイス接続を切断
             const voiceClient = voiceClients[guildId];
@@ -154,13 +163,13 @@ async function checkAndLeaveIfEmpty(guildId: string, voiceChannelId: string, gui
                 try {
                     voiceClient.destroy();
                     delete voiceClients[guildId];
-                    console.log(`[3rd Bot] ボイス接続を切断しました: ギルド ${guild.name}`);
+                    console.log(`[SUB Bot] ボイス接続を切断しました: ギルド ${guild.name}`);
                 } catch (error) {
-                    console.error(`[3rd Bot] ボイス接続切断エラー:`, error);
+                    console.error(`[SUB Bot] ボイス接続切断エラー:`, error);
                 }
             }
         }
     } catch (error) {
-        console.error(`[3rd Bot] 全員退出チェックエラー:`, error);
+        console.error(`[SUB Bot] 全員退出チェックエラー:`, error);
     }
 }
