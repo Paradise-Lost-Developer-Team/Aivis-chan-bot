@@ -10,7 +10,8 @@ const DiscordStrategy = require('passport-discord').Strategy;
 
 // 環境変数の検証
 function validateEnvVars() {
-  const required = ['SESSION_SECRET', 'DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET'];
+  // 必須環境変数: SESSION_SECRET と Free版のDiscord認証情報
+  const required = ['SESSION_SECRET', 'DISCORD_CLIENT_ID_FREE', 'DISCORD_CLIENT_SECRET_FREE'];
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
@@ -22,6 +23,16 @@ function validateEnvVars() {
     console.error('[ENV] SESSION_SECRET must be changed from default value');
     process.exit(1);
   }
+
+  // Pro版の設定確認（警告のみ）
+  if (!process.env.DISCORD_CLIENT_ID_PRO || !process.env.DISCORD_CLIENT_SECRET_PRO) {
+    console.warn('[ENV] Pro version Discord OAuth2 credentials not configured');
+    console.warn('[ENV] Pro version login will be disabled');
+  }
+
+  console.log('[ENV] Environment variables validated successfully');
+  console.log(`[ENV] Free version: ${process.env.DISCORD_CLIENT_ID_FREE ? 'Configured' : 'Missing'}`);
+  console.log(`[ENV] Pro version: ${process.env.DISCORD_CLIENT_ID_PRO ? 'Configured' : 'Missing'}`);
 }
 
 validateEnvVars();
