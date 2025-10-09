@@ -486,12 +486,7 @@ apiApp.get('/api/stats', async (req: Request, res: Response) => {
 apiApp.listen(3007, () => {
     console.log('Stats APIサーバーがポート3007で起動しました');
 });
-// --- ここまで追加 ---
-client.login(TOKEN).catch(error => {
-    console.error("ログインエラー:", error);
-    logError('loginError', error);
-    process.exit(1);
-});
+
 // 内部用: 設定バンドル (config.json 等の秘匿ファイルは除外)
 apiApp.get('/internal/settings/bundle', (req: Request, res: Response) => {
     try {
@@ -1560,4 +1555,69 @@ apiApp.post('/api/dictionary', express.json(), async (req: Request, res: Respons
             details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
         });
     }
+});
+
+// 個人設定を保存
+apiApp.post('/api/personal-settings', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, userId, settings } = req.body;
+        
+        console.log(`[API /api/personal-settings POST] Request for guild: ${guildId}, user: ${userId}`);
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+
+        if (!settings || typeof settings !== 'object') {
+            return res.status(400).json({ error: 'settings must be an object' });
+        }
+
+        // 個人設定をvoice_settings.jsonに保存
+        const { voiceSettings } = await import('./utils/TTS-Engine');
+        
+        if (!voiceSettings[guildId]) {
+            voiceSettings[guildId] = {};
+        }
+
+        // ユーザーIDをキーとして個人設定を保存
+        voiceSettings[guildId][userId] = {
+            ...voiceSettings[guildId][userId],
+            ...settings
+        };
+        
+        const voiceSettingsPath = path.resolve(process.cwd(), 'data', 'voice_settings.json');
+        fs.writeFileSync(voiceSettingsPath, JSON.stringify(voiceSettings, null, 2));
+        
+        console.log(`[API /api/personal-settings POST] Personal settings saved for user ${userId}`);
+
+        // 設定を即時反映
+        try {
+            await loadUserVoiceSettings();
+            console.log(`[API /api/personal-settings POST] Voice settings reloaded`);
+        } catch (e) {
+            console.warn(`[API /api/personal-settings POST] Failed to reload voice settings:`, e);
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Personal settings saved successfully'
+        });
+    } catch (error) {
+        console.error('[API /api/personal-settings POST] Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to save personal settings',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// --- ここまで追加 ---
+client.login(TOKEN).catch(error => {
+    console.error("ログインエラー:", error);
+    logError('loginError', error);
+    process.exit(1);
 });
