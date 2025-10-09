@@ -1450,3 +1450,47 @@ apiApp.get('/health', (req: Request, res: Response) => {
         timestamp: new Date().toISOString()
     });
 });
+
+// ギルドの設定を取得（Web Dashboard用の互換エンドポイント）
+apiApp.get('/internal/settings/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        console.log(`[API /internal/settings/${guildId}] Request received`);
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        const settingsFile = path.join(DATA_DIR, 'guild-settings', `${guildId}.json`);
+        
+        let settings = {};
+        if (fs.existsSync(settingsFile)) {
+            try {
+                settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+            } catch (e) {
+                console.warn(`[API /internal/settings/${guildId}] Failed to parse settings file`);
+            }
+        }
+
+        // voiceSettingsからも取得
+        const { voiceSettings } = await import('./utils/TTS-Engine');
+        const guildVoiceSettings = voiceSettings[guildId] || {};
+
+        // マージ
+        const mergedSettings = {
+            ...settings,
+            ...guildVoiceSettings
+        };
+
+        console.log(`[API /internal/settings/${guildId}] Returning ${Object.keys(mergedSettings).length} settings`);
+        
+        res.json(mergedSettings);
+    } catch (error) {
+        console.error(`[API /internal/settings/${req.params.guildId}] Error:`, error);
+        res.status(500).json({ 
+            error: 'Failed to fetch settings',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
