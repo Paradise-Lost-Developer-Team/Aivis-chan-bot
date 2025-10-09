@@ -1333,31 +1333,47 @@ app.get('/api/bot-stats', requireAuth, async (req, res) => {
   try {
     console.log('[API /api/bot-stats] Fetching bot statistics');
 
+    // タイムアウトを短くして、レスポンスを高速化
     const statsPromises = BOT_INSTANCES.map(async (bot) => {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2秒タイムアウト
+
         const response = await axios.get(`${bot.url}/api/stats`, {
-          timeout: AXIOS_SHORT_TIMEOUT,
+          timeout: 2000,
+          signal: controller.signal,
           validateStatus: (status) => status === 200
         });
+
+        clearTimeout(timeoutId);
 
         if (response.data) {
           return {
             name: bot.name,
             url: bot.url,
             online: true,
-            stats: response.data,
+            stats: {
+              serverCount: response.data.serverCount || response.data.guilds || 0,
+              voiceConnectionCount: response.data.voiceConnectionCount || response.data.voiceConnections || 0,
+              uptime: response.data.uptime || 0
+            },
             timestamp: new Date().toISOString()
           };
         }
         
         return null;
       } catch (error) {
-        console.warn(`[API /api/bot-stats] Failed to fetch stats from ${bot.name}:`, error.message);
+        console.warn(`[API /api/bot-stats] Bot ${bot.name} offline:`, error.message);
         return {
           name: bot.name,
           url: bot.url,
           online: false,
-          error: error.message,
+          stats: {
+            serverCount: 0,
+            voiceConnectionCount: 0,
+            uptime: 0
+          },
+          error: error.code === 'ECONNABORTED' ? 'timeout' : error.message,
           timestamp: new Date().toISOString()
         };
       }
@@ -1369,7 +1385,7 @@ app.get('/api/bot-stats', requireAuth, async (req, res) => {
       .filter(r => r.status === 'fulfilled' && r.value !== null)
       .map(r => r.value);
 
-    // 集計情報
+    // 集計情報（オフラインBotも含める）
     const summary = {
       totalBots: BOT_INSTANCES.length,
       onlineBots: botStats.filter(b => b.online).length,
@@ -1389,7 +1405,74 @@ app.get('/api/bot-stats', requireAuth, async (req, res) => {
 
   } catch (error) {
     console.error('[API /api/bot-stats] Error:', error.message);
-    sendErrorResponse(res, 500, 'Bot統計情報の取得に失敗しました', error.message);
+    // エラー時でも基本構造を返す
+    res.json({
+      success: false,
+      timestamp: new Date().toISOString(),
+      summary: {
+        totalBots: BOT_INSTANCES.length,
+        onlineBots: 0,
+        offlineBots: BOT_INSTANCES.length,
+        totalGuilds: 0,
+        totalVoiceConnections: 0
+      },
+      bots: [],
+      error: error.message
+    });
+  }
+});
+
+// ユーザーが参加しているサーバー一覧取得（改善版）
+app.get('/api/user/servers', requireAuth, async (req, res) => {
+  try {
+    const userGuilds = req.user?.guilds || [];
+    const userId = req.user.id;
+
+    console.log(`[API /api/user/servers] User ${userId} has ${userGuilds.length} guilds`);
+
+    if (userGuilds.length === 0) {
+      return res.json({ servers: [] });
+    }
+
+    // 並列でBot参加状況をチェック（タイムアウト短縮）
+    const serverChecks = await Promise.allSettled(
+      userGuilds.map(async (guild) => {
+        try {
+          const bot = await findBotForGuild(guild.id);
+          
+          if (!bot) {
+            return null;
+          }
+
+          let iconUrl = guild.icon 
+            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+            : null;
+
+          return {
+            id: guild.id,
+            name: guild.name,
+            iconUrl,
+            permissions: guild.permissions,
+            botName: bot.name,
+            botUrl: bot.url
+          };
+        } catch (error) {
+          console.warn(`[API /api/user/servers] Error checking guild ${guild.id}:`, error.message);
+          return null;
+        }
+      })
+    );
+
+    const availableServers = serverChecks
+      .filter(result => result.status === 'fulfilled' && result.value !== null)
+      .map(result => result.value);
+
+    console.log(`[API /api/user/servers] Found ${availableServers.length}/${userGuilds.length} servers with bot`);
+
+    res.json({ servers: availableServers });
+  } catch (error) {
+    console.error('[API /api/user/servers] Error:', error.message);
+    res.json({ servers: [], error: error.message });
   }
 });
 

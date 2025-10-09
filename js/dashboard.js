@@ -444,6 +444,53 @@ class Dashboard {
     }
 }
 
+// エラーハンドリングの改善
+async function loadBotStats() {
+  try {
+    const response = await fetch('/api/bot-stats');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    
+    // データが正しく取得できているか確認
+    console.log('Bot stats:', data);
+    
+    if (data && data.summary) {
+      updateStatsDisplay(data.summary);
+    } else {
+      console.error('Invalid bot stats data:', data);
+      showErrorMessage('統計情報の取得に失敗しました');
+    }
+  } catch (error) {
+    console.error('Failed to load bot stats:', error);
+    showErrorMessage('統計情報の取得中にエラーが発生しました');
+  }
+}
+
+// サーバー一覧の読み込み
+async function loadUserServers() {
+  try {
+    const response = await fetch('/api/user/servers');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    
+    console.log('User servers:', data);
+    
+    if (data && Array.isArray(data.servers)) {
+      displayServerList(data.servers);
+    } else {
+      console.error('Invalid server data:', data);
+      showErrorMessage('サーバー一覧の取得に失敗しました');
+    }
+  } catch (error) {
+    console.error('Failed to load user servers:', error);
+    showErrorMessage('サーバー一覧の取得中にエラーが発生しました');
+  }
+}
+
 // ===================================
 // Initialization
 // ===================================
