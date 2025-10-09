@@ -391,14 +391,25 @@ async function getPatreonLink(discordId) {
   }
 }
 
-// ギルドが所属するBotインスタンスを検索
+// ギルドが所属するBotインスタンスを検索（キャッシュ付き）
+const guildBotCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5分
+
 async function findBotForGuild(guildId) {
   if (!guildId) {
     console.warn('[findBotForGuild] Invalid guildId provided');
     return null;
   }
 
-  for (const bot of BOT_INSTANCES) {
+  // キャッシュチェック
+  const cached = guildBotCache.get(guildId);
+  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+    console.debug(`[findBotForGuild] Cache hit for guild ${guildId}: ${cached.bot.name}`);
+    return cached.bot;
+  }
+
+  // 並列検索で高速化
+  const checks = BOT_INSTANCES.map(async (bot) => {
     try {
       const response = await axios.get(`${bot.url}/internal/guilds/${guildId}`, {
         timeout: AXIOS_SHORT_TIMEOUT,
@@ -406,21 +417,47 @@ async function findBotForGuild(guildId) {
       });
 
       if (response.data) {
-        console.log(`[findBotForGuild] Guild ${guildId} found in bot: ${bot.name}`);
         return bot;
       }
+      return null;
     } catch (error) {
-      // 404は正常なケース - 次のbotを試す
       if (error.response?.status !== 404) {
         console.debug(`[findBotForGuild] Error checking bot ${bot.name}:`, error.message);
       }
-      continue;
+      return null;
     }
+  });
+
+  const results = await Promise.allSettled(checks);
+  const foundBot = results
+    .filter(r => r.status === 'fulfilled' && r.value !== null)
+    .map(r => r.value)[0];
+
+  if (foundBot) {
+    console.log(`[findBotForGuild] Guild ${guildId} found in bot: ${foundBot.name}`);
+    
+    // キャッシュに保存
+    guildBotCache.set(guildId, {
+      bot: foundBot,
+      timestamp: Date.now()
+    });
+    
+    return foundBot;
   }
 
   console.warn(`[findBotForGuild] Guild ${guildId} not found in any bot instance`);
   return null;
 }
+
+// キャッシュクリーンアップ
+setInterval(() => {
+  const now = Date.now();
+  for (const [guildId, cached] of guildBotCache.entries()) {
+    if (now - cached.timestamp > CACHE_TTL) {
+      guildBotCache.delete(guildId);
+    }
+  }
+}, CACHE_TTL);
 
 // SEO: サイトマップ送信
 async function submitSitemap() {
@@ -676,41 +713,69 @@ app.get('/api/session', (req, res) => {
   }
 });
 
-// サーバー一覧取得
-app.get('/api/servers', requireAuth, (req, res) => {
+// サーバー一覧取得 - Bot参加チェック付き
+app.get('/api/servers', requireAuth, async (req, res) => {
   try {
     const userGuilds = req.user?.guilds || [];
+    const userId = req.user.id;
 
-    console.log(`[API /api/servers] Returning ${userGuilds.length} guilds for user ${req.user.id}`);
+    console.log(`[API /api/servers] Checking ${userGuilds.length} guilds for user ${userId}`);
 
-    const normalizedServers = userGuilds.map(guild => {
-      let iconUrl = guild.iconUrl || null;
-      
-      if (!iconUrl && guild.icon) {
-        iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
-      }
-      
-      return {
-        id: guild.id,
-        name: guild.name,
-        iconUrl,
-        permissions: guild.permissions
-      };
-    });
+    // 並列でBot参加状況をチェック
+    const serverChecks = await Promise.allSettled(
+      userGuilds.map(async (guild) => {
+        const bot = await findBotForGuild(guild.id);
+        
+        if (!bot) {
+          return null; // Bot未参加
+        }
 
-    res.json(normalizedServers);
+        let iconUrl = guild.iconUrl || null;
+        if (!iconUrl && guild.icon) {
+          iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
+        }
+
+        return {
+          id: guild.id,
+          name: guild.name,
+          iconUrl,
+          permissions: guild.permissions,
+          botName: bot.name,
+          botUrl: bot.url
+        };
+      })
+    );
+
+    // Bot参加済みのサーバーのみフィルタリング
+    const availableServers = serverChecks
+      .filter(result => result.status === 'fulfilled' && result.value !== null)
+      .map(result => result.value);
+
+    console.log(`[API /api/servers] Found ${availableServers.length} servers with bot access`);
+
+    res.json(availableServers);
   } catch (error) {
     console.error('[API /api/servers] Error:', error.message);
     sendErrorResponse(res, 500, 'サーバー一覧の取得に失敗しました', error.message);
   }
 });
 
-// 話者一覧取得
+// 話者一覧取得（キャッシュ付き）
+let speakersCache = null;
+let speakersCacheTime = 0;
+const SPEAKERS_CACHE_TTL = 10 * 60 * 1000; // 10分
+
 app.get('/api/speakers', async (req, res) => {
   try {
+    // キャッシュチェック
+    if (speakersCache && (Date.now() - speakersCacheTime) < SPEAKERS_CACHE_TTL) {
+      console.log('[API /api/speakers] Returning cached speakers');
+      return res.json(speakersCache);
+    }
+
     console.log(`[API /api/speakers] Fetching from AivisSpeech: ${AIVISSPEECH_URL}/speakers`);
 
-    // まずAivisSpeechから取得を試みる
+    // AivisSpeechから取得
     try {
       const response = await axios.get(`${AIVISSPEECH_URL}/speakers`, {
         timeout: AXIOS_TIMEOUT,
@@ -729,14 +794,19 @@ app.get('/api/speakers', async (req, res) => {
         });
 
         console.log(`[API /api/speakers] Found ${speakers.length} speaker styles from AivisSpeech`);
+        
+        // キャッシュに保存
+        speakersCache = speakers;
+        speakersCacheTime = Date.now();
+        
         return res.json(speakers);
       }
     } catch (error) {
       console.warn('[API /api/speakers] AivisSpeech fetch failed:', error.message);
     }
 
-    // フォールバック: Botから取得
-    for (const bot of BOT_INSTANCES) {
+    // フォールバック: 最初に応答したBotから取得
+    const botChecks = BOT_INSTANCES.map(async (bot) => {
       try {
         const response = await axios.get(`${bot.url}/api/speakers`, { 
           timeout: AXIOS_SHORT_TIMEOUT,
@@ -744,12 +814,25 @@ app.get('/api/speakers', async (req, res) => {
         });
         
         if (response.data && Array.isArray(response.data)) {
-          console.log(`[API /api/speakers] Loaded from bot: ${bot.name}`);
-          return res.json(response.data);
+          return { bot, speakers: response.data };
         }
-      } catch (error) {
-        continue;
+        return null;
+      } catch {
+        return null;
       }
+    });
+
+    const results = await Promise.race(
+      botChecks.map(p => p.catch(() => null))
+    );
+
+    if (results?.speakers) {
+      console.log(`[API /api/speakers] Loaded from bot: ${results.bot.name}`);
+      
+      speakersCache = results.speakers;
+      speakersCacheTime = Date.now();
+      
+      return res.json(results.speakers);
     }
 
     console.warn('[API /api/speakers] No speakers found from any source');
@@ -760,7 +843,7 @@ app.get('/api/speakers', async (req, res) => {
   }
 });
 
-// ギルド情報取得
+// ギルド情報取得（チャンネル、設定、話者を含む）
 app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
   try {
     const { guildId } = req.params;
@@ -781,27 +864,56 @@ app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
       return sendErrorResponse(res, 404, 'このサーバーにBotが参加していません');
     }
 
-    const response = await axios.get(`${bot.url}/internal/guilds/${guildId}`, {
-      timeout: AXIOS_TIMEOUT,
-      validateStatus: (status) => status === 200
-    });
+    // 並列でギルド情報と設定を取得
+    const [guildResponse, settingsResponse] = await Promise.allSettled([
+      axios.get(`${bot.url}/internal/guilds/${guildId}`, {
+        timeout: AXIOS_TIMEOUT,
+        validateStatus: (status) => status === 200
+      }),
+      axios.get(`${bot.url}/internal/web-settings/${guildId}`, {
+        timeout: AXIOS_TIMEOUT,
+        validateStatus: (status) => status === 200
+      })
+    ]);
 
-    const guildData = response.data;
+    if (guildResponse.status !== 'fulfilled') {
+      throw new Error('Failed to fetch guild data');
+    }
 
-    console.log(`[API /api/guilds/${guildId}] Guild data received from bot: ${bot.name}`);
+    const guildData = guildResponse.value.data;
+    const settings = settingsResponse.status === 'fulfilled' 
+      ? settingsResponse.value.data?.settings || {}
+      : {};
+
+    // チャンネル情報の整形
+    const channels = (guildData.channels || []).map(ch => ({
+      id: ch.id,
+      name: ch.name,
+      type: ch.type,
+      parentId: ch.parentId || null,
+      position: ch.position || 0
+    }));
+
+    console.log(`[API /api/guilds/${guildId}] Guild data received: ${channels.length} channels`);
 
     res.json({
       id: guildId,
       name: guildData.name,
       iconUrl: guildData.iconUrl,
-      channels: guildData.channels || [],
+      channels: channels,
       botName: bot.name,
       voiceConnected: guildData.voiceConnected || false,
       voiceChannelId: guildData.voiceChannelId || null,
-      textChannelId: guildData.textChannelId || null
+      textChannelId: guildData.textChannelId || null,
+      settings: settings
     });
   } catch (error) {
     console.error(`[API /api/guilds/${req.params.guildId}] Error:`, error.message);
+    
+    if (error.response?.status === 404) {
+      return sendErrorResponse(res, 404, 'ギルド情報が見つかりません');
+    }
+    
     sendErrorResponse(res, 500, 'ギルド情報の取得に失敗しました', error.message);
   }
 });
