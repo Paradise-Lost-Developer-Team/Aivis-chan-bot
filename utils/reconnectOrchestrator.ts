@@ -11,8 +11,8 @@ type ReconnectSummary = {
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// Pro/Premium が保持する voice_state.json をソースに、
+  
+// Primary が保持する voice_state.json をソースに、
 // 各ギルドの保存先VCへ「そのギルドに在籍している中で最も空いているBot」を選んで接続指示します。
 export async function orchestrateReconnectFromSavedState(client: Client): Promise<ReconnectSummary> {
   const state = loadVoiceState();
@@ -21,11 +21,11 @@ export async function orchestrateReconnectFromSavedState(client: Client): Promis
   let skipped = 0;
 
   if (guildIds.length === 0) {
-    console.log('[pro-reconnect-orchestrator] 保存されたvoice_stateが空のため、実行しません');
+    console.log('[reconnect-orchestrator] 保存されたvoice_stateが空のため、実行しません');
     return { total: 0, instructed: 0, skipped: 0 };
   }
 
-  console.log(`[pro-reconnect-orchestrator] ${guildIds.length} ギルドに対して再接続オーケストレーションを開始します`);
+  console.log(`[reconnect-orchestrator] ${guildIds.length} ギルドに対して再接続オーケストレーションを開始します`);
 
   for (const guildId of guildIds) {
     try {
@@ -39,7 +39,7 @@ export async function orchestrateReconnectFromSavedState(client: Client): Promis
       const target = state[guildId];
       const channel = guild.channels.cache.get(target.channelId) as VoiceChannel | undefined;
       if (!channel || channel.type !== ChannelType.GuildVoice) {
-        console.warn(`[pro-reconnect-orchestrator] 対象VCが無効のためスキップ: guildId=${guildId} channelId=${target.channelId}`);
+        console.warn(`[reconnect-orchestrator] 対象VCが無効のためスキップ: guildId=${guildId} channelId=${target.channelId}`);
         skipped++;
         continue;
       }
@@ -49,24 +49,24 @@ export async function orchestrateReconnectFromSavedState(client: Client): Promis
       const eligible = infos.filter(i => i.ok && i.guildIds?.includes(guildId));
       const picked = pickLeastBusyBot(eligible);
       if (!picked) {
-        console.warn(`[pro-reconnect-orchestrator] 在籍Botが見つからずスキップ: guildId=${guildId}`);
+        console.warn(`[reconnect-orchestrator] 在籍Botが見つからずスキップ: guildId=${guildId}`);
         skipped++;
         continue;
       }
 
       const textChannelId = target.textChannelId;
       await instructJoin(picked.bot, { guildId, voiceChannelId: channel.id, textChannelId });
-      console.log(`[pro-reconnect-orchestrator] 指示: bot=${picked.bot.name} guild=${guild.name} vc=${channel.name}`);
+      console.log(`[reconnect-orchestrator] 指示: bot=${picked.bot.name} guild=${guild.name} vc=${channel.name}`);
       instructed++;
 
       // 急激な同時接続を避けるため、軽くディレイ
       await sleep(250);
     } catch (e) {
-      console.error('[pro-reconnect-orchestrator] エラー:', e);
+      console.error('[reconnect-orchestrator] エラー:', e);
       skipped++;
     }
   }
 
-  console.log(`[pro-reconnect-orchestrator] 完了: 指示=${instructed}, スキップ=${skipped}`);
+  console.log(`[reconnect-orchestrator] 完了: 指示=${instructed}, スキップ=${skipped}`);
   return { total: guildIds.length, instructed, skipped };
 }

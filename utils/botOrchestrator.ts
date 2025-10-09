@@ -33,10 +33,10 @@ export function listBots(): BotInfo[] {
       }
       // 形式不正時はフォールバック
       // eslint-disable-next-line no-console
-      console.warn('[botOrchestrator:pro] BOTS_JSON の形式が不正です。デフォルト構成を使用します');
+      console.warn('[botOrchestrator] BOTS_JSON の形式が不正です。デフォルト構成を使用します');
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('[botOrchestrator:pro] BOTS_JSON のパースに失敗しました。デフォルト構成を使用します:', (e as Error)?.message);
+      console.warn('[botOrchestrator] BOTS_JSON のパースに失敗しました。デフォルト構成を使用します:', (e as Error)?.message);
     }
   }
 
@@ -72,7 +72,7 @@ export async function getBotInfos(timeoutMs = 8000, attempts = 3): Promise<(Info
   const results: (InfoResp & { bot: BotInfo; ok: boolean })[] = [];
   const bots = listBots();
 
-  console.log(`[botOrchestrator:pro] ${bots.length}個のBotの情報を取得開始`);
+  console.log(`[botOrchestrator] ${bots.length}個のBotの情報を取得開始`);
 
   // 改善されたリトライ付きフェッチ
   const fetchInfo = async (bot: BotInfo): Promise<(InfoResp & { bot: BotInfo; ok: boolean })> => {
@@ -81,17 +81,17 @@ export async function getBotInfos(timeoutMs = 8000, attempts = 3): Promise<(Info
     
     for (let i = 0; i < Math.max(1, attempts); i++) {
       try {
-        console.log(`[botOrchestrator:pro] info取得開始: ${bot.name} (${url}) - 試行 ${i + 1}/${attempts}`);
+        console.log(`[botOrchestrator] info取得開始: ${bot.name} (${url}) - 試行 ${i + 1}/${attempts}`);
         
         const response = await axios.get(url, { 
           timeout: timeoutMs,
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'BotOrchestrator-Pro/1.0'
+            'User-Agent': 'BotOrchestrator/1.0'
           }
         });
         
-        console.log(`[botOrchestrator:pro] info取得成功: ${bot.name} - status: ${response.status}`);
+        console.log(`[botOrchestrator] info取得成功: ${bot.name} - status: ${response.status}`);
         return { ...(response.data as InfoResp), bot, ok: true };
       } catch (e: any) {
         lastErr = e;
@@ -105,7 +105,7 @@ export async function getBotInfos(timeoutMs = 8000, attempts = 3): Promise<(Info
           timeout: e.code === 'ECONNABORTED'
         };
         
-        console.warn(`[botOrchestrator:pro] info取得失敗 (試行 ${i + 1}/${attempts}): ${bot.name} (${url}) -> ${JSON.stringify(errorDetails)}`);
+        console.warn(`[botOrchestrator] info取得失敗 (試行 ${i + 1}/${attempts}): ${bot.name} (${url}) -> ${JSON.stringify(errorDetails)}`);
         
         // リトライ前の待機（最後の試行以外）
         if (i < attempts - 1) {
@@ -114,7 +114,7 @@ export async function getBotInfos(timeoutMs = 8000, attempts = 3): Promise<(Info
       }
     }
     
-    console.error(`[botOrchestrator:pro] info取得最終失敗: ${bot.name} (${url}) -> ${lastErr?.message || lastErr}`);
+    console.error(`[botOrchestrator] info取得最終失敗: ${bot.name} (${url}) -> ${lastErr?.message || lastErr}`);
     return { bot, ok: false, guildIds: [], connectedGuildIds: [], vcCount: 0, serverCount: 0 };
   };
 
@@ -130,7 +130,7 @@ export async function getBotInfos(timeoutMs = 8000, attempts = 3): Promise<(Info
   }
   
   const successCount = results.filter(r => r.ok).length;
-  console.log(`[botOrchestrator:pro] 情報取得完了: ${successCount}/${results.length} 成功`);
+  console.log(`[botOrchestrator] 情報取得完了: ${successCount}/${results.length} 成功`);
   
   return results;
 }
@@ -171,14 +171,14 @@ export async function instructJoin(bot: BotInfo, payload: { guildId: string; voi
   
   // テキストチャンネルIDが指定されていない場合は警告ログを出力
   if (!payload.textChannelId) {
-    console.warn(`[botOrchestrator:pro] テキストチャンネルが指定されていません: guildId=${payload.guildId} bot=${bot.name}`);
+    console.warn(`[botOrchestrator] テキストチャンネルが指定されていません: guildId=${payload.guildId} bot=${bot.name}`);
   }
   
   try {
-  console.log(`[botOrchestrator:pro] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'} reqCh=${payload.requestingChannelId || 'none'} timeoutMs=${timeoutMs}`);
+  console.log(`[botOrchestrator] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'} reqCh=${payload.requestingChannelId || 'none'} timeoutMs=${timeoutMs}`);
   await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
-    const msg = `[botOrchestrator:pro] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
+    const msg = `[botOrchestrator] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
     // eslint-disable-next-line no-console
     console.warn(msg);
     throw new Error(msg);
@@ -188,10 +188,10 @@ export async function instructJoin(bot: BotInfo, payload: { guildId: string; voi
 export async function instructLeave(bot: BotInfo, payload: { guildId: string; voiceChannelId?: string }, timeoutMs = 6000) {
   const url = `${bot.baseUrl.replace(/\/$/, '')}/internal/leave`;
   try {
-    console.log(`[botOrchestrator:pro] leave指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId || 'none'}`);
+    console.log(`[botOrchestrator:1st] leave指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId || 'none'}`);
     await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
-    const msg = `[botOrchestrator:pro] leave指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
+    const msg = `[botOrchestrator:1st] leave指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
     // eslint-disable-next-line no-console
     console.warn(msg);
     throw new Error(msg);

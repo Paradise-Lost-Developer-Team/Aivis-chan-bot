@@ -343,6 +343,9 @@ client.once("ready", async () => {
 
         AivisAdapter();
         console.log("AivisAdapter初期化完了");
+
+        orchestrateReconnectFromSavedState(client);
+        console.log("再接続オーケストレーション実行完了");
         
         // 再接続が完了した後で他の機能を初期化
         MessageCreate(client);
