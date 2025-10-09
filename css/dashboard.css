@@ -493,19 +493,25 @@ input[type="range"] {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     outline: none;
-    -webkit-appearance: none;
-    appearance: none;
+    appearance: none; /* 標準プロパティ */
+    -webkit-appearance: none; /* Safari/Chrome用 */
+    -moz-appearance: none; /* Firefox用 */
 }
 
 input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
     appearance: none;
+    -webkit-appearance: none;
     width: 18px;
     height: 18px;
     border-radius: 50%;
     background: linear-gradient(135deg, #5865F2, #7289DA);
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(88, 101, 242, 0.4);
+    transition: transform 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -516,6 +522,11 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(88, 101, 242, 0.4);
     border: none;
+    transition: transform 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.1);
 }
 
 /* チェックボックス */
