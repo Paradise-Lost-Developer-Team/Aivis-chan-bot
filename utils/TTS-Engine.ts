@@ -1601,6 +1601,8 @@ export function determineMessageTargetChannel(guildId: string, defaultChannelId?
  
 
 
+
+
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
@@ -1907,13 +1909,22 @@ process.on('SIGTERM', () => {
 });
 
 // Map to store guild -> text channel mappings
-const guildTextChannels = new Map<string, string>();
+const guildTextChannelMap = new Map<string, string>();
 
 // テキストチャンネルマッピングを取得
-export function getTextChannelForGuild(guildId: string): string | undefined {
-  return guildTextChannelMap.get(guildId);
-}
-
-function setTextChannelForGuildInMap(guildId: string, channelId: string): void {
-  guildTextChannels.set(guildId, channelId);
+export function getTextChannelForGuild(guildId: string): string | null {
+    // textChannels マップから取得を試みる
+    const channel = (textChannels as any)[guildId];
+    if (channel && channel.id) {
+        return channel.id;
+    }
+    
+    // textChannelByVoice マップからも検索
+    for (const [voiceChannelId, textChannel] of Object.entries(textChannelByVoice)) {
+        if (textChannel && (textChannel as any).guild?.id === guildId) {
+            return (textChannel as any).id;
+        }
+    }
+    
+    return null;
 }
