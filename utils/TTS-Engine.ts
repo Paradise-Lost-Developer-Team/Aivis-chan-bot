@@ -5,7 +5,8 @@ import * as fs from "fs";
 import path from "path";
 import { ChannelType, TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
-import { getTextChannelForGuild } from './voiceStateManager';
+// この行を削除
+// import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
@@ -1597,6 +1598,7 @@ export function deleteJoinChannelsConfig(guildId: string) {
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
+ 
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
