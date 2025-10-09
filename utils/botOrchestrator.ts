@@ -33,10 +33,10 @@ export function listBots(): BotInfo[] {
       }
       // 形式不正時はフォールバック
       // eslint-disable-next-line no-console
-      console.warn('[botOrchestrator:pro] BOTS_JSON の形式が不正です。デフォルト構成を使用します');
+      console.warn('[botOrchestrator] BOTS_JSON の形式が不正です。デフォルト構成を使用します');
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('[botOrchestrator:pro] BOTS_JSON のパースに失敗しました。デフォルト構成を使用します:', (e as Error)?.message);
+      console.warn('[botOrchestrator] BOTS_JSON のパースに失敗しました。デフォルト構成を使用します:', (e as Error)?.message);
     }
   }
 
@@ -171,14 +171,14 @@ export async function instructJoin(bot: BotInfo, payload: { guildId: string; voi
   
   // テキストチャンネルIDが指定されていない場合は警告ログを出力
   if (!payload.textChannelId) {
-    console.warn(`[botOrchestrator:1st] テキストチャンネルが指定されていません: guildId=${payload.guildId} bot=${bot.name}`);
+    console.warn(`[botOrchestrator] テキストチャンネルが指定されていません: guildId=${payload.guildId} bot=${bot.name}`);
   }
   
   try {
-  console.log(`[botOrchestrator:1st] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'} reqCh=${payload.requestingChannelId || 'none'} timeoutMs=${timeoutMs}`);
+  console.log(`[botOrchestrator] join指示送信: bot=${bot.name} guild=${payload.guildId} vc=${payload.voiceChannelId} tc=${payload.textChannelId || 'none'} reqCh=${payload.requestingChannelId || 'none'} timeoutMs=${timeoutMs}`);
   await axios.post(url, payload, { timeout: timeoutMs });
   } catch (e: any) {
-    const msg = `[botOrchestrator:1st] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
+    const msg = `[botOrchestrator] join指示失敗: bot=${bot.name} url=${url} err=${e?.message || e}`;
     // eslint-disable-next-line no-console
     console.warn(msg);
     throw new Error(msg);

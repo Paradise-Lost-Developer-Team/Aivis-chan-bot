@@ -12,7 +12,7 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// 1st が保持する voice_state.json をソースに、
+// Primary が保持する voice_state.json をソースに、
 // 各ギルドの保存先VCへ「そのギルドに在籍している中で最も空いているBot」を選んで接続指示します。
 export async function orchestrateReconnectFromSavedState(client: Client): Promise<ReconnectSummary> {
   const state = loadVoiceState();
