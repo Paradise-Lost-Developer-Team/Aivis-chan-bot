@@ -772,3 +772,272 @@ window.addEventListener('beforeunload', () => {
         dashboard.cleanup();
     }
 });
+
+// サーバー一覧の読み込み
+async function loadServers() {
+  try {
+    const response = await fetch('/api/servers');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const servers = await response.json();
+    console.log('[Dashboard] Loaded servers:', servers.length);
+    
+    displayServers(servers);
+  } catch (error) {
+    console.error('[Dashboard] Failed to load servers:', error);
+    showError('サーバー一覧の読み込みに失敗しました');
+  }
+}
+
+// サーバー一覧の表示
+function displayServers(servers) {
+  const serverList = document.getElementById('server-list');
+  
+  if (!serverList) {
+    console.error('[Dashboard] server-list element not found');
+    return;
+  }
+  
+  serverList.innerHTML = '';
+  
+  if (servers.length === 0) {
+    serverList.innerHTML = '<p class="no-servers">Botが参加しているサーバーがありません</p>';
+    return;
+  }
+  
+  servers.forEach(server => {
+    const serverCard = createServerCard(server);
+    serverList.appendChild(serverCard);
+  });
+}
+
+// サーバーカードの作成
+function createServerCard(server) {
+  const card = document.createElement('div');
+  card.className = 'server-card';
+  card.dataset.serverId = server.id;
+  
+  // アイコン
+  const icon = document.createElement('img');
+  icon.className = 'server-icon';
+  icon.src = server.iconUrl || '/images/default-server-icon.png';
+  icon.alt = server.name;
+  icon.onerror = () => {
+    icon.src = '/images/default-server-icon.png';
+  };
+  
+  // サーバー名
+  const name = document.createElement('div');
+  name.className = 'server-name';
+  name.textContent = server.name;
+  
+  // Bot情報
+  const botInfo = document.createElement('div');
+  botInfo.className = 'bot-info';
+  botInfo.textContent = `Bot: ${server.botName}`;
+  
+  card.appendChild(icon);
+  card.appendChild(name);
+  card.appendChild(botInfo);
+  
+  // クリックイベント
+  card.addEventListener('click', () => selectServer(server.id));
+  
+  return card;
+}
+
+// サーバー選択
+async function selectServer(serverId) {
+  try {
+    console.log('[Dashboard] Selecting server:', serverId);
+    
+    // 選択状態のUI更新
+    document.querySelectorAll('.server-card').forEach(card => {
+      card.classList.remove('selected');
+    });
+    
+    const selectedCard = document.querySelector(`[data-server-id="${serverId}"]`);
+    if (selectedCard) {
+      selectedCard.classList.add('selected');
+    }
+    
+    // ローディング表示
+    showLoading();
+    
+    // サーバー情報の読み込み
+    const [guildData, speakers] = await Promise.all([
+      loadGuildData(serverId),
+      loadSpeakers()
+    ]);
+    
+    // データの表示
+    displayGuildData(guildData);
+    displaySpeakers(speakers);
+    
+    // 設定パネルを表示
+    document.getElementById('settings-panel').style.display = 'block';
+    
+    hideLoading();
+  } catch (error) {
+    console.error('[Dashboard] Failed to select server:', error);
+    showError('サーバー情報の読み込みに失敗しました');
+    hideLoading();
+  }
+}
+
+// ギルドデータの読み込み
+async function loadGuildData(guildId) {
+  const response = await fetch(`/api/guilds/${guildId}`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to load guild data: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+// 話者一覧の読み込み
+async function loadSpeakers() {
+  const response = await fetch('/api/speakers');
+  
+  if (!response.ok) {
+    throw new Error(`Failed to load speakers: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+// ギルドデータの表示
+function displayGuildData(guildData) {
+  console.log('[Dashboard] Displaying guild data:', guildData);
+  
+  // サーバー名の表示
+  const serverNameElement = document.getElementById('selected-server-name');
+  if (serverNameElement) {
+    serverNameElement.textContent = guildData.name;
+  }
+  
+  // チャンネル一覧の表示
+  displayChannels(guildData.channels || []);
+  
+  // 設定値の表示
+  displaySettings(guildData.settings || {});
+  
+  // 現在の状態を保存
+  window.currentGuildId = guildData.id;
+  window.currentGuildData = guildData;
+}
+
+// チャンネル一覧の表示
+function displayChannels(channels) {
+  const voiceChannelSelect = document.getElementById('voice-channel-select');
+  const textChannelSelect = document.getElementById('text-channel-select');
+  
+  if (!voiceChannelSelect || !textChannelSelect) {
+    console.error('[Dashboard] Channel select elements not found');
+    return;
+  }
+  
+  // ボイスチャンネルのフィルタリングと表示
+  const voiceChannels = channels.filter(ch => ch.type === 2); // GUILD_VOICE
+  voiceChannelSelect.innerHTML = '<option value="">選択してください</option>';
+  voiceChannels.forEach(ch => {
+    const option = document.createElement('option');
+    option.value = ch.id;
+    option.textContent = ch.name;
+    voiceChannelSelect.appendChild(option);
+  });
+  
+  // テキストチャンネルのフィルタリングと表示
+  const textChannels = channels.filter(ch => ch.type === 0); // GUILD_TEXT
+  textChannelSelect.innerHTML = '<option value="">選択してください</option>';
+  textChannels.forEach(ch => {
+    const option = document.createElement('option');
+    option.value = ch.id;
+    option.textContent = ch.name;
+    textChannelSelect.appendChild(option);
+  });
+  
+  console.log(`[Dashboard] Displayed ${voiceChannels.length} voice channels and ${textChannels.length} text channels`);
+}
+
+// 話者一覧の表示
+function displaySpeakers(speakers) {
+  const speakerSelect = document.getElementById('speaker-select');
+  
+  if (!speakerSelect) {
+    console.error('[Dashboard] Speaker select element not found');
+    return;
+  }
+  
+  speakerSelect.innerHTML = '<option value="">選択してください</option>';
+  
+  speakers.forEach(speaker => {
+    const option = document.createElement('option');
+    option.value = speaker.id;
+    option.textContent = speaker.name;
+    speakerSelect.appendChild(option);
+  });
+  
+  console.log(`[Dashboard] Displayed ${speakers.length} speakers`);
+}
+
+// エラー表示
+function showError(message) {
+  const errorDiv = document.getElementById('error-message');
+  if (errorDiv) {
+    errorDiv.textContent = message;
+    errorDiv.classList.add('show');
+    
+    setTimeout(() => {
+      errorDiv.classList.remove('show');
+    }, 5000);
+  }
+  
+  console.error('[Dashboard] Error:', message);
+}
+
+// ローディング表示
+function showLoading() {
+  const loadingDiv = document.getElementById('loading');
+  if (loadingDiv) {
+    loadingDiv.style.display = 'flex';
+  }
+}
+
+// ローディング非表示
+function hideLoading() {
+  const loadingDiv = document.getElementById('loading');
+  if (loadingDiv) {
+    loadingDiv.style.display = 'none';
+  }
+}
+
+// ページ読み込み時の初期化
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('[Dashboard] Initializing...');
+  
+  try {
+    // セッション確認
+    const sessionResponse = await fetch('/api/session');
+    const sessionData = await sessionResponse.json();
+    
+    if (!sessionData.authenticated) {
+      console.log('[Dashboard] Not authenticated, redirecting to login');
+      window.location.href = '/login';
+      return;
+    }
+    
+    console.log('[Dashboard] User authenticated:', sessionData.user.username);
+    
+    // サーバー一覧の読み込み
+    await loadServers();
+    
+  } catch (error) {
+    console.error('[Dashboard] Initialization failed:', error);
+    showError('ダッシュボードの初期化に失敗しました');
+  }
+});
