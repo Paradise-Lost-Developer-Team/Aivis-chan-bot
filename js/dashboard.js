@@ -229,6 +229,8 @@ class Dashboard {
         this.speakers = [];
         this.loadingState = new Map();
         this.abortControllers = new Map();
+        this.botStats = null;
+        this.statsInterval = null;
         
         this.init();
     }
@@ -246,6 +248,14 @@ class Dashboard {
             
             await this.loadServers();
             
+            // Bot統計を読み込み
+            await this.loadBotStats();
+            
+            // 30秒ごとに統計を更新
+            this.statsInterval = setInterval(() => {
+                this.loadBotStats();
+            }, 30000);
+            
             logger.success('[Dashboard] Initialization complete');
         } catch (error) {
             logger.error(`[Dashboard] Initialization failed: ${error.message}`);
@@ -253,780 +263,178 @@ class Dashboard {
         }
     }
 
-    // ===================================
-    // セッション管理
-    // ===================================
-
-    async checkSession() {
+    // Bot統計を読み込む
+    async loadBotStats() {
         const controller = new AbortController();
-        this.abortControllers.set('session', controller);
+        this.abortControllers.set('bot-stats', controller);
 
         try {
-            const response = await fetch('/api/session', {
+            logger.info('[Dashboard] Loading bot statistics...');
+            
+            const response = await fetch('/api/bot-stats', {
                 credentials: 'include',
                 signal: controller.signal
             });
             
             if (!response.ok) {
-                throw new Error('Session check failed');
+                throw new Error(`Failed to load bot stats: ${response.status}`);
             }
             
-            const sessionData = await response.json();
+            this.botStats = await response.json();
             
-            if (!sessionData.authenticated) {
-                logger.warn('[Dashboard] Not authenticated, redirecting to login');
-                window.location.href = '/login';
-                return;
-            }
+            logger.info('[Dashboard] Bot statistics loaded:', this.botStats.summary);
             
-            this.currentUserId = sessionData.user.id;
-            this.displayUserInfo(sessionData.user);
-            
-            logger.info(`[Dashboard] Authenticated: ${sessionData.user.username}`);
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                logger.error(`[Dashboard] Session check failed: ${error.message}`);
-                window.location.href = '/login';
-            }
-        } finally {
-            this.abortControllers.delete('session');
-        }
-    }
-
-    displayUserInfo(user) {
-        try {
-            const userDisplay = document.getElementById('user-display');
-            if (userDisplay) {
-                const username = user.username || user.displayName || 'ユーザー';
-                userDisplay.textContent = username;
-            }
-            
-            const userAvatar = document.getElementById('user-avatar');
-            if (userAvatar && user.avatar && user.id) {
-                const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
-                userAvatar.src = avatarUrl;
-                userAvatar.alt = `${user.username}のアバター`;
-            }
-            
-            logger.success('[Dashboard] User info displayed');
-        } catch (error) {
-            logger.error(`[Dashboard] Failed to display user info: ${error.message}`);
-        }
-    }
-
-    // ===================================
-    // サーバー管理
-    // ===================================
-
-    async loadServers() {
-        const controller = new AbortController();
-        this.abortControllers.set('servers', controller);
-
-        try {
-            logger.info('[Dashboard] Loading servers...');
-            
-            this.showLoading();
-            
-            const response = await fetch('/api/servers', {
-                credentials: 'include',
-                signal: controller.signal
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to load servers: ${response.status}`);
-            }
-            
-            this.servers = await response.json();
-            
-            logger.info(`[Dashboard] Loaded ${this.servers.length} servers`);
-            
-            this.renderServerList();
+            this.displayBotStats();
             
         } catch (error) {
             if (error.name === 'AbortError') {
-                logger.warn('[Dashboard] Server load cancelled');
+                logger.warn('[Dashboard] Bot stats load cancelled');
             } else {
-                logger.error(`[Dashboard] Failed to load servers: ${error.message}`);
-                this.showToast('サーバー一覧の読み込みに失敗しました', 'error');
+                logger.error(`[Dashboard] Failed to load bot stats: ${error.message}`);
             }
         } finally {
-            this.hideLoading();
-            this.abortControllers.delete('servers');
+            this.abortControllers.delete('bot-stats');
         }
     }
 
-    renderServerList() {
-        const serverList = document.getElementById('server-list');
-        if (!serverList) {
-            logger.error('[Dashboard] server-list element not found');
-            return;
-        }
-        
-        serverList.innerHTML = '';
-        
-        if (this.servers.length === 0) {
-            const noServers = document.createElement('li');
-            noServers.className = 'no-servers';
-            noServers.textContent = 'Botが参加しているサーバーがありません';
-            serverList.appendChild(noServers);
-            return;
-        }
-        
-        const fragment = document.createDocumentFragment();
-        
-        this.servers.forEach(server => {
-            const li = this.createServerElement(server);
-            fragment.appendChild(li);
-        });
-        
-        serverList.appendChild(fragment);
-        
-        logger.success(`[Dashboard] Rendered ${this.servers.length} servers`);
-    }
-
-    createServerElement(server) {
-        const li = document.createElement('li');
-        li.className = 'server-item';
-        li.dataset.guildId = server.id;
-        
-        if (server.iconUrl) {
-            const img = document.createElement('img');
-            img.src = server.iconUrl;
-            img.alt = `${server.name}のアイコン`;
-            img.className = 'server-icon';
-            img.onerror = function() {
-                this.style.display = 'none';
-                const fallback = this.nextElementSibling;
-                if (fallback) fallback.style.display = 'flex';
-            };
-            li.appendChild(img);
-        }
-        
-        const fallback = document.createElement('div');
-        fallback.className = 'server-icon-fallback';
-        fallback.style.display = server.iconUrl ? 'none' : 'flex';
-        fallback.textContent = server.name.charAt(0).toUpperCase();
-        li.appendChild(fallback);
-        
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'server-info';
-        
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'server-name';
-        nameDiv.textContent = server.name;
-        
-        const botInfo = document.createElement('div');
-        botInfo.className = 'bot-info';
-        botInfo.textContent = `Bot: ${server.botName}`;
-        botInfo.style.fontSize = '0.85em';
-        botInfo.style.color = '#666';
-        botInfo.style.marginTop = '4px';
-        
-        infoDiv.appendChild(nameDiv);
-        infoDiv.appendChild(botInfo);
-        li.appendChild(infoDiv);
-        
-        // イベントリスナーを確実に設定
-        li.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            logger.info(`[Dashboard] Server clicked: ${server.id} (${server.name})`);
-            this.selectServer(server.id);
-        });
-        
-        // デバッグ用: hover時のスタイル
-        li.style.cursor = 'pointer';
-        li.addEventListener('mouseenter', () => {
-            li.style.backgroundColor = '#f0f0f0';
-        });
-        li.addEventListener('mouseleave', () => {
-            if (!li.classList.contains('selected')) {
-                li.style.backgroundColor = '';
-            }
-        });
-        
-        return li;
-    }
-
-    async selectServer(guildId) {
-        try {
-            logger.info(`[Dashboard] selectServer called with guildId: ${guildId}`);
-            
-            if (this.loadingState.get(guildId)) {
-                logger.warn(`[Dashboard] Server ${guildId} is already loading`);
-                return;
-            }
-
-            if (!guildId || typeof guildId !== 'string') {
-                logger.error(`[Dashboard] Invalid guildId: ${guildId}`);
-                this.showToast('無効なサーバーIDです', 'error');
-                return;
-            }
-
-            logger.info(`[Dashboard] Selecting server: ${guildId}`);
-            
-            // UI更新
-            const allItems = document.querySelectorAll('.server-item');
-            logger.info(`[Dashboard] Found ${allItems.length} server items`);
-            
-            allItems.forEach(item => {
-                item.classList.remove('selected');
-                item.style.backgroundColor = '';
-            });
-            
-            const selectedItem = document.querySelector(`.server-item[data-guild-id="${guildId}"]`);
-            if (selectedItem) {
-                selectedItem.classList.add('selected');
-                selectedItem.style.backgroundColor = '#e3f2fd';
-                logger.success(`[Dashboard] Selected server UI updated`);
-            } else {
-                logger.warn(`[Dashboard] Could not find server item with guild-id: ${guildId}`);
-            }
-            
-            this.currentGuildId = guildId;
-            
-            await this.loadServerData(guildId);
-            
-        } catch (error) {
-            logger.error(`[Dashboard] selectServer error: ${error.message}`);
-            this.showToast(`サーバー選択エラー: ${error.message}`, 'error');
-        }
-    }
-
-    async loadServerData(guildId) {
-        this.loadingState.set(guildId, true);
-
-        const controller = new AbortController();
-        this.abortControllers.set(`guild-${guildId}`, controller);
-
-        try {
-            logger.info(`[Dashboard] Loading data for: ${guildId}`);
-            
-            this.showLoading();
-            
-            // 並列データ取得
-            const [guildData, speakers] = await Promise.all([
-                this.fetchGuildData(guildId, controller.signal),
-                this.fetchSpeakers(controller.signal)
-            ]);
-            
-            this.currentGuildData = guildData;
-            this.speakers = speakers;
-            
-            // データを表示
-            this.displayGuildData(guildData);
-            this.displaySpeakers(speakers);
-            this.displayChannels(guildData.channels || []);
-            this.applySettings(guildData.settings || {});
-            
-            // 設定パネルを表示
-            const settingsPanel = document.getElementById('settings-panel');
-            if (settingsPanel) {
-                settingsPanel.style.display = 'block';
-            }
-            
-            logger.success(`[Dashboard] Data loaded for: ${guildId}`);
-            
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                logger.error(`[Dashboard] Failed to load data: ${error.message}`);
-                this.showToast('サーバー情報の読み込みに失敗しました', 'error');
-            }
-        } finally {
-            this.hideLoading();
-            this.loadingState.delete(guildId);
-            this.abortControllers.delete(`guild-${guildId}`);
-        }
-    }
-
-    async fetchGuildData(guildId, signal) {
-        try {
-            logger.info(`[Dashboard] Fetching guild data from API: /api/guilds/${guildId}`);
-            
-            const response = await fetch(`/api/guilds/${guildId}`, {
-                credentials: 'include',
-                signal,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            logger.info(`[Dashboard] API response status: ${response.status}`);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                logger.error(`[Dashboard] API error response: ${errorText}`);
-                throw new Error(`Guild data fetch failed: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            logger.info(`[Dashboard] Guild data received:`, data);
-            
-            return data;
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                logger.warn('[Dashboard] Guild data fetch aborted');
-                throw error;
-            }
-            
-            logger.error(`[Dashboard] fetchGuildData error: ${error.message}`);
-            throw error;
-        }
-    }
-
-    async fetchSpeakers(signal) {
-        const response = await fetch('/api/speakers', {
-            credentials: 'include',
-            signal
-        });
-        
-        if (response.ok) {
-            return await response.json();
-        }
-        
-        logger.warn('[Dashboard] Failed to fetch speakers, using empty array');
-        return [];
-    }
-
-    // ===================================
-    // データ表示
-    // ===================================
-
-    displayGuildData(guildData) {
-        logger.info(`[Dashboard] Displaying guild data: ${guildData.name}`);
-        
-        this.setTextContent('guild-id', guildData.id);
-        this.setTextContent('guild-name', guildData.name);
-        
-        const serverNameElement = document.getElementById('selected-server-name');
-        if (serverNameElement) {
-            serverNameElement.textContent = guildData.name;
-        }
-    }
-
-    displayChannels(channels) {
-        const voiceChannelSelect = document.getElementById('voice-channel-select');
-        const textChannelSelect = document.getElementById('text-channel-select');
-        
-        if (!voiceChannelSelect || !textChannelSelect) {
-            logger.error('[Dashboard] Channel select elements not found');
-            return;
-        }
-        
-        logger.info(`[Dashboard] Displaying ${channels.length} channels`);
-        
-        // チャンネルタイプの定義
-        const CHANNEL_TYPES = {
-            GUILD_TEXT: 0,
-            GUILD_VOICE: 2,
-            GUILD_CATEGORY: 4,
-            GUILD_NEWS: 5,
-            GUILD_STAGE_VOICE: 13
-        };
-        
-        // ボイスチャンネル（音声チャンネルのみ）
-        const voiceChannels = channels.filter(ch => 
-            ch.type === CHANNEL_TYPES.GUILD_VOICE || 
-            ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE
-        );
-        
-        // テキストチャンネル（テキストチャンネルと音声チャンネル両方）
-        const textChannels = channels.filter(ch => 
-            ch.type === CHANNEL_TYPES.GUILD_TEXT || 
-            ch.type === CHANNEL_TYPES.GUILD_VOICE || 
-            ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE ||
-            ch.type === CHANNEL_TYPES.GUILD_NEWS
-        );
-        
-        // カテゴリマップの作成
-        const categoryMap = new Map();
-        channels.filter(ch => ch.type === CHANNEL_TYPES.GUILD_CATEGORY).forEach(cat => {
-            categoryMap.set(cat.id, cat.name);
-        });
-        
-        // ボイスチャンネルセレクトの構築
-        voiceChannelSelect.innerHTML = '<option value="">選択してください</option>';
-        
-        if (voiceChannels.length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'ボイスチャンネルがありません';
-            option.disabled = true;
-            voiceChannelSelect.appendChild(option);
-            voiceChannelSelect.disabled = true;
-            logger.warn('[Dashboard] No voice channels available');
-        } else {
-            voiceChannelSelect.disabled = false;
-            
-            // カテゴリごとにグループ化
-            const groupedVoiceChannels = this.groupChannelsByCategory(voiceChannels, categoryMap);
-            
-            groupedVoiceChannels.forEach(group => {
-                if (group.category) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = `📁 ${group.category}`;
-                    
-                    group.channels.forEach(ch => {
-                        const option = document.createElement('option');
-                        option.value = ch.id;
-                        const prefix = ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE ? '🎭' : '🔊';
-                        option.textContent = `${prefix} ${ch.name}`;
-                        optgroup.appendChild(option);
-                    });
-                    
-                    voiceChannelSelect.appendChild(optgroup);
-                } else {
-                    group.channels.forEach(ch => {
-                        const option = document.createElement('option');
-                        option.value = ch.id;
-                        const prefix = ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE ? '🎭' : '🔊';
-                        option.textContent = `${prefix} ${ch.name}`;
-                        voiceChannelSelect.appendChild(option);
-                    });
-                }
-            });
-        }
-        
-        // テキストチャンネルセレクトの構築（ボイスチャンネルも含む）
-        textChannelSelect.innerHTML = '<option value="">選択してください</option>';
-        
-        if (textChannels.length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'チャンネルがありません';
-            option.disabled = true;
-            textChannelSelect.appendChild(option);
-            textChannelSelect.disabled = true;
-            logger.warn('[Dashboard] No text channels available');
-        } else {
-            textChannelSelect.disabled = false;
-            
-            // カテゴリごとにグループ化
-            const groupedTextChannels = this.groupChannelsByCategory(textChannels, categoryMap);
-            
-            groupedTextChannels.forEach(group => {
-                if (group.category) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = `📁 ${group.category}`;
-                    
-                    group.channels.forEach(ch => {
-                        const option = document.createElement('option');
-                        option.value = ch.id;
-                        
-                        let prefix = '💬';
-                        if (ch.type === CHANNEL_TYPES.GUILD_VOICE) prefix = '🔊';
-                        else if (ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE) prefix = '🎭';
-                        else if (ch.type === CHANNEL_TYPES.GUILD_NEWS) prefix = '📢';
-                        
-                        option.textContent = `${prefix} ${ch.name}`;
-                        optgroup.appendChild(option);
-                    });
-                    
-                    textChannelSelect.appendChild(optgroup);
-                } else {
-                    group.channels.forEach(ch => {
-                        const option = document.createElement('option');
-                        option.value = ch.id;
-                        
-                        let prefix = '💬';
-                        if (ch.type === CHANNEL_TYPES.GUILD_VOICE) prefix = '🔊';
-                        else if (ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE) prefix = '🎭';
-                        else if (ch.type === CHANNEL_TYPES.GUILD_NEWS) prefix = '📢';
-                        
-                        option.textContent = `${prefix} ${ch.name}`;
-                        textChannelSelect.appendChild(option);
-                    });
-                }
-            });
-        }
-        
-        logger.success(`[Dashboard] Displayed ${voiceChannels.length} voice channels and ${textChannels.length} text/voice channels`);
-    }
-
-    // チャンネルをカテゴリごとにグループ化するヘルパーメソッド
-    groupChannelsByCategory(channels, categoryMap) {
-        const groups = [];
-        const channelsWithCategory = new Map();
-        const channelsWithoutCategory = [];
-        
-        // カテゴリごとにチャンネルを分類
-        channels.forEach(ch => {
-            if (ch.parentId && categoryMap.has(ch.parentId)) {
-                if (!channelsWithCategory.has(ch.parentId)) {
-                    channelsWithCategory.set(ch.parentId, []);
-                }
-                channelsWithCategory.get(ch.parentId).push(ch);
-            } else {
-                channelsWithoutCategory.push(ch);
-            }
-        });
-        
-        // カテゴリなしのチャンネルを最初に追加（positionでソート）
-        if (channelsWithoutCategory.length > 0) {
-            groups.push({
-                category: null,
-                channels: channelsWithoutCategory.sort((a, b) => (a.position || 0) - (b.position || 0))
-            });
-        }
-        
-        // カテゴリごとのグループを追加
-        channelsWithCategory.forEach((chList, categoryId) => {
-            groups.push({
-                category: categoryMap.get(categoryId),
-                channels: chList.sort((a, b) => (a.position || 0) - (b.position || 0))
-            });
-        });
-        
-        return groups;
-    }
-
-    applySettings(settings) {
-        for (const [key, value] of Object.entries(settings)) {
-            const elementId = `default-${this.camelToKebab(key)}`;
-            const element = document.getElementById(elementId);
-            
-            if (!element) continue;
-            
-            if (element.type === 'checkbox') {
-                element.checked = Boolean(value);
-            } else if (element.type === 'range') {
-                element.value = value;
-                this.updateRangeDisplay(element);
-            } else {
-                element.value = value;
-            }
-        }
-        
-        logger.success('[Dashboard] Settings applied');
-    }
-
-    // ===================================
-    // イベントハンドラー
-    // ===================================
-
-    setupEventListeners() {
-        this.addClickListener('save-settings', () => this.saveSettings());
-        this.addClickListener('save-personal', () => this.savePersonalSettings());
-        this.addClickListener('save-dictionary', () => this.saveDictionarySettings());
-        this.addClickListener('add-dictionary-entry', () => this.addDictionaryEntry());
-        this.addClickListener('logout-btn', () => window.location.href = '/logout');
-        
-        this.setupSliderListeners();
-    }
-
-    setupSliderListeners() {
-        const sliders = document.querySelectorAll('input[type="range"]');
-        
-        sliders.forEach(slider => {
-            slider.addEventListener('input', () => {
-                this.updateRangeDisplay(slider);
-            });
-        });
-    }
-
-    updateRangeDisplay(rangeElement) {
-        const valueId = rangeElement.id.replace('default-', '') + '-value';
-        const valueElement = document.getElementById(valueId);
-        if (valueElement) {
-            valueElement.textContent = rangeElement.value;
-        }
-    }
-
-    setupTabNavigation() {
-        const tabs = document.querySelectorAll('.nav-tab');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.switchTab(tab.dataset.tab);
-            });
-        });
-    }
-
-    switchTab(tabId) {
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
-        if (activeTab) {
-            activeTab.classList.add('active');
-        }
-        
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        
-        const activeContent = document.getElementById(tabId);
-        if (activeContent) {
-            activeContent.classList.add('active');
-        }
-    }
-
-    async saveSettings() {
-        if (!this.currentGuildId) {
-            this.showToast('サーバーを選択してください', 'warn');
+    // Bot統計を表示
+    displayBotStats() {
+        if (!this.botStats) {
+            logger.warn('[Dashboard] No bot stats to display');
             return;
         }
 
-        try {
-            logger.info(`[Dashboard] Saving settings for: ${this.currentGuildId}`);
+        const { summary, bots } = this.botStats;
+
+        // サマリー情報を表示
+        this.setTextContent('total-bots', summary.totalBots);
+        this.setTextContent('online-bots', summary.onlineBots);
+        this.setTextContent('offline-bots', summary.offlineBots);
+        this.setTextContent('total-guilds', summary.totalGuilds);
+        this.setTextContent('total-voice-connections', summary.totalVoiceConnections);
+
+        // Bot一覧を表示
+        const botListContainer = document.getElementById('bot-list-container');
+        if (botListContainer) {
+            botListContainer.innerHTML = '';
             
-            const settings = this.collectSettings('default-');
-            
-            const response = await fetch(`/api/guilds/${this.currentGuildId}/settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ settings })
+            bots.forEach(bot => {
+                const botCard = this.createBotStatsCard(bot);
+                botListContainer.appendChild(botCard);
             });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to save settings: ${response.status}`);
-            }
-            
-            this.showToast('設定を保存しました', 'success');
-            logger.success('[Dashboard] Settings saved');
-            
-        } catch (error) {
-            logger.error(`[Dashboard] Failed to save settings: ${error.message}`);
-            this.showToast('設定の保存に失敗しました', 'error');
         }
+
+        // ステータスインジケーターを更新
+        this.updateStatusIndicator(summary);
+
+        logger.success('[Dashboard] Bot statistics displayed');
     }
 
-    async savePersonalSettings() {
-        logger.info('[Dashboard] Personal settings save not implemented');
-        this.showToast('個人設定の保存機能は準備中です', 'info');
-    }
-
-    async saveDictionarySettings() {
-        logger.info('[Dashboard] Dictionary settings save not implemented');
-        this.showToast('辞書設定の保存機能は準備中です', 'info');
-    }
-
-    addDictionaryEntry() {
-        logger.info('[Dashboard] Add dictionary entry not implemented');
-        this.showToast('辞書エントリー追加機能は準備中です', 'info');
-    }
-
-    collectSettings(prefix) {
-        const settings = {};
-        const elements = document.querySelectorAll(`[id^="${prefix}"]`);
+    // Botステータスカードを作成
+    createBotStatsCard(bot) {
+        const card = document.createElement('div');
+        card.className = `bot-stats-card ${bot.online ? 'online' : 'offline'}`;
         
-        elements.forEach(element => {
-            const key = this.kebabToCamel(element.id.replace(prefix, ''));
-            
-            if (element.type === 'checkbox') {
-                settings[key] = element.checked;
-            } else if (element.type === 'range' || element.type === 'number') {
-                settings[key] = parseFloat(element.value);
-            } else {
-                settings[key] = element.value;
-            }
-        });
-        
-        return settings;
-    }
+        const statusBadge = bot.online ? 
+            '<span class="status-badge online">🟢 オンライン</span>' : 
+            '<span class="status-badge offline">🔴 オフライン</span>';
 
-    // ===================================
-    // ユーティリティ
-    // ===================================
-
-    setTextContent(elementId, text) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = text;
-        }
-    }
-
-    addClickListener(elementId, handler) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.addEventListener('click', handler);
-        }
-    }
-
-    camelToKebab(str) {
-        return str.replace(/([A-Z])/g, '-$1').toLowerCase();
-    }
-
-    kebabToCamel(str) {
-        return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-    }
-
-    showLoading() {
-        const loadingDiv = document.getElementById('loading');
-        if (loadingDiv) {
-            loadingDiv.style.display = 'flex';
-        }
-    }
-
-    hideLoading() {
-        const loadingDiv = document.getElementById('loading');
-        if (loadingDiv) {
-            loadingDiv.style.display = 'none';
-        }
-    }
-
-    showToast(message, type = 'info', duration = 3500) {
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.style.cssText = `
-                position: fixed;
-                right: 20px;
-                top: 20px;
-                z-index: 10000;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
+        if (bot.online && bot.stats) {
+            card.innerHTML = `
+                <div class="bot-stats-header">
+                    <h4>${bot.name}</h4>
+                    ${statusBadge}
+                </div>
+                <div class="bot-stats-body">
+                    <div class="stat-item">
+                        <span class="stat-label">サーバー数:</span>
+                        <span class="stat-value">${bot.stats.serverCount || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">接続中VC:</span>
+                        <span class="stat-value">${bot.stats.voiceConnectionCount || 0}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">稼働時間:</span>
+                        <span class="stat-value">${this.formatUptime(bot.stats.uptime)}</span>
+                    </div>
+                </div>
+                <div class="bot-stats-footer">
+                    <small>更新: ${new Date(bot.timestamp).toLocaleTimeString('ja-JP')}</small>
+                </div>
             `;
-            document.body.appendChild(container);
+        } else {
+            card.innerHTML = `
+                <div class="bot-stats-header">
+                    <h4>${bot.name}</h4>
+                    ${statusBadge}
+                </div>
+                <div class="bot-stats-body">
+                    <p class="error-message">⚠️ ${bot.error || '接続できません'}</p>
+                </div>
+                <div class="bot-stats-footer">
+                    <small>更新: ${new Date(bot.timestamp).toLocaleTimeString('ja-JP')}</small>
+                </div>
+            `;
         }
 
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
-        toast.style.cssText = `
-            min-width: 200px;
-            padding: 10px 14px;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-            color: #fff;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 200ms ease, transform 200ms ease;
-            background: ${this.getToastColor(type)};
-        `;
-
-        container.appendChild(toast);
-
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-        });
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 220);
-        }, duration);
+        return card;
     }
 
-    getToastColor(type) {
-        const colors = {
-            success: '#28a745',
-            error: '#d9534f',
-            warn: '#ff9800',
-            warning: '#ff9800',
-            info: '#333'
-        };
-        return colors[type] || colors.info;
+    // 稼働時間をフォーマット
+    formatUptime(seconds) {
+        if (!seconds) return '不明';
+        
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        
+        if (days > 0) {
+            return `${days}日 ${hours}時間 ${minutes}分`;
+        } else if (hours > 0) {
+            return `${hours}時間 ${minutes}分`;
+        } else {
+            return `${minutes}分`;
+        }
+    }
+
+    // ステータスインジケーターを更新
+    updateStatusIndicator(summary) {
+        const indicator = document.getElementById('status-indicator');
+        if (!indicator) return;
+
+        const percentage = summary.totalBots > 0 ? 
+            Math.round((summary.onlineBots / summary.totalBots) * 100) : 0;
+
+        let status = 'critical';
+        let message = 'システム異常';
+
+        if (percentage === 100) {
+            status = 'healthy';
+            message = '全システム正常';
+        } else if (percentage >= 75) {
+            status = 'warning';
+            message = '一部システム停止';
+        } else if (percentage >= 50) {
+            status = 'degraded';
+            message = 'システム性能低下';
+        }
+
+        indicator.className = `status-indicator status-${status}`;
+        indicator.innerHTML = `
+            <span class="status-icon">●</span>
+            <span class="status-text">${message}</span>
+            <span class="status-detail">(${summary.onlineBots}/${summary.totalBots} Bot稼働中)</span>
+        `;
     }
 
     cleanup() {
+        // 統計更新を停止
+        if (this.statsInterval) {
+            clearInterval(this.statsInterval);
+            this.statsInterval = null;
+        }
+
         this.abortControllers.forEach(controller => {
             controller.abort();
         });

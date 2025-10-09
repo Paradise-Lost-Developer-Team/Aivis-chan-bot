@@ -1314,3 +1314,68 @@ process.on('SIGINT', () => {
   console.log('[SERVER] SIGINT received, shutting down gracefully');
   process.exit(0);
 });
+
+// Bot統計情報を取得
+app.get('/api/bot-stats', requireAuth, async (req, res) => {
+  try {
+    console.log('[API /api/bot-stats] Fetching bot statistics');
+
+    const statsPromises = BOT_INSTANCES.map(async (bot) => {
+      try {
+        const response = await axios.get(`${bot.url}/api/stats`, {
+          timeout: AXIOS_SHORT_TIMEOUT,
+          validateStatus: (status) => status === 200
+        });
+
+        if (response.data) {
+          return {
+            name: bot.name,
+            url: bot.url,
+            online: true,
+            stats: response.data,
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        return null;
+      } catch (error) {
+        console.warn(`[API /api/bot-stats] Failed to fetch stats from ${bot.name}:`, error.message);
+        return {
+          name: bot.name,
+          url: bot.url,
+          online: false,
+          error: error.message,
+          timestamp: new Date().toISOString()
+        };
+      }
+    });
+
+    const results = await Promise.allSettled(statsPromises);
+    
+    const botStats = results
+      .filter(r => r.status === 'fulfilled' && r.value !== null)
+      .map(r => r.value);
+
+    // 集計情報
+    const summary = {
+      totalBots: BOT_INSTANCES.length,
+      onlineBots: botStats.filter(b => b.online).length,
+      offlineBots: botStats.filter(b => !b.online).length,
+      totalGuilds: botStats.reduce((sum, b) => sum + (b.stats?.serverCount || 0), 0),
+      totalVoiceConnections: botStats.reduce((sum, b) => sum + (b.stats?.voiceConnectionCount || 0), 0)
+    };
+
+    console.log(`[API /api/bot-stats] Summary:`, summary);
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      summary,
+      bots: botStats
+    });
+
+  } catch (error) {
+    console.error('[API /api/bot-stats] Error:', error.message);
+    sendErrorResponse(res, 500, 'Bot統計情報の取得に失敗しました', error.message);
+  }
+});

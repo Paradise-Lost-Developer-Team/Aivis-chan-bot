@@ -594,6 +594,184 @@ button.loading .loading-spinner {
     display: inline;
 }
 
+/* ステータスインジケーター */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 16px;
+}
+
+.status-indicator.status-healthy {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-indicator.status-warning {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.status-indicator.status-degraded {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+.status-indicator.status-critical {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.status-icon {
+    font-size: 10px;
+}
+
+.status-detail {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* 統計サマリー */
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.summary-card.online {
+    border-left: 4px solid #4caf50;
+}
+
+.summary-card.offline {
+    border-left: 4px solid #f44336;
+}
+
+.summary-label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+}
+
+/* Botリストコンテナ */
+.bot-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+/* Botステータスカード */
+.bot-stats-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s;
+}
+
+.bot-stats-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.bot-stats-card.online {
+    border-left: 4px solid #4caf50;
+}
+
+.bot-stats-card.offline {
+    border-left: 4px solid #f44336;
+}
+
+.bot-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.bot-stats-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.status-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status-badge.online {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.offline {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.bot-stats-body {
+    margin: 12px 0;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.stat-label {
+    color: #666;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.error-message {
+    color: #d32f2f;
+    font-size: 13px;
+    text-align: center;
+    margin: 8px 0;
+}
+
+.bot-stats-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    text-align: center;
+}
+
+.bot-stats-footer small {
+    color: #999;
+    font-size: 11px;
+}
+
 /* ===================================
    モバイル対応
    =================================== */
