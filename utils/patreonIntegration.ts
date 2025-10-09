@@ -2,8 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 
-// 設定ファイルの読み込み (安全版)
+// 設定ファイルの読み込み
 const CONFIG_PATH = path.join(__dirname, '../data/config.json');
+// 設定ファイルの読み込み (安全版)
 function safeLoadConfig() {
   try {
     if (fs.existsSync(CONFIG_PATH)) {
@@ -23,7 +24,7 @@ function safeLoadConfig() {
 }
 
 const CONFIG = safeLoadConfig();
-const { PATREON } = CONFIG;
+const { PATREON, DEVELOPER_IDS } = CONFIG;
 
 // Patreonの認証情報（環境変数優先）
 const CLIENT_ID = process.env.PATREON_CLIENT_ID || PATREON.CLIENT_ID;
@@ -31,7 +32,7 @@ const CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || PATREON.CLIENT_SECRET
 const REDIRECT_URI = process.env.PATREON_REDIRECT_URI || PATREON.REDIRECT_URI;
 // 中央サーバ（web）のURL（フォールバック）。クラスタ内では web サービス名を既定にします。
 // デプロイ時は BASE_URL または config PATREON.FALLBACK_SERVER を設定してください
-const FALLBACK_SERVER = process.env.BASE_URL || PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web:80';
+const FALLBACK_SERVER = process.env.PATREON_FALLBACK_SERVER || PATREON.FALLBACK_SERVER || 'http://aivis-chan-bot-web.aivis-chan-bot-web.svc.cluster.local:80';
 
 // ログプレフィックス
 const LOG_PREFIX = '[patreon]';
@@ -99,9 +100,16 @@ function savePatreonUsers() {
 }
 
 // Patreon認証用のURLを生成
-export function getPatreonAuthUrl(discordId: string): string {
-  const state = Buffer.from(JSON.stringify({ discordId })).toString('base64');
-  return `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}&scope=identity%20identity.memberships`;
+export function getPatreonAuthUrl(state: string): string {
+  // stateがJSON文字列の場合はbase64エンコード、それ以外の場合はそのまま使用
+  let encodedState: string;
+  try {
+    JSON.parse(state);
+    encodedState = Buffer.from(state).toString('base64');
+  } catch {
+    encodedState = state;
+  }
+  return `https://www.patreon.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${encodedState}&scope=identity%20identity.memberships`;
 }
 
 // アクセストークンを取得
@@ -126,7 +134,7 @@ export async function getPatreonTokens(code: string): Promise<any> {
 }
 
 // ユーザー情報を保存
-export function storePatreonUser(discordId: string, tokenData: any, patreonId?: string): void {
+export function storePatreonUser(discordId: string, tokenData: any, patreonId?: string, guildId?: string): void {
   const expires = tokenData?.expires_in ? Date.now() + tokenData.expires_in * 1000 : 0;
   patreonUsers[discordId] = {
     discordId,
@@ -161,8 +169,14 @@ export async function getGuildTier(guildId: string, client?: any): Promise<strin
       return 'free';
     }
 
+    // 開発者チェック：サーバー所有者が開発者なら自動的にプレミアム
+    if (isDeveloper(ownerId)) {
+      console.log(`${LOG_PREFIX} guild ${guildId} owner ${ownerId} is a developer - granting premium access`);
+      return 'premium';
+    }
+
     // サーバー所有者のティアを取得
-    const ownerTier = await getUserTier(ownerId);
+    const ownerTier = await getUserTierByOwnership(ownerId, guildId);
     console.log(`${LOG_PREFIX} getGuildTier result for guild ${guildId}: ${ownerTier} (owner: ${ownerId})`);
     return ownerTier;
 
@@ -172,10 +186,27 @@ export async function getGuildTier(guildId: string, client?: any): Promise<strin
   }
 }
 
-// ユーザーのティア情報を取得
-export async function getUserTier(discordId: string): Promise<string> {
-  console.log(`${LOG_PREFIX} getUserTier start for ${discordId}`);
+// ユーザーが開発者かどうかをチェック
+export function isDeveloper(discordId: string): boolean {
+  return DEVELOPER_IDS && Array.isArray(DEVELOPER_IDS) && DEVELOPER_IDS.includes(discordId);
+}
+
+// ユーザーの所有権に基づくティア情報を取得（開発者特権含む）
+export async function getUserTierByOwnership(discordId: string, guildId?: string): Promise<string> {
+  console.log(`${LOG_PREFIX} getUserTierByOwnership start for ${discordId}${guildId ? ` in guild ${guildId}` : ''}`);
+  
+  // 開発者チェック：開発者は自動的にプレミアム扱い
+  if (isDeveloper(discordId)) {
+    console.log(`${LOG_PREFIX} user ${discordId} is a developer - granting premium access`);
+    return 'premium';
+  }
+  
+  console.log(`${LOG_PREFIX} current patreonUsers keys: ${Object.keys(patreonUsers)}`);
+
+  // まず個人レベルのPatreon情報をチェック
   let user = patreonUsers[discordId];
+  let tier = 'free';
+  console.log(`${LOG_PREFIX} local user found: ${!!user}`);
 
   // ローカルに情報がなければ中央サーバを問い合わせて同期を試みる
   if (!user) {
@@ -205,35 +236,36 @@ export async function getUserTier(discordId: string): Promise<string> {
     }
   }
 
-  if (!user) {
-    console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: free (no user)`);
-    return 'free';
-  }
+  // 個人レベルのPatreon情報がある場合
+  if (user) {
+    console.log(`${LOG_PREFIX} found personal Patreon link for ${discordId}`);
+    // トークンが期限切れならリフレッシュを試みる
+    if (user.expiresAt < Date.now()) {
+      try {
+        await refreshTokens(discordId);
+      } catch (error) {
+        console.error(`ユーザー ${discordId} のトークンリフレッシュエラー:`, error);
+        return 'free';
+      }
+    }
 
-  // トークンが期限切れならリフレッシュを試みる
-  if (user.expiresAt < Date.now()) {
+    // トークンを使ってPatreon APIからメンバーシップ情報を取得し、tier を更新する
     try {
-      await refreshTokens(discordId);
-    } catch (error) {
-      console.error(`ユーザー ${discordId} のトークンリフレッシュエラー:`, error);
-      return 'free';
+      const fetchedTier = await fetchPatreonMemberships(user.accessToken);
+      if (fetchedTier && fetchedTier !== user.tier) {
+        user.tier = fetchedTier;
+        savePatreonUsers();
+      }
+    } catch (err) {
+      const e: any = err;
+      console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
     }
+
+    tier = user.tier;
   }
 
-  // トークンを使ってPatreon APIからメンバーシップ情報を取得し、tier を更新する
-  try {
-    const fetchedTier = await fetchPatreonMemberships(user.accessToken);
-    if (fetchedTier && fetchedTier !== user.tier) {
-      user.tier = fetchedTier;
-      savePatreonUsers();
-    }
-  } catch (err) {
-    const e: any = err;
-    console.warn('Failed to fetch memberships from Patreon:', e?.message || e);
-  }
-
-  console.log(`${LOG_PREFIX} getUserTier result for ${discordId}: ${user.tier}`);
-  return user.tier;
+  console.log(`${LOG_PREFIX} getUserTierByOwnership result for ${discordId}: ${tier}`);
+  return tier;
 }
 
 // Patreon API レスポンスの型定義
@@ -296,7 +328,7 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
   try {
     console.log(`${LOG_PREFIX} fetching Patreon memberships (masked token present=${!!accessToken})`);
   // Request membership-related fields explicitly and include currently_entitled_tiers so we can inspect tier objects.
-  const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,memberships.currently_entitled_tiers&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start&fields[tier]=amount_cents,title';
+  const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,memberships.currently_entitled_tiers&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start,last_charge_date,next_charge_date&fields[tier]=amount_cents,title';
     const me = await axios.get(url, { headers: { Authorization: `Bearer ${accessToken}` }, timeout: 7000 });
     console.log(`${LOG_PREFIX} Patreon memberships response status=${me.status}`);
     const included = (me.data && (me.data as any).included) || [];
@@ -478,6 +510,133 @@ async function fetchPatreonMemberships(accessToken: string): Promise<string | nu
     return null;
   }
 }
+export async function getPatreonMembershipDetails(accessToken: string): Promise<{
+  tier: string;
+  status: string;
+  amountCents: number;
+  pledgeStartDate: string | null;
+  lastChargeDate: string | null;
+  nextChargeDate: string | null;
+  daysRemaining: number | null;
+} | null> {
+  if (!accessToken) return null;
+
+  try {
+    console.log(`${LOG_PREFIX} fetching detailed Patreon membership info`);
+
+    // より詳細なフィールドをリクエスト
+    const url = 'https://www.patreon.com/api/oauth2/v2/identity?include=memberships,memberships.currently_entitled_tiers&fields[member]=patron_status,currently_entitled_amount_cents,pledge_relationship_start,last_charge_date,next_charge_date&fields[tier]=amount_cents,title';
+
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      timeout: 7000
+    });
+
+    const included = (response.data && (response.data as any).included) || [];
+
+    // デフォルト値
+    let tier = 'free';
+    let status = 'none';
+    let amountCents = 0;
+    let pledgeStartDate: string | null = null;
+    let lastChargeDate: string | null = null;
+    let nextChargeDate: string | null = null;
+    let daysRemaining: number | null = null;
+
+    // メンバーシップ情報を解析
+    for (const item of included) {
+      const attrs = (item && (item as any).attributes) || {};
+
+      if (attrs.patron_status) {
+        status = attrs.patron_status;
+      }
+
+      if (typeof attrs.currently_entitled_amount_cents === 'number') {
+        amountCents = attrs.currently_entitled_amount_cents;
+      }
+
+      if (attrs.pledge_relationship_start) {
+        pledgeStartDate = attrs.pledge_relationship_start;
+      }
+
+      if (attrs.last_charge_date) {
+        lastChargeDate = attrs.last_charge_date;
+      }
+
+      if (attrs.next_charge_date) {
+        nextChargeDate = attrs.next_charge_date;
+      }
+    }
+
+    // ティア判定
+    const PREMIUM_THRESHOLD = parseInt(process.env.PATREON_PREMIUM_CENTS || '1000', 10);
+    const PRO_THRESHOLD = parseInt(process.env.PATREON_PRO_CENTS || '500', 10);
+
+    if (amountCents >= PREMIUM_THRESHOLD) {
+      tier = 'premium';
+    } else if (amountCents >= PRO_THRESHOLD) {
+      tier = 'pro';
+    }
+
+    // 残り日数の計算
+    if (nextChargeDate) {
+      const nextCharge = new Date(nextChargeDate);
+      const now = new Date();
+      const diffTime = nextCharge.getTime() - now.getTime();
+      daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    console.log(`${LOG_PREFIX} membership details: tier=${tier}, status=${status}, amount=${amountCents}¢, daysRemaining=${daysRemaining}`);
+
+    return {
+      tier,
+      status,
+      amountCents,
+      pledgeStartDate,
+      lastChargeDate,
+      nextChargeDate,
+      daysRemaining
+    };
+
+  } catch (error) {
+    console.error(`${LOG_PREFIX} failed to fetch membership details:`, error);
+    return null;
+  }
+}
+
+// ユーザーのPatreon残り日数を取得
+export async function getPatreonDaysRemaining(discordId: string): Promise<number | null> {
+  try {
+    const user = patreonUsers[discordId];
+    if (!user) {
+      console.log(`${LOG_PREFIX} no Patreon user found for ${discordId}`);
+      return null;
+    }
+
+    // トークンが期限切れならリフレッシュ
+    if (user.expiresAt < Date.now()) {
+      try {
+        await refreshTokens(discordId);
+      } catch (error) {
+        console.error(`${LOG_PREFIX} token refresh failed for ${discordId}:`, error);
+        return null;
+      }
+    }
+
+    // メンバーシップ詳細を取得
+    const details = await getPatreonMembershipDetails(user.accessToken);
+    if (!details) {
+      console.log(`${LOG_PREFIX} failed to get membership details for ${discordId}`);
+      return null;
+    }
+
+    return details.daysRemaining;
+
+  } catch (error) {
+    console.error(`${LOG_PREFIX} error getting days remaining for ${discordId}:`, error);
+    return null;
+  }
+}
 
 // 初期化
 loadPatreonUsers();
@@ -486,6 +645,9 @@ export default {
   getPatreonAuthUrl,
   getPatreonTokens,
   storePatreonUser,
-  getUserTier,
-  getGuildTier
+  getUserTier: getUserTierByOwnership,
+  getGuildTier,
+  getPatreonMembershipDetails,
+  getPatreonDaysRemaining,
+  isDeveloper
 };
