@@ -202,74 +202,435 @@ const logger = new CustomLogger();
 
 class Dashboard {
     constructor() {
-        this.currentTab = 'overview';
-        this.isLoggedIn = false;
-        this.user = null;
+        this.servers = [];
+        this.currentGuildId = null;
+        this.currentUserId = null;
+        this.serversLoaded = false; // サーバー一覧のロード状態を追跡
         this.init();
     }
 
     async init() {
-        // サーバーセッションで認証状態を確認（localStorageは使わない）
         try {
-            const session = await fetch('/api/session', { credentials: 'include' }).then(r => r.json());
-            if (session && session.authenticated) {
-                this.isLoggedIn = true;
-                this.user = session.user || null;
-                this.showDashboard();
-                // 認証済みのみプレミアム状態を確認
-                this.checkPremiumStatus();
-            } else {
-                console.warn('User not authenticated.');
-            }
-        } catch (e) {
-            console.error('Failed to check session:', e);
-        }
-
-        this.setupDiscordLogin();
-        this.setupLogout();
-
-        // Update user UI regardless of authenticated state
-        // (fills #user-display, #user-avatar, shows/hides logout button)
-        this.loadUserInfo();
-    }
-
-    // ログインページを表示する処理は不要になったため削除しました
-
-    // ダッシュボードを表示
-    showDashboard() {
-        const mainDashboard = document.getElementById('main-dashboard');
-        if (mainDashboard) {
-            mainDashboard.style.display = 'block';
-            mainDashboard.classList.add('logged-in');
-        } else {
-            console.error("Element 'main-dashboard' not found. Unable to display dashboard.");
-        }
-
-        // カスタムログシステムを初期化
-        logger.init();
-
-        // ダッシュボードの初期化
-        this.setupTabNavigation();
-        this.loadOverviewData();
-        this.setupEventListeners();
-        // Do not load or show server-specific settings until a server is selected.
-        // This keeps the UI clean and avoids showing per-server data from localStorage
-        // before the user chooses a server.
-        this.disableServerSpecificUI();
-        // Note: loadAutoConnectSettings is global-ish and can remain.
-        this.loadAutoConnectSettings();
-        this.loadGuilds(); // ギルド情報を読み込む
-        this.startGuildUpdates(); // 定期更新を開始
-    }
-
-    // Discordログインのセットアップ
-    setupDiscordLogin() {
-        const loginBtn = document.getElementById('discord-login-btn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                // サーバー側のルートへ（Freeをデフォルトに）
-                window.location.href = '/auth/discord/free';
+            logger.info('[Dashboard] Initializing...');
+            
+            // セッション状態を確認
+            const sessionResponse = await fetch('/api/session', {
+                credentials: 'include'
             });
+            
+            const sessionData = await sessionResponse.json();
+            
+            if (!sessionData.authenticated) {
+                logger.warn('[Dashboard] User not authenticated, redirecting to login');
+                window.location.href = '/login';
+                return;
+            }
+            
+            this.currentUserId = sessionData.user.id;
+            logger.info(`[Dashboard] User authenticated: ${this.currentUserId}`);
+            
+            // ユーザー情報を表示
+            this.displayUserInfo(sessionData.user);
+            
+            // サーバー一覧を初回のみロード
+            await this.loadServers();
+            
+            logger.success('[Dashboard] Initialization complete');
+        } catch (error) {
+            logger.error('[Dashboard] Initialization failed: ' + error.message);
+            this.showError('ダッシュボードの初期化に失敗しました');
+        }
+    }
+
+    async loadServers() {
+        // 既にロード済みの場合はスキップ
+        if (this.serversLoaded) {
+            logger.info('[Dashboard] Servers already loaded, skipping...');
+            return;
+        }
+
+        try {
+            logger.info('[Dashboard] Loading servers...');
+            
+            const response = await fetch('/api/servers', {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load servers: ${response.status}`);
+            }
+            
+            this.servers = await response.json();
+            this.serversLoaded = true; // ロード完了フラグを設定
+            
+            logger.info(`[Dashboard] Loaded ${this.servers.length} servers`);
+            
+            // サーバーリストを表示
+            this.renderServerList();
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to load servers: ' + error.message);
+            this.showError('サーバー一覧の読み込みに失敗しました');
+        }
+    }
+
+    renderServerList() {
+        const serverList = document.getElementById('server-list');
+        if (!serverList) {
+            logger.error('[Dashboard] server-list element not found');
+            return;
+        }
+        
+        if (this.servers.length === 0) {
+            serverList.innerHTML = '<li class="no-servers">サーバーが見つかりませんでした</li>';
+            return;
+        }
+        
+        serverList.innerHTML = this.servers.map(server => `
+            <li class="server-item" data-guild-id="${server.id}">
+                ${server.iconUrl 
+                    ? `<img src="${server.iconUrl}" alt="${this.escapeHtml(server.name)}" class="server-icon">`
+                    : `<div class="server-icon-fallback">${this.escapeHtml(server.name.charAt(0))}</div>`
+                }
+                <div class="server-info">
+                    <div class="server-name">${this.escapeHtml(server.name)}</div>
+                    <div class="server-status">
+                        <span class="status-indicator"></span>
+                        <span>読み込み中...</span>
+                    </div>
+                </div>
+            </li>
+        `).join('');
+        
+        // サーバー選択イベントを設定
+        document.querySelectorAll('.server-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const guildId = item.dataset.guildId;
+                this.selectServer(guildId);
+            });
+        });
+        
+        logger.success(`[Dashboard] Rendered ${this.servers.length} servers`);
+    }
+
+    async selectServer(guildId) {
+        logger.info(`[Dashboard] Server selected: ${guildId}`);
+        
+        // 選択状態を更新
+        document.querySelectorAll('.server-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        const selectedItem = document.querySelector(`.server-item[data-guild-id="${guildId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+        }
+        
+        this.currentGuildId = guildId;
+        
+        // サーバー設定をロード（この時点で初めてBotに問い合わせる）
+        await this.loadServerSettings(guildId);
+    }
+
+    async loadServerSettings(guildId) {
+        logger.info(`[Dashboard] Loading settings for: ${guildId}`);
+        
+        try {
+            // ギルド情報取得（Botから取得）
+            logger.info(`[Dashboard] Fetching guild info: /api/guilds/${guildId}`);
+            
+            const guildResp = await fetch(`/api/guilds/${guildId}`, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            logger.info(`[Dashboard] Guild info response status: ${guildResp.status}`);
+            
+            if (!guildResp.ok) {
+                const errorData = await guildResp.json().catch(() => ({}));
+                logger.error(`[Dashboard] Failed to fetch guild info:`, JSON.stringify(errorData));
+                
+                if (guildResp.status === 404) {
+                    throw new Error(errorData.message || 'このサーバーにBotが参加していません');
+                } else if (guildResp.status === 403) {
+                    throw new Error('このサーバーの管理権限がありません');
+                } else {
+                    throw new Error(`ギルド情報の取得に失敗しました (${guildResp.status})`);
+                }
+            }
+            
+            const guildData = await guildResp.json();
+            
+            logger.info(`[Dashboard] Guild data received:`, {
+                id: guildData.id,
+                name: guildData.name,
+                channelsCount: guildData.channels?.length || 0,
+                botName: guildData.botName
+            });
+            
+            // 設定取得
+            logger.info(`[Dashboard] Fetching settings: /api/settings/${guildId}`);
+            
+            const settingsResp = await fetch(`/api/settings/${guildId}`, {
+                credentials: 'include'
+            });
+            
+            const settingsData = settingsResp.ok ? await settingsResp.json() : {};
+            const settings = settingsData.settings || {};
+            logger.info('[Dashboard] Settings loaded:', Object.keys(settings).length > 0 ? 'Custom settings' : 'Default settings');
+            
+            // 話者一覧を取得
+            logger.info('[Dashboard] Fetching speakers list...');
+            const speakersResp = await fetch('/api/speakers', {
+                credentials: 'include'
+            });
+            
+            const speakers = speakersResp.ok ? await speakersResp.json() : [];
+            logger.info(`[Dashboard] Speakers loaded: ${speakers.length} speakers`);
+            
+            // 設定画面を表示
+            this.renderSettings(guildId, guildData, settings, speakers);
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to load server settings: ' + error.message);
+            logger.error('[Dashboard] Stack trace:', error.stack);
+            this.showError('サーバー設定の読み込みに失敗しました: ' + error.message);
+        }
+    }
+
+    // 設定画面を表示
+    renderSettings(guildId, guildData, settings, speakers) {
+        logger.info(`[Dashboard] Rendering settings for: ${guildId}`);
+        
+        // 基本情報を表示
+        document.getElementById('guild-id').textContent = guildData.id;
+        document.getElementById('guild-name').textContent = guildData.name;
+        
+        // サーバーアイコン
+        const guildIcon = document.getElementById('guild-icon');
+        if (guildIcon) {
+            if (guildData.iconUrl) {
+                guildIcon.src = guildData.iconUrl;
+                guildIcon.alt = `${this.escapeHtml(guildData.name)} アイコン`;
+                guildIcon.style.display = 'block';
+            } else {
+                guildIcon.style.display = 'none';
+            }
+        }
+        
+        // ボットステータス
+        this.updateBotStatus(guildId);
+        
+        // 設定フォームに値をセット
+        this.setFormValues('default-', settings);
+        
+        // 話者セレクトを更新
+        this.updateSpeakerSelect(speakers);
+        
+        // チャンネル情報を更新
+        this.updateChannelInfo(guildId);
+        
+        // プレミアム情報を表示
+        this.displayPremiumInfo(guildId);
+        
+        // UIを更新
+        this.updateUIForSettings();
+        
+        logger.success(`[Dashboard] Settings rendered for: ${guildId}`);
+    }
+
+    // ボットのオンラインステータスを更新
+    async updateBotStatus(guildId) {
+        logger.info(`[Dashboard] Updating bot status for: ${guildId}`);
+        
+        try {
+            const response = await fetch(`/api/bot-status/${guildId}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch bot status: ${response.status}`);
+            }
+            
+            const statusData = await response.json();
+            logger.info('[Dashboard] Bot status data:', statusData);
+            
+            // ステータス表示要素
+            const statusElement = document.getElementById('bot-status');
+            if (!statusElement) return;
+            
+            // オンライン/オフラインのテキストと色を設定
+            if (statusData.online) {
+                statusElement.textContent = 'オンライン';
+                statusElement.style.color = '#28a745'; // 緑
+            } else {
+                statusElement.textContent = 'オフライン';
+                statusElement.style.color = '#dc3545'; // 赤
+            }
+            
+            // 詳細情報を表示
+            this.updateBotStatusDetails(statusData);
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to update bot status: ' + error.message);
+        }
+    }
+
+    // ボットの詳細ステータスを表示
+    updateBotStatusDetails(statusData) {
+        const detailsElement = document.getElementById('bot-status-details');
+        if (!detailsElement) return;
+        
+        if (statusData.online) {
+            detailsElement.innerHTML = `
+                <p><strong>ボット名:</strong> ${this.escapeHtml(statusData.botName)}</p>
+                <p><strong>サーバー参加数:</strong> ${statusData.guildsCount || 0}</p>
+                <p><strong>メッセージ処理数:</strong> ${statusData.messagesProcessed || 0}</p>
+                <p><strong>稼働時間:</strong> ${this.formatUptime(statusData.uptime)}</p>
+            `;
+        } else {
+            detailsElement.innerHTML = '<p>ボットは現在オフラインです。</p>';
+        }
+    }
+
+    // アップタイムをフォーマット
+    formatUptime(uptime) {
+        if (!uptime) return '不明';
+        
+        const totalSeconds = Math.floor(uptime / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        
+        return `${hours}時間 ${minutes}分 ${seconds}秒`;
+    }
+
+    // スピーカーセレクトを更新
+    updateSpeakerSelect(speakers) {
+        const speakerSelect = document.getElementById('default-speaker');
+        if (!speakerSelect) return;
+        
+        // 既存のオプションをクリア
+        speakerSelect.innerHTML = '';
+        
+        if (speakers.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '利用可能な話者が見つかりません';
+            speakerSelect.appendChild(opt);
+            speakerSelect.disabled = true;
+        } else {
+            speakerSelect.disabled = false;
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '（選択してください）';
+            speakerSelect.appendChild(placeholder);
+
+            speakers.forEach(sp => {
+                const opt = document.createElement('option');
+                opt.value = sp.id;
+                opt.textContent = sp.name || sp.id;
+                speakerSelect.appendChild(opt);
+            });
+        }
+    }
+
+    // チャンネル情報を更新
+    async updateChannelInfo(guildId) {
+        logger.info(`[Dashboard] Updating channel info for: ${guildId}`);
+        
+        try {
+            const response = await fetch(`/api/channels/${guildId}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch channels: ${response.status}`);
+            }
+            
+            const channelsData = await response.json();
+            logger.info('[Dashboard] Channels data:', channelsData);
+            
+            // ボイスチャンネルとテキストチャンネルを分けて表示
+            this.updateChannelSelect('auto-join-voice', channelsData.voice);
+            this.updateChannelSelect('auto-join-text', channelsData.text);
+            
+        } catch (error) {
+            logger.error('[Dashboard] Failed to update channel info: ' + error.message);
+        }
+    }
+
+    // チャンネルセレクトを更新
+    updateChannelSelect(selectId, channels) {
+        const channelSelect = document.getElementById(selectId);
+        if (!channelSelect) return;
+        
+        // 既存のオプションをクリア
+        channelSelect.innerHTML = '';
+        
+        if (channels.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '利用可能なチャンネルが見つかりません';
+            channelSelect.appendChild(opt);
+            channelSelect.disabled = true;
+        } else {
+            channelSelect.disabled = false;
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '（選択してください）';
+            channelSelect.appendChild(placeholder);
+
+            channels.forEach(ch => {
+                const opt = document.createElement('option');
+                opt.value = ch.id;
+                opt.textContent = ch.name || ch.id;
+                channelSelect.appendChild(opt);
+            });
+        }
+    }
+
+    // プレミアム情報を表示
+    async displayPremiumInfo(guildId) {
+        logger.info(`[Dashboard] Displaying premium info for: ${guildId}`);
+        
+        try {
+            const response = await fetch(`/api/premium-info/${guildId}`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch premium info: ${response.status}`);
+            }
+            
+            const premiumData = await response.json();
+            logger.info('[Dashboard] Premium data:', premiumData);
+            
+            const premiumBadge = document.getElementById('premium-badge');
+            const premiumDetails = document.getElementById('premium-details');
+            
+            if (premiumData.isPremium) {
+                premiumBadge.textContent = 'プレミアム会員';
+                premiumBadge.className = 'premium-badge active';
+
+                const expiryDate = new Date(premiumData.expiryDate).toLocaleDateString('ja-JP');
+                premiumDetails.innerHTML = `
+                    <p><strong>会員種別:</strong> ${premiumData.tier || 'スタンダード'}</p>
+                    <p><strong>有効期限:</strong> ${expiryDate}</p>
+                    <p><strong>特典:</strong> 高度なTTS設定、優先処理、カスタム辞書、詳細統計</p>
+                `;
+            } else {
+                premiumBadge.textContent = '無料会員';
+                premiumBadge.className = 'premium-badge inactive';
+                premiumDetails.innerHTML = `
+                    <p>プレミアム機能を利用するには、プレミアム会員登録が必要です。</p>
+                    <p><a href="/premium" target="_blank">プレミアム登録はこちら</a></p>
+                `;
+            }
+        } catch (error) {
+            logger.error('[Dashboard] Failed to display premium info: ' + error.message);
         }
     }
 
@@ -507,8 +868,6 @@ class Dashboard {
         const container = document.getElementById('guilds-list');
         container.innerHTML = `<div class="no-guilds">${message}</div>`;
     }
-
-    // OAuth2コールバック処理やコード交換はサーバー側に移行済みのため不要
 
     setupTabNavigation() {
         const tabs = document.querySelectorAll('.nav-tab');
@@ -1737,9 +2096,6 @@ class Dashboard {
             }
         });
     }
-
-    // NOTE: old wrapper removed to avoid accidental recursion. The real async
-    // loadServerSettings(serverId) is implemented above and will be used.
 
     // ギルド情報の定期更新を開始
     startGuildUpdates() {
