@@ -455,12 +455,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// 認証ミドルウェア
+// 認証ミドルウェア - API用
 function requireAuth(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
   res.status(401).json({ error: 'Unauthorized', authenticated: false });
+}
+
+// 認証ミドルウェア - HTMLページ用
+function requireAuthPage(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  // ログインページにリダイレクト
+  res.redirect('/login');
 }
 
 // ===== Authentication Routes =====
@@ -918,10 +927,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
+  // すでにログイン済みの場合はダッシュボードへ
+  if (req.isAuthenticated()) {
+    return res.redirect('/dashboard');
+  }
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-app.get('/dashboard', requireAuth, (req, res) => {
+app.get('/dashboard', requireAuthPage, (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
