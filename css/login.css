@@ -42,10 +42,12 @@ body {
     }
 }
 
+/* タイポグラフィ */
 h1 {
     color: #333;
     margin-bottom: 10px;
     font-size: 2rem;
+    font-weight: 700;
 }
 
 .subtitle {
@@ -53,11 +55,7 @@ h1 {
     margin-bottom: 36px;
     font-size: 15px;
     font-weight: 400;
-}
-
-p {
-    color: #666;
-    margin-bottom: 30px;
+    line-height: 1.5;
 }
 
 /* エラーメッセージ */
@@ -84,6 +82,13 @@ p {
     display: block;
 }
 
+/* ボタンコンテナ */
+.login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 /* モダンなボタンスタイル */
 .login-btn {
     position: relative;
@@ -92,7 +97,6 @@ p {
     justify-content: center;
     width: 100%;
     padding: 14px 28px;
-    margin: 12px 0;
     border: none;
     border-radius: 12px;
     font-size: 16px;
@@ -120,6 +124,10 @@ p {
     transform: translateX(100%);
 }
 
+.login-btn:active {
+    transform: translateY(0);
+}
+
 /* Discord Free版 */
 .discord-free {
     background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
@@ -131,10 +139,6 @@ p {
     box-shadow: 0 8px 25px rgba(88, 101, 242, 0.4);
 }
 
-.discord-free:active {
-    transform: translateY(0);
-}
-
 /* Discord Pro版 */
 .discord-pro {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -144,10 +148,6 @@ p {
 .discord-pro:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
-}
-
-.discord-pro:active {
-    transform: translateY(0);
 }
 
 /* アイコン */
@@ -202,37 +202,54 @@ p {
 
 /* レスポンシブ対応 */
 @media (max-width: 480px) {
+    body {
+        padding: 12px;
+    }
+
     .login-container {
         padding: 36px 24px;
     }
     
     h1 {
-        font-size: 28px;
+        font-size: 1.75rem;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        margin-bottom: 28px;
     }
     
     .login-btn {
         padding: 12px 24px;
         font-size: 15px;
     }
-}
 
-@media (max-width: 600px) {
-    .container {
-        padding: 30px 20px;
+    .icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
     }
-    
-    h1 {
-        font-size: 1.5rem;
-    }
-    
-    .btn {
-        padding: 12px 24px;
-        font-size: 0.9rem;
+
+    .info {
+        margin-top: 28px;
+        padding-top: 20px;
+        font-size: 12px;
     }
 }
 
-/* ダークモード対応（オプション） */
+/* タブレット対応 */
+@media (max-width: 768px) and (min-width: 481px) {
+    .login-container {
+        padding: 40px 32px;
+    }
+}
+
+/* ダークモード対応 */
 @media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+
     .login-container {
         background: rgba(30, 30, 30, 0.95);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -249,5 +266,24 @@ p {
     .info {
         color: #999;
         border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .info small {
+        color: #777;
+    }
+
+    .error {
+        background: linear-gradient(135deg, #3d1a1a 0%, #4a1a1a 100%);
+        color: #ff6b6b;
+        border-left-color: #ff6b6b;
+    }
+}
+
+/* アクセシビリティ: モーション削減を希望するユーザー向け */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

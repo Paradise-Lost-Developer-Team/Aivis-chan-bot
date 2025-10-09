@@ -909,37 +909,441 @@ input:checked + .toggle-slider:before {
 @media (max-width: 768px) {
     .dashboard-container {
         flex-direction: column;
+        padding: 12px;
+        gap: 12px;
     }
 
+    /* Sidebar improvements */
     #sidebar {
         width: 100%;
-        order: -1;
         position: static;
+        padding: 16px;
+        margin-bottom: 16px;
     }
 
+    #sidebar h2 {
+        font-size: 1.1rem;
+    }
+
+    /* Server list mobile */
+    #server-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .server-item {
+        padding: 12px;
+        min-height: 60px;
+    }
+
+    .server-icon,
+    .server-icon-fallback {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .server-name {
+        font-size: 0.9rem;
+    }
+
+    /* Dashboard header */
+    .dashboard-header {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+    }
+
+    .header-actions {
+        position: static;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .user-info {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .logout-btn {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+    }
+
+    /* Dashboard navigation tabs */
     .dashboard-nav {
         flex-direction: column;
+        gap: 8px;
     }
 
     .nav-tab {
         width: 100%;
+        padding: 14px;
+        text-align: center;
+        font-size: 15px;
     }
 
+    /* Dashboard content */
+    .dashboard-content {
+        padding: 16px 12px;
+    }
+
+    .tab-content h2 {
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+    }
+
+    /* Stats grid */
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
     }
 
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+    }
+
+    /* Settings grid */
     .settings-grid,
     .personal-settings {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .setting-group {
+        padding: 16px;
+    }
+
+    .setting-group h3 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .setting-item {
+        margin-bottom: 12px;
+    }
+
+    .setting-item label {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .setting-item input[type="text"],
+    .setting-item input[type="number"],
+    .setting-item select {
+        padding: 12px;
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    /* Dictionary controls */
+    .add-entry {
+        flex-direction: column;
+        padding: 16px;
+        gap: 8px;
     }
 
     .dictionary-controls {
         flex-direction: column;
+        gap: 8px;
     }
 
-    .dictionary-controls input {
+    .dictionary-controls input,
+    .dictionary-controls select {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .dictionary-controls button {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    #add-dictionary-entry,
+    #save-dictionary {
+        width: 100%;
+        padding: 14px;
+        margin: 8px 0;
+    }
+
+    /* Dictionary entries */
+    #dictionary-entries li {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .dictionary-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .dictionary-entry .entry-info {
+        width: 100%;
+    }
+
+    .dictionary-entry button {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    /* Bot list */
+    .bot-list h3 {
+        font-size: 1.1rem;
+    }
+
+    .bot-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .bot-status {
+        align-self: flex-start;
+    }
+
+    /* Guilds section */
+    .guilds-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .guild-item {
+        padding: 12px;
+    }
+
+    .guild-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .guild-name {
+        font-size: 0.95rem;
+    }
+
+    .guild-details {
+        font-size: 0.85rem;
+    }
+
+    /* Premium section */
+    .premium-status-card {
+        padding: 16px;
+    }
+
+    .premium-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .premium-badge {
+        align-self: flex-start;
+    }
+
+    .premium-feature-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .premium-feature-card {
+        padding: 16px;
+    }
+
+    .feature-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .toggle-switch {
+        align-self: flex-start;
+    }
+
+    .premium-save-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+    }
+
+    .premium-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .premium-stat-card {
+        padding: 16px;
+    }
+
+    .premium-stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+
+    /* Save buttons */
+    button[id$="-settings"],
+    button[id$="-personal"],
+    button[id$="-auto-connect"] {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 15px;
+        margin-top: 16px;
+    }
+
+    /* Log viewer mobile */
+    .log-viewer {
+        border-radius: 8px;
+    }
+
+    .log-controls {
+        flex-direction: column;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .log-filters {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+    }
+
+    .log-filter {
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .log-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .log-search {
+        width: 100%;
         min-width: auto;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .clear-logs-btn,
+    .download-logs-btn {
+        width: 100%;
+        padding: 12px;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .log-container {
+        max-height: 400px;
+    }
+
+    .log-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .log-timestamp {
+        min-width: auto;
+        margin-right: 0;
+        font-size: 11px;
+    }
+
+    .log-level {
+        min-width: auto;
+        margin-right: 0;
+        padding: 4px 10px;
+    }
+
+    .log-message {
+        font-size: 13px;
+        word-break: break-word;
+    }
+}
+
+/* Small mobile (< 480px) */
+@media (max-width: 480px) {
+    .dashboard-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .nav-tab {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .stat-card h3 {
+        font-size: 0.85rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .setting-group h3 {
+        font-size: 1rem;
+    }
+
+    .premium-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .log-entry {
+        font-size: 12px;
+    }
+
+    .log-timestamp {
+        font-size: 10px;
+    }
+
+    .log-level {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}
+
+/* Touch interactions */
+@media (pointer: coarse) {
+    .server-item:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .nav-tab:active {
+        transform: scale(0.98);
+    }
+
+    .bot-item:active,
+    .guild-item:active {
+        opacity: 0.9;
     }
 }
 
@@ -1409,5 +1813,451 @@ button .loading-spinner {
     .log-level {
         min-width: auto;
         margin-right: 0;
+    }
+}
+
+/* ===================================
+   Mobile Dashboard Improvements
+   =================================== */
+
+@media (max-width: 768px) {
+    /* Dashboard container */
+    .dashboard-container {
+        flex-direction: column;
+        padding: 12px;
+        gap: 12px;
+    }
+
+    /* Sidebar improvements */
+    #sidebar {
+        width: 100%;
+        position: static;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    #sidebar h2 {
+        font-size: 1.1rem;
+    }
+
+    /* Server list mobile */
+    #server-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .server-item {
+        padding: 12px;
+        min-height: 60px;
+    }
+
+    .server-icon,
+    .server-icon-fallback {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .server-name {
+        font-size: 0.9rem;
+    }
+
+    /* Dashboard header */
+    .dashboard-header {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+    }
+
+    .header-actions {
+        position: static;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .user-info {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .logout-btn {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+    }
+
+    /* Dashboard navigation tabs */
+    .dashboard-nav {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .nav-tab {
+        width: 100%;
+        padding: 14px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+    /* Dashboard content */
+    .dashboard-content {
+        padding: 16px 12px;
+    }
+
+    .tab-content h2 {
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+    }
+
+    /* Settings grid */
+    .settings-grid,
+    .personal-settings {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .setting-group {
+        padding: 16px;
+    }
+
+    .setting-group h3 {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .setting-item {
+        margin-bottom: 12px;
+    }
+
+    .setting-item label {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .setting-item input[type="text"],
+    .setting-item input[type="number"],
+    .setting-item select {
+        padding: 12px;
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    /* Dictionary controls */
+    .add-entry {
+        flex-direction: column;
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .dictionary-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .dictionary-controls input,
+    .dictionary-controls select {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .dictionary-controls button {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+    }
+
+    #add-dictionary-entry,
+    #save-dictionary {
+        width: 100%;
+        padding: 14px;
+        margin: 8px 0;
+    }
+
+    /* Dictionary entries */
+    #dictionary-entries li {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .dictionary-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .dictionary-entry .entry-info {
+        width: 100%;
+    }
+
+    .dictionary-entry button {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    /* Bot list */
+    .bot-list h3 {
+        font-size: 1.1rem;
+    }
+
+    .bot-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .bot-status {
+        align-self: flex-start;
+    }
+
+    /* Guilds section */
+    .guilds-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .guild-item {
+        padding: 12px;
+    }
+
+    .guild-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .guild-name {
+        font-size: 0.95rem;
+    }
+
+    .guild-details {
+        font-size: 0.85rem;
+    }
+
+    /* Premium section */
+    .premium-status-card {
+        padding: 16px;
+    }
+
+    .premium-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .premium-badge {
+        align-self: flex-start;
+    }
+
+    .premium-feature-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .premium-feature-card {
+        padding: 16px;
+    }
+
+    .feature-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .toggle-switch {
+        align-self: flex-start;
+    }
+
+    .premium-save-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+    }
+
+    .premium-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .premium-stat-card {
+        padding: 16px;
+    }
+
+    .premium-stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+
+    /* Save buttons */
+    button[id$="-settings"],
+    button[id$="-personal"],
+    button[id$="-auto-connect"] {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 15px;
+        margin-top: 16px;
+    }
+
+    /* Log viewer mobile */
+    .log-viewer {
+        border-radius: 8px;
+    }
+
+    .log-controls {
+        flex-direction: column;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .log-filters {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+    }
+
+    .log-filter {
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .log-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .log-search {
+        width: 100%;
+        min-width: auto;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .clear-logs-btn,
+    .download-logs-btn {
+        width: 100%;
+        padding: 12px;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .log-container {
+        max-height: 400px;
+    }
+
+    .log-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .log-timestamp {
+        min-width: auto;
+        margin-right: 0;
+        font-size: 11px;
+    }
+
+    .log-level {
+        min-width: auto;
+        margin-right: 0;
+        padding: 4px 10px;
+    }
+
+    .log-message {
+        font-size: 13px;
+        word-break: break-word;
+    }
+}
+
+/* Small mobile (< 480px) */
+@media (max-width: 480px) {
+    .dashboard-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .nav-tab {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .stat-card h3 {
+        font-size: 0.85rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .setting-group h3 {
+        font-size: 1rem;
+    }
+
+    .premium-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .log-entry {
+        font-size: 12px;
+    }
+
+    .log-timestamp {
+        font-size: 10px;
+    }
+
+    .log-level {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+}
+
+/* Touch interactions */
+@media (pointer: coarse) {
+    .server-item:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .nav-tab:active {
+        transform: scale(0.98);
+    }
+
+    .bot-item:active,
+    .guild-item:active {
+        opacity: 0.9;
     }
 }

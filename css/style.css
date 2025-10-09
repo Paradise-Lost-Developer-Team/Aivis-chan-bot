@@ -1930,15 +1930,629 @@ body.patreon-success .note{margin-top:12px;color:#6b7280;font-size:13px}
   background: #00606c;
 }
 
-/* 視覚的に非表示だがスクリーンリーダーには読み上げるユーティリティ */
-.sr-only {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
+/* ===================================
+   Mobile UX Improvements
+   =================================== */
+
+/* Base Mobile Optimizations */
+@media (max-width: 768px) {
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    /* Improve tap targets - minimum 44px */
+    .btn,
+    .nav-link,
+    .server-item,
+    .feature-card,
+    .pricing-card,
+    .command-card,
+    input,
+    select,
+    button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Navigation improvements */
+    .nav {
+        padding: 12px 0;
+    }
+
+    .nav-container {
+        padding: 0 16px;
+    }
+
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        background: #10131b;
+        flex-direction: column;
+        padding: 80px 20px 20px;
+        transition: left 0.3s ease;
+        z-index: 999;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-menu.active {
+        left: 0;
+    }
+
+    .nav-link {
+        padding: 16px 12px;
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Hamburger menu */
+    .nav-toggle {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        z-index: 1000;
+    }
+
+    .nav-toggle span {
+        width: 28px;
+        height: 3px;
+        background: #fff;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(7px, 7px);
+    }
+
+    .nav-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    /* Overlay for menu */
+    .nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 998;
+    }
+
+    .nav-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Hero section mobile */
+    .hero {
+        min-height: auto;
+        padding: 80px 0 40px;
+    }
+
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 0 16px;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 16px;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+        margin-bottom: 24px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 16px;
+        font-size: 16px;
+    }
+
+    .hero-stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        gap: 16px;
+    }
+
+    .stat {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+    }
+
+    /* Feature cards */
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 16px;
+    }
+
+    .feature-card {
+        padding: 24px 16px;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+    }
+
+    /* Pricing cards */
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 0 16px;
+    }
+
+    .pricing-card {
+        margin-bottom: 16px;
+    }
+
+    .pricing-header {
+        padding: 24px 16px;
+    }
+
+    .pricing-features {
+        padding: 0 16px;
+        font-size: 14px;
+    }
+
+    .pricing-card .btn {
+        margin: 16px;
+        width: calc(100% - 32px);
+    }
+
+    /* Commands grid */
+    .commands-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 16px;
+    }
+
+    .command-card {
+        padding: 16px;
+    }
+
+    .command-name {
+        font-size: 1rem;
+    }
+
+    .command-usage {
+        font-size: 13px;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    /* Voices section */
+    .voices-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 16px;
+    }
+
+    .voice-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+    }
+
+    .voice-avatar img {
+        width: 60px;
+        height: 60px;
+    }
+
+    /* Forms and inputs */
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px; /* Prevent iOS zoom */
+        padding: 14px;
+        border-radius: 8px;
+    }
+
+    .voice-style-select {
+        padding: 12px 40px 12px 14px;
+        font-size: 16px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 14px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        touch-action: manipulation;
+    }
+
+    .btn-large {
+        padding: 16px 24px;
+        font-size: 18px;
+    }
+
+    /* Footer */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 32px 16px;
+        text-align: center;
+    }
+
+    .footer-logo {
+        justify-content: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+
+    .footer-bottom-content {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .footer-bottom-links {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Bot status section */
+    .bot-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 16px;
+    }
+
+    .bot-detail-card {
+        padding: 16px;
+    }
+
+    .bot-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-sm {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    /* Invite section */
+    .invite {
+        padding: 40px 16px;
+    }
+
+    .invite-title {
+        font-size: 1.75rem;
+    }
+
+    .invite-description {
+        font-size: 1rem;
+    }
+
+    .invite-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .invite .btn {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Setup steps */
+    .setup-steps {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 0 16px;
+    }
+
+    .step {
+        padding: 16px;
+    }
+
+    /* Support cards */
+    .support-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 16px;
+    }
+
+    .support-card {
+        padding: 24px 16px;
+    }
+
+    /* Legal container */
+    .legal-container {
+        margin: 80px 16px 40px;
+        padding: 24px 16px;
+        border-radius: 12px;
+    }
+
+    .legal-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .legal-content h2 {
+        font-size: 1.2rem;
+    }
+
+    .legal-content {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* Docs container */
+    .docs-container {
+        grid-template-columns: 1fr;
+        padding: 80px 16px 40px;
+        gap: 16px;
+    }
+
+    .docs-sidebar {
+        position: static;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .docs-content {
+        padding: 16px;
+    }
+
+    /* Patreon success page */
+    body.patreon-success .container {
+        width: 100%;
+        padding: 16px;
+        margin: 16px;
+    }
+
+    body.patreon-success .meta-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    body.patreon-success .meta-key {
+        width: 100%;
+    }
+
+    body.patreon-success .actions {
+        flex-direction: column;
+    }
+
+    body.patreon-success .link {
+        width: 100%;
+        text-align: center;
+    }
 }
+
+/* Small mobile devices (< 480px) */
+@media (max-width: 480px) {
+    :root {
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 0.75rem;
+        --spacing-lg: 1rem;
+        --spacing-xl: 1.5rem;
+        --spacing-2xl: 2rem;
+        --spacing-3xl: 2.5rem;
+    }
+
+    .container {
+        padding: 0 12px;
+    }
+
+    section {
+        padding: 32px 0;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .section-description {
+        font-size: 0.95rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .hero-image {
+        display: none; /* Hide on very small screens */
+    }
+
+    .pricing-title {
+        font-size: 1.25rem;
+    }
+
+    .price-amount {
+        font-size: 2rem;
+    }
+
+    .command-usage {
+        font-size: 12px;
+    }
+
+    .footer-social a {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Touch-specific improvements */
+@media (pointer: coarse) {
+    /* Increase tap targets */
+    a, button, .btn, input, select {
+        min-height: 48px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .feature-card:hover,
+    .pricing-card:hover,
+    .command-card:hover,
+    .support-card:hover,
+    .voice-card:hover {
+        transform: none;
+    }
+
+    /* Active states for touch feedback */
+    .btn:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+
+    .nav-link:active {
+        background: rgba(255, 255, 255, 0.15);
+    }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* Fix iOS input zoom */
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+
+    /* Fix iOS sticky header */
+    .header {
+        position: -webkit-sticky;
+        position: sticky;
+    }
+
+    /* Prevent rubber band scrolling */
+    body {
+        overscroll-behavior-y: contain;
+    }
+}
+
+/* Android-specific fixes */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+    /* Fix Android viewport issues */
+    html {
+        height: -webkit-fill-available;
+    }
+
+    body {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+    /* Reduce animations on mobile */
+    * {
+        animation-duration: 0.2s !important;
+    }
+
+    /* Simplify shadows */
+    .feature-card,
+    .pricing-card,
+    .command-card,
+    .support-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Disable parallax on mobile */
+    .hero-particles,
+    .hero-bot-glow {
+        display: none;
+    }
+
+    /* Optimize images */
+    img {
+        image-rendering: -webkit-optimize-contrast;
+    }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero {
+        min-height: auto;
+        padding: 60px 0 30px;
+    }
+
+    .hero-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .hero-title {
+        font-size: 1.5rem;
+    }
+
+    .hero-buttons {
+        flex-direction: row;
+    }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 768px) {
+    /* Focus visible for keyboard navigation */
+    *:focus-visible {
+        outline: 3px solid #00bcd4;
+        outline-offset: 2px;
+    }
+
+    /* Skip to content link */
+    .skip-to-content {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: #00bcd4;
+        color: white;
+        padding: 12px;
+        text-decoration: none;
+        z-index: 100;
+    }
+
+    .skip-to-content:focus {
+        top: 0;
+    }
+}
+
+/* ...existing code... */
