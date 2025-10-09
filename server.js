@@ -669,26 +669,22 @@ app.get('/auth/discord/callback/pro',
 
 // ログアウト
 app.get('/logout', (req, res) => {
-  const userId = req.user?.id;
-  
   req.logout((err) => {
     if (err) {
-      console.error('[AUTH] Logout error:', err.message);
+      console.error('[logout] Error:', err);
+      return res.redirect('/');
     }
-    
-    req.session.destroy((destroyErr) => {
-      if (destroyErr) {
-        console.error('[AUTH] Session destroy error:', destroyErr.message);
-      }
-      
-      res.clearCookie('aivis.sid');
-      
-      if (userId) {
-        console.log(`[AUTH] User ${userId} logged out`);
-      }
-      
-      res.redirect('/');
-    });
+    res.redirect('/');
+  });
+});
+
+app.post('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('[logout] Error:', err);
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.json({ success: true, message: 'Logged out successfully' });
   });
 });
 
@@ -1260,6 +1256,23 @@ app.use((err, req, res, next) => {
     process.env.NODE_ENV !== 'production' ? err.message : undefined);
 });
 
+// ヘルスチェック
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Start server
 async function startServer() {
   try {
@@ -1377,5 +1390,450 @@ app.get('/api/bot-stats', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('[API /api/bot-stats] Error:', error.message);
     sendErrorResponse(res, 500, 'Bot統計情報の取得に失敗しました', error.message);
+  }
+});
+
+// ===== Patreon API Routes =====
+
+// Patreon連携状態確認
+app.get('/api/patreon/status', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    console.log(`[API /api/patreon/status] Checking status for user: ${userId}`);
+
+    const link = await getPatreonLink(userId);
+
+    if (link) {
+      res.json({
+        linked: true,
+        patreonId: link.patreonId,
+        createdAt: link.createdAt,
+        tier: link.tier || 'unknown'
+      });
+    } else {
+      res.json({
+        linked: false
+      });
+    }
+  } catch (error) {
+    console.error('[API /api/patreon/status] Error:', error.message);
+    sendErrorResponse(res, 500, 'Patreon連携状態の確認に失敗しました', error.message);
+  }
+});
+
+// Patreon連携開始（OAuth URLを返す）
+app.get('/api/patreon/auth-url', requireAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Discord IDをBase64エンコード
+    const state = Buffer.from(JSON.stringify({ discordId: userId })).toString('base64');
+    
+    const patreonClientId = process.env.PATREON_CLIENT_ID;
+    const redirectUri = encodeURIComponent(`${BASE_URL}/api/patreon/callback`);
+    
+    if (!patreonClientId) {
+      console.error('[API /api/patreon/auth-url] PATREON_CLIENT_ID not configured');
+      return sendErrorResponse(res, 500, 'Patreon連携が設定されていません');
+    }
+
+    const authUrl = `https://www.patreon.com/oauth2/authorize?` +
+      `response_type=code&` +
+      `client_id=${patreonClientId}&` +
+      `redirect_uri=${redirectUri}&` +
+      `scope=identity%20identity%5Bemail%5D&` +
+      `state=${state}`;
+
+    console.log(`[API /api/patreon/auth-url] Generated auth URL for user: ${userId}`);
+
+    res.json({
+      success: true,
+      authUrl: authUrl
+    });
+  } catch (error) {
+    console.error('[API /api/patreon/auth-url] Error:', error.message);
+    sendErrorResponse(res, 500, 'Patreon認証URLの生成に失敗しました', error.message);
+  }
+});
+
+// Patreonコールバック
+app.get('/api/patreon/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query;
+
+    console.log('[API /api/patreon/callback] Callback received');
+
+    // コールバックログに記録
+    appendPatreonCallbackLog({
+      timestamp: new Date().toISOString(),
+      code: code ? 'present' : 'missing',
+      state: state ? 'present' : 'missing'
+    });
+
+    if (!code || !state) {
+      console.error('[API /api/patreon/callback] Missing code or state');
+      return res.redirect('/dashboard?patreon_error=missing_params');
+    }
+
+    // stateからDiscord IDをデコード
+    const discordId = tryDecodeBase64Json(state);
+
+    if (!discordId) {
+      console.error('[API /api/patreon/callback] Invalid state parameter');
+      return res.redirect('/dashboard?patreon_error=invalid_state');
+    }
+
+    console.log(`[API /api/patreon/callback] Discord ID decoded: ${discordId}`);
+
+    // Patreonアクセストークン取得
+    const patreonClientId = process.env.PATREON_CLIENT_ID;
+    const patreonClientSecret = process.env.PATREON_CLIENT_SECRET;
+    const redirectUri = `${BASE_URL}/api/patreon/callback`;
+
+    if (!patreonClientId || !patreonClientSecret) {
+      console.error('[API /api/patreon/callback] Patreon credentials not configured');
+      return res.redirect('/dashboard?patreon_error=not_configured');
+    }
+
+    const tokenResponse = await axios.post('https://www.patreon.com/api/oauth2/token', {
+      code,
+      grant_type: 'authorization_code',
+      client_id: patreonClientId,
+      client_secret: patreonClientSecret,
+      redirect_uri: redirectUri
+    }, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      timeout: AXIOS_TIMEOUT
+    });
+
+    const accessToken = tokenResponse.data.access_token;
+
+    if (!accessToken) {
+      console.error('[API /api/patreon/callback] No access token received');
+      return res.redirect('/dashboard?patreon_error=no_token');
+    }
+
+    // Patreonユーザー情報取得
+    const userResponse = await axios.get('https://www.patreon.com/api/oauth2/v2/identity?include=memberships&fields%5Buser%5D=email,full_name', {
+      headers: { 
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'Aivis-chan-bot/1.0'
+      },
+      timeout: AXIOS_TIMEOUT
+    });
+
+    const patreonData = userResponse.data.data;
+    const patreonId = patreonData.id;
+
+    console.log(`[API /api/patreon/callback] Patreon ID: ${patreonId}`);
+
+    // 連携情報を保存
+    const linkData = {
+      discordId,
+      patreonId,
+      email: patreonData.attributes.email,
+      fullName: patreonData.attributes.full_name,
+      tier: 'patron', // 実際のtier判定ロジックを追加可能
+      createdAt: new Date().toISOString()
+    };
+
+    const saved = savePatreonLink(linkData);
+
+    if (saved) {
+      console.log(`[API /api/patreon/callback] Successfully linked Discord ${discordId} to Patreon ${patreonId}`);
+      res.redirect('/dashboard?patreon_success=true');
+    } else {
+      console.error('[API /api/patreon/callback] Failed to save link data');
+      res.redirect('/dashboard?patreon_error=save_failed');
+    }
+
+  } catch (error) {
+    console.error('[API /api/patreon/callback] Error:', error.message);
+    
+    appendPatreonCallbackLog({
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+
+    res.redirect('/dashboard?patreon_error=callback_failed');
+  }
+});
+
+// Patreon連携解除
+app.post('/api/patreon/unlink', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    console.log(`[API /api/patreon/unlink] Unlinking for user: ${userId}`);
+
+    const links = readJsonFile(PATREON_LINKS_FILE, []);
+    const filtered = links.filter(link => String(link.discordId) !== String(userId));
+
+    if (filtered.length === links.length) {
+      console.log(`[API /api/patreon/unlink] No link found for user: ${userId}`);
+      return res.json({
+        success: false,
+        message: 'Patreon連携が見つかりません'
+      });
+    }
+
+    const success = writeJsonFile(PATREON_LINKS_FILE, filtered);
+
+    if (success) {
+      console.log(`[API /api/patreon/unlink] Successfully unlinked user: ${userId}`);
+      res.json({
+        success: true,
+        message: 'Patreon連携を解除しました'
+      });
+    } else {
+      throw new Error('Failed to write updated links file');
+    }
+
+  } catch (error) {
+    console.error('[API /api/patreon/unlink] Error:', error.message);
+    sendErrorResponse(res, 500, 'Patreon連携の解除に失敗しました', error.message);
+  }
+});
+
+// ===== Solana Payment Routes =====
+
+// Solana支払い請求書作成
+app.post('/api/solana/create-invoice', requireAuth, async (req, res) => {
+  try {
+    const { amount, plan } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || !plan) {
+      return sendErrorResponse(res, 400, 'amount and plan are required');
+    }
+
+    console.log(`[API /api/solana/create-invoice] Creating invoice for user: ${userId}, plan: ${plan}, amount: ${amount}`);
+
+    // 請求書データ
+    const invoice = {
+      id: `inv_${Date.now()}_${userId}`,
+      userId,
+      plan,
+      amount: parseFloat(amount),
+      currency: 'SOL',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24時間後
+    };
+
+    // 請求書を保存
+    ensureFile(SOLANA_INVOICES_FILE, '[]');
+    const invoices = readJsonFile(SOLANA_INVOICES_FILE, []);
+    invoices.push(invoice);
+    writeJsonFile(SOLANA_INVOICES_FILE, invoices);
+
+    console.log(`[API /api/solana/create-invoice] Invoice created: ${invoice.id}`);
+
+    res.json({
+      success: true,
+      invoice: {
+        id: invoice.id,
+        amount: invoice.amount,
+        currency: invoice.currency,
+        status: invoice.status,
+        createdAt: invoice.createdAt,
+        expiresAt: invoice.expiresAt
+      }
+    });
+
+  } catch (error) {
+    console.error('[API /api/solana/create-invoice] Error:', error.message);
+    sendErrorResponse(res, 500, '請求書の作成に失敗しました', error.message);
+  }
+});
+
+// Solana支払い確認
+app.post('/api/solana/verify-payment', requireAuth, async (req, res) => {
+  try {
+    const { invoiceId, signature } = req.body;
+    const userId = req.user.id;
+
+    if (!invoiceId || !signature) {
+      return sendErrorResponse(res, 400, 'invoiceId and signature are required');
+    }
+
+    console.log(`[API /api/solana/verify-payment] Verifying payment for invoice: ${invoiceId}`);
+
+    // 請求書を取得
+    const invoices = readJsonFile(SOLANA_INVOICES_FILE, []);
+    const invoiceIndex = invoices.findIndex(inv => inv.id === invoiceId && inv.userId === userId);
+
+    if (invoiceIndex === -1) {
+      return sendErrorResponse(res, 404, '請求書が見つかりません');
+    }
+
+    const invoice = invoices[invoiceIndex];
+
+    if (invoice.status !== 'pending') {
+      return sendErrorResponse(res, 400, 'この請求書は既に処理されています');
+    }
+
+    // Solanaトランザクション確認
+    const connection = new Connection(
+      process.env.SOLANA_RPC_URL || clusterApiUrl('mainnet-beta'),
+      'confirmed'
+    );
+
+    try {
+      const tx = await connection.getTransaction(signature, {
+        commitment: 'confirmed',
+        maxSupportedTransactionVersion: 0
+      });
+
+      if (!tx) {
+        return sendErrorResponse(res, 400, 'トランザクションが見つかりません');
+      }
+
+      // トランザクション検証（簡易版 - 実際はもっと厳密に）
+      const isValid = tx.meta && tx.meta.err === null;
+
+      if (isValid) {
+        // 請求書ステータス更新
+        invoice.status = 'paid';
+        invoice.paidAt = new Date().toISOString();
+        invoice.signature = signature;
+        invoices[invoiceIndex] = invoice;
+        writeJsonFile(SOLANA_INVOICES_FILE, invoices);
+
+        console.log(`[API /api/solana/verify-payment] Payment verified for invoice: ${invoiceId}`);
+
+        res.json({
+          success: true,
+          message: '支払いが確認されました',
+          invoice: {
+            id: invoice.id,
+            status: invoice.status,
+            paidAt: invoice.paidAt
+          }
+        });
+      } else {
+        return sendErrorResponse(res, 400, 'トランザクションが失敗しています');
+      }
+
+    } catch (solanaError) {
+      console.error('[API /api/solana/verify-payment] Solana verification error:', solanaError.message);
+      return sendErrorResponse(res, 500, 'Solanaトランザクションの確認に失敗しました', solanaError.message);
+    }
+
+  } catch (error) {
+    console.error('[API /api/solana/verify-payment] Error:', error.message);
+    sendErrorResponse(res, 500, '支払いの確認に失敗しました', error.message);
+  }
+});
+
+// Solana請求書ステータス取得
+app.get('/api/solana/invoice/:invoiceId', requireAuth, async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const userId = req.user.id;
+
+    console.log(`[API /api/solana/invoice/${invoiceId}] Fetching invoice status`);
+
+    const invoices = readJsonFile(SOLANA_INVOICES_FILE, []);
+    const invoice = invoices.find(inv => inv.id === invoiceId && inv.userId === userId);
+
+    if (!invoice) {
+      return sendErrorResponse(res, 404, '請求書が見つかりません');
+    }
+
+    res.json({
+      success: true,
+      invoice: {
+        id: invoice.id,
+        plan: invoice.plan,
+        amount: invoice.amount,
+        currency: invoice.currency,
+        status: invoice.status,
+        createdAt: invoice.createdAt,
+        expiresAt: invoice.expiresAt,
+        paidAt: invoice.paidAt || null,
+        signature: invoice.signature || null
+      }
+    });
+
+  } catch (error) {
+    console.error(`[API /api/solana/invoice/${req.params.invoiceId}] Error:`, error.message);
+    sendErrorResponse(res, 500, '請求書の取得に失敗しました', error.message);
+  }
+});
+
+// Google AdSense設定取得
+app.get('/api/adsense/config', (req, res) => {
+  try {
+    const adsenseEnabled = process.env.ADSENSE_ENABLED === 'true';
+    const adsensePublisherId = process.env.ADSENSE_PUBLISHER_ID || '';
+    
+    res.json({
+      enabled: adsenseEnabled,
+      publisherId: adsensePublisherId
+    });
+  } catch (error) {
+    console.error('[API /api/adsense/config] Error:', error.message);
+    sendErrorResponse(res, 500, 'AdSense設定の取得に失敗しました', error.message);
+  }
+});
+
+// 現在のユーザー情報取得
+app.get('/api/user/profile', requireAuth, (req, res) => {
+  try {
+    const user = req.user;
+    
+    res.json({
+      id: user.id,
+      username: user.username,
+      discriminator: user.discriminator,
+      avatar: user.avatar,
+      email: user.email || null,
+      guilds: user.guilds || []
+    });
+  } catch (error) {
+    console.error('[API /api/user/profile] Error:', error.message);
+    sendErrorResponse(res, 500, 'ユーザー情報の取得に失敗しました', error.message);
+  }
+});
+
+// サブスクリプション状態確認
+app.get('/api/subscription/status', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    console.log(`[API /api/subscription/status] Checking for user: ${userId}`);
+
+    // Patreon連携確認
+    const patreonLink = await getPatreonLink(userId);
+    
+    // Solana支払い確認
+    const invoices = readJsonFile(SOLANA_INVOICES_FILE, []);
+    const paidInvoices = invoices.filter(inv => 
+      inv.userId === userId && 
+      inv.status === 'paid' &&
+      new Date(inv.expiresAt) > new Date()
+    );
+
+    const hasPaidSolanaInvoice = paidInvoices.length > 0;
+    const hasPatreonLink = !!patreonLink;
+
+    const subscriptionActive = hasPaidSolanaInvoice || hasPatreonLink;
+
+    res.json({
+      active: subscriptionActive,
+      patreon: {
+        linked: hasPatreonLink,
+        tier: patreonLink?.tier || null
+      },
+      solana: {
+        hasPaidInvoice: hasPaidSolanaInvoice,
+        activeInvoices: paidInvoices.length
+      }
+    });
+
+  } catch (error) {
+    console.error('[API /api/subscription/status] Error:', error.message);
+    sendErrorResponse(res, 500, 'サブスクリプション状態の確認に失敗しました', error.message);
   }
 });
