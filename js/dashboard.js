@@ -426,8 +426,23 @@ class Dashboard {
         infoDiv.appendChild(botInfo);
         li.appendChild(infoDiv);
         
-        li.addEventListener('click', () => {
+        // イベントリスナーを確実に設定
+        li.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            logger.info(`[Dashboard] Server clicked: ${server.id} (${server.name})`);
             this.selectServer(server.id);
+        });
+        
+        // デバッグ用: hover時のスタイル
+        li.style.cursor = 'pointer';
+        li.addEventListener('mouseenter', () => {
+            li.style.backgroundColor = '#f0f0f0';
+        });
+        li.addEventListener('mouseleave', () => {
+            if (!li.classList.contains('selected')) {
+                li.style.backgroundColor = '';
+            }
         });
         
         return li;
