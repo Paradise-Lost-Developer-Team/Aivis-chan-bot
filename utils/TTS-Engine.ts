@@ -5,7 +5,8 @@ import * as fs from "fs";
 import path from "path";
 import { ChannelType, TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
-import { getTextChannelForGuild } from './voiceStateManager';
+// この行を削除
+// import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
@@ -1169,7 +1170,7 @@ async function speakVoiceImpl(text: string, speaker: number, guildId: string, us
     // 3) if we found a connection that is destroyed, ignore it
     if (vc && vc.state && vc.state.status === VoiceConnectionStatus.Destroyed) vc = undefined;
 
-    // If we have an existing connection but it's not Ready, wait briefly for it to reach Ready
+    // If we have an existing connection but it's not Ready, wait briefly for it to become Ready
     if (vc && vc.state.status !== VoiceConnectionStatus.Ready) {
         try {
             console.log(`[VC DEBUG] waiting for existing VoiceConnection to become Ready: guild=${guildId} status=${vc.state.status}`);
@@ -1597,6 +1598,11 @@ export function deleteJoinChannelsConfig(guildId: string) {
 
 // メッセージ送信先を決定する関数
 export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
+ 
+
+
+
+
   // 保存されたテキストチャンネルIDを優先
     const savedTextChannelId = getTextChannelForGuild(guildId);
     return savedTextChannelId || defaultChannelId;
@@ -1901,3 +1907,24 @@ process.on('SIGTERM', () => {
         process.exit(0);
     }
 });
+
+// Map to store guild -> text channel mappings
+const guildTextChannelMap = new Map<string, string>();
+
+// テキストチャンネルマッピングを取得
+export function getTextChannelForGuild(guildId: string): string | null {
+    // textChannels マップから取得を試みる
+    const channel = (textChannels as any)[guildId];
+    if (channel && channel.id) {
+        return channel.id;
+    }
+    
+    // textChannelByVoice マップからも検索
+    for (const [voiceChannelId, textChannel] of Object.entries(textChannelByVoice)) {
+        if (textChannel && (textChannel as any).guild?.id === guildId) {
+            return (textChannel as any).id;
+        }
+    }
+    
+    return null;
+}
