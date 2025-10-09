@@ -691,7 +691,7 @@ app.get('/api/premium-stats', requireAuth, (req, res) => {
     }
 });
 
-// Bot設定保存・取得API
+// Bot 設定保存・取得API
 app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
     try {
         const userId = req.user.id;
@@ -819,155 +819,6 @@ app.get('/internal/global-dictionary/:guildId', async (req, res) => {
     res.status(500).json({ error: 'グローバル辞書の読み込みに失敗しました' });
   }
 });
-
-// 個人設定保存・取得API
-app.post('/api/personal-settings', requireAuth, express.json(), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.body.guildId;
-        const settings = req.body.settings;
-
-        if (!guildId || !settings) {
-            return res.status(400).json({ error: 'guildId and settings are required' });
-        }
-
-        // 個人設定をファイルに保存
-        const personalDir = path.join('/tmp', 'data', 'personal');
-        if (!fs.existsSync(personalDir)) {
-            fs.mkdirSync(personalDir, { recursive: true });
-        }
-
-        const personalFile = path.join(personalDir, `${guildId}_${userId}.json`);
-        const personalData = {
-            guildId,
-            userId,
-            settings,
-            lastUpdated: new Date().toISOString()
-        };
-
-        fs.writeFileSync(personalFile, JSON.stringify(personalData, null, 2));
-
-        // 全Botに即座に設定更新を通知
-        await notifyBotsSettingsUpdate(guildId, 'personal-settings');
-
-        res.json({ success: true, message: '個人設定を保存しました' });
-    } catch (error) {
-        console.error('Personal settings save error:', error);
-        res.status(500).json({ error: '個人設定の保存に失敗しました' });
-    }
-});
-
-app.get('/api/personal-settings/:guildId', requireAuth, (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.params.guildId;
-        const personalFile = path.join('/tmp', 'data', 'personal', `${guildId}_${userId}.json`);
-
-        if (!fs.existsSync(personalFile)) {
-            return res.json({ settings: null });
-        }
-
-        const personalData = JSON.parse(fs.readFileSync(personalFile, 'utf8'));
-        res.json(personalData);
-    } catch (error) {
-        console.error('Personal settings load error:', error);
-        res.status(500).json({ error: '個人設定の読み込みに失敗しました' });
-    }
-});
-
-// 辞書設定保存・取得API
-app.post('/api/dictionary', requireAuth, express.json(), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.body.guildId;
-        const dictionary = req.body.dictionary;
-
-        if (!guildId || !dictionary) {
-            return res.status(400).json({ error: 'guildId and dictionary are required' });
-        }
-
-        // 辞書をファイルに保存
-        const dictionaryDir = path.join('/tmp', 'data', 'dictionary');
-        if (!fs.existsSync(dictionaryDir)) {
-            fs.mkdirSync(dictionaryDir, { recursive: true });
-        }
-
-        const dictionaryFile = path.join(dictionaryDir, `${guildId}.json`);
-        const dictionaryData = {
-            guildId,
-            userId,
-            dictionary,
-            lastUpdated: new Date().toISOString()
-        };
-
-        fs.writeFileSync(dictionaryFile, JSON.stringify(dictionaryData, null, 2));
-
-        // 全Botに即座に設定更新を通知
-        await notifyBotsSettingsUpdate(guildId, 'dictionary');
-
-        res.json({ success: true, message: '辞書を保存しました' });
-    } catch (error) {
-        console.error('Dictionary save error:', error);
-        res.status(500).json({ error: '辞書の保存に失敗しました' });
-    }
-});
-
-app.get('/api/dictionary/:guildId', requireAuth, (req, res) => {
-    try {
-        const guildId = req.params.guildId;
-        const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
-
-        if (!fs.existsSync(dictionaryFile)) {
-            return res.json({ dictionary: [] });
-        }
-
-        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
-        res.json(dictionaryData);
-    } catch (error) {
-        console.error('Dictionary load error:', error);
-        res.status(500).json({ error: '辞書の読み込みに失敗しました' });
-    }
-});
-
-// 全Botに設定更新を通知する関数
-async function notifyBotsSettingsUpdate(guildId, settingsType) {
-    const botServices = [
-        'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
-        'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3001',
-        'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3012'
-    ];
-
-    const notifications = botServices.map(async (botUrl) => {
-        try {
-            console.log(`通知送信中: ${botUrl} (Guild: ${guildId}, Type: ${settingsType})`);
-            const response = await axios.post(`${botUrl}/internal/reload-settings`, {
-                guildId: guildId,
-                settingsType: settingsType
-            }, {
-                timeout: 3000,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.status === 200) {
-                console.log(`✓ Bot通知成功: ${botUrl}`);
-            } else {
-                console.warn(`⚠ Bot通知失敗: ${botUrl} (Status: ${response.status})`);
-            }
-        } catch (error) {
-            console.warn(`⚠ Bot通知エラー: ${botUrl} - ${error.message}`);
-        }
-    });
-
-    // すべての通知を並行実行（エラーがあっても続行）
-    await Promise.allSettled(notifications);
-    console.log(`設定更新通知完了 (Guild: ${guildId}, Type: ${settingsType})`);
-}
 
 // Patreonリンク取得ヘルパー関数
 async function getPatreonLink(discordId) {
@@ -1643,7 +1494,7 @@ app.get(PATREON_REDIRECT_PATH, async (req, res) => {
   } catch (e) {
     // Log error details safely
     const errBody = e?.response?.data ? (typeof e.response.data === 'string' ? e.response.data.slice(0,1000) : JSON.stringify(e.response.data).slice(0,1000)) : (e.message || String(e));
-    console.error('Patreon callback error', errBody);
+       console.error('Patreon callback error', errBody);
     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_error', error: errBody, state: state || null });
     return res.status(500).send('Failed to exchange token');
   }

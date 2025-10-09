@@ -205,7 +205,7 @@ class Dashboard {
         this.servers = [];
         this.currentGuildId = null;
         this.currentUserId = null;
-        this.serversLoaded = false; // サーバー一覧のロード状態を追跡
+        this.serversLoaded = false;
         this.init();
     }
 
@@ -213,16 +213,25 @@ class Dashboard {
         try {
             logger.info('[Dashboard] Initializing...');
             
+            // ログシステムを初期化
+            logger.init();
+            
             // セッション状態を確認
             const sessionResponse = await fetch('/api/session', {
                 credentials: 'include'
             });
             
+            if (!sessionResponse.ok) {
+                logger.error('[Dashboard] Session check failed, redirecting to login');
+                window.location.href = '/';
+                return;
+            }
+            
             const sessionData = await sessionResponse.json();
             
             if (!sessionData.authenticated) {
                 logger.warn('[Dashboard] User not authenticated, redirecting to login');
-                window.location.href = '/login';
+                window.location.href = '/';
                 return;
             }
             
@@ -232,18 +241,70 @@ class Dashboard {
             // ユーザー情報を表示
             this.displayUserInfo(sessionData.user);
             
+            // メインコンテンツを表示
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.display = 'block';
+            }
+            
+            const dashboardContainer = document.querySelector('.dashboard-container');
+            if (dashboardContainer) {
+                dashboardContainer.style.display = 'flex';
+            }
+            
             // サーバー一覧を初回のみロード
             await this.loadServers();
+            
+            // イベントリスナーを設定
+            this.setupEventListeners();
+            
+            // タブナビゲーションを設定
+            this.setupTabNavigation();
             
             logger.success('[Dashboard] Initialization complete');
         } catch (error) {
             logger.error('[Dashboard] Initialization failed: ' + error.message);
-            this.showError('ダッシュボードの初期化に失敗しました');
+            console.error('[Dashboard] Error details:', error);
+            this.showError('ダッシュボードの初期化に失敗しました: ' + error.message);
+        }
+    }
+
+    displayUserInfo(user) {
+        try {
+            logger.info('[Dashboard] Displaying user info');
+            
+            // ユーザー名を表示
+            const userDisplay = document.getElementById('user-display');
+            if (userDisplay) {
+                const username = user.username || user.displayName || user.name || 'ユーザー';
+                userDisplay.textContent = username;
+            }
+            
+            // アバターを表示
+            const userAvatar = document.getElementById('user-avatar');
+            if (userAvatar && user.avatar && user.id) {
+                const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+                userAvatar.src = avatarUrl;
+                userAvatar.style.display = 'inline-block';
+            }
+            
+            // ログアウトボタンを表示
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.style.display = 'inline-block';
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = '/logout';
+                });
+            }
+            
+            logger.success('[Dashboard] User info displayed');
+        } catch (error) {
+            logger.error('[Dashboard] Failed to display user info: ' + error.message);
         }
     }
 
     async loadServers() {
-        // 既にロード済みの場合はスキップ
         if (this.serversLoaded) {
             logger.info('[Dashboard] Servers already loaded, skipping...');
             return;
@@ -261,7 +322,7 @@ class Dashboard {
             }
             
             this.servers = await response.json();
-            this.serversLoaded = true; // ロード完了フラグを設定
+            this.serversLoaded = true;
             
             logger.info(`[Dashboard] Loaded ${this.servers.length} servers`);
             
@@ -289,14 +350,15 @@ class Dashboard {
         serverList.innerHTML = this.servers.map(server => `
             <li class="server-item" data-guild-id="${server.id}">
                 ${server.iconUrl 
-                    ? `<img src="${server.iconUrl}" alt="${this.escapeHtml(server.name)}" class="server-icon">`
-                    : `<div class="server-icon-fallback">${this.escapeHtml(server.name.charAt(0))}</div>`
+                    ? `<img src="${server.iconUrl}" alt="${this.escapeHtml(server.name)}" class="server-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`
+                    : ''
                 }
+                <div class="server-icon-fallback" style="${server.iconUrl ? 'display:none;' : ''}">${this.escapeHtml(server.name.charAt(0))}</div>
                 <div class="server-info">
                     <div class="server-name">${this.escapeHtml(server.name)}</div>
                     <div class="server-status">
                         <span class="status-indicator"></span>
-                        <span>読み込み中...</span>
+                        <span>クリックして設定</span>
                     </div>
                 </div>
             </li>
@@ -311,6 +373,22 @@ class Dashboard {
         });
         
         logger.success(`[Dashboard] Rendered ${this.servers.length} servers`);
+        
+        // 設定パネルに初期メッセージを表示
+        this.showInitialMessage();
+    }
+
+    showInitialMessage() {
+        const settingsPanel = document.getElementById('settings-panel');
+        if (settingsPanel) {
+            settingsPanel.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    <h2 style="margin-bottom: 16px;">👈 サーバーを選択してください</h2>
+                    <p>左側のサーバー一覧から設定したいサーバーをクリックしてください。</p>
+                </div>
+            `;
+            settingsPanel.style.display = 'block';
+        }
     }
 
     async selectServer(guildId) {
@@ -328,7 +406,24 @@ class Dashboard {
         
         this.currentGuildId = guildId;
         
-        // サーバー設定をロード（この時点で初めてBotに問い合わせる）
+        // ローディング表示
+        const settingsPanel = document.getElementById('settings-panel');
+        if (settingsPanel) {
+            settingsPanel.innerHTML = `
+                <div style="padding: 40px; text-align: center;">
+                    <div style="display: inline-block; width: 48px; height: 48px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="margin-top: 16px; color: #666;">設定を読み込み中...</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+        }
+        
+        // サーバー設定をロード
         await this.loadServerSettings(guildId);
     }
 
@@ -336,71 +431,60 @@ class Dashboard {
         logger.info(`[Dashboard] Loading settings for: ${guildId}`);
         
         try {
-            // ギルド情報取得（Botから取得）
+            // ギルド情報取得
             logger.info(`[Dashboard] Fetching guild info: /api/guilds/${guildId}`);
             
             const guildResp = await fetch(`/api/guilds/${guildId}`, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                credentials: 'include'
             });
-            
-            logger.info(`[Dashboard] Guild info response status: ${guildResp.status}`);
             
             if (!guildResp.ok) {
                 const errorData = await guildResp.json().catch(() => ({}));
-                logger.error(`[Dashboard] Failed to fetch guild info:`, JSON.stringify(errorData));
-                
-                if (guildResp.status === 404) {
-                    throw new Error(errorData.message || 'このサーバーにBotが参加していません');
-                } else if (guildResp.status === 403) {
-                    throw new Error('このサーバーの管理権限がありません');
-                } else {
-                    throw new Error(`ギルド情報の取得に失敗しました (${guildResp.status})`);
-                }
+                throw new Error(errorData.message || `ギルド情報の取得に失敗しました (${guildResp.status})`);
             }
             
             const guildData = await guildResp.json();
-            
-            logger.info(`[Dashboard] Guild data received:`, {
-                id: guildData.id,
-                name: guildData.name,
-                channelsCount: guildData.channels?.length || 0,
-                botName: guildData.botName
-            });
+            logger.info(`[Dashboard] Guild data received`);
             
             // 設定取得
-            logger.info(`[Dashboard] Fetching settings: /api/settings/${guildId}`);
-            
             const settingsResp = await fetch(`/api/settings/${guildId}`, {
                 credentials: 'include'
             });
             
             const settingsData = settingsResp.ok ? await settingsResp.json() : {};
             const settings = settingsData.settings || {};
-            logger.info('[Dashboard] Settings loaded:', Object.keys(settings).length > 0 ? 'Custom settings' : 'Default settings');
             
             // 話者一覧を取得
-            logger.info('[Dashboard] Fetching speakers list...');
             const speakersResp = await fetch('/api/speakers', {
                 credentials: 'include'
             });
             
             const speakers = speakersResp.ok ? await speakersResp.json() : [];
-            logger.info(`[Dashboard] Speakers loaded: ${speakers.length} speakers`);
             
             // 設定画面を表示
             this.renderSettings(guildId, guildData, settings, speakers);
             
         } catch (error) {
             logger.error('[Dashboard] Failed to load server settings: ' + error.message);
-            logger.error('[Dashboard] Stack trace:', error.stack);
             this.showError('サーバー設定の読み込みに失敗しました: ' + error.message);
+            
+            // エラー表示
+            const settingsPanel = document.getElementById('settings-panel');
+            if (settingsPanel) {
+                settingsPanel.innerHTML = `
+                    <div style="padding: 40px; text-align: center;">
+                        <div style="color: #f44336; font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <h3 style="color: #f44336; margin-bottom: 8px;">エラーが発生しました</h3>
+                        <p style="color: #666;">${this.escapeHtml(error.message)}</p>
+                        <button onclick="dashboard.selectServer('${guildId}')" style="margin-top: 16px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            再試行
+                        </button>
+                    </div>
+                `;
+            }
         }
     }
 
-    // 設定画面を表示
     renderSettings(guildId, guildData, settings, speakers) {
         logger.info(`[Dashboard] Rendering settings for: ${guildId}`);
         
@@ -1889,6 +1973,7 @@ class Dashboard {
                         console.log(`Loaded speakers from ${url}`, speakers.length);
                         // mark source for UI tooltip
                         speakerSelectIds.forEach(id => {
+                           
                             const sel = document.getElementById(id);
                             if (sel) sel.title = `Loaded from: ${url}`;
                         });
