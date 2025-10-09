@@ -67,6 +67,14 @@ async function syncSettingsFromPrimary() {
 // アプリケーション起動の最初にSentryを初期化
 initSentry();
 
+// ディレクトリ存在確認・作成のヘルパー関数
+function ensureDirectory(dirPath: string): void {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        console.log(`ディレクトリを作成しました: ${dirPath}`);
+    }
+}
+
 // 相対パス (プロジェクトルート) を使うよう変更
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 if (!fs.existsSync(DATA_DIR)) {
@@ -1490,6 +1498,65 @@ apiApp.get('/internal/settings/:guildId', async (req: Request, res: Response) =>
         console.error(`[API /internal/settings/${req.params.guildId}] Error:`, error);
         res.status(500).json({ 
             error: 'Failed to fetch settings',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// 辞書を保存
+apiApp.post('/api/dictionary', express.json(), async (req: Request, res: Response) => {
+    try {
+        const { guildId, dictionary } = req.body;
+        
+        console.log(`[API /api/dictionary POST] Request for guild: ${guildId}, entries: ${dictionary?.length || 0}`);
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        if (!Array.isArray(dictionary)) {
+            return res.status(400).json({ error: 'dictionary must be an array' });
+        }
+
+        const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+        
+        let guildDictionaries: Record<string, any> = {};
+        if (fs.existsSync(dictionariesPath)) {
+            try {
+                guildDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+            } catch (e) {
+                console.warn(`[API /api/dictionary POST] Failed to parse existing dictionaries:`, e);
+            }
+        }
+
+        // 配列形式をオブジェクト形式に変換
+        const convertedDictionary: Record<string, any> = {};
+        dictionary.forEach((entry: any) => {
+            if (entry.word && entry.pronunciation) {
+                convertedDictionary[entry.word] = {
+                    pronunciation: entry.pronunciation,
+                    accent: entry.accent || 0,
+                    wordType: entry.wordType || 'PROPER_NOUN'
+                };
+            }
+        });
+
+        guildDictionaries[guildId] = convertedDictionary;
+        
+        ensureDirectory(path.dirname(dictionariesPath));
+        fs.writeFileSync(dictionariesPath, JSON.stringify(guildDictionaries, null, 2));
+        
+        console.log(`[API /api/dictionary POST] Dictionary saved: ${Object.keys(convertedDictionary).length} entries`);
+
+        res.json({ 
+            success: true, 
+            message: 'Dictionary saved successfully',
+            entriesCount: Object.keys(convertedDictionary).length
+        });
+    } catch (error) {
+        console.error('[API /api/dictionary POST] Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to save dictionary',
             details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
         });
     }
