@@ -449,26 +449,48 @@ class Dashboard {
     }
 
     async selectServer(guildId) {
-        if (this.loadingState.get(guildId)) {
-            logger.warn(`[Dashboard] Server ${guildId} is already loading`);
-            return;
-        }
+        try {
+            logger.info(`[Dashboard] selectServer called with guildId: ${guildId}`);
+            
+            if (this.loadingState.get(guildId)) {
+                logger.warn(`[Dashboard] Server ${guildId} is already loading`);
+                return;
+            }
 
-        logger.info(`[Dashboard] Selecting server: ${guildId}`);
-        
-        // UI更新
-        document.querySelectorAll('.server-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-        
-        const selectedItem = document.querySelector(`.server-item[data-guild-id="${guildId}"]`);
-        if (selectedItem) {
-            selectedItem.classList.add('selected');
+            if (!guildId || typeof guildId !== 'string') {
+                logger.error(`[Dashboard] Invalid guildId: ${guildId}`);
+                this.showToast('無効なサーバーIDです', 'error');
+                return;
+            }
+
+            logger.info(`[Dashboard] Selecting server: ${guildId}`);
+            
+            // UI更新
+            const allItems = document.querySelectorAll('.server-item');
+            logger.info(`[Dashboard] Found ${allItems.length} server items`);
+            
+            allItems.forEach(item => {
+                item.classList.remove('selected');
+                item.style.backgroundColor = '';
+            });
+            
+            const selectedItem = document.querySelector(`.server-item[data-guild-id="${guildId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+                selectedItem.style.backgroundColor = '#e3f2fd';
+                logger.success(`[Dashboard] Selected server UI updated`);
+            } else {
+                logger.warn(`[Dashboard] Could not find server item with guild-id: ${guildId}`);
+            }
+            
+            this.currentGuildId = guildId;
+            
+            await this.loadServerData(guildId);
+            
+        } catch (error) {
+            logger.error(`[Dashboard] selectServer error: ${error.message}`);
+            this.showToast(`サーバー選択エラー: ${error.message}`, 'error');
         }
-        
-        this.currentGuildId = guildId;
-        
-        await this.loadServerData(guildId);
     }
 
     async loadServerData(guildId) {
@@ -518,16 +540,38 @@ class Dashboard {
     }
 
     async fetchGuildData(guildId, signal) {
-        const response = await fetch(`/api/guilds/${guildId}`, {
-            credentials: 'include',
-            signal
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Guild data fetch failed: ${response.status}`);
+        try {
+            logger.info(`[Dashboard] Fetching guild data from API: /api/guilds/${guildId}`);
+            
+            const response = await fetch(`/api/guilds/${guildId}`, {
+                credentials: 'include',
+                signal,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            logger.info(`[Dashboard] API response status: ${response.status}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                logger.error(`[Dashboard] API error response: ${errorText}`);
+                throw new Error(`Guild data fetch failed: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            logger.info(`[Dashboard] Guild data received:`, data);
+            
+            return data;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                logger.warn('[Dashboard] Guild data fetch aborted');
+                throw error;
+            }
+            
+            logger.error(`[Dashboard] fetchGuildData error: ${error.message}`);
+            throw error;
         }
-        
-        return await response.json();
     }
 
     async fetchSpeakers(signal) {
@@ -569,63 +613,171 @@ class Dashboard {
             return;
         }
         
-        // ボイスチャンネル
-        const voiceChannels = channels.filter(ch => ch.type === 2);
+        logger.info(`[Dashboard] Displaying ${channels.length} channels`);
+        
+        // チャンネルタイプの定義
+        const CHANNEL_TYPES = {
+            GUILD_TEXT: 0,
+            GUILD_VOICE: 2,
+            GUILD_CATEGORY: 4,
+            GUILD_NEWS: 5,
+            GUILD_STAGE_VOICE: 13
+        };
+        
+        // ボイスチャンネル（音声チャンネルのみ）
+        const voiceChannels = channels.filter(ch => 
+            ch.type === CHANNEL_TYPES.GUILD_VOICE || 
+            ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE
+        );
+        
+        // テキストチャンネル（テキストチャンネルと音声チャンネル両方）
+        const textChannels = channels.filter(ch => 
+            ch.type === CHANNEL_TYPES.GUILD_TEXT || 
+            ch.type === CHANNEL_TYPES.GUILD_VOICE || 
+            ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE ||
+            ch.type === CHANNEL_TYPES.GUILD_NEWS
+        );
+        
+        // カテゴリマップの作成
+        const categoryMap = new Map();
+        channels.filter(ch => ch.type === CHANNEL_TYPES.GUILD_CATEGORY).forEach(cat => {
+            categoryMap.set(cat.id, cat.name);
+        });
+        
+        // ボイスチャンネルセレクトの構築
         voiceChannelSelect.innerHTML = '<option value="">選択してください</option>';
-        voiceChannels.forEach(ch => {
+        
+        if (voiceChannels.length === 0) {
             const option = document.createElement('option');
-            option.value = ch.id;
-            option.textContent = ch.name;
+            option.value = '';
+            option.textContent = 'ボイスチャンネルがありません';
+            option.disabled = true;
             voiceChannelSelect.appendChild(option);
-        });
+            voiceChannelSelect.disabled = true;
+            logger.warn('[Dashboard] No voice channels available');
+        } else {
+            voiceChannelSelect.disabled = false;
+            
+            // カテゴリごとにグループ化
+            const groupedVoiceChannels = this.groupChannelsByCategory(voiceChannels, categoryMap);
+            
+            groupedVoiceChannels.forEach(group => {
+                if (group.category) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = `📁 ${group.category}`;
+                    
+                    group.channels.forEach(ch => {
+                        const option = document.createElement('option');
+                        option.value = ch.id;
+                        const prefix = ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE ? '🎭' : '🔊';
+                        option.textContent = `${prefix} ${ch.name}`;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    voiceChannelSelect.appendChild(optgroup);
+                } else {
+                    group.channels.forEach(ch => {
+                        const option = document.createElement('option');
+                        option.value = ch.id;
+                        const prefix = ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE ? '🎭' : '🔊';
+                        option.textContent = `${prefix} ${ch.name}`;
+                        voiceChannelSelect.appendChild(option);
+                    });
+                }
+            });
+        }
         
-        // テキストチャンネル
-        const textChannels = channels.filter(ch => ch.type === 0);
+        // テキストチャンネルセレクトの構築（ボイスチャンネルも含む）
         textChannelSelect.innerHTML = '<option value="">選択してください</option>';
-        textChannels.forEach(ch => {
-            const option = document.createElement('option');
-            option.value = ch.id;
-            option.textContent = ch.name;
-            textChannelSelect.appendChild(option);
-        });
         
-        logger.success(`[Dashboard] Displayed ${voiceChannels.length} voice and ${textChannels.length} text channels`);
+        if (textChannels.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'チャンネルがありません';
+            option.disabled = true;
+            textChannelSelect.appendChild(option);
+            textChannelSelect.disabled = true;
+            logger.warn('[Dashboard] No text channels available');
+        } else {
+            textChannelSelect.disabled = false;
+            
+            // カテゴリごとにグループ化
+            const groupedTextChannels = this.groupChannelsByCategory(textChannels, categoryMap);
+            
+            groupedTextChannels.forEach(group => {
+                if (group.category) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = `📁 ${group.category}`;
+                    
+                    group.channels.forEach(ch => {
+                        const option = document.createElement('option');
+                        option.value = ch.id;
+                        
+                        let prefix = '💬';
+                        if (ch.type === CHANNEL_TYPES.GUILD_VOICE) prefix = '🔊';
+                        else if (ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE) prefix = '🎭';
+                        else if (ch.type === CHANNEL_TYPES.GUILD_NEWS) prefix = '📢';
+                        
+                        option.textContent = `${prefix} ${ch.name}`;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    textChannelSelect.appendChild(optgroup);
+                } else {
+                    group.channels.forEach(ch => {
+                        const option = document.createElement('option');
+                        option.value = ch.id;
+                        
+                        let prefix = '💬';
+                        if (ch.type === CHANNEL_TYPES.GUILD_VOICE) prefix = '🔊';
+                        else if (ch.type === CHANNEL_TYPES.GUILD_STAGE_VOICE) prefix = '🎭';
+                        else if (ch.type === CHANNEL_TYPES.GUILD_NEWS) prefix = '📢';
+                        
+                        option.textContent = `${prefix} ${ch.name}`;
+                        textChannelSelect.appendChild(option);
+                    });
+                }
+            });
+        }
+        
+        logger.success(`[Dashboard] Displayed ${voiceChannels.length} voice channels and ${textChannels.length} text/voice channels`);
     }
 
-    displaySpeakers(speakers) {
-        const selectIds = ['default-speaker', 'speaker-select', 'personal-speaker'];
+    // チャンネルをカテゴリごとにグループ化するヘルパーメソッド
+    groupChannelsByCategory(channels, categoryMap) {
+        const groups = [];
+        const channelsWithCategory = new Map();
+        const channelsWithoutCategory = [];
         
-        selectIds.forEach(selectId => {
-            const select = document.getElementById(selectId);
-            if (!select) return;
-            
-            select.innerHTML = '';
-            
-            if (speakers.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = '話者が見つかりません';
-                select.appendChild(option);
-                select.disabled = true;
-                return;
+        // カテゴリごとにチャンネルを分類
+        channels.forEach(ch => {
+            if (ch.parentId && categoryMap.has(ch.parentId)) {
+                if (!channelsWithCategory.has(ch.parentId)) {
+                    channelsWithCategory.set(ch.parentId, []);
+                }
+                channelsWithCategory.get(ch.parentId).push(ch);
+            } else {
+                channelsWithoutCategory.push(ch);
             }
-            
-            select.disabled = false;
-            
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = '選択してください';
-            select.appendChild(placeholder);
-            
-            speakers.forEach(speaker => {
-                const option = document.createElement('option');
-                option.value = speaker.id;
-                option.textContent = speaker.name || `Speaker ${speaker.id}`;
-                select.appendChild(option);
+        });
+        
+        // カテゴリなしのチャンネルを最初に追加（positionでソート）
+        if (channelsWithoutCategory.length > 0) {
+            groups.push({
+                category: null,
+                channels: channelsWithoutCategory.sort((a, b) => (a.position || 0) - (b.position || 0))
+            });
+        }
+        
+        // カテゴリごとのグループを追加
+        channelsWithCategory.forEach((chList, categoryId) => {
+            groups.push({
+                category: categoryMap.get(categoryId),
+                channels: chList.sort((a, b) => (a.position || 0) - (b.position || 0))
             });
         });
         
-        logger.success(`[Dashboard] Displayed ${speakers.length} speakers`);
+        return groups;
     }
 
     applySettings(settings) {

@@ -872,19 +872,25 @@ app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
     const userId = req.user.id;
 
     console.log(`[API /api/guilds/${guildId}] Request from user: ${userId}`);
+    console.log(`[API /api/guilds/${guildId}] User guilds:`, req.user.guilds?.map(g => g.id));
 
     // アクセス権限チェック
     if (!hasGuildAccess(req.user, guildId)) {
       console.warn(`[API /api/guilds/${guildId}] User ${userId} does not have access`);
+      console.warn(`[API /api/guilds/${guildId}] User guild IDs:`, req.user.guilds?.map(g => g.id));
       return sendErrorResponse(res, 403, 'このサーバーにアクセスする権限がありません');
     }
 
+    console.log(`[API /api/guilds/${guildId}] Finding bot for guild...`);
     const bot = await findBotForGuild(guildId);
 
     if (!bot) {
       console.warn(`[API /api/guilds/${guildId}] Guild not found in any bot`);
       return sendErrorResponse(res, 404, 'このサーバーにBotが参加していません');
     }
+
+    console.log(`[API /api/guilds/${guildId}] Bot found: ${bot.name}`);
+    console.log(`[API /api/guilds/${guildId}] Fetching guild data from: ${bot.url}/internal/guilds/${guildId}`);
 
     // 並列でギルド情報と設定を取得
     const [guildResponse, settingsResponse] = await Promise.allSettled([
@@ -899,26 +905,52 @@ app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
     ]);
 
     if (guildResponse.status !== 'fulfilled') {
+      console.error(`[API /api/guilds/${guildId}] Guild response failed:`, guildResponse.reason);
       throw new Error('Failed to fetch guild data');
     }
 
     const guildData = guildResponse.value.data;
+    console.log(`[API /api/guilds/${guildId}] Guild data received:`, {
+      name: guildData.name,
+      channelsCount: guildData.channels?.length || 0
+    });
+
     const settings = settingsResponse.status === 'fulfilled' 
       ? settingsResponse.value.data?.settings || {}
       : {};
+    
+    if (settingsResponse.status === 'rejected') {
+      console.warn(`[API /api/guilds/${guildId}] Settings fetch failed:`, settingsResponse.reason);
+    }
 
-    // チャンネル情報の整形
+    // チャンネル情報の整形（タイプ名を追加）
+    const CHANNEL_TYPE_NAMES = {
+      0: 'GUILD_TEXT',
+      2: 'GUILD_VOICE',
+      4: 'GUILD_CATEGORY',
+      5: 'GUILD_NEWS',
+      13: 'GUILD_STAGE_VOICE'
+    };
+
     const channels = (guildData.channels || []).map(ch => ({
       id: ch.id,
       name: ch.name,
       type: ch.type,
+      typeName: CHANNEL_TYPE_NAMES[ch.type] || 'UNKNOWN',
       parentId: ch.parentId || null,
       position: ch.position || 0
     }));
 
-    console.log(`[API /api/guilds/${guildId}] Guild data received: ${channels.length} channels`);
+    // チャンネルタイプ別の集計ログ
+    const channelsByType = channels.reduce((acc, ch) => {
+      acc[ch.typeName] = (acc[ch.typeName] || 0) + 1;
+      return acc;
+    }, {});
+    
+    console.log(`[API /api/guilds/${guildId}] Channels by type:`, channelsByType);
+    console.log(`[API /api/guilds/${guildId}] Returning data with ${channels.length} channels`);
 
-    res.json({
+    const responseData = {
       id: guildId,
       name: guildData.name,
       iconUrl: guildData.iconUrl,
@@ -928,9 +960,12 @@ app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
       voiceChannelId: guildData.voiceChannelId || null,
       textChannelId: guildData.textChannelId || null,
       settings: settings
-    });
+    };
+
+    res.json(responseData);
   } catch (error) {
     console.error(`[API /api/guilds/${req.params.guildId}] Error:`, error.message);
+    console.error(`[API /api/guilds/${req.params.guildId}] Stack:`, error.stack);
     
     if (error.response?.status === 404) {
       return sendErrorResponse(res, 404, 'ギルド情報が見つかりません');
