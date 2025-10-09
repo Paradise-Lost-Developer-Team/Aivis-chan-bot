@@ -5,6 +5,7 @@ import * as fs from "fs";
 import path from "path";
 import { ChannelType, TextChannel } from "discord.js";
 import { randomUUID } from "crypto";
+import { getTextChannelForGuild } from './voiceStateManager';
 import { getMaxTextLength as getSubscriptionMaxTextLength, getSubscription, getSubscriptionLimit, checkSubscriptionFeature, SubscriptionType } from './subscription';
 import { Readable } from "stream";
 import genericPool from 'generic-pool';
@@ -1465,26 +1466,438 @@ export function getSpeakerOptions() {
         const options: { label: string; value: string }[] = [];
 
         for (const speaker of speakers) {
-            if (!speaker.styles || !Array.isArray(speaker.styles)) {
-                console.warn(`無効なスピーカー設定を検出しました: ${JSON.stringify(speaker)}`);
-                continue;
-            }
-            for (const style of speaker.styles) {
-                if (style.id && typeof style.name === 'string') {
-                    options.push({
-                        label: `${speaker.name} - ${style.name}`,
-                        value: `${speaker.name}-${style.name}-${style.id}`
-                    });
+            if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
+                for (const style of speaker.styles) {
+                    if (style && style.name && style.id !== undefined) {
+                        options.push({
+                            label: `${speaker.name} - ${style.name}`,
+                            value: `${speaker.name}-${style.name}-${style.id}`
+                        });
+                    }
                 }
             }
         }
 
+        if (options.length === 0) {
+            console.error("スピーカーオプションが生成できませんでした。デフォルトを返します。");
+            return [{
+                label: "Anneli - ノーマル",
+                value: "Anneli-ノーマル-888753760"
+            }];
+        }
+
         return options;
-    } catch (e) {
-        console.error('スピーカーオプション取得中にエラーが発生しました:', e);
-        return DEFAULT_SPEAKERS[0].styles.map(style => ({
-            label: `${DEFAULT_SPEAKERS[0].name} - ${style.name}`,
-            value: `${DEFAULT_SPEAKERS[0].name}-${style.name}-${style.id}`
-        }));
+    } catch (error) {
+        console.error("スピーカーオプション生成エラー:", error);
+        return [{
+            label: "Anneli - ノーマル",
+            value: "Anneli-ノーマル-888753760"
+        }];
     }
 }
+
+// 新規：join_channels.json のパス設定を process.cwd() ベースに変更
+export let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+// join_channels関連のキャッシュは動的判定により不要
+// let joinChannelsCache: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+// let joinChannelsLastModified = 0;
+
+// 新規：auto_join_channels.json を読み込む関数（キャッシュ付き）
+autoJoinChannels = loadAutoJoinChannels();
+
+// 新規：join_channels.json を読み込む関数（キャッシュ付き）
+export function loadJoinChannels() {
+    try {
+        if (!fs.existsSync(JOIN_CHANNELS_FILE)) {
+            return joinChannelsCache;
+        }
+
+        const stats = fs.statSync(JOIN_CHANNELS_FILE);
+        const lastModified = stats.mtime.getTime();
+
+        // ファイルが変更されていない場合はキャッシュを返す
+        if (lastModified === joinChannelsLastModified && Object.keys(joinChannelsCache).length > 0) {
+            return joinChannelsCache;
+        }
+
+        // ファイルが変更された場合のみ読み込み
+        console.log(`[Cache] 参加チャンネル設定を読み込みます: ${JOIN_CHANNELS_FILE}`);
+        const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+        const parsed = JSON.parse(data);
+        
+        if (parsed && typeof parsed === 'object') {
+            joinChannelsCache = parsed;
+            joinChannelsLastModified = lastModified;
+            return parsed;
+        }
+    } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
+        // エラー時もキャッシュがあれば返す
+        if (Object.keys(joinChannelsCache).length > 0) {
+            return joinChannelsCache;
+        }
+    }
+    return {};
+}
+
+// 新規：取得したチャネル情報を保存する関数
+export function updateJoinChannelsConfig(guildId: string, voiceChannelId: string, textChannelId: string) {
+    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+    try {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            joinChannels = JSON.parse(data);
+        }
+    } catch (error) {
+        console.error(`参加チャンネル設定読み込みエラー (${JOIN_CHANNELS_FILE}):`, error);
+        joinChannels = {};
+    }
+    // tempVoiceはundefinedでOK（従来型もサポート）
+    joinChannels[guildId] = { voiceChannelId, textChannelId };
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+        console.log(`参加チャンネル設定を保存しました: ${JOIN_CHANNELS_FILE}`);
+    } catch (error) {
+        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+    }
+}
+
+// 新規：join_channels.json を保存する関数
+export function saveJoinChannels(joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } }) {
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error("参加チャンネル設定保存エラー:", error);
+    }
+}
+
+// 新規：チャンネル情報を削除する関数
+export function deleteJoinChannelsConfig(guildId: string) {
+    let joinChannels: { [key: string]: { voiceChannelId: string, textChannelId: string, tempVoice?: boolean } } = {};
+    try {
+        if (fs.existsSync(JOIN_CHANNELS_FILE)) {
+            const data = fs.readFileSync(JOIN_CHANNELS_FILE, 'utf-8');
+            joinChannels = JSON.parse(data);
+        }
+    } catch (error) {
+        console.error("参加チャンネル設定読み込みエラー:", error);
+        joinChannels = {};
+    }
+    
+    delete joinChannels[guildId];
+    try {
+        ensureDirectoryExists(JOIN_CHANNELS_FILE);
+        fs.writeFileSync(JOIN_CHANNELS_FILE, JSON.stringify(joinChannels, null, 4), 'utf-8');
+    } catch (error) {
+        console.error(`参加チャンネル設定保存エラー (${JOIN_CHANNELS_FILE}):`, error);
+    }
+}
+
+// メッセージ送信先を決定する関数
+export function determineMessageTargetChannel(guildId: string, defaultChannelId?: string) {
+  // 保存されたテキストチャンネルIDを優先
+    const savedTextChannelId = getTextChannelForGuild(guildId);
+    return savedTextChannelId || defaultChannelId;
+}
+
+// joinコマンド実行チャンネルを記録する関数
+export function setJoinCommandChannel(guildId: string, channelId: string) {
+    joinCommandChannels[guildId] = channelId;
+    console.log(`[Join] joinコマンド実行チャンネルを記録: guild=${guildId}, channel=${channelId}`);
+}
+
+// joinコマンド実行チャンネルを取得する関数
+export function getJoinCommandChannel(guildId: string): string | undefined {
+    return joinCommandChannels[guildId];
+}
+
+/**
+ * TTSエンジンの健全性をチェックする
+ * @returns TTSエンジンが正常に動作している場合はtrue、そうでない場合はfalse
+ */
+export function checkTTSHealth(): boolean {
+    try {
+        // TTSエンジンの状態チェックロジック
+        // 例: 必要なリソースにアクセスできるか、最後の発話時間が異常に長くないかなど
+        
+        // このチェックロジックは実際のTTS実装に合わせて調整してください
+        const lastSpeechTime = getLastSpeechTime();
+        const currentTime = Date.now();
+        
+        // 最後の発話から30分以上経っていて、ボイスチャンネルに接続している場合は異常と見なす
+        if (currentTime - lastSpeechTime > 30 * 60 * 1000 && isConnectedToVoiceChannels()) {
+            console.log(`TTSが${(currentTime - lastSpeechTime) / 60000}分間発話していません。状態を確認してください。`);
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('TTSエンジン健全性チェックエラー:', error);
+        return false;
+    }
+}
+
+/**
+ * 最後の発話時刻を取得する
+ */
+let _lastSpeechTime = Date.now();
+export function getLastSpeechTime(): number {
+    return _lastSpeechTime;
+}
+
+/**
+ * 発話が行われた際に最終発話時刻を更新する
+ */
+export function updateLastSpeechTime(): void {
+    _lastSpeechTime = Date.now();
+}
+
+/**
+ * ボイスチャンネルに接続しているかチェックする
+ */
+function isConnectedToVoiceChannels(): boolean {
+    // voiceClientsオブジェクトの中に有効な接続があるかをチェック
+    for (const guildId in voiceClients) {
+        if (voiceClients[guildId] && voiceClients[guildId].state.status === VoiceConnectionStatus.Ready) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * TTSエンジンをリセットする
+ */
+export function resetTTSEngine(): void {
+    try {
+        // 現在のTTS状態をクリア
+        console.log('TTSエンジンをリセットしています...');
+        
+        // 必要に応じて既存のリソースをクリーンアップ
+        // ...
+        
+        // 各種初期化関数を再実行
+        loadAutoJoinChannels();
+        // loadJoinChannels(); // 動的判定により不要
+        AivisAdapter();
+        
+        // 最終発話時刻をリセット
+        _lastSpeechTime = Date.now();
+        
+        console.log('TTSエンジンのリセット完了');
+    } catch (error) {
+        console.error('TTSエンジンのリセット中にエラーが発生しました:', error);
+        throw error;
+    }
+}
+
+// 読み上げ優先度の確認関数
+export function getTTSPriority(guildId: string): number {
+    const subscriptionType = getSubscription(guildId);
+    // 優先度が高いほど、キュー内で先に処理される
+    return subscriptionType === SubscriptionType.PREMIUM ? 2 :
+    subscriptionType === SubscriptionType.PRO ? 1 : 0;
+}
+
+// 音声品質の確認関数
+export function getVoiceQuality(guildId: string): string {
+    return checkSubscriptionFeature(guildId, 'highQualityVoice') ? 'high' : 'standard';
+}
+
+// 全ての声優を取得する関数
+function getAllVoices() {
+    const voices = [];
+    
+    // speakersデータから声優情報を抽出
+    for (const speaker of speakers) {
+        if (speaker && speaker.styles && Array.isArray(speaker.styles)) {
+            for (const style of speaker.styles) {
+                if (style && style.name && style.id !== undefined) {
+                    // 全ての声優は無料
+                    voices.push({
+                        name: `${speaker.name} - ${style.name}`,
+                        id: style.id,
+                        speakerName: speaker.name,
+                        styleName: style.name,
+                        tier: 'free'
+                    });
+                }
+            }
+        }
+    }
+    return voices;
+}
+
+// メッセージ長の確認
+export function validateMessageLength(guildId: string, message: string): boolean {
+    const maxLength = getSubscriptionLimit(guildId, 'maxMessageLength');
+    return message.length <= maxLength;
+}
+
+// 既存のTTS処理関数を拡張
+export function processMessage(guildId: string, message: string, options: any) {
+    // メッセージ長チェック
+    if (!validateMessageLength(guildId, message)) {
+        throw new Error(`メッセージが長すぎます。現在のプランでは${getSubscriptionLimit(guildId, 'maxMessageLength')}文字までです。`);
+    }
+    
+    // 音声品質の設定
+    options.quality = getVoiceQuality(guildId);
+    
+    // 優先度の設定
+    options.priority = getTTSPriority(guildId);
+    
+    // Premiumユーザー向けの特殊機能
+    if (checkSubscriptionFeature(guildId, 'textTransformationEffects')) {
+        message = applyTextTransformations(message, options);
+    }
+    
+    // 既存の処理を続ける
+    // ...
+}
+
+// テキスト変換エフェクト (Premiumのみ)
+function applyTextTransformations(message: string, options: any): string {
+    // 実装例: 特殊なマークアップを処理
+    // 例: *強調*、#タグ、@メンション など
+    
+    // この関数ではテキストの変換処理を行う
+    return message; // 変換後のテキストを返す
+}
+
+// ギルドごとに AudioPlayer を保持
+const audioPlayers: Map<string, AudioPlayer> = new Map();
+
+/**
+ * 指定ギルドの既存プレイヤーを停止破棄し、
+ * 常に新規プレイヤーを生成して返す
+ */
+export function getOrCreateAudioPlayer(guildId: string): AudioPlayer {
+    const prev = audioPlayers.get(guildId);
+    if (prev) {
+        prev.stop();
+        audioPlayers.delete(guildId);
+    }
+    const player = createAudioPlayer();
+    audioPlayers.set(guildId, player);
+    return player;
+}
+
+/**
+ * 指定ギルドの Connection／Player を完全破棄
+ */
+export function cleanupAudioResources(guildId: string) {
+    const conn = getVoiceConnection(guildId);
+    if (conn) conn.destroy();
+    const player = audioPlayers.get(guildId);
+    if (player) {
+        player.stop();
+        audioPlayers.delete(guildId);
+    }
+}
+
+// デフォルト話者ID（Anneli ノーマル）
+export const DEFAULT_SPEAKER_ID = 888753760;
+
+// 16bit PCM, 1ch, silence = 0x0000, threshold: 8サンプル連続で無音ならカット
+function trimSilence(buffer: Buffer, threshold = 8): Buffer {
+    let start = 0;
+    let end = buffer.length;
+    // 先頭無音
+    for (let i = 0; i < buffer.length - threshold * 2; i += 2) {
+        let silent = true;
+        for (let j = 0; j < threshold * 2; j += 2) {
+            if (buffer[i + j] !== 0 || buffer[i + j + 1] !== 0) {
+                silent = false;
+                break;
+            }
+        }
+        if (!silent) {
+            start = i;
+            break;
+        }
+    }
+    // 末尾無音
+    for (let i = buffer.length - 2; i >= threshold * 2; i -= 2) {
+        let silent = true;
+        for (let j = 0; j < threshold * 2; j += 2) {
+            if (buffer[i - j] !== 0 || buffer[i - j + 1] !== 0) {
+                silent = false;
+                break;
+            }
+        }
+        if (!silent) {
+            end = i + 2;
+            break;
+        }
+    }
+    return buffer.slice(start, end);
+}
+
+// メモリ使用量監視とガベージコレクション制御
+let lastMemoryCheck = 0;
+const MEMORY_CHECK_INTERVAL = 30000; // 30秒間隔
+
+export function monitorMemoryUsage() {
+    const now = Date.now();
+    if (now - lastMemoryCheck < MEMORY_CHECK_INTERVAL) return;
+    
+    lastMemoryCheck = now;
+    const memUsage = process.memoryUsage();
+    const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+    const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
+    const rssUsedMB = Math.round(memUsage.rss / 1024 / 1024);
+    
+    console.log(`メモリ使用量: Heap ${heapUsedMB}/${heapTotalMB}MB, RSS ${rssUsedMB}MB`);
+    
+    // メモリ使用量が高い場合の対策
+    if (heapUsedMB > 512) { // 512MB超過時
+        console.warn(`メモリ使用量が高いです (${heapUsedMB}MB) - ガベージコレクション実行`);
+        if (global.gc) {
+            global.gc();
+        }
+        
+        // FFmpegプールのアイドルプロセスを削減
+        try {
+            ffmpegPool.clear().catch(() => {});
+            console.log('FFmpegプールをクリアしました');
+        } catch (e) {
+            console.warn('FFmpegプールクリアエラー:', e);
+        }
+    }
+}
+
+// 定期的なメモリ監視を開始
+setInterval(monitorMemoryUsage, MEMORY_CHECK_INTERVAL);
+
+// プロセス終了時のクリーンアップ
+process.on('exit', () => {
+    console.log('プロセス終了: FFmpegプールをクリーンアップ中...');
+    try {
+        ffmpegPool.drain().then(() => ffmpegPool.clear());
+    } catch (e) {
+        console.warn('終了時クリーンアップエラー:', e);
+    }
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT受信: FFmpegプールをクリーンアップ中...');
+    try {
+        ffmpegPool.drain().then(() => ffmpegPool.clear()).finally(() => process.exit(0));
+    } catch (e) {
+        console.warn('SIGINT時クリーンアップエラー:', e);
+        process.exit(0);
+    }
+});
+
+process.on('SIGTERM', () => {
+    console.log('SIGTERM受信: FFmpegプールをクリーンアップ中...');
+    try {
+        ffmpegPool.drain().then(() => ffmpegPool.clear()).finally(() => process.exit(0));
+    } catch (e) {
+        console.warn('SIGTERM時クリーンアップエラー:', e);
+        process.exit(0);
+    }
+});
