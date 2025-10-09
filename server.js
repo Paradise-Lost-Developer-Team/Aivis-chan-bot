@@ -482,17 +482,37 @@ app.get('/auth/discord/pro', passport.authenticate('discord-pro'));
 
 // Free版コールバック
 app.get('/auth/discord/callback/free',
-  passport.authenticate('discord-free', { failureRedirect: '/login' }),
+  passport.authenticate('discord-free', { 
+    failureRedirect: '/login?error=auth_failed',
+    failureMessage: true
+  }),
   (req, res) => {
-    res.redirect('/dashboard?version=free');
+    // セッションを保存してからリダイレクト
+    req.session.save((err) => {
+      if (err) {
+        console.error('[AUTH] Session save error:', err);
+        return res.redirect('/login?error=session_failed');
+      }
+      res.redirect('/dashboard?version=free');
+    });
   }
 );
 
 // Pro版コールバック
 app.get('/auth/discord/callback/pro',
-  passport.authenticate('discord-pro', { failureRedirect: '/login' }),
+  passport.authenticate('discord-pro', { 
+    failureRedirect: '/login?error=auth_failed',
+    failureMessage: true
+  }),
   (req, res) => {
-    res.redirect('/dashboard?version=pro');
+    // セッションを保存してからリダイレクト
+    req.session.save((err) => {
+      if (err) {
+        console.error('[AUTH] Session save error:', err);
+        return res.redirect('/login?error=session_failed');
+      }
+      res.redirect('/dashboard?version=pro');
+    });
   }
 );
 
@@ -502,7 +522,13 @@ app.get('/logout', (req, res) => {
     if (err) {
       console.error('[AUTH] Logout error:', err);
     }
-    res.redirect('/');
+    req.session.destroy((destroyErr) => {
+      if (destroyErr) {
+        console.error('[AUTH] Session destroy error:', destroyErr);
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/');
+    });
   });
 });
 
@@ -931,6 +957,22 @@ app.get('/login', (req, res) => {
   if (req.isAuthenticated()) {
     return res.redirect('/dashboard');
   }
+  
+  // エラーメッセージの取得
+  const error = req.query.error;
+  let errorMessage = '';
+  
+  if (error === 'auth_failed') {
+    errorMessage = '認証に失敗しました。もう一度お試しください。';
+  } else if (error === 'session_failed') {
+    errorMessage = 'セッションの保存に失敗しました。もう一度お試しください。';
+  }
+  
+  // エラーメッセージをログに記録
+  if (errorMessage) {
+    console.log(`[AUTH] Login error: ${errorMessage}`);
+  }
+  
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 
