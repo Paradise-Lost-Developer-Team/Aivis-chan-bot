@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
-const os = require('os');
 const { Connection, clusterApiUrl, PublicKey } = require('@solana/web3.js');
 const { google } = require('googleapis');
 const session = require('express-session');
@@ -11,7 +10,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 
 // 環境変数の検証
 function validateEnvVars() {
-  const required = ['SESSION_SECRET'];
+  const required = ['SESSION_SECRET', 'DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET'];
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
@@ -31,16 +30,19 @@ validateEnvVars();
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 const BASE_URL = process.env.BASE_URL || 'https://aivis-chan-bot.com';
-const DATA_DIR = process.env.DATA_DIR || path.join(os.tmpdir(), 'aivis-data');
+
+// DATA_DIRを永続化ディレクトリに変更
+const DATA_DIR = process.env.DATA_DIR || '/app/data';
 const PATREON_LINKS_FILE = path.join(DATA_DIR, 'patreon_links.json');
 const PATREON_CALLBACK_LOG = path.join(DATA_DIR, 'patreon_callbacks.log');
 const SOLANA_INVOICES_FILE = path.join(DATA_DIR, 'solana_invoices.json');
 
-const AXIOS_TIMEOUT = 5000;
-const AXIOS_SHORT_TIMEOUT = 3000;
+const AXIOS_TIMEOUT = parseInt(process.env.AXIOS_TIMEOUT || '5000', 10);
+const AXIOS_SHORT_TIMEOUT = parseInt(process.env.AXIOS_SHORT_TIMEOUT || '3000', 10);
 
 // Redis セッションストア設定
 let redisStoreInstance = null;
+let sessionStoreType = 'memory';
 
 async function setupRedisStore() {
   if (process.env.SESSION_STORE !== 'redis') {
@@ -86,10 +88,13 @@ async function setupRedisStore() {
       ttl: 24 * 60 * 60
     });
     
+    sessionStoreType = 'redis';
     console.log('[SESSION] Using Redis session store');
   } catch (err) {
     console.error('[SESSION] Failed to setup Redis store:', err.message);
     console.log('[SESSION] Falling back to memory store');
+    redisStoreInstance = null;
+    sessionStoreType = 'memory';
   }
 }
 
@@ -109,12 +114,6 @@ const DISCORD_CONFIG_PRO = {
   redirectUri: `${BASE_URL}/auth/discord/callback/pro`,
   version: 'pro'
 };
-
-// Patreon OAuth2設定
-const PATREON_CLIENT_ID = process.env.PATREON_CLIENT_ID || '';
-const PATREON_CLIENT_SECRET = process.env.PATREON_CLIENT_SECRET || '';
-const PATREON_REDIRECT_PATH = '/auth/patreon/callback';
-const PATREON_REDIRECT_URI = `${BASE_URL.replace(/\/$/, '')}${PATREON_REDIRECT_PATH}`;
 
 // Bot インスタンスの定義
 const BOT_INSTANCES = [
@@ -186,19 +185,6 @@ function writeJsonFile(filePath, data) {
 
 function ensurePatreonLinksFile() {
   return ensureFile(PATREON_LINKS_FILE, '[]');
-}
-
-function ensureSolanaInvoicesFile() {
-  return ensureFile(SOLANA_INVOICES_FILE, '[]');
-}
-
-function loadSolanaInvoices() {
-  ensureSolanaInvoicesFile();
-  return readJsonFile(SOLANA_INVOICES_FILE, []);
-}
-
-function saveSolanaInvoices(arr) {
-  return writeJsonFile(SOLANA_INVOICES_FILE, arr);
 }
 
 function isValidDiscordId(id) {
@@ -497,7 +483,6 @@ async function initialize() {
     await setupRedisStore();
     ensurePatreonLinksFile();
     migratePatreonLinks();
-    ensureSolanaInvoicesFile();
     console.log('[INIT] Initialization completed');
   } catch (err) {
     console.error('[INIT] Initialization error:', err.message);
@@ -555,8 +540,12 @@ const sessionConfig = {
   name: 'aivis.sid'
 };
 
+// セッションストアを確実に設定
 if (redisStoreInstance) {
   sessionConfig.store = redisStoreInstance;
+  console.log('[SESSION] Session config using Redis store');
+} else {
+  console.log('[SESSION] Session config using memory store');
 }
 
 app.use(session(sessionConfig));
@@ -760,9 +749,10 @@ app.get('/api/servers', requireAuth, async (req, res) => {
   }
 });
 
-// 話者一覧取得（キャッシュ付き）
+// 話者一覧取得（キャッシュ付き） - Promise.race修正
 let speakersCache = null;
 let speakersCacheTime = 0;
+let speakersFetching = false;
 const SPEAKERS_CACHE_TTL = 10 * 60 * 1000; // 10分
 
 app.get('/api/speakers', async (req, res) => {
@@ -772,6 +762,20 @@ app.get('/api/speakers', async (req, res) => {
       console.log('[API /api/speakers] Returning cached speakers');
       return res.json(speakersCache);
     }
+
+    // 既にフェッチ中の場合は待機
+    if (speakersFetching) {
+      const waitStart = Date.now();
+      while (speakersFetching && (Date.now() - waitStart) < 5000) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      if (speakersCache) {
+        return res.json(speakersCache);
+      }
+    }
+
+    speakersFetching = true;
 
     console.log(`[API /api/speakers] Fetching from AivisSpeech: ${AIVISSPEECH_URL}/speakers`);
 
@@ -798,6 +802,7 @@ app.get('/api/speakers', async (req, res) => {
         // キャッシュに保存
         speakersCache = speakers;
         speakersCacheTime = Date.now();
+        speakersFetching = false;
         
         return res.json(speakers);
       }
@@ -805,45 +810,51 @@ app.get('/api/speakers', async (req, res) => {
       console.warn('[API /api/speakers] AivisSpeech fetch failed:', error.message);
     }
 
-    // フォールバック: 最初に応答したBotから取得
-    const botChecks = BOT_INSTANCES.map(async (bot) => {
-      try {
-        const response = await axios.get(`${bot.url}/api/speakers`, { 
-          timeout: AXIOS_SHORT_TIMEOUT,
-          validateStatus: (status) => status === 200
-        });
-        
-        if (response.data && Array.isArray(response.data)) {
-          return { bot, speakers: response.data };
+    // フォールバック: すべてのBotから取得を試みる
+    const botChecks = await Promise.allSettled(
+      BOT_INSTANCES.map(async (bot) => {
+        try {
+          const response = await axios.get(`${bot.url}/api/speakers`, { 
+            timeout: AXIOS_SHORT_TIMEOUT,
+            validateStatus: (status) => status === 200
+          });
+          
+          if (response.data && Array.isArray(response.data)) {
+            return { bot, speakers: response.data };
+          }
+          return null;
+        } catch {
+          return null;
         }
-        return null;
-      } catch {
-        return null;
-      }
-    });
-
-    const results = await Promise.race(
-      botChecks.map(p => p.catch(() => null))
+      })
     );
 
-    if (results?.speakers) {
-      console.log(`[API /api/speakers] Loaded from bot: ${results.bot.name}`);
+    // 成功した最初の結果を使用
+    const successfulResult = botChecks
+      .filter(r => r.status === 'fulfilled' && r.value !== null)
+      .map(r => r.value)[0];
+
+    if (successfulResult?.speakers) {
+      console.log(`[API /api/speakers] Loaded from bot: ${successfulResult.bot.name}`);
       
-      speakersCache = results.speakers;
+      speakersCache = successfulResult.speakers;
       speakersCacheTime = Date.now();
+      speakersFetching = false;
       
-      return res.json(results.speakers);
+      return res.json(successfulResult.speakers);
     }
 
     console.warn('[API /api/speakers] No speakers found from any source');
+    speakersFetching = false;
     res.json([]);
   } catch (error) {
+    speakersFetching = false;
     console.error('[API /api/speakers] Error:', error.message);
     sendErrorResponse(res, 500, '話者一覧の取得に失敗しました', error.message);
   }
 });
 
-// ギルド情報取得（チャンネル、設定、話者を含む）
+// ギルド情報取得（チャンネル、設定を含む）
 app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
   try {
     const { guildId } = req.params;
@@ -918,51 +929,17 @@ app.get('/api/guilds/:guildId', requireAuth, async (req, res) => {
   }
 });
 
-// 設定取得
-app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
+// 設定保存 - 正しいエンドポイント
+app.post('/api/guilds/:guildId/settings', requireAuth, async (req, res) => {
   try {
     const { guildId } = req.params;
+    const { settings } = req.body;
 
     if (!hasGuildAccess(req.user, guildId)) {
       return sendErrorResponse(res, 403, 'このサーバーにアクセスする権限がありません');
     }
 
-    console.log(`[API /api/settings/${guildId}] Fetching settings`);
-
-    const bot = await findBotForGuild(guildId);
-
-    if (!bot) {
-      console.log(`[API /api/settings/${guildId}] Guild not found, returning defaults`);
-      return res.json({ settings: {} });
-    }
-
-    const response = await axios.get(`${bot.url}/internal/web-settings/${guildId}`, {
-      timeout: AXIOS_TIMEOUT,
-      validateStatus: (status) => status === 200
-    });
-
-    console.log(`[API /api/settings/${guildId}] Settings loaded from bot: ${bot.name}`);
-    res.json({ settings: response.data?.settings || {} });
-  } catch (error) {
-    console.error(`[API /api/settings/${req.params.guildId}] Error:`, error.message);
-    res.json({ settings: {} });
-  }
-});
-
-// 設定保存
-app.post('/api/settings', requireAuth, async (req, res) => {
-  try {
-    const { guildId, settings } = req.body;
-
-    if (!guildId) {
-      return sendErrorResponse(res, 400, 'guildId is required');
-    }
-
-    if (!hasGuildAccess(req.user, guildId)) {
-      return sendErrorResponse(res, 403, 'このサーバーにアクセスする権限がありません');
-    }
-
-    console.log(`[API /api/settings POST] Saving settings for guild: ${guildId}`);
+    console.log(`[API /api/guilds/${guildId}/settings POST] Saving settings`);
 
     const bot = await findBotForGuild(guildId);
 
@@ -980,14 +957,14 @@ app.post('/api/settings', requireAuth, async (req, res) => {
     });
 
     if (response.data?.success) {
-      console.log(`[API /api/settings POST] Settings saved to bot: ${bot.name}`);
+      console.log(`[API /api/guilds/${guildId}/settings POST] Settings saved to bot: ${bot.name}`);
 
       // 通知は失敗しても問題ない
       axios.post(`${bot.url}/api/settings/notify`, {
         guildId,
         settings
       }, { timeout: AXIOS_SHORT_TIMEOUT }).catch(err => {
-        console.warn('[API /api/settings POST] Notification failed:', err.message);
+        console.warn('[API /api/guilds/:guildId/settings POST] Notification failed:', err.message);
       });
 
       res.json({
@@ -999,7 +976,7 @@ app.post('/api/settings', requireAuth, async (req, res) => {
       throw new Error('Bot returned unsuccessful response');
     }
   } catch (error) {
-    console.error('[API /api/settings POST] Error:', error.message);
+    console.error(`[API /api/guilds/${req.params.guildId}/settings POST] Error:`, error.message);
     sendErrorResponse(res, 500, '設定の保存に失敗しました', error.message);
   }
 });
@@ -1210,10 +1187,19 @@ app.get('/dashboard', requireAuthPage, (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
-// 404ハンドラー
-app.use((req, res) => {
+// 404ハンドラー - API用とHTML用を分離
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/')) {
+    console.log(`[404] API ${req.method} ${req.url}`);
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
   console.log(`[404] ${req.method} ${req.url}`);
-  res.status(404).json({ error: 'Not Found' });
+  res.status(404).sendFile(path.join(__dirname, '404.html'), (err) => {
+    if (err) {
+      res.status(404).send('404 Not Found');
+    }
+  });
 });
 
 // エラーハンドラー
@@ -1237,6 +1223,8 @@ async function startServer() {
       console.log(`[SERVER] Running at http://${HOST}:${PORT}`);
       console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`[SERVER] Base URL: ${BASE_URL}`);
+      console.log(`[SERVER] Data directory: ${DATA_DIR}`);
+      console.log(`[SERVER] Session store: ${sessionStoreType}`);
     });
   } catch (error) {
     console.error('[SERVER] Failed to start:', error);
