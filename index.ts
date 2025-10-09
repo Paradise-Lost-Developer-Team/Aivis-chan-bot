@@ -443,7 +443,6 @@ apiApp.post('/internal/voice-settings-refresh', async (req: any, res: any) => {
     }
 });
 import { Request, Response } from 'express';
-import { getTextChannelForGuild, saveVoiceState } from "utils/voiceStateManager";
 apiApp.get('/api/stats', async (req: Request, res: Response) => {
     try {
         const serverCount = client.guilds.cache.size;
@@ -553,12 +552,6 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
         }
 
         if (!finalTextChannelId) {
-            // 1. 保存されたテキストチャンネルを取得
-            // getTextChannelForGuild may return undefined, normalize to null to satisfy the declared type
-            finalTextChannelId = getTextChannelForGuild(guildId) || null;
-        }
-
-        if (!finalTextChannelId) {
             // 2. 自動参加設定から取得
             const { autoJoinChannels } = await import('./utils/TTS-Engine');
             const autoJoinSetting = autoJoinChannels[guildId];
@@ -658,7 +651,6 @@ apiApp.post('/internal/join', async (req: Request, res: Response) => {
          // store under both keys for compatibility with TTS-Engine lookup (voiceChannelId and guildId)
          try { (voiceClients as any)[voiceChannelId] = connection; } catch {}
          try { (voiceClients as any)[guildId] = connection; } catch {}
-         setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 1000);
 
         // 即時応答してアナウンスは非同期で実行
         try {
@@ -882,12 +874,6 @@ apiApp.get('/internal/text-channel/:guildId', async (req: Request, res: Response
             }
         }
 
-        // 2) saved mapping
-        if (!finalTextChannelId) {
-            finalTextChannelId = getTextChannelForGuild(guildId) || null;
-            if (finalTextChannelId) reason = 'savedMapping';
-        }
-
         // 3) autoJoin
         if (!finalTextChannelId) {
             const { autoJoinChannels } = await import('./utils/TTS-Engine');
@@ -1013,7 +999,6 @@ apiApp.post('/internal/leave', async (req: Request, res: Response) => {
         try { if (voiceChannelId) delete (global as any).players?.[voiceChannelId]; } catch {}
         try { if (guildId) delete (global as any).players?.[guildId]; } catch {}
 
-        setTimeout(()=>{ try { saveVoiceState(client as any); } catch {} }, 500);
         return res.json({ ok: true });
     } catch (e) {
         console.error('internal/leave error:', e);
