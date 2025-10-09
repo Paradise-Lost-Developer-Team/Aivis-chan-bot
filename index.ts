@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits, ActivityType, MessageFlags, Collection, Embe
 import { REST } from "@discordjs/rest";
 import * as fs from "fs";
 import * as path from "path";
-import { AivisAdapter, loadUserVoiceSettings, removeTextChannelByVoiceChannelId, removeTextChannelForGuildInMap, setTextChannelForGuildInMap, voiceClients } from "./utils/TTS-Engine";
+import { AivisAdapter, loadUserVoiceSettings, removeTextChannelByVoiceChannelId, removeTextChannelForGuildInMap, setTextChannelForGuildInMap, getTextChannelForGuild, voiceClients, fetchAndSaveSpeakers } from "./utils/TTS-Engine";
 import { ServerStatus, fetchUUIDsPeriodically } from "./utils/dictionaries";
 import { MessageCreate } from "./utils/MessageCreate";
 import { setupVoiceStateUpdateHandlers } from "./utils/VoiceStateUpdate";
@@ -1173,4 +1173,280 @@ apiApp.post('/api/settings', express.json(), async (req: Request, res: Response)
             details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
         });
     }
+});
+
+// ギルド情報を取得（チャンネル一覧を含む）
+apiApp.get('/internal/guilds/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        console.log(`[API /internal/guilds/${guildId}] Request received`);
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            console.warn(`[API /internal/guilds/${guildId}] Guild not found`);
+            return res.status(404).json({ error: 'guild-not-found' });
+        }
+
+        // チャンネル情報を取得
+        const channels = Array.from(guild.channels.cache.values()).map(channel => ({
+            id: channel.id,
+            name: channel.name,
+            type: channel.type,
+            parentId: (channel as any).parentId || null,
+            position: (channel as any).position || 0
+        }));
+
+        // ボイス接続状態を取得
+        const connection = voiceClients[guildId];
+        const voiceConnected = connection ? connection.state.status === VoiceConnectionStatus.Ready : false;
+        const voiceChannelId = connection?.joinConfig?.channelId || null;
+
+        // テキストチャンネルを取得
+        const textChannelId = getTextChannelForGuild(guildId) || null;
+
+        const guildData = {
+            id: guild.id,
+            name: guild.name,
+            iconUrl: guild.iconURL({ size: 256 }) || null,
+            channels: channels,
+            voiceConnected: voiceConnected,
+            voiceChannelId: voiceChannelId,
+            textChannelId: textChannelId
+        };
+
+        console.log(`[API /internal/guilds/${guildId}] Returning guild data with ${channels.length} channels`);
+        
+        res.json(guildData);
+    } catch (error) {
+        console.error(`[API /internal/guilds/${req.params.guildId}] Error:`, error);
+        res.status(500).json({ 
+            error: 'Failed to fetch guild data',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// 話者一覧を取得
+apiApp.get('/api/speakers', async (req: Request, res: Response) => {
+    try {
+        console.log('[API /api/speakers] Fetching speakers list');
+        
+        const speakersPath = path.resolve(process.cwd(), 'data', 'speakers.json');
+        
+        if (!fs.existsSync(speakersPath)) {
+            console.warn('[API /api/speakers] speakers.json not found, fetching from TTS service');
+            
+            // TTS-Engineから話者情報を取得
+            try {
+                await fetchAndSaveSpeakers();
+            } catch (fetchError) {
+                console.error('[API /api/speakers] Failed to fetch speakers:', fetchError);
+                return res.status(503).json({ 
+                    error: 'Failed to fetch speakers from TTS service',
+                    speakers: []
+                });
+            }
+        }
+
+        // speakers.jsonを読み込む
+        const speakersData = JSON.parse(fs.readFileSync(speakersPath, 'utf8'));
+        
+        console.log(`[API /api/speakers] Returning ${speakersData.length} speakers`);
+        
+        res.json({ 
+            success: true,
+            speakers: speakersData 
+        });
+    } catch (error) {
+        console.error('[API /api/speakers] Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to load speakers',
+            speakers: [],
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// Bot統計情報を取得（ダッシュボード用）
+apiApp.get('/api/stats', async (req: Request, res: Response) => {
+    try {
+        const serverCount = client.guilds.cache.size;
+        const voiceConnectionCount = Object.keys(voiceClients).length;
+        const userCount = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount ?? 0), 0);
+        const uptime = process.uptime();
+        const memoryUsage = process.memoryUsage();
+        
+        // 全ギルドのリストを取得
+        const guilds = Array.from(client.guilds.cache.values()).map(guild => ({
+            id: guild.id,
+            name: guild.name,
+            iconUrl: guild.iconURL({ size: 128 }) || null,
+            memberCount: guild.memberCount,
+            voiceConnected: !!voiceClients[guild.id]
+        }));
+
+        const stats = {
+            serverCount,
+            voiceConnectionCount,
+            userCount,
+            uptime: Math.floor(uptime),
+            memory: {
+                used: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+                total: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+                rss: Math.round(memoryUsage.rss / 1024 / 1024)
+            },
+            ping: client.ws.ping,
+            guilds: guilds,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log(`[API /api/stats] Returning stats: servers=${serverCount}, vc=${voiceConnectionCount}`);
+        
+        res.json(stats);
+    } catch (error) {
+        console.error('[API /api/stats] Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch stats',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// ギルドのサーバー設定を取得
+apiApp.get('/api/settings/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        console.log(`[API /api/settings/${guildId}] Fetching guild settings`);
+        
+        if (!guildId) {
+            return res.status(400).json({ error: 'guildId is required' });
+        }
+
+        const settingsFile = path.join(DATA_DIR, 'guild-settings', `${guildId}.json`);
+        
+        let settings = {};
+        if (fs.existsSync(settingsFile)) {
+            try {
+                settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+            } catch (e) {
+                console.warn(`[API /api/settings/${guildId}] Failed to parse settings file`);
+            }
+        }
+
+        // voiceSettingsからも取得
+        const { voiceSettings } = await import('./utils/TTS-Engine');
+        const guildVoiceSettings = voiceSettings[guildId] || {};
+
+        // マージ
+        const mergedSettings = {
+            ...settings,
+            ...guildVoiceSettings
+        };
+
+        console.log(`[API /api/settings/${guildId}] Returning settings`);
+        
+        res.json({ 
+            success: true,
+            settings: mergedSettings 
+        });
+    } catch (error) {
+        console.error(`[API /api/settings/${req.params.guildId}] Error:`, error);
+        res.status(500).json({ 
+            error: 'Failed to fetch settings',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// 個人設定を取得
+apiApp.get('/api/personal-settings/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        console.log(`[API /api/personal-settings/${guildId}] Fetching personal settings`);
+        
+        // 個人設定はvoice_settings.jsonに保存されている
+        const { voiceSettings } = await import('./utils/TTS-Engine');
+        const guildSettings = voiceSettings[guildId] || {};
+
+        // ユーザーごとの設定を抽出（キーがuserIdのもの）
+        const personalSettings: Record<string, any> = {};
+        
+        for (const [key, value] of Object.entries(guildSettings)) {
+            // userIdパターン（数字のみ）の場合は個人設定
+            if (/^\d+$/.test(key)) {
+                personalSettings[key] = value;
+            }
+        }
+
+        console.log(`[API /api/personal-settings/${guildId}] Returning ${Object.keys(personalSettings).length} user settings`);
+        
+        res.json({ 
+            success: true,
+            settings: personalSettings 
+        });
+    } catch (error) {
+        console.error(`[API /api/personal-settings/${req.params.guildId}] Error:`, error);
+        res.status(500).json({ 
+            error: 'Failed to fetch personal settings',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// 辞書を取得
+apiApp.get('/api/dictionary/:guildId', async (req: Request, res: Response) => {
+    try {
+        const { guildId } = req.params;
+        
+        console.log(`[API /api/dictionary/${guildId}] Fetching dictionary`);
+        
+        const dictionariesPath = path.resolve(process.cwd(), 'data', 'guild_dictionaries.json');
+        
+        let dictionary: any[] = [];
+        if (fs.existsSync(dictionariesPath)) {
+            try {
+                const allDictionaries = JSON.parse(fs.readFileSync(dictionariesPath, 'utf8'));
+                const guildDict = allDictionaries[guildId] || {};
+                
+                // オブジェクト形式を配列形式に変換
+                dictionary = Object.entries(guildDict).map(([word, data]: [string, any]) => ({
+                    word: word,
+                    pronunciation: data.pronunciation || '',
+                    accent: data.accent || '',
+                    wordType: data.wordType || ''
+                }));
+            } catch (e) {
+                console.warn(`[API /api/dictionary/${guildId}] Failed to parse dictionary file`);
+            }
+        }
+
+        console.log(`[API /api/dictionary/${guildId}] Returning ${dictionary.length} entries`);
+        
+        res.json({ 
+            success: true,
+            dictionary: dictionary 
+        });
+    } catch (error) {
+        console.error(`[API /api/dictionary/${req.params.guildId}] Error:`, error);
+        res.status(500).json({ 
+            error: 'Failed to fetch dictionary',
+            details: process.env.NODE_ENV !== 'production' ? String(error) : undefined
+        });
+    }
+});
+
+// ヘルスチェックエンドポイント
+apiApp.get('/health', (req: Request, res: Response) => {
+    res.json({ 
+        status: 'ok',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
+    });
 });
