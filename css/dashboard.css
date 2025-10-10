@@ -507,7 +507,7 @@ body {
 }
 
 /* ===================================
-   統計カード
+   統計カード（修正版）
    =================================== */
 
 .stats-grid,
@@ -520,13 +520,14 @@ body {
 
 .stat-card,
 .overview-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-    border: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.08), rgba(114, 137, 218, 0.05));
+    border: 1px solid rgba(88, 101, 242, 0.2);
     border-radius: var(--radius-lg);
     padding: 24px;
     transition: var(--transition-base);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .stat-card::before,
@@ -536,358 +537,141 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 4px;
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
 }
 
 .stat-card:hover,
 .overview-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(88, 101, 242, 0.3);
+    box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3);
+    border-color: rgba(88, 101, 242, 0.4);
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.12), rgba(114, 137, 218, 0.08));
 }
 
 .stat-card h3,
 .overview-card h3 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-tertiary);
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
+    letter-spacing: 1.2px;
+    margin-bottom: 16px;
 }
 
 .stat-value {
-    font-size: 36px;
+    font-size: 42px;
     font-weight: 800;
-    color: var(--text-primary);
+    color: #ffffff;
     line-height: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    margin-bottom: 8px;
 }
 
-/* ステータスインジケーター */
-.status-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: var(--radius-full);
-    font-size: 13px;
-    font-weight: 600;
+/* 統計カード内のテキストの視認性向上 */
+.stat-card p,
+.overview-card p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
     margin-top: 12px;
 }
 
-.status-indicator.status-healthy {
-    background: rgba(67, 181, 129, 0.15);
-    color: var(--success-color);
-    border: 1px solid rgba(67, 181, 129, 0.3);
-}
-
-.status-indicator.status-warning {
-    background: rgba(250, 166, 26, 0.15);
-    color: var(--warning-color);
-    border: 1px solid rgba(250, 166, 26, 0.3);
-}
-
-.status-indicator.status-degraded {
-    background: rgba(240, 178, 50, 0.15);
-    color: #F0B232;
-    border: 1px solid rgba(240, 178, 50, 0.3);
-}
-
-.status-indicator.status-critical {
-    background: rgba(240, 71, 71, 0.15);
-    color: var(--error-color);
-    border: 1px solid rgba(240, 71, 71, 0.3);
-}
-
-.status-icon {
-    font-size: 10px;
-}
-
-.status-detail {
-    font-size: 11px;
-    opacity: 0.8;
+/* Bot統計カード内の値も修正 */
+.bot-stats-card .stat-value {
+    font-size: 24px;
+    color: #ffffff;
 }
 
 /* ===================================
-   フォーム要素
+   Bot一覧セクション（修正版）
    =================================== */
 
-.settings-grid,
-.personal-settings {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 24px;
-    margin-bottom: 32px;
+.bot-list-section {
+    margin-top: 32px;
 }
 
-.setting-group {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-}
-
-.setting-group h3 {
-    font-size: 18px;
+.bot-list-section h2 {
+    font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: rgba(255, 255, 255, 0.95);
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid rgba(88, 101, 242, 0.3);
 }
 
-.setting-item {
-    margin-bottom: 20px;
-}
-
-.setting-item:last-child {
-    margin-bottom: 0;
-}
-
-.setting-item label {
-    display: block;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.setting-description {
-    display: block;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
-}
-
-/* 入力フィールド */
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="password"],
-select,
-textarea {
-    width: 100%;
-    padding: 12px 16px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border-color);
+.bot-list-item {
+    background: rgba(88, 101, 242, 0.08);
+    border: 1px solid rgba(88, 101, 242, 0.2);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 15px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
     transition: var(--transition-base);
-    font-family: inherit;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
-    background: rgba(0, 0, 0, 0.4);
-}
-
-textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-/* レンジスライダー */
-input[type="range"] {
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     cursor: pointer;
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-fast);
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
+.bot-list-item:hover {
+    background: rgba(88, 101, 242, 0.12);
+    border-color: rgba(88, 101, 242, 0.3);
+    transform: translateX(4px);
 }
 
-input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    border: none;
-    transition: transform var(--transition-fast);
-}
-
-input[type="range"]::-moz-range-thumb:hover {
-    transform: scale(1.1);
-}
-
-/* チェックボックス */
-input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
+.bot-list-item h3,
+.bot-list-item p,
+.bot-list-item span {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
 }
 
 /* ===================================
-   ボタン
+   テキストの視認性改善
    =================================== */
 
-button,
-.btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-active));
-    color: var(--text-primary);
-    border: none;
-    padding: 14px 28px;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    transition: var(--transition-base);
-    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
-    font-family: inherit;
+/* すべての見出しの色を調整 */
+h1, h2, h3, h4, h5, h6 {
+    color: rgba(255, 255, 255, 0.95);
 }
 
-button:hover,
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(88, 101, 242, 0.4);
-    background: linear-gradient(135deg, var(--primary-active), #2F3894);
+/* 段落テキストの色を調整 */
+p {
+    color: rgba(255, 255, 255, 0.8);
 }
 
-button:active,
-.btn:active {
-    transform: translateY(0);
+/* ラベルテキストの色を調整 */
+label {
+    color: rgba(255, 255, 255, 0.85);
 }
 
-button:disabled,
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* 保存ボタン */
-#save-settings,
-#save-dictionary,
-#save-personal,
-#save-premium-settings {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    max-width: 300px;
-    margin: 24px auto 0;
-}
-
-/* ローディング状態 */
-.loading-spinner {
-    display: none;
-}
-
-button.loading .button-text {
-    display: none;
-}
-
-button.loading .loading-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* ===================================
-   Bot統計カード
-   =================================== */
-
-.bot-list-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 24px;
-}
-
+/* Bot統計カード（修正版） */
 .bot-stats-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
+    background: rgba(88, 101, 242, 0.08);
+    border: 1px solid rgba(88, 101, 242, 0.2);
     border-radius: var(--radius-lg);
     padding: 20px;
     transition: var(--transition-base);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .bot-stats-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3);
+    background: rgba(88, 101, 242, 0.12);
 }
 
 .bot-stats-card.online {
     border-left: 4px solid var(--success-color);
+    background: linear-gradient(135deg, rgba(67, 181, 129, 0.08), rgba(88, 101, 242, 0.08));
 }
 
 .bot-stats-card.offline {
     border-left: 4px solid var(--error-color);
-}
-
-.bot-stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(240, 71, 71, 0.08), rgba(88, 101, 242, 0.08));
 }
 
 .bot-stats-header h4 {
     margin: 0;
     font-size: 16px;
     font-weight: 700;
-    color: var(--text-primary);
-}
-
-.status-badge {
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: var(--radius-full);
-    font-weight: 600;
-}
-
-.status-badge.online {
-    background: rgba(67, 181, 129, 0.15);
-    color: var(--success-color);
-}
-
-.status-badge.offline {
-    background: rgba(240, 71, 71, 0.15);
-    color: var(--error-color);
-}
-
-.bot-stats-body {
-    margin: 16px 0;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .stat-item {
@@ -898,257 +682,183 @@ button.loading .loading-spinner {
 }
 
 .stat-label {
-    color: var(--text-tertiary);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
 }
 
-.stat-value {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.bot-stats-footer {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.bot-stats-footer small {
-    color: var(--text-muted);
-    font-size: 11px;
-}
-
-.error-message {
-    color: var(--error-color);
-    font-size: 13px;
-    text-align: center;
-    margin: 12px 0;
+.stat-item .stat-value {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
 }
 
 /* ===================================
-   ログビューワー
+   概要セクション（修正版）
+   =================================== */
+
+.overview-section h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(88, 101, 242, 0.3);
+}
+
+/* メインダッシュボードの背景を少し明るく */
+.dashboard-content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, 
+        rgba(26, 31, 46, 0.4) 0%, 
+        rgba(15, 20, 25, 0.6) 100%);
+}
+
+/* タブコンテンツの背景 */
+.tab-content,
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.4s ease-out;
+    min-height: 400px;
+}
+
+.tab-content.active,
+.tab-pane.active {
+    display: block;
+}
+
+/* 空の状態のメッセージ */
+.empty-state,
+.no-data {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 16px;
+    background: rgba(88, 101, 242, 0.05);
+    border-radius: var(--radius-lg);
+    border: 2px dashed rgba(88, 101, 242, 0.2);
+}
+
+.empty-state h3,
+.no-data h3 {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+/* Bot一覧のテキスト色改善 */
+.bot-list-container p,
+.bot-list-container span,
+.bot-list-container div {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ===================================
+   ステータス表示の改善
+   =================================== */
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.status-indicator.status-healthy {
+    background: rgba(67, 181, 129, 0.2);
+    color: #5fd49d;
+    border: 1px solid rgba(67, 181, 129, 0.4);
+}
+
+.status-indicator.status-warning {
+    background: rgba(250, 166, 26, 0.2);
+    color: #ffc266;
+    border: 1px solid rgba(250, 166, 26, 0.4);
+}
+
+.status-indicator.status-degraded {
+    background: rgba(240, 178, 50, 0.2);
+    color: #ffd685;
+    border: 1px solid rgba(240, 178, 50, 0.4);
+}
+
+.status-indicator.status-critical {
+    background: rgba(240, 71, 71, 0.2);
+    color: #ff8787;
+    border: 1px solid rgba(240, 71, 71, 0.4);
+}
+
+.status-icon {
+    font-size: 12px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.status-detail {
+    font-size: 11px;
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+.status-text {
+    font-weight: 700;
+}
+
+/* ===================================
+   ログビューワーの視認性改善
    =================================== */
 
 #log-container {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(88, 101, 242, 0.2);
     border-radius: var(--radius-md);
     padding: 16px;
     max-height: 500px;
     overflow-y: auto;
     font-family: 'Courier New', Consolas, monospace;
     font-size: 13px;
-}
-
-.log-entry {
-    padding: 8px 12px;
-    margin-bottom: 4px;
-    border-left: 3px solid transparent;
-    border-radius: 4px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-}
-
-.log-entry.info {
-    border-left-color: var(--info-color);
-    background: rgba(0, 175, 244, 0.05);
-}
-
-.log-entry.success {
-    border-left-color: var(--success-color);
-    background: rgba(67, 181, 129, 0.05);
-}
-
-.log-entry.warn {
-    border-left-color: var(--warning-color);
-    background: rgba(250, 166, 26, 0.05);
-}
-
-.log-entry.error {
-    border-left-color: var(--error-color);
-    background: rgba(240, 71, 71, 0.05);
-}
-
-.log-timestamp {
-    color: var(--text-muted);
-    font-size: 11px;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.log-level {
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    flex-shrink: 0;
-}
-
-.log-entry.info .log-level {
-    background: rgba(0, 175, 244, 0.2);
-    color: var(--info-color);
-}
-
-.log-entry.success .log-level {
-    background: rgba(67, 181, 129, 0.2);
-    color: var(--success-color);
-}
-
-.log-entry.warn .log-level {
-    background: rgba(250, 166, 26, 0.2);
-    color: var(--warning-color);
-}
-
-.log-entry.error .log-level {
-    background: rgba(240, 71, 71, 0.2);
-    color: var(--error-color);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .log-message {
     flex: 1;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.9);
     word-wrap: break-word;
 }
 
-.log-empty {
-    text-align: center;
-    padding: 40px;
-    color: var(--text-muted);
-}
-
 /* ===================================
-   レスポンシブデザイン
+   その他の改善
    =================================== */
 
-@media (max-width: 1200px) {
-    .settings-grid,
-    .personal-settings {
-        grid-template-columns: 1fr;
-    }
+/* カード内のすべてのテキストの色を確実に設定 */
+.stat-card *,
+.overview-card *,
+.bot-stats-card * {
+    color: inherit;
 }
 
-@media (max-width: 768px) {
-    .dashboard-container {
-        flex-direction: column;
-    }
-
-    #sidebar {
-        width: 100%;
-        min-width: auto;
-        height: auto;
-        max-height: 400px;
-        position: static;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .dashboard-header {
-        padding: 20px 16px;
-    }
-
-    .dashboard-header h1 {
-        font-size: 22px;
-        margin-bottom: 16px;
-    }
-
-    .header-actions {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .user-info {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .dashboard-nav {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .tab-button,
-    .nav-tab {
-        width: 100%;
-        text-align: center;
-    }
-
-    .dashboard-content {
-        padding: 20px 16px;
-    }
-
-    .stats-grid,
-    .stats-overview {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .bot-list-container {
-        grid-template-columns: 1fr;
-    }
-
-    #save-settings,
-    #save-dictionary,
-    #save-personal,
-    #save-premium-settings {
-        max-width: 100%;
-    }
+/* 見出しの色を強制的に設定 */
+.stat-card h3,
+.overview-card h3 {
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
-@media (max-width: 480px) {
-    .dashboard-header h1 {
-        font-size: 20px;
-    }
-
-    .stat-value {
-        font-size: 28px;
-    }
-
-    .server-card,
-    .server-item {
-        padding: 12px 10px;
-    }
-
-    .server-icon,
-    .server-icon-fallback {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="email"],
-    input[type="password"],
-    select,
-    textarea {
-        font-size: 14px;
-    }
-}
-
-/* ===================================
-   ユーティリティクラス
-   =================================== */
-
-.text-center {
-    text-align: center;
-}
-
-.mt-4 {
-    margin-top: 24px;
-}
-
-.mb-4 {
-    margin-bottom: 24px;
-}
-
-.hidden {
-    display: none !important;
-}
-
-.fade-in {
-    animation: fadeIn 0.3s ease-out;
+/* 値の色を強制的に設定 */
+.stat-card .stat-value,
+.overview-card .stat-value {
+    color: #ffffff !important;
 }
