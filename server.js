@@ -57,6 +57,9 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 
+// グローバル変数の定義
+let isShuttingDown = false;
+
 // --- Diagnostics: log env summary and catch crashes early ---
 process.on('uncaughtException', (err) => {
   console.error('[FATAL] uncaughtException:', err && (err.stack || err.message || err));
@@ -1139,16 +1142,55 @@ app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
 });
 
 app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
-  try {
-    const guildId = req.params.guildId;
-    const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
-
-    const settingsData = await loadJsonFile(settingsFile, { settings: null });
-    res.json(settingsData);
-  } catch (error) {
-    console.error('[API] Settings load error:', error);
-    res.status(500).json({ error: '設定の読み込みに失敗しました' });
-  }
+    // シャットダウン中の場合はリクエストを拒否
+    if (isShuttingDown) {
+        return res.status(503).json({ 
+            success: false, 
+            error: 'Server is shutting down' 
+        });
+    }
+    
+    const { guildId } = req.params;
+    
+    try {
+        console.log(`[API] Loading settings for guild: ${guildId}`);
+        
+        // 設定ファイルのパス
+        const settingsPath = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
+        
+        // ファイルが存在するか確認
+        const settingsData = await loadJsonFile(settingsPath, null);
+        
+        if (settingsData && settingsData.settings) {
+            console.log(`[API] Settings found for guild: ${guildId}`);
+            res.json({ success: true, settings: settingsData.settings });
+        } else {
+            console.log(`[API] No settings found for guild: ${guildId}, returning defaults`);
+            // デフォルト設定を返す
+            const defaultSettings = {
+                defaultSpeaker: 'haruka',
+                defaultSpeed: 1.0,
+                defaultPitch: 0,
+                defaultTempo: 1.0,
+                defaultVolume: 1.0,
+                defaultIntonation: 1.0,
+                autoJoinVoice: null,
+                autoJoinText: null,
+                tempVoice: false,
+                autoLeave: true,
+                ignoreBots: true,
+                maxQueue: 10
+            };
+            res.json({ success: true, settings: defaultSettings });
+        }
+    } catch (error) {
+        console.error('[API] Settings load error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to load settings',
+            message: error.message 
+        });
+    }
 });
 
 // Bot内部アクセス用の設定読み込みAPI（認証不要）
@@ -1642,6 +1684,10 @@ class RateLimiter {
         record = {
           count: 0,
           windowStart: now,
+         
+         
+         
+         
           blockedUntil: 0
         };
       }
@@ -1703,3 +1749,114 @@ const authRateLimiter = new RateLimiter({
 // Apply rate limiters
 app.use('/api/', apiRateLimiter.middleware());
 app.use('/auth/', authRateLimiter.middleware());
+
+const fsPromises = require('fs').promises;
+
+/**
+ * JSONファイルを読み込む
+ * @param {string} filePath - ファイルパス
+ * @param {Object} defaultValue - ファイルが存在しない場合のデフォルト値
+ * @returns {Promise<Object>} - JSONオブジェクト
+ */
+async function loadJsonFile(filePath, defaultValue = null) {
+    try {
+        const data = await fsPromises.readFile(filePath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            // ファイルが存在しない場合はデフォルト値を返す
+            console.log(`[loadJsonFile] File not found: ${filePath}, returning default`);
+            return defaultValue;
+        }
+        console.error(`[loadJsonFile] Failed to load JSON file: ${filePath}`, error);
+        throw error;
+    }
+}
+
+/**
+ * JSONファイルに保存する
+ * @param {string} filePath - ファイルパス
+ * @param {Object} data - 保存するデータ
+ * @returns {Promise<void>}
+ */
+async function saveJsonFile(filePath, data) {
+    try {
+        // ディレクトリが存在しない場合は作成
+        const dir = path.dirname(filePath);
+        await fsPromises.mkdir(dir, { recursive: true });
+        
+        // JSONファイルに保存
+        await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+        console.log(`[saveJsonFile] JSON file saved: ${filePath}`);
+    } catch (error) {
+        console.error(`[saveJsonFile] Failed to save JSON file: ${filePath}`, error);
+        throw error;
+    }
+}
+
+// グレースフルシャットダウンの実装
+let server;
+
+process.on('SIGTERM', async () => {
+    console.log('[SHUTDOWN] SIGTERM signal received: closing HTTP server');
+    isShuttingDown = true;
+    
+    if (server) {
+        server.close(() => {
+            console.log('[SHUTDOWN] HTTP server closed');
+            
+            // Redis接続をクローズ
+            if (redisStoreInstance && redisStoreInstance.client) {
+                redisStoreInstance.client.quit().then(() => {
+                    console.log('[SHUTDOWN] Redis connection closed');
+                    process.exit(0);
+                }).catch(err => {
+                    console.error('[SHUTDOWN] Redis close error:', err);
+                    process.exit(1);
+                });
+            } else {
+                process.exit(0);
+            }
+        });
+        
+        // 30秒後に強制終了
+        setTimeout(() => {
+            console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+            process.exit(1);
+        }, 30000);
+    } else {
+        process.exit(0);
+    }
+});
+
+process.on('SIGINT', async () => {
+    console.log('[SHUTDOWN] SIGINT signal received: closing HTTP server');
+    isShuttingDown = true;
+    
+    if (server) {
+        server.close(() => {
+            console.log('[SHUTDOWN] HTTP server closed');
+            
+            // Redis接続をクローズ
+            if (redisStoreInstance && redisStoreInstance.client) {
+                redisStoreInstance.client.quit().then(() => {
+                    console.log('[SHUTDOWN] Redis connection closed');
+                    process.exit(0);
+                }).catch(err => {
+                    console.error('[SHUTDOWN] Redis close error:', err);
+                    process.exit(1);
+                });
+            } else {
+                process.exit(0);
+            }
+        });
+        
+        // 30秒後に強制終了
+        setTimeout(() => {
+            console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+            process.exit(1);
+        }, 30000);
+    } else {
+        process.exit(0);
+    }
+});
