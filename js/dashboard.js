@@ -263,6 +263,218 @@ class Dashboard {
         }
     }
 
+    // セッションチェック
+    async checkSession() {
+        try {
+            const response = await fetch('/api/user/session', {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Not authenticated');
+            }
+            
+            const data = await response.json();
+            this.currentUserId = data.user?.id;
+            
+            logger.info(`[Dashboard] User authenticated: ${this.currentUserId}`);
+        } catch (error) {
+            logger.error(`[Dashboard] Session check failed: ${error.message}`);
+            window.location.href = '/login';
+        }
+    }
+
+    // イベントリスナーの設定
+    setupEventListeners() {
+        // ログアウトボタン
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => this.logout());
+        }
+
+        // 検索機能
+        const searchInput = document.getElementById('server-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterServers(e.target.value);
+            });
+        }
+    }
+
+    // タブナビゲーションの設定
+    setupTabNavigation() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+
+                // すべてのタブとペインから active を削除
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+
+                // クリックされたタブとペインに active を追加
+                button.classList.add('active');
+                const targetPane = document.getElementById(`${targetTab}-tab`);
+                if (targetPane) {
+                    targetPane.classList.add('active');
+                }
+
+                logger.info(`[Dashboard] Switched to tab: ${targetTab}`);
+            });
+        });
+    }
+
+    // サーバー一覧を読み込む
+    async loadServers() {
+        try {
+            logger.info('[Dashboard] Loading user servers...');
+            
+            const response = await fetch('/api/user/servers', {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            logger.info(`[Dashboard] Loaded ${data.servers?.length || 0} servers`);
+            
+            if (data && Array.isArray(data.servers)) {
+                this.servers = data.servers;
+                this.displayServerList(data.servers);
+            } else {
+                logger.error('[Dashboard] Invalid server data:', data);
+                this.showToast('サーバー一覧の取得に失敗しました', 'error');
+            }
+        } catch (error) {
+            logger.error(`[Dashboard] Failed to load servers: ${error.message}`);
+            this.showToast('サーバー一覧の取得中にエラーが発生しました', 'error');
+        }
+    }
+
+    // サーバー一覧を表示
+    displayServerList(servers) {
+        const container = document.getElementById('server-list-container');
+        if (!container) {
+            logger.warn('[Dashboard] Server list container not found');
+            return;
+        }
+
+        if (!servers || servers.length === 0) {
+            container.innerHTML = '<div class="no-servers">参加しているサーバーがありません</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        
+        servers.forEach(server => {
+            const serverCard = this.createServerCard(server);
+            container.appendChild(serverCard);
+        });
+
+        logger.success(`[Dashboard] Displayed ${servers.length} servers`);
+    }
+
+    // サーバーカードを作成
+    createServerCard(server) {
+        const card = document.createElement('div');
+        card.className = 'server-card';
+        card.dataset.serverId = server.id;
+
+        const iconUrl = server.iconUrl || '/images/default-server-icon.png';
+
+        card.innerHTML = `
+            <div class="server-icon">
+                <img src="${iconUrl}" alt="${server.name}" onerror="this.src='/images/default-server-icon.png'">
+            </div>
+            <div class="server-info">
+                <h3 class="server-name">${this.escapeHtml(server.name)}</h3>
+                <p class="server-bot">Bot: ${server.botName || '不明'}</p>
+            </div>
+            <button class="server-manage-btn" data-guild-id="${server.id}">
+                設定
+            </button>
+        `;
+
+        const manageBtn = card.querySelector('.server-manage-btn');
+        manageBtn.addEventListener('click', () => {
+            this.selectServer(server.id);
+        });
+
+        return card;
+    }
+
+    // サーバーを選択
+    async selectServer(guildId) {
+        this.currentGuildId = guildId;
+        logger.info(`[Dashboard] Selected server: ${guildId}`);
+        
+        // サーバー設定タブに切り替え
+        const serverSettingsTab = document.querySelector('[data-tab="server-settings"]');
+        if (serverSettingsTab) {
+            serverSettingsTab.click();
+        }
+
+        // サーバー設定を読み込む
+        await this.loadGuildSettings(guildId);
+    }
+
+    // ギルド設定を読み込む
+    async loadGuildSettings(guildId) {
+        try {
+            logger.info(`[Dashboard] Loading settings for guild: ${guildId}`);
+            
+            const response = await fetch(`/api/guild/${guildId}/settings`, {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            this.currentGuildData = await response.json();
+            
+            this.displayGuildSettings();
+            
+            logger.success(`[Dashboard] Loaded settings for guild: ${guildId}`);
+        } catch (error) {
+            logger.error(`[Dashboard] Failed to load guild settings: ${error.message}`);
+            this.showToast('サーバー設定の取得に失敗しました', 'error');
+        }
+    }
+
+    // ギルド設定を表示
+    displayGuildSettings() {
+        if (!this.currentGuildData) {
+            logger.warn('[Dashboard] No guild data to display');
+            return;
+        }
+
+        // ここに設定表示のロジックを追加
+        logger.info('[Dashboard] Displaying guild settings');
+    }
+
+    // サーバーをフィルター
+    filterServers(searchTerm) {
+        const term = searchTerm.toLowerCase().trim();
+        
+        if (!term) {
+            this.displayServerList(this.servers);
+            return;
+        }
+
+        const filtered = this.servers.filter(server => 
+            server.name.toLowerCase().includes(term)
+        );
+
+        this.displayServerList(filtered);
+        logger.info(`[Dashboard] Filtered servers: ${filtered.length}/${this.servers.length}`);
+    }
+
     // Bot統計を読み込む
     async loadBotStats() {
         const controller = new AbortController();
@@ -282,9 +494,13 @@ class Dashboard {
             
             this.botStats = await response.json();
             
-            logger.info('[Dashboard] Bot statistics loaded:', this.botStats.summary);
+            logger.info('[Dashboard] Bot statistics loaded');
             
-            this.displayBotStats();
+            if (this.botStats && this.botStats.summary) {
+                this.displayBotStats();
+            } else {
+                logger.warn('[Dashboard] Invalid bot stats data received');
+            }
             
         } catch (error) {
             if (error.name === 'AbortError') {
@@ -299,7 +515,7 @@ class Dashboard {
 
     // Bot統計を表示
     displayBotStats() {
-        if (!this.botStats) {
+        if (!this.botStats || !this.botStats.summary) {
             logger.warn('[Dashboard] No bot stats to display');
             return;
         }
@@ -307,22 +523,10 @@ class Dashboard {
         const { summary, bots } = this.botStats;
 
         // サマリー情報を表示
-        this.setTextContent('total-bots', summary.totalBots);
-        this.setTextContent('online-bots', summary.onlineBots);
-        this.setTextContent('offline-bots', summary.offlineBots);
-        this.setTextContent('total-guilds', summary.totalGuilds);
-        this.setTextContent('total-voice-connections', summary.totalVoiceConnections);
-
-        // Bot一覧を表示
-        const botListContainer = document.getElementById('bot-list-container');
-        if (botListContainer) {
-            botListContainer.innerHTML = '';
-            
-            bots.forEach(bot => {
-                const botCard = this.createBotStatsCard(bot);
-                botListContainer.appendChild(botCard);
-            });
-        }
+        this.setTextContent('total-servers', summary.totalGuilds || 0);
+        this.setTextContent('total-users', '計算中...');
+        this.setTextContent('online-bots', summary.onlineBots || 0);
+        this.setTextContent('vc-connections', summary.totalVoiceConnections || 0);
 
         // ステータスインジケーターを更新
         this.updateStatusIndicator(summary);
@@ -330,71 +534,11 @@ class Dashboard {
         logger.success('[Dashboard] Bot statistics displayed');
     }
 
-    // Botステータスカードを作成
-    createBotStatsCard(bot) {
-        const card = document.createElement('div');
-        card.className = `bot-stats-card ${bot.online ? 'online' : 'offline'}`;
-        
-        const statusBadge = bot.online ? 
-            '<span class="status-badge online">🟢 オンライン</span>' : 
-            '<span class="status-badge offline">🔴 オフライン</span>';
-
-        if (bot.online && bot.stats) {
-            card.innerHTML = `
-                <div class="bot-stats-header">
-                    <h4>${bot.name}</h4>
-                    ${statusBadge}
-                </div>
-                <div class="bot-stats-body">
-                    <div class="stat-item">
-                        <span class="stat-label">サーバー数:</span>
-                        <span class="stat-value">${bot.stats.serverCount || 0}</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">接続中VC:</span>
-                        <span class="stat-value">${bot.stats.voiceConnectionCount || 0}</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">稼働時間:</span>
-                        <span class="stat-value">${this.formatUptime(bot.stats.uptime)}</span>
-                    </div>
-                </div>
-                <div class="bot-stats-footer">
-                    <small>更新: ${new Date(bot.timestamp).toLocaleTimeString('ja-JP')}</small>
-                </div>
-            `;
-        } else {
-            card.innerHTML = `
-                <div class="bot-stats-header">
-                    <h4>${bot.name}</h4>
-                    ${statusBadge}
-                </div>
-                <div class="bot-stats-body">
-                    <p class="error-message">⚠️ ${bot.error || '接続できません'}</p>
-                </div>
-                <div class="bot-stats-footer">
-                    <small>更新: ${new Date(bot.timestamp).toLocaleTimeString('ja-JP')}</small>
-                </div>
-            `;
-        }
-
-        return card;
-    }
-
-    // 稼働時間をフォーマット
-    formatUptime(seconds) {
-        if (!seconds) return '不明';
-        
-        const days = Math.floor(seconds / 86400);
-        const hours = Math.floor((seconds % 86400) / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        
-        if (days > 0) {
-            return `${days}日 ${hours}時間 ${minutes}分`;
-        } else if (hours > 0) {
-            return `${hours}時間 ${minutes}分`;
-        } else {
-            return `${minutes}分`;
+    // テキストコンテンツを設定（安全に）
+    setTextContent(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = value;
         }
     }
 
@@ -428,6 +572,32 @@ class Dashboard {
         `;
     }
 
+    // HTMLエスケープ
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // トースト通知
+    showToast(message, type = 'info') {
+        // トースト実装（省略可能）
+        console.log(`[Toast ${type}]`, message);
+    }
+
+    // ログアウト
+    async logout() {
+        try {
+            await fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            window.location.href = '/';
+        } catch (error) {
+            logger.error(`[Dashboard] Logout failed: ${error.message}`);
+        }
+    }
+
     cleanup() {
         // 統計更新を停止
         if (this.statsInterval) {
@@ -442,53 +612,6 @@ class Dashboard {
         
         logger.info('[Dashboard] Cleanup complete');
     }
-}
-
-// エラーハンドリングの改善
-async function loadBotStats() {
-  try {
-    const response = await fetch('/api/bot-stats');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    
-    // データが正しく取得できているか確認
-    console.log('Bot stats:', data);
-    
-    if (data && data.summary) {
-      updateStatsDisplay(data.summary);
-    } else {
-      console.error('Invalid bot stats data:', data);
-      showErrorMessage('統計情報の取得に失敗しました');
-    }
-  } catch (error) {
-    console.error('Failed to load bot stats:', error);
-    showErrorMessage('統計情報の取得中にエラーが発生しました');
-  }
-}
-
-// サーバー一覧の読み込み
-async function loadUserServers() {
-  try {
-    const response = await fetch('/api/user/servers');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    
-    console.log('User servers:', data);
-    
-    if (data && Array.isArray(data.servers)) {
-      displayServerList(data.servers);
-    } else {
-      console.error('Invalid server data:', data);
-      showErrorMessage('サーバー一覧の取得に失敗しました');
-    }
-  } catch (error) {
-    console.error('Failed to load user servers:', error);
-    showErrorMessage('サーバー一覧の取得中にエラーが発生しました');
-  }
 }
 
 // ===================================
