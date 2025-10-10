@@ -82,22 +82,22 @@ body {
 #sidebar {
     width: 280px;
     min-width: 280px;
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-    border-right: 1px solid var(--border-color);
+    background: linear-gradient(180deg, #1a1f2e 0%, #14181f 100%);
+    border-right: 1px solid rgba(88, 101, 242, 0.2);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     position: sticky;
     top: 0;
     height: 100vh;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
     z-index: 50;
 }
 
 .sidebar-header {
     padding: 24px 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: rgba(88, 101, 242, 0.08);
+    border-bottom: 1px solid rgba(88, 101, 242, 0.3);
+    background: rgba(88, 101, 242, 0.1);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -105,232 +105,236 @@ body {
 }
 
 .sidebar-header h2 {
-    color: var(--primary-color);
+    color: #ffffff;
     font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(88, 101, 242, 0.5);
 }
 
-/* サーバー検索 */
+/* サーバー検索ボックス */
 #server-search {
     width: 100%;
-    padding: 10px 16px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border-color);
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(88, 101, 242, 0.3);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
+    color: #ffffff;
     font-size: 14px;
-    margin-bottom: 12px;
+    font-weight: 500;
+    margin-bottom: 16px;
     transition: var(--transition-base);
 }
 
 #server-search:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
-    background: rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+    background: rgba(0, 0, 0, 0.5);
 }
 
 #server-search::placeholder {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* サーバーリストコンテナ */
+.server-list-container {
+    flex: 1;
+    padding: 16px 12px;
+    overflow-y: auto;
+    background: transparent;
 }
 
 /* サーバーリスト */
-.server-list-container,
 #server-list {
-    flex: 1;
-    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.server-list-container::-webkit-scrollbar,
-#server-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.server-list-container::-webkit-scrollbar-track,
-#server-list::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--radius-sm);
-}
-
-.server-list-container::-webkit-scrollbar-thumb,
-#server-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-sm);
-}
-
-.server-list-container::-webkit-scrollbar-thumb:hover,
-#server-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* サーバーカード */
-.server-card,
+/* サーバーアイテム - 完全に再定義 */
 .server-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
+    padding: 14px 16px;
+    margin: 0;
+    background: linear-gradient(135deg, 
+        rgba(26, 31, 46, 0.8) 0%, 
+        rgba(20, 24, 31, 0.8) 100%);
+    border: 2px solid rgba(88, 101, 242, 0.15);
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: var(--transition-base);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
 
-.server-card::before,
+/* サーバーアイテムのハイライトバー */
 .server-item::before {
     content: '';
     position: absolute;
     left: 0;
     top: 0;
-    height: 100%;
-    width: 3px;
-    background: var(--primary-color);
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
     transform: scaleY(0);
-    transition: transform var(--transition-base);
+    transition: transform 0.3s ease;
 }
 
-.server-card:hover,
+/* ホバー状態 */
 .server-item:hover {
-    background: rgba(88, 101, 242, 0.1);
-    border-color: rgba(88, 101, 242, 0.3);
-    transform: translateX(4px);
+    background: linear-gradient(135deg, 
+        rgba(88, 101, 242, 0.15) 0%, 
+        rgba(114, 137, 218, 0.12) 100%);
+    border-color: rgba(88, 101, 242, 0.4);
+    transform: translateX(6px);
+    box-shadow: 0 4px 16px rgba(88, 101, 242, 0.25);
 }
 
-.server-card:hover::before,
 .server-item:hover::before {
     transform: scaleY(1);
 }
 
-.server-card.active,
-.server-item.active {
-    background: rgba(88, 101, 242, 0.15);
-    border-color: rgba(88, 101, 242, 0.4);
+/* 選択状態 */
+.server-item.selected {
+    background: linear-gradient(135deg, 
+        rgba(88, 101, 242, 0.25) 0%, 
+        rgba(114, 137, 218, 0.2) 100%);
+    border-color: rgba(88, 101, 242, 0.6);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.35);
 }
 
-.server-card.active::before,
-.server-item.active::before {
+.server-item.selected::before {
     transform: scaleY(1);
 }
 
-/* サーバーリスト項目 */
-.server-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    margin: 8px 0;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: var(--transition-base);
-    background: rgba(88, 101, 242, 0.05);
-    border: 1px solid rgba(88, 101, 242, 0.1);
+/* アクティブ状態 */
+.server-item:active {
+    transform: translateX(4px) scale(0.98);
 }
 
-.server-item:hover {
-    background: rgba(88, 101, 242, 0.12);
-    border-color: rgba(88, 101, 242, 0.3);
-    transform: translateX(4px);
-}
-
-.server-item.selected {
-    background: linear-gradient(135deg, rgba(88, 101, 242, 0.2), rgba(114, 137, 218, 0.15));
-    border-color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(88, 101, 242, 0.3);
-}
-
+/* サーバーアイコン */
 .server-icon {
     width: 48px;
     height: 48px;
+    min-width: 48px;
     border-radius: 50%;
     margin-right: 14px;
-    flex-shrink: 0;
     object-fit: cover;
-    border: 2px solid rgba(88, 101, 242, 0.2);
+    border: 3px solid rgba(88, 101, 242, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: var(--transition-base);
 }
 
+.server-item:hover .server-icon {
+    border-color: rgba(88, 101, 242, 0.6);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+    transform: scale(1.05);
+}
+
+.server-item.selected .server-icon {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 16px rgba(88, 101, 242, 0.5);
+}
+
+/* フォールバックアイコン */
 .server-icon-fallback {
     width: 48px;
     height: 48px;
+    min-width: 48px;
     border-radius: 50%;
     margin-right: 14px;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    font-weight: 700;
-    font-size: 20px;
-    border: 2px solid rgba(88, 101, 242, 0.3);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 22px;
+    border: 3px solid rgba(88, 101, 242, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: var(--transition-base);
 }
 
+.server-item:hover .server-icon-fallback {
+    border-color: rgba(88, 101, 242, 0.6);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+    transform: scale(1.05);
+}
+
+/* サーバー情報コンテナ */
 .server-info {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
+/* サーバー名 - 最重要修正 */
 .server-name {
     font-size: 15px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.95); /* ← 明るい色に変更 */
+    font-weight: 700;
+    color: #ffffff !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* ← 可読性向上 */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.3px;
 }
 
 .server-item:hover .server-name {
-    color: #ffffff; /* ← ホバー時はさらに明るく */
+    color: #ffffff !important;
+    text-shadow: 0 2px 6px rgba(88, 101, 242, 0.6);
 }
 
 .server-item.selected .server-name {
-    color: #ffffff; /* ← 選択時は白色 */
-    font-weight: 700;
+    color: #ffffff !important;
+    font-weight: 800;
+    text-shadow: 0 2px 8px rgba(88, 101, 242, 0.7);
 }
 
+/* サーバーステータス */
 .server-status {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7); /* ← ステータステキストも明るく */
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 600;
 }
 
 .server-item:hover .server-status {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .server-item.selected .server-status {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95) !important;
 }
 
+/* ステータスインジケーター */
 .status-indicator {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
     border-radius: 50%;
     background-color: var(--success-color);
-    box-shadow: 0 0 8px rgba(67, 181, 129, 0.6);
+    box-shadow: 0 0 12px rgba(67, 181, 129, 0.8);
     animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
     0%, 100% {
-        box-shadow: 0 0 8px rgba(67, 181, 129, 0.6);
+        box-shadow: 0 0 12px rgba(67, 181, 129, 0.8);
         opacity: 1;
     }
     50% {
-        box-shadow: 0 0 16px rgba(67, 181, 129, 0.8);
+        box-shadow: 0 0 20px rgba(67, 181, 129, 1);
         opacity: 0.8;
     }
 }
@@ -338,27 +342,27 @@ body {
 /* オフライン状態 */
 .server-item.offline .status-indicator {
     background-color: var(--error-color);
-    box-shadow: 0 0 8px rgba(240, 71, 71, 0.6);
+    box-shadow: 0 0 12px rgba(240, 71, 71, 0.8);
     animation: none;
 }
 
-/* サーバーリストのスクロールバースタイリング */
+/* スクロールバー */
 .server-list-container::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .server-list-container::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
 }
 
 .server-list-container::-webkit-scrollbar-thumb {
-    background: rgba(88, 101, 242, 0.3);
-    border-radius: 4px;
+    background: rgba(88, 101, 242, 0.4);
+    border-radius: 5px;
 }
 
 .server-list-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(88, 101, 242, 0.5);
+    background: rgba(88, 101, 242, 0.6);
 }
 
 /* ===================================
@@ -378,10 +382,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 32px;
-    background: linear-gradient(135deg, rgba(88, 101, 242, 0.08), rgba(114, 137, 218, 0.05));
-    border-bottom: 1px solid rgba(88, 101, 242, 0.2);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 20px 32px;
+    background: linear-gradient(135deg, 
+        rgba(26, 31, 46, 0.95) 0%, 
+        rgba(20, 24, 31, 0.95) 100%);
+    border-bottom: 2px solid rgba(88, 101, 242, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
 }
 
 .dashboard-header h1 {
@@ -403,36 +410,46 @@ body {
 .user-info {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
+    padding: 8px 16px;
+    background: rgba(88, 101, 242, 0.1);
+    border-radius: var(--radius-full);
+    border: 2px solid rgba(88, 101, 242, 0.2);
+    transition: var(--transition-base);
+}
+
+.user-info:hover {
+    background: rgba(88, 101, 242, 0.15);
+    border-color: rgba(88, 101, 242, 0.4);
 }
 
 #user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: 2px solid rgba(88, 101, 242, 0.4);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 3px solid rgba(88, 101, 242, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: var(--transition-base);
 }
 
 #user-avatar:hover {
     border-color: var(--primary-color);
-    box-shadow: 0 2px 12px rgba(88, 101, 242, 0.4);
-    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(88, 101, 242, 0.5);
+    transform: scale(1.08);
 }
 
 #user-display {
-    font-size: 16px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.95);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    min-width: 120px; /* 最小幅を設定してレイアウトシフトを防止 */
-    transition: color 0.3s ease;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    text-shadow: 0 2px 6px rgba(88, 101, 242, 0.4);
+    min-width: 120px;
+    letter-spacing: 0.3px;
 }
 
-/* ローディング中のアニメーション */
+/* ローディング状態の改善 */
 #user-display.loading {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7) !important;
     animation: pulse-text 1.5s ease-in-out infinite;
 }
 
@@ -445,48 +462,63 @@ body {
     }
 }
 
+/* アバターフォールバック */
+.avatar-fallback {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    font-size: 20px !important;
+    border: 3px solid rgba(88, 101, 242, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: var(--transition-base);
+}
+
+.avatar-fallback:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 16px rgba(88, 101, 242, 0.5);
+    transform: scale(1.08);
+}
+
+/* ボタンのスタイル改善 */
 #logout-btn,
 #discord-login-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
-    transition: var(--transition-base);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.3px;
 }
 
 #logout-btn {
     background: linear-gradient(135deg, #f44336, #d32f2f);
-    color: white;
+    color: #ffffff !important;
 }
 
 #logout-btn:hover {
     background: linear-gradient(135deg, #d32f2f, #c62828);
-    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
-    transform: translateY(-2px);
-}
-
-#logout-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+    box-shadow: 0 6px 16px rgba(244, 67, 54, 0.5);
+    transform: translateY(-3px);
 }
 
 #discord-login-btn {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
+    color: #ffffff !important;
 }
 
 #discord-login-btn:hover {
     background: linear-gradient(135deg, #4e5cd7, #5a6ed8);
-    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
-    transform: translateY(-2px);
-}
-
-#discord-login-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(88, 101, 242, 0.3);
+    box-shadow: 0 6px 16px rgba(88, 101, 242, 0.5);
+    transform: translateY(-3px);
 }
 
 /* ボタンの無効化状態 */
@@ -628,27 +660,29 @@ body {
 }
 
 /* ===================================
-   統計カード（修正版）
+   統計カードの改善（完全版）
    =================================== */
 
 .stats-grid,
 .stats-overview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
 }
 
 .stat-card,
 .overview-card {
-    background: linear-gradient(135deg, rgba(88, 101, 242, 0.08), rgba(114, 137, 218, 0.05));
-    border: 1px solid rgba(88, 101, 242, 0.2);
+    background: linear-gradient(135deg, 
+        rgba(26, 31, 46, 0.9) 0%, 
+        rgba(20, 24, 31, 0.9) 100%);
+    border: 2px solid rgba(88, 101, 242, 0.25);
     border-radius: var(--radius-lg);
-    padding: 24px;
-    transition: var(--transition-base);
+    padding: 28px 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .stat-card::before,
@@ -658,159 +692,131 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
+    height: 5px;
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    box-shadow: 0 2px 8px rgba(88, 101, 242, 0.5);
 }
 
 .stat-card:hover,
 .overview-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3);
-    border-color: rgba(88, 101, 242, 0.4);
-    background: linear-gradient(135deg, rgba(88, 101, 242, 0.12), rgba(114, 137, 218, 0.08));
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(88, 101, 242, 0.4);
+    border-color: rgba(88, 101, 242, 0.5);
+    background: linear-gradient(135deg, 
+        rgba(88, 101, 242, 0.15) 0%, 
+        rgba(114, 137, 218, 0.12) 100%);
 }
 
 .stat-card h3,
 .overview-card h3 {
-    font-size: 13px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 16px;
-}
-
-.stat-value {
-    font-size: 42px;
+    font-size: 14px;
     font-weight: 800;
-    color: #ffffff;
-    line-height: 1;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.75) !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
 }
 
-/* 統計カード内のテキストの視認性向上 */
+/* 統計値 - サイズを大幅に拡大 */
+.stat-value {
+    font-size: 56px !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1;
+    text-shadow: 0 4px 16px rgba(88, 101, 242, 0.6);
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+}
+
+/* 統計カード内の追加テキスト */
 .stat-card p,
 .overview-card p {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    margin-top: 12px;
-}
-
-/* Bot統計カード内の値も修正 */
-.bot-stats-card .stat-value {
-    font-size: 24px;
-    color: #ffffff;
-}
-
-/* ===================================
-   Bot一覧セクション（修正版）
-   =================================== */
-
-.bot-list-section {
-    margin-top: 32px;
-}
-
-.bot-list-section h2 {
-    font-size: 20px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid rgba(88, 101, 242, 0.3);
-}
-
-.bot-list-item {
-    background: rgba(88, 101, 242, 0.08);
-    border: 1px solid rgba(88, 101, 242, 0.2);
-    border-radius: var(--radius-md);
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    transition: var(--transition-base);
-    cursor: pointer;
-}
-
-.bot-list-item:hover {
-    background: rgba(88, 101, 242, 0.12);
-    border-color: rgba(88, 101, 242, 0.3);
-    transform: translateX(4px);
-}
-
-.bot-list-item h3,
-.bot-list-item p,
-.bot-list-item span {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 15px;
     font-weight: 500;
+    margin-top: 16px;
 }
 
-/* ===================================
-   テキストの視認性改善
-   =================================== */
-
-/* すべての見出しの色を調整 */
-h1, h2, h3, h4, h5, h6 {
-    color: rgba(255, 255, 255, 0.95);
-}
-
-/* 段落テキストの色を調整 */
-p {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-/* ラベルテキストの色を調整 */
-label {
-    color: rgba(255, 255, 255, 0.85);
-}
-
-/* Bot統計カード（修正版） */
+/* Bot統計カード */
 .bot-stats-card {
-    background: rgba(88, 101, 242, 0.08);
-    border: 1px solid rgba(88, 101, 242, 0.2);
+    background: linear-gradient(135deg, 
+        rgba(26, 31, 46, 0.9) 0%, 
+        rgba(20, 24, 31, 0.9) 100%);
+    border: 2px solid rgba(88, 101, 242, 0.25);
     border-radius: var(--radius-lg);
-    padding: 20px;
-    transition: var(--transition-base);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 24px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .bot-stats-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3);
-    background: rgba(88, 101, 242, 0.12);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(88, 101, 242, 0.4);
+    background: linear-gradient(135deg, 
+        rgba(88, 101, 242, 0.15) 0%, 
+        rgba(114, 137, 218, 0.12) 100%);
 }
 
 .bot-stats-card.online {
-    border-left: 4px solid var(--success-color);
-    background: linear-gradient(135deg, rgba(67, 181, 129, 0.08), rgba(88, 101, 242, 0.08));
+    border-left: 5px solid var(--success-color);
+    background: linear-gradient(135deg, 
+        rgba(67, 181, 129, 0.12) 0%, 
+        rgba(26, 31, 46, 0.9) 100%);
 }
 
 .bot-stats-card.offline {
-    border-left: 4px solid var(--error-color);
-    background: linear-gradient(135deg, rgba(240, 71, 71, 0.08), rgba(88, 101, 242, 0.08));
+    border-left: 5px solid var(--error-color);
+    background: linear-gradient(135deg, 
+        rgba(240, 71, 71, 0.12) 0%, 
+        rgba(26, 31, 46, 0.9) 100%);
+}
+
+.bot-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(88, 101, 242, 0.2);
 }
 
 .bot-stats-header h4 {
     margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff !important;
+    letter-spacing: 0.3px;
+}
+
+.bot-stats-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .stat-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    font-size: 14px;
+    align-items: center;
+    padding: 12px 0;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
 }
 
 .stat-label {
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 600;
 }
 
 .stat-item .stat-value {
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 16px;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    font-size: 20px !important;
+    text-shadow: 0 2px 8px rgba(88, 101, 242, 0.5);
 }
 
 /* ===================================
@@ -982,4 +988,183 @@ label {
 .stat-card .stat-value,
 .overview-card .stat-value {
     color: #ffffff !important;
+}
+
+/* ===================================
+   Botステータスセクションの完全改修
+   =================================== */
+
+.bot-list-section {
+    margin-top: 40px;
+}
+
+.bot-list-section h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff !important;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid rgba(88, 101, 242, 0.4);
+    text-shadow: 0 2px 8px rgba(88, 101, 242, 0.4);
+}
+
+.bot-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Bot一覧アイテム */
+.bot-list-item {
+    background: linear-gradient(135deg, 
+        rgba(26, 31, 46, 0.9) 0%, 
+        rgba(20, 24, 31, 0.9) 100%);
+    border: 2px solid rgba(88, 101, 242, 0.25);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.bot-list-item:hover {
+    background: linear-gradient(135deg, 
+        rgba(88, 101, 242, 0.15) 0%, 
+        rgba(114, 137, 218, 0.12) 100%);
+    border-color: rgba(88, 101, 242, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3);
+}
+
+.bot-list-item h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff !important;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 6px rgba(88, 101, 242, 0.4);
+}
+
+.bot-list-item p,
+.bot-list-item span {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.bot-list-item .stat-value {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 18px !important;
+}
+
+/* Botステータステキスト（灰色のテキスト修正） */
+.bot-stats-card h4,
+.bot-stats-card p,
+.bot-stats-card span,
+.bot-stats-card div {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Bot名の視認性を確実に */
+.bot-name,
+.bot-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 16px !important;
+}
+
+/* ===================================
+   全体的なテキストコントラスト強制改善
+   =================================== */
+
+/* すべての見出しを強制的に白色に */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* すべての段落テキストを明るく */
+p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* すべてのラベルテキストを明るく */
+label {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600;
+}
+
+/* すべてのスパンとdivのデフォルトテキスト色 */
+span, div {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* リンクの色 */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+a:hover {
+    color: #7289DA;
+    text-decoration: underline;
+}
+
+/* 入力フィールドのテキスト */
+input, textarea, select {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ボタンのテキスト */
+button {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* テーブルのテキスト */
+table {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+th {
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+td {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* リストのテキスト */
+li {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* コードブロックのテキスト */
+code, pre {
+    color: #ffffff !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 強調テキスト */
+strong, b {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+/* イタリックテキスト */
+em, i {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 小さいテキスト */
+small {
+    color: rgba(255, 255, 255, 0.7) !important;
 }
