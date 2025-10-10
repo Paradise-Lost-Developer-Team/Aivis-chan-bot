@@ -270,21 +270,61 @@ try {
   console.warn('[SESSION] failed to parse BASE_URL for cookie settings:', e.message);
 }
 
+// --- Environment Variable Validation (add after initial logging) ---
+function validateEnvironment() {
+  const required = {
+    SESSION_SECRET: process.env.SESSION_SECRET,
+    BASE_URL: process.env.BASE_URL
+  };
+  
+  const missing = Object.entries(required)
+    .filter(([key, value]) => !value || value === 'your-secret-key')
+    .map(([key]) => key);
+  
+  if (missing.length > 0) {
+    console.error('[ENV] Missing or invalid required environment variables:', missing);
+    throw new Error(`Required environment variables not set: ${missing.join(', ')}`);
+  }
+  
+  // Validate SESSION_SECRET strength
+  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length < 32) {
+    console.warn('[ENV] SESSION_SECRET should be at least 32 characters long');
+  }
+  
+  console.log('[ENV] Environment validation passed');
+}
+
+// Call validation before initializing app
+try {
+  validateEnvironment();
+} catch (error) {
+  console.error('[STARTUP] Environment validation failed:', error.message);
+  process.exit(1);
+}
+
+// --- Improved Session Configuration (replace existing sessionConfig) ---
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.SESSION_SECRET, // Already validated above
   resave: false,
   saveUninitialized: false,
-  proxy: true, // trust reverse proxy when determining req.secure
-  cookie: Object.assign({
+  proxy: true,
+  name: 'aivis.sid', // Custom cookie name (avoid default 'connect.sid')
+  cookie: {
     secure: cookieSecure,
+    httpOnly: true, // Prevent XSS attacks
     sameSite: cookieSameSite,
-    maxAge: 24 * 60 * 60 * 1000 // 24時間
-  }, cookieDomain ? { domain: cookieDomain } : {})
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    domain: cookieDomain
+  }
 };
 
-console.log('[SESSION] cookie settings:', { secure: sessionConfig.cookie.secure, sameSite: sessionConfig.cookie.sameSite, domain: sessionConfig.cookie.domain || '(none)' });
-
-if (redisStoreInstance) sessionConfig.store = redisStoreInstance;
+// Add Redis store if available
+if (redisStoreInstance) {
+  sessionConfig.store = redisStoreInstance;
+} else {
+  console.warn('[SESSION] Using memory store - NOT RECOMMENDED FOR PRODUCTION');
+  console.warn('[SESSION] Set SESSION_STORE=redis and REDIS_URL for production use');
+}
 
 app.use(session(sessionConfig));
 app.use(passport.initialize());
@@ -299,18 +339,49 @@ app.use((req, res, next) => {
   next();
 });
 
-// SEO: ダッシュボードは認証後のみ表示されるため、検索エンジンにインデックスさせない
-// HTTP レベルでも保証するため、X-Robots-Tag: noindex を /dashboard 以下に追加するミドルウェア
+// --- Security Headers Middleware (add after trust proxy setup) ---
+app.use((req, res, next) => {
+  // Basic security headers
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Remove identifying headers
+  res.removeHeader('X-Powered-By');
+  
+  // Content Security Policy
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: http:",
+    "connect-src 'self' https://discord.com https://cdn.discordapp.com",
+    "frame-ancestors 'none'"
+  ].join('; ');
+  res.setHeader('Content-Security-Policy', csp);
+  
+  next();
+});
+
+// --- Update SEO middleware to also set security headers (replace existing) ---
 app.use((req, res, next) => {
   try {
     const u = req.url || req.path || '';
-    // ダッシュボードのルートおよびその静的アセット（/dashboard/*, /dashboard.html 等）に対して付与
-    if (u === '/dashboard' || u.startsWith('/dashboard') || u === '/dashboard.html' || u.startsWith('/dashboard/')) {
-      res.set('X-Robots-Tag', 'noindex');
+    
+    // Dashboard pages should not be indexed
+    if (u === '/dashboard' || u.startsWith('/dashboard') || 
+        u === '/dashboard.html' || u.startsWith('/dashboard/')) {
+      res.set('X-Robots-Tag', 'noindex, nofollow');
+      
+      // Additional security for dashboard
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
     }
   } catch (e) {
-    // ヘッダー付与失敗でも処理は継続
-    console.warn('[SEO] failed to set X-Robots-Tag', e && e.message);
+    console.warn('[SECURITY] Failed to set headers:', e.message);
   }
   next();
 });
@@ -380,94 +451,232 @@ const BOT_ID_MAP = {
 // Tries sequentially: /api/stats (existing supplied url), then /stats, then /metrics
 // You can override fallback list via BOT_STATS_FALLBACK_PATHS (comma separated relative paths beginning with /)
 async function fetchBotWithFallback(baseUrl, timeoutMs = 7000) {
+  // Circuit breaker: skip if recently failed too many times
+  const circuitKey = baseUrl;
+  const circuit = botCircuitBreakers.get(circuitKey) || { failures: 0, openUntil: 0 };
+  
+  if (circuit.openUntil > Date.now()) {
+    return {
+      success: false,
+      data: null,
+      error: 'circuit_breaker_open',
+      urls_tried: [baseUrl],
+      errors: [{ message: 'Circuit breaker open due to repeated failures' }]
+    };
+  }
+
   const urlsTried = [];
   const errors = [];
-  // If baseUrl already ends with /api/stats keep that first, then build alternates.
   const parsed = new URL(baseUrl);
   const origin = `${parsed.protocol}//${parsed.host}`;
-  const providedPath = parsed.pathname; // e.g. /api/stats
-  const defaultFallbacks = ['/stats', '/metrics'];
-  let candidatePaths = [providedPath];
-  const envExtra = process.env.BOT_STATS_FALLBACK_PATHS;
-  if (envExtra) {
-    const list = envExtra.split(',').map(s => s.trim()).filter(Boolean);
-    candidatePaths = Array.from(new Set([providedPath, ...list]));
-  } else {
-    // only add default fallbacks if not explicitly overridden
-    defaultFallbacks.forEach(p => { if (!candidatePaths.includes(p)) candidatePaths.push(p); });
-  }
+  const providedPath = parsed.pathname;
+  
+  const candidatePaths = [providedPath, '/stats', '/metrics'];
+  
   for (const p of candidatePaths) {
     const url = origin + p;
     urlsTried.push(url);
+    
     try {
-      const r = await axios.get(url, { timeout: timeoutMs });
-      return { success: true, data: r.data, path_used: p, urls_tried: urlsTried, errors };
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
+      const r = await axios.get(url, { 
+        timeout: timeoutMs,
+        signal: controller.signal,
+        validateStatus: (status) => status === 200
+      });
+      
+      clearTimeout(timeoutId);
+      
+      // Reset circuit breaker on success
+      botCircuitBreakers.set(circuitKey, { failures: 0, openUntil: 0 });
+      
+      return { 
+        success: true, 
+        data: r.data, 
+        path_used: p, 
+        urls_tried: urlsTried, 
+        errors 
+      };
     } catch (e) {
-      errors.push({ path: p, message: e.message, status: e?.response?.status });
+      const error = {
+        path: p,
+        message: e.message,
+        code: e.code,
+        status: e?.response?.status
+      };
+      errors.push(error);
     }
   }
-  return { success: false, data: null, path_used: null, urls_tried: urlsTried, errors };
+  
+  // All paths failed - update circuit breaker
+  circuit.failures++;
+  if (circuit.failures >= 3) {
+    circuit.openUntil = Date.now() + 60000; // Open for 1 minute
+    console.warn(`[CIRCUIT] Opening circuit breaker for ${baseUrl} until ${new Date(circuit.openUntil).toISOString()}`);
+  }
+  botCircuitBreakers.set(circuitKey, circuit);
+  
+  return { 
+    success: false, 
+    data: null, 
+    path_used: null, 
+    urls_tried: urlsTried, 
+    errors 
+  };
 }
 
-// API: aggregated bot stats expected by front-end
+// --- Bot Stats Service with Caching (add before /api/bot-stats route) ---
+class BotStatsCache {
+  constructor(ttlMs = 30000) {
+    this.cache = new Map();
+    this.ttl = ttlMs;
+  }
+  
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() - item.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.data;
+  }
+  
+  set(key, data) {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+  
+  clear() {
+    this.cache.clear();
+  }
+}
+
+const botStatsCache = new BotStatsCache(30000); // 30 second TTL
+
+// --- Update /api/bot-stats route with caching (replace existing) ---
 app.get('/api/bot-stats', async (req, res) => {
+  const cacheKey = 'aggregated-stats';
+  const forceRefresh = String(req.query.refresh || 'false').toLowerCase() === 'true';
+  
+  // Try cache first
+  if (!forceRefresh) {
+    const cached = botStatsCache.get(cacheKey);
+    if (cached) {
+      return res.json(Object.assign({ fromCache: true }, cached));
+    }
+  }
+  
   let aggregatorError = null;
   const wantDebug = String(req.query.debug || 'false').toLowerCase() === 'true';
-  const forceAggregator = String(req.query.forceAggregator || 'false').toLowerCase() === 'true';
-  const noFallback = forceAggregator || String(req.query.noFallback || 'false').toLowerCase() === 'true';
 
+  // Try aggregator first
   if (USE_BOT_STATS_SERVER) {
     try {
       const upstreamUrl = `${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats`;
       const started = Date.now();
-      const upstream = await axios.get(upstreamUrl, { timeout: 7000 });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      
+      const upstream = await axios.get(upstreamUrl, { 
+        timeout: 7000,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       const latencyMs = Date.now() - started;
+      
       if (upstream?.data && Array.isArray(upstream.data.bots)) {
-        const payload = Object.assign({ via: 'aggregator', aggregator_latency_ms: latencyMs }, upstream.data);
-        if (wantDebug) payload.debug = Object.assign(payload.debug||{}, { upstream_url: upstreamUrl });
+        const payload = Object.assign({ 
+          via: 'aggregator', 
+          aggregator_latency_ms: latencyMs,
+          timestamp: new Date().toISOString()
+        }, upstream.data);
+        
+        // Cache the result
+        botStatsCache.set(cacheKey, payload);
+        
+        if (wantDebug) {
+          payload.debug = { upstream_url: upstreamUrl };
+        }
         return res.json(payload);
-      } else {
-        aggregatorError = 'unexpected upstream shape';
-        console.warn('[bot-stats] unexpected upstream shape from bot-stats-server, falling back');
       }
     } catch (e) {
       aggregatorError = e.message || String(e);
-      console.warn('[bot-stats] bot-stats-server fetch failed, fallback to direct multi-fetch:', aggregatorError);
+      console.warn('[bot-stats] Aggregator failed, falling back:', aggregatorError);
     }
   }
 
-  if (noFallback && aggregatorError) {
-    return res.status(502).json({ error: 'aggregator_failed', aggregator_error: aggregatorError, via: 'aggregator', fallback_attempted: false });
-  }
+  // Fallback: direct fetch with parallel requests
+  try {
+    const botEntries = Object.entries(BOT_ID_MAP);
+    const results = await Promise.allSettled(
+      botEntries.map(async ([botId, url]) => {
+        const fetched = await fetchBotWithFallback(url, 5000);
+        
+        if (!fetched.success) {
+          return {
+            bot_id: botId,
+            success: false,
+            online: false,
+            error: fetched.error || 'fetch_failed',
+            fetch_errors: fetched.errors
+          };
+        }
+        
+        const d = fetched.data || {};
+        return {
+          bot_id: botId,
+          success: true,
+          online: true,
+          server_count: Number(d.server_count ?? d.serverCount ?? 0),
+          user_count: Number(d.user_count ?? d.userCount ?? 0),
+          vc_count: Number(d.vc_count ?? d.vcCount ?? 0),
+          uptime: Number(d.uptime ?? d.uptimeRate ?? 0),
+          shard_count: Number(d.shard_count ?? d.shardCount ?? 0),
+          path_used: fetched.path_used
+        };
+      })
+    );
 
-  // fallback direct multi-fetch
-  const botEntries = Object.entries(BOT_ID_MAP);
-  const axiosTimeout = 7000;
-  const results = await Promise.all(botEntries.map(async ([botId, url]) => {
-    const fetched = await fetchBotWithFallback(url, axiosTimeout);
-    if (!fetched.success) {
-      return {
-        bot_id: botId,
-        success: false,
-        error: 'fetch_failed',
-        fetch_errors: fetched.errors,
-        urls_tried: fetched.urls_tried
+    const bots = results
+      .filter(r => r.status === 'fulfilled')
+      .map(r => r.value);
+
+    const payload = {
+      bots,
+      total_bots: botEntries.length,
+      online_bots: bots.filter(b => b.success && b.online).length,
+      timestamp: new Date().toISOString(),
+      via: 'direct',
+      aggregator_error: aggregatorError
+    };
+    
+    // Cache the result
+    botStatsCache.set(cacheKey, payload);
+    
+    if (wantDebug) {
+      payload.debug = {
+        bot_namespace: BOT_NAMESPACE,
+        circuit_breakers: Array.from(botCircuitBreakers.entries())
       };
     }
-    const d = fetched.data || {};
-    const server_count = Number.isFinite(Number(d.server_count ?? d.serverCount)) ? Number(d.server_count ?? d.serverCount) : 0;
-    const user_count = Number.isFinite(Number(d.user_count ?? d.userCount)) ? Number(d.user_count ?? d.userCount) : 0;
-    const vc_count = Number.isFinite(Number(d.vc_count ?? d.vcCount)) ? Number(d.vc_count ?? d.vcCount) : 0;
-    const uptime = Number.isFinite(Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate)) ? Number(d.uptime ?? d.uptimeRate ?? d.uptime_rate) : 0;
-    const shard_count = Number.isFinite(Number(d.shard_count ?? d.shardCount)) ? Number(d.shard_count ?? d.shardCount) : (d.shardCount ? Number(d.shardCount) : 0);
-    const online = d.online ?? d.is_online ?? (server_count > 0);
-    return Object.assign({ bot_id: botId, success: true, path_used: fetched.path_used }, { server_count, user_count, vc_count, uptime, shard_count, online });
-  }));
-  const total_bots = results.length;
-  const online_bots = results.filter(r => r.success && r.online).length;
-  const payload = { bots: results, total_bots, online_bots, timestamp: new Date().toISOString(), fallback: true, aggregator_error: aggregatorError };
-  if (wantDebug) payload.debug = { bot_namespace: BOT_NAMESPACE, base_port: BOT_BASE_PORT, per_bot_ports: BOT_PORTS, legacy_service_port: LEGACY_SERVICE_PORT, stats_server: BOT_STATS_SERVER_BASE, use_aggregator: USE_BOT_STATS_SERVER };
-  return res.json(payload);
+    
+    return res.json(payload);
+  } catch (error) {
+    console.error('[bot-stats] Fallback fetch failed:', error);
+    return res.status(502).json({
+      error: 'Failed to fetch bot stats',
+      message: error.message,
+      aggregator_error: aggregatorError
+    });
+  }
 });
 
 // API: single bot stats by botId
@@ -838,98 +1047,93 @@ app.get('/api/premium-stats', requireAuth, (req, res) => {
 
 // Bot設定保存・取得API
 app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const guildId = req.body.guildId;
-        const settings = req.body.settings;
+  try {
+    const userId = req.user.id;
+    const guildId = req.body.guildId;
+    const settings = req.body.settings;
 
-        if (!guildId || !settings) {
-            return res.status(400).json({ error: 'guildId and settings are required' });
-        }
-
-        // 設定をファイルに保存
-        const settingsDir = path.join('/tmp', 'data', 'settings');
-        if (!fs.existsSync(settingsDir)) {
-            fs.mkdirSync(settingsDir, { recursive: true });
-        }
-
-        const settingsFile = path.join(settingsDir, `${guildId}.json`);
-        const settingsData = {
-            guildId,
-            userId,
-            settings,
-            lastUpdated: new Date().toISOString()
-        };
-
-        fs.writeFileSync(settingsFile, JSON.stringify(settingsData, null, 2));
-
-        // 全Botに即座に設定更新を通知
-        await notifyBotsSettingsUpdate(guildId, 'settings');
-
-        res.json({ success: true, message: '設定を保存しました' });
-    } catch (error) {
-        console.error('Settings save error:', error);
-        res.status(500).json({ error: '設定の保存に失敗しました' });
+    if (!guildId || !settings) {
+      return res.status(400).json({ error: 'guildId and settings are required' });
     }
+
+    const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
+    const settingsData = {
+      guildId,
+      userId,
+      settings,
+      lastUpdated: new Date().toISOString()
+    };
+
+    // Use async file write
+    await saveJsonFile(settingsFile, settingsData);
+    console.log(`[API] Settings saved for guild ${guildId}`);
+
+    // Notify bots asynchronously (don't wait)
+    notifyBotsSettingsUpdate(guildId, settings).catch(err => {
+      console.error('[API] Failed to notify bots:', err.message);
+    });
+
+    res.json({ success: true, message: '設定を保存しました' });
+  } catch (error) {
+    console.error('[API] Settings save error:', error);
+    res.status(500).json({ error: '設定の保存に失敗しました' });
+  }
 });
 
-app.get('/api/settings/:guildId', requireAuth, (req, res) => {
-    try {
-        const guildId = req.params.guildId;
-        const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
+app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+    const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
 
-        if (!fs.existsSync(settingsFile)) {
-            return res.json({ settings: null });
-        }
-
-        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-        res.json(settingsData);
-    } catch (error) {
-        console.error('Settings load error:', error);
-        res.status(500).json({ error: '設定の読み込みに失敗しました' });
-    }
+    const settingsData = await loadJsonFile(settingsFile, { settings: null });
+    res.json(settingsData);
+  } catch (error) {
+    console.error('[API] Settings load error:', error);
+    res.status(500).json({ error: '設定の読み込みに失敗しました' });
+  }
 });
 
 // Bot内部アクセス用の設定読み込みAPI（認証不要）
-app.get('/internal/settings/:guildId', (req, res) => {
-    console.log(`[INTERNAL] Settings request for guild: ${req.params.guildId} from ${req.ip}`);
-    try {
-        const guildId = req.params.guildId;
-        const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
+app.get('/internal/settings/:guildId', async (req, res) => {
+  console.log(`[INTERNAL] Settings request for guild: ${req.params.guildId} from ${req.ip}`);
+  try {
+    const guildId = req.params.guildId;
+    const settingsFile = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
 
-        if (!fs.existsSync(settingsFile)) {
-            console.log(`[INTERNAL] Settings file not found: ${settingsFile}`);
-            return res.json({ settings: null });
-        }
-
-        const settingsData = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-        console.log(`[INTERNAL] Settings loaded for guild ${guildId}:`, Object.keys(settingsData));
-        res.json(settingsData);
-    } catch (error) {
-        console.error('Settings load error:', error);
-        res.status(500).json({ error: '設定の読み込みに失敗しました' });
+    const settingsData = await loadJsonFile(settingsFile, { settings: null });
+    
+    if (!settingsData.settings) {
+      console.log(`[INTERNAL] No settings found for guild ${guildId}`);
+    } else {
+      console.log(`[INTERNAL] Settings loaded for guild ${guildId}`);
     }
+    
+    res.json(settingsData);
+  } catch (error) {
+    console.error('[INTERNAL] Settings load error:', error);
+    res.status(500).json({ error: '設定の読み込みに失敗しました' });
+  }
 });
 
 // Bot内部アクセス用の辞書読み込みAPI（認証不要）
-app.get('/internal/dictionary/:guildId', (req, res) => {
-    console.log(`[INTERNAL] Dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
-    try {
-        const guildId = req.params.guildId;
-        const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
+app.get('/internal/dictionary/:guildId', async (req, res) => {
+  console.log(`[INTERNAL] Dictionary request for guild: ${req.params.guildId} from ${req.ip}`);
+  try {
+    const guildId = req.params.guildId;
+    const dictionaryFile = path.join('/tmp', 'data', 'dictionary', `${guildId}.json`);
 
-        if (!fs.existsSync(dictionaryFile)) {
-            console.log(`[INTERNAL] Dictionary file not found: ${dictionaryFile}`);
-            return res.json({ dictionary: [] });
-        }
-
-        const dictionaryData = JSON.parse(fs.readFileSync(dictionaryFile, 'utf8'));
-        console.log(`[INTERNAL] Dictionary loaded for guild ${guildId}: ${dictionaryData.dictionary ? dictionaryData.dictionary.length : 0} entries`);
-        res.json(dictionaryData);
-    } catch (error) {
-        console.error('Dictionary load error:', error);
-        res.status(500).json({ error: '辞書の読み込みに失敗しました' });
-    }
+    const dictionaryData = await loadJsonFile(dictionaryFile, { dictionary: [] });
+    
+    const entries = Array.isArray(dictionaryData.dictionary) 
+      ? dictionaryData.dictionary 
+      : (Array.isArray(dictionaryData) ? dictionaryData : []);
+    
+    console.log(`[INTERNAL] Dictionary loaded for guild ${guildId}: ${entries.length} entries`);
+    res.json({ dictionary: entries });
+  } catch (error) {
+    console.error('[INTERNAL] Dictionary load error:', error);
+    res.status(500).json({ error: '辞書の読み込みに失敗しました' });
+  }
 });
 
 // Bot内部アクセス用のグローバル辞書取得API
@@ -1375,243 +1579,48 @@ app.get('/auth/discord/callback/pro', (req, res, next) => {
   })(req, res, next);
 });
 
-// Helper function to notify all bot instances of settings changes
-async function notifyBotsSettingsUpdate(guildId, settings) {
-    const botUrls = [
-        process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
-        process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
-        process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
-        process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
-        process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
-        process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
-        process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3008'
-    ];
+// --- Improved Bot Notification System (replace notifyBotsSettingsUpdate function) ---
+async function notifyBotsSettingsUpdate(guildId, settingsType = 'settings') {
+  const botUrls = [
+    process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
+    process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
+    process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
+    process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
+    process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
+    process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
+    process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3008'
+  ];
 
-    const notifyPromises = botUrls.map(async (url) => {
-        try {
-            const response = await fetch(`${url}/internal/apply-web-settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ guildId, settings })
-            });
-            if (!response.ok) {
-                console.warn(`Failed to notify bot at ${url}: ${response.status}`);
-            }
-        } catch (error) {
-            console.warn(`Error notifying bot at ${url}:`, error.message);
-        }
-    });
-
-    await Promise.allSettled(notifyPromises);
-}
-
-// Helper: decode base64-encoded JSON or plain base64 numeric ID
-function tryDecodeBase64Json(input) {
-  if (!input || typeof input !== 'string') return null;
-  try {
-    const decoded = Buffer.from(input, 'base64').toString('utf8');
-    console.log('[PATREON] Base64 decoded value:', decoded);
-    
-    // First check if it's a plain numeric ID (most common case)
-    if (/^\d{15,22}$/.test(decoded)) {
-      console.log('[PATREON] Decoded as plain numeric Discord ID:', decoded);
-      return decoded;
-    }
-    
-    // Try JSON parse for complex objects
+  const notifyPromises = botUrls.map(async (url) => {
     try {
-      const parsed = JSON.parse(decoded);
-      if (parsed && parsed.discordId) {
-        console.log('[PATREON] Decoded as JSON with discordId:', parsed.discordId);
-        return String(parsed.discordId);
-      }
-    } catch (e) {
-      // not JSON, already checked for numeric above
-      console.log('[PATREON] Base64 content is not JSON and not numeric:', decoded);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      const response = await axios.post(
+        `${url}/internal/reload-settings`,
+        { guildId, settingsType },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 3000,
+          signal: controller.signal,
+          validateStatus: (status) => status >= 200 && status < 300
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      console.log(`[NOTIFY] Successfully notified bot at ${url} for guild ${guildId}`);
+      return { url, success: true };
+    } catch (error) {
+      console.warn(`[NOTIFY] Failed to notify bot at ${url}:`, error.message);
+      return { url, success: false, error: error.message };
     }
-  } catch (e) {
-    // not valid base64
-    console.log('[PATREON] Failed to decode base64:', e.message);
-  }
-  return null;
+  });
+
+  const results = await Promise.allSettled(notifyPromises);
+  const successCount = results.filter(r => 
+    r.status === 'fulfilled' && r.value.success
+  ).length;
+  
+  console.log(`[NOTIFY] Notification complete: ${successCount}/${botUrls.length} bots notified for guild ${guildId}`);
+  return { total: botUrls.length, success: successCount };
 }
-
-// Helper: save Patreon link to file
-function savePatreonLink(linkData) {
-  try {
-    const dir = path.dirname(PATREON_LINKS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    
-    let links = [];
-    if (fs.existsSync(PATREON_LINKS_FILE)) {
-      try {
-        const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
-        links = JSON.parse(raw);
-        if (!Array.isArray(links)) links = [];
-      } catch (e) {
-        console.warn('[PATREON] Failed to parse existing links file:', e.message);
-        links = [];
-      }
-    }
-    
-    // Remove existing link for this discordId
-    links = links.filter(l => String(l.discordId) !== String(linkData.discordId));
-    
-    // Add new link
-    links.push(linkData);
-    
-    fs.writeFileSync(PATREON_LINKS_FILE, JSON.stringify(links, null, 2), 'utf8');
-    console.log('[PATREON] Saved link to file:', PATREON_LINKS_FILE);
-  } catch (e) {
-    console.error('[PATREON] Failed to save link:', e);
-    throw e;
-  }
-}
-
-// Helper: append to Patreon callback log
-function appendPatreonCallbackLog(entry) {
-  try {
-    const logFile = path.join('/tmp', 'data', 'patreon_callback.log');
-    const dir = path.dirname(logFile);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n', 'utf8');
-  } catch (e) {
-    console.warn('[PATREON] Failed to append callback log:', e.message);
-  }
-}
-
-// Helper: get Patreon link for a user
-async function getPatreonLink(discordId) {
-  try {
-    if (!fs.existsSync(PATREON_LINKS_FILE)) return null;
-    const raw = fs.readFileSync(PATREON_LINKS_FILE, 'utf8');
-    const links = JSON.parse(raw);
-    if (!Array.isArray(links)) return null;
-    return links.find(l => String(l.discordId) === String(discordId)) || null;
-  } catch (e) {
-    console.warn('[PATREON] Failed to get link:', e.message);
-    return null;
-  }
-}
-
-// Global dictionary cache
-const GLOBAL_DICT_CACHE = {
-  entries: null,
-  fetchedAt: null,
-  errorUntil: null
-};
-const GLOBAL_DICT_CACHE_TTL = parseInt(process.env.GLOBAL_DICT_CACHE_TTL_MS || String(5 * 60 * 1000), 10);
-
-// Patreon OAuth callback handler
-app.get('/auth/patreon/callback', async (req, res) => {
-   const { code, state } = req.query;
-   try {
-     console.log('[PATREON] Callback received:', { code: code ? `***${String(code).slice(-4)}` : 'missing', state: state || 'missing', ip: req.ip });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), ip: req.ip, ua: req.headers['user-agent'], event: 'callback_received', code: code ? ('***' + String(code).slice(-4)) : null, state: state || null });
-   } catch (e) { /* non-fatal */ }
-
-   if (!code || !state) {
-     console.error('[PATREON] Missing required parameters:', { code: !!code, state: !!state });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_missing_params', state: state || null });
-     return res.status(400).send('Missing required parameters. Please try linking again.');
-   }
-   if (!PATREON_CLIENT_ID || !PATREON_CLIENT_SECRET) {
-     console.error('[PATREON] Client credentials not configured in callback');
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_not_configured' });
-     return res.status(500).send('Patreon client not configured. Please contact administrator.');
-   }
-   if (!PATREON_REDIRECT_URI) {
-     console.error('[PATREON] REDIRECT_URI not configured in callback');
-     return res.status(500).send('Patreon redirect URI not configured. Please contact administrator.');
-   }
-
-   // exchange code for token
-   try {
-     console.log('[PATREON] Attempting token exchange...');
-     const tokenResp = await axios.post('https://www.patreon.com/api/oauth2/token', new URLSearchParams({
-       grant_type: 'authorization_code',
-       code: String(code),
-       client_id: PATREON_CLIENT_ID,
-       client_secret: PATREON_CLIENT_SECRET,
-       redirect_uri: PATREON_REDIRECT_URI
-     }).toString(), { 
-       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-       timeout: 10000
-     });
-
-     const tokenData = tokenResp.data;
-     console.log('[PATREON] Token exchange successful');
-     
-     // get patreon identity
-     console.log('[PATREON] Fetching Patreon identity...');
-     const meResp = await axios.get('https://www.patreon.com/api/oauth2/v2/identity', { 
-       headers: { Authorization: `Bearer ${tokenData.access_token}` },
-       timeout: 10000
-     });
-     const patreonId = meResp.data?.data?.id || null;
-     console.log('[PATREON] Identity fetched, patreonId:', patreonId);
-
-     // Parse state to extract discordId
-     let discordId = null;
-     let guildId = undefined;
-
-     console.log('[PATREON] Parsing state:', state);
-     
-     // Strategy 1: Check if state contains colon (format: "discordId:random" or "base64:random")
-     if (String(state).includes(':')) {
-       const left = String(state).split(':', 1)[0];
-       console.log('[PATREON] State contains colon, left part:', left);
-       
-       // Try to decode left part as base64
-       const decoded = tryDecodeBase64Json(left);
-       if (decoded) {
-         discordId = decoded;
-         console.log('[PATREON] Decoded discordId from colon-separated base64:', discordId);
-       } else if (/^\d{15,22}$/.test(left)) {
-         // Left part is already a plain numeric ID
-         discordId = left;
-         console.log('[PATREON] Extracted plain discordId from colon-separated state:', discordId);
-       }
-     }
-     
-     // Strategy 2: If no colon, try direct base64 decode
-     if (!discordId) {
-       console.log('[PATREON] No colon found, trying direct base64 decode');
-       const decoded = tryDecodeBase64Json(state);
-       if (decoded) {
-         discordId = decoded;
-         console.log('[PATREON] Decoded discordId from direct base64:', discordId);
-       }
-     }
-     
-     // Strategy 3: Check if state itself is a plain numeric ID
-     if (!discordId && /^\d{15,22}$/.test(String(state))) {
-       discordId = String(state);
-       console.log('[PATREON] State is plain numeric Discord ID:', discordId);
-     }
-
-     if (!discordId) {
-       console.error('[PATREON] Failed to extract discordId from state:', state);
-       appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_invalid_state', state: state || null });
-       return res.status(400).send('Invalid state parameter. Please try linking again.');
-     }
-
-     // Save the link and persist
-     savePatreonLink({ discordId: discordId || '', patreonId, tokenData, guildId, createdAt: new Date().toISOString() });
-
-     console.log('[PATREON] Link saved successfully:', { discordId, patreonId });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_success', discordId: String(discordId), patreonId: patreonId || null });
-
-     // Redirect to success page
-     const successPath = `/auth/patreon/success.html?discordId=${encodeURIComponent(discordId)}&patreonId=${encodeURIComponent(patreonId || '')}&ts=${Date.now()}`;
-     return res.redirect(successPath);
-   } catch (e) {
-     const errStatus = e?.response?.status || 'no-status';
-     const errBody = e?.response?.data ? (typeof e.response.data === 'string' ? e.response.data.slice(0,1000) : JSON.stringify(e.response.data).slice(0,1000)) : (e.message || String(e));
-     console.error('[PATREON] Callback error:', { status: errStatus, message: e.message, body: errBody });
-     appendPatreonCallbackLog({ ts: new Date().toISOString(), event: 'callback_error', error: errBody, state: state || null });
-     return res.status(500).send(`Failed to link Patreon account. Error: ${e.message || 'Unknown error'}. Please try again or contact support.`);
-   }
- });
