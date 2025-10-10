@@ -723,7 +723,7 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
   if (USE_BOT_STATS_SERVER) {
     try {
       const r = await axios.get(`${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats/${botId}`, { timeout: 7000 });
-      if r?.data) return res.json(Object.assign({ via: 'aggregator' }, r.data));
+      if (r?.data) return res.json(Object.assign({ via: 'aggregator' }, r.data));
     } catch (e) {
       console.warn(`[single-bot] aggregator fetch failed for ${botId}:`, e.message);
     }
@@ -1594,209 +1594,117 @@ app.get('/health/redis', async (req, res) => {
   }
 });
 
-// Ensure we actually start listening and log it (add/replace at end of file)
+// --- Server Startup ---
 if (require.main === module) {
-  app.listen(PORT, HOST, () => {
-    console.log(`[LISTEN] app listening on ${HOST}:${PORT} (PID ${process.pid})`);
-  });
-}
-
-// Replace fallback pro-callback with explicit callback handling too
-app.get('/auth/discord/callback/pro', (req, res, next) => {
-  const preferred = passport._strategies && (passport._strategies['discord-pro'] ? 'discord-pro' : (passport._strategies['discord'] ? 'discord' : (passport._strategies['discord-free'] ? 'discord-free' : null)));
-  if (!preferred) {
-    console.warn('[auth] no discord strategy available for pro callback');
-    return res.redirect('/login');
-  }
-
-  passport.authenticate(preferred, { session: true }, (err, user, info) => {
-    try {
-      console.log('[AUTH DEBUG] pro callback raw:', { strategy: preferred, err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
-      if (err) {
-        console.error('[AUTH DEBUG] authenticate error (pro):', err && (err.stack || err.message || err));
-        return res.status(500).send('authentication error');
-      }
-      if (!user) {
-        console.warn('[AUTH DEBUG] authenticate returned no user (pro), info=', info);
-        return res.redirect('/login');
-      }
-      req.logIn(user, (loginErr) => {
-        if (loginErr) {
-          console.error('[AUTH DEBUG] req.logIn failed (pro):', loginErr && (loginErr.stack || loginErr.message || loginErr));
-          return res.status(500).send('login failed');
-        }
-        if (req.session) {
-          req.session.save((saveErr) => {
-            if (saveErr) console.warn('[SESSION] save after oauth failed (pro):', saveErr && (saveErr.message || saveErr));
-            console.log('[AUTH DEBUG] pro login success sessionID=', req.sessionID);
-            return res.redirect('/dashboard?version=pro');
-          });
-        } else {
-          console.log('[AUTH DEBUG] pro login success but no session object');
-          return res.redirect('/dashboard?version=pro');
-        }
-      });
-    } catch (inner) {
-      console.error('[AUTH DEBUG] unexpected error in pro callback handler:', inner && (inner.stack || inner.message || inner));
-      return res.status(500).send('internal handler error');
-    }
-  })(req, res, next);
-});
-
-// --- Improved Bot Notification System (replace notifyBotsSettingsUpdate function) ---
-async function notifyBotsSettingsUpdate(guildId, settingsType = 'settings') {
-  const botUrls = [
-    process.env.BOT_1ST_URL || 'http://aivis-chan-bot-1st.aivis-chan-bot.svc.cluster.local:3002',
-    process.env.BOT_2ND_URL || 'http://aivis-chan-bot-2nd.aivis-chan-bot.svc.cluster.local:3003',
-    process.env.BOT_3RD_URL || 'http://aivis-chan-bot-3rd.aivis-chan-bot.svc.cluster.local:3004',
-    process.env.BOT_4TH_URL || 'http://aivis-chan-bot-4th.aivis-chan-bot.svc.cluster.local:3005',
-    process.env.BOT_5TH_URL || 'http://aivis-chan-bot-5th.aivis-chan-bot.svc.cluster.local:3006',
-    process.env.BOT_6TH_URL || 'http://aivis-chan-bot-6th.aivis-chan-bot.svc.cluster.local:3007',
-    process.env.BOT_PRO_PREMIUM_URL || 'http://aivis-chan-bot-pro-premium.aivis-chan-bot.svc.cluster.local:3008'
-  ];
-
-  const notifyPromises = botUrls.map(async (url) => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      const response = await axios.post(
-        `${url}/internal/reload-settings`,
-        { guildId, settingsType },
-        {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 3000,
-          signal: controller.signal,
-          validateStatus: (status) => status >= 200 && status < 300
-        }
-      );
-      
-      clearTimeout(timeoutId);
-      console.log(`[NOTIFY] Successfully notified bot at ${url} for guild ${guildId}`);
-      return { url, success: true };
-    } catch (error) {
-      console.warn(`[NOTIFY] Failed to notify bot at ${url}:`, error.message);
-      return { url, success: false, error: error.message };
-    }
+  server = app.listen(PORT, HOST, () => {
+    console.log(`[LISTEN] Server started successfully`);
+    console.log(`[LISTEN] - Address: http://${HOST}:${PORT}`);
+    console.log(`[LISTEN] - Process ID: ${process.pid}`);
+    console.log(`[LISTEN] - Node Version: ${process.version}`);
+    console.log(`[LISTEN] - Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`[LISTEN] Ready to accept connections`);
   });
 
-  const results = await Promise.allSettled(notifyPromises);
-  const successCount = results.filter(r => 
-    r.status === 'fulfilled' && r.value.success
-  ).length;
-  
-  console.log(`[NOTIFY] Notification complete: ${successCount}/${botUrls.length} bots notified for guild ${guildId}`);
-  return { total: botUrls.length, success: successCount };
-}
-
-// --- Async File Operations Helper ---
-const fsPromises = require('fs').promises;
-
-async function ensureDirectory(dirPath) {
-  try {
-    await fsPromises.mkdir(dirPath, { recursive: true });
-  } catch (error) {
-    if (error.code !== 'EEXIST') throw error;
-  }
-}
-
-async function saveJsonFile(filePath, data) {
-  const dir = path.dirname(filePath);
-  await ensureDirectory(dir);
-  await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-}
-
-async function loadJsonFile(filePath, defaultValue = null) {
-  try {
-    const exists = await fsPromises.access(filePath)
-      .then(() => true)
-      .catch(() => false);
-    
-    if (!exists) return defaultValue;
-    
-    const content = await fsPromises.readFile(filePath, 'utf8');
-    return JSON.parse(content);
-  } catch (error) {
-    console.error(`[FS] Failed to load JSON file ${filePath}:`, error.message);
-    return defaultValue;
-  }
-}
-
-// --- Graceful Shutdown Handler ---
-let isShuttingDown = false;
-let server = null;
-const activeConnections = new Set();
-
-// Track active connections
-app.use((req, res, next) => {
-  if (isShuttingDown) {
-    res.set('Connection', 'close');
-    return res.status(503).json({ error: 'Server is shutting down' });
-  }
-  
-  activeConnections.add(res);
-  res.on('finish', () => activeConnections.delete(res));
-  res.on('close', () => activeConnections.delete(res));
-  next();
-});
-
-async function gracefulShutdown(signal) {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
-  
-  console.log(`[SHUTDOWN] Received ${signal}, shutting down gracefully...`);
-  
-  // Stop accepting new connections
-  if (server) {
-    server.close(() => {
-      console.log('[SHUTDOWN] HTTP server closed');
-    });
-  }
-  
-  // Close Redis connection
-  if (redisStoreInstance && redisStoreInstance.client) {
-    try {
-      await redisStoreInstance.client.quit();
-      console.log('[SHUTDOWN] Redis connection closed');
-    } catch (e) {
-      console.error('[SHUTDOWN] Redis close error:', e.message);
-    }
-  }
-  
-  // Wait for active connections to finish (with timeout)
-  const timeout = setTimeout(() => {
-    console.error(`[SHUTDOWN] Forcing exit after timeout (${activeConnections.size} connections remaining)`);
+  server.on('error', (err) => {
+    console.error('[LISTEN] Server error:', err);
     process.exit(1);
-  }, 30000); // 30 second timeout
-  
-  const checkInterval = setInterval(() => {
-    const remaining = activeConnections.size;
-    if (remaining === 0) {
-      clearInterval(checkInterval);
-      clearTimeout(timeout);
-      console.log('[SHUTDOWN] All connections closed, exiting gracefully');
-      process.exit(0);
-    } else {
-      console.log(`[SHUTDOWN] Waiting for ${remaining} active connection(s) to finish...`);
-    }
-  }, 1000);
+  });
 }
 
-// Replace existing error handlers
-process.removeAllListeners('uncaughtException');
-process.removeAllListeners('unhandledRejection');
-process.removeAllListeners('SIGTERM');
-process.removeAllListeners('SIGINT');
+module.exports = app; // For testing
 
-process.on('uncaughtException', (err) => {
-  console.error('[FATAL] Uncaught Exception:', err.stack || err.message || err);
-  gracefulShutdown('uncaughtException');
+// --- Rate Limiter Middleware ---
+class RateLimiter {
+  constructor(options = {}) {
+    this.requests = new Map();
+    this.limit = options.limit || 100;
+    this.window = options.window || 60000; // 1 minute
+    this.blockDuration = options.blockDuration || 300000; // 5 minutes
+    
+    // Cleanup old entries periodically
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, record] of this.requests.entries()) {
+        if (now - record.windowStart > this.window && record.blockedUntil < now) {
+          this.requests.delete(key);
+        }
+      }
+    }, 60000); // Clean every minute
+  }
+  
+  middleware() {
+    return (req, res, next) => {
+      if (isShuttingDown) {
+        return res.status(503).json({ error: 'Server is shutting down' });
+      }
+      
+      const key = req.ip || req.connection.remoteAddress || 'unknown';
+      const now = Date.now();
+      
+      let record = this.requests.get(key);
+      
+      // Initialize or reset if outside window
+      if (!record || now - record.windowStart > this.window) {
+        record = {
+          count: 0,
+          windowStart: now,
+          blockedUntil: 0
+        };
+      }
+      
+      // Check if blocked
+      if (record.blockedUntil > now) {
+        const retryAfter = Math.ceil((record.blockedUntil - now) / 1000);
+        res.set('Retry-After', retryAfter);
+        return res.status(429).json({ 
+          error: 'Too many requests', 
+          retryAfter 
+        });
+      }
+      
+      // Increment count
+      record.count++;
+      
+      // Check limit
+      if (record.count > this.limit) {
+        record.blockedUntil = now + this.blockDuration;
+        this.requests.set(key, record);
+        
+        console.warn(`[RATE_LIMIT] Blocking ${key} for ${this.blockDuration}ms (${record.count} requests)`);
+        
+        const retryAfter = Math.ceil(this.blockDuration / 1000);
+        res.set('Retry-After', retryAfter);
+        return res.status(429).json({ 
+          error: 'Too many requests', 
+          retryAfter 
+        });
+      }
+      
+      this.requests.set(key, record);
+      
+      // Set rate limit headers
+      res.set('X-RateLimit-Limit', this.limit);
+      res.set('X-RateLimit-Remaining', Math.max(0, this.limit - record.count));
+      res.set('X-RateLimit-Reset', new Date(record.windowStart + this.window).toISOString());
+      
+      next();
+    };
+  }
+}
+
+// Create rate limiters for different endpoints
+const apiRateLimiter = new RateLimiter({ 
+  limit: 100, 
+  window: 60000,
+  blockDuration: 300000
 });
 
-process.on('unhandledRejection', (reason) => {
-  console.error('[FATAL] Unhandled Rejection:', reason);
-  gracefulShutdown('unhandledRejection');
+const authRateLimiter = new RateLimiter({ 
+  limit: 10, 
+  window: 60000,
+  blockDuration: 600000 // 10 minutes for auth endpoints
 });
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+// Apply rate limiters
+app.use('/api/', apiRateLimiter.middleware());
+app.use('/auth/', authRateLimiter.middleware());
