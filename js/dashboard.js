@@ -745,42 +745,87 @@ class Dashboard {
     // ログアウトのセットアップ
     setupLogout() {
         const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            // 既存のリスナーを削除してから新規登録（重複防止）
-            const newLogoutBtn = logoutBtn.cloneNode(true);
-            logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
-            
-            newLogoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
-            
-            logger.info('[Dashboard] Logout button initialized');
-        } else {
+        if (!logoutBtn) {
             console.warn('[Dashboard] Logout button element not found');
+            return;
         }
+        
+        // 既存のイベントリスナーを削除するため、ボタンをクローン
+        const newLogoutBtn = logoutBtn.cloneNode(true);
+        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+        
+        // 新しいボタンにイベントリスナーを追加
+        newLogoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('[Dashboard] Logout button clicked');
+            logger.info('[Dashboard] Logging out...');
+            
+            this.logout();
+        });
+        
+        logger.info('[Dashboard] Logout button initialized');
+        console.log('[Dashboard] Logout button event listener attached');
     }
 
     // ログアウト処理
     logout() {
-        logger.info('[Dashboard] Logging out...');
+        console.log('[Dashboard] ========== LOGOUT START ==========');
         
-        // ローカルデータをクリア
         try {
-            localStorage.removeItem('bot-settings');
-            localStorage.removeItem('personal-settings');
-            localStorage.removeItem('dictionary-entries');
-            localStorage.removeItem('auto-connect-settings');
-            logger.info('[Dashboard] Local storage cleared');
+            logger.info('[Dashboard] Starting logout process...');
+            
+            // ローカルデータをクリア
+            try {
+                const keysToRemove = [
+                    'bot-settings',
+                    'personal-settings',
+                    'dictionary-entries',
+                    'auto-connect-settings'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log(`[Dashboard] Removed localStorage key: ${key}`);
+                });
+                
+                logger.info('[Dashboard] Local storage cleared');
+            } catch (storageError) {
+                console.error('[Dashboard] Failed to clear local storage:', storageError);
+                logger.error('ローカルストレージのクリアに失敗しました');
+            }
+            
+            // クリーンアップ処理を実行
+            console.log('[Dashboard] Running cleanup...');
+            this.cleanup();
+            
+            // 状態をリセット
+            this.state.isLoggedIn = false;
+            this.state.user = null;
+            this.state.currentGuildId = null;
+            
+            console.log('[Dashboard] State reset complete');
+            logger.success('[Dashboard] Logout process complete');
+            
+            // サーバーセッションを破棄してリダイレクト
+            console.log('[Dashboard] Redirecting to /logout...');
+            window.location.href = '/logout';
+            
         } catch (error) {
-            console.error('[Dashboard] Failed to clear local storage:', error);
+            console.error('[Dashboard] ========== LOGOUT ERROR ==========');
+            console.error('[Dashboard] Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            logger.error('ログアウト処理中にエラーが発生しました');
+            
+            // エラーが発生してもリダイレクトを試みる
+            console.log('[Dashboard] Attempting redirect despite error...');
+            window.location.href = '/logout';
         }
         
-        // クリーンアップ処理を実行
-        this.cleanup();
-        
-        // サーバーセッションを破棄してリダイレクト
-        window.location.href = '/logout';
+        console.log('[Dashboard] ========== LOGOUT END ==========');
     }
 
     // プレミアムステータスを確認
