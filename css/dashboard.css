@@ -1117,11 +1117,6 @@ input, textarea, select {
     font-weight: 500;
 }
 
-input::placeholder,
-textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
-}
-
 /* ボタンのテキスト */
 button {
     color: #ffffff !important;
@@ -1167,4 +1162,415 @@ em, i {
 /* 小さいテキスト */
 small {
     color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* ===================================
+   フォーム要素の完全改修
+   =================================== */
+
+/* すべての入力フィールドの基本スタイル */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+textarea,
+select {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 2px solid rgba(88, 101, 242, 0.3);
+    border-radius: var(--radius-md);
+    color: #ffffff !important;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: var(--transition-base);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="url"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: rgba(0, 0, 0, 0.75) !important;
+    box-shadow: 
+        inset 0 2px 6px rgba(0, 0, 0, 0.3),
+        0 0 0 3px rgba(88, 101, 242, 0.25);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-weight: 500;
+}
+
+/* 無効化状態 */
+input:disabled,
+textarea:disabled,
+select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* テキストエリア */
+textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+/* セレクトボックス */
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px;
+    padding-right: 48px;
+}
+
+select option {
+    background: #1a1f2e;
+    color: #ffffff;
+    padding: 12px;
+}
+
+/* チェックボックスとラジオボタン */
+input[type="checkbox"],
+input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+/* フォームグループ */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 13px;
+}
+
+/* インラインフォーム */
+.form-inline {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.form-inline .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* 辞書管理の入力フィールド（特別対応） */
+.dictionary-form input,
+.dictionary-entry-form input,
+#dictionary-tab input {
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(88, 101, 242, 0.4);
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.dictionary-form input:focus,
+.dictionary-entry-form input:focus,
+#dictionary-tab input:focus {
+    background: rgba(0, 0, 0, 0.85) !important;
+    border-color: var(--primary-color);
+    box-shadow: 
+        inset 0 2px 8px rgba(0, 0, 0, 0.4),
+        0 0 0 3px rgba(88, 101, 242, 0.3);
+}
+
+/* ===================================
+   辞書管理セクション専用スタイル
+   =================================== */
+
+#dictionary-tab {
+    background: linear-gradient(180deg, 
+        rgba(26, 31, 46, 0.4) 0%, 
+        rgba(15, 20, 25, 0.6) 100%);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+}
+
+#dictionary-tab h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff !important;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid rgba(88, 101, 242, 0.4);
+    text-shadow: 0 2px 8px rgba(88, 101, 242, 0.5);
+}
+
+#dictionary-tab h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95) !important;
+    margin: 32px 0 20px 0;
+    padding-left: 16px;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* 辞書エントリー管理フォーム */
+.dictionary-entry-form {
+    background: rgba(26, 31, 46, 0.8);
+    border: 2px solid rgba(88, 101, 242, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dictionary-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+}
+
+.dictionary-form-row .form-group {
+    margin-bottom: 0;
+}
+
+.dictionary-form-row label {
+    display: block;
+    margin-bottom: 10px;
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.dictionary-form-row input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: 2px solid rgba(88, 101, 242, 0.4);
+    border-radius: var(--radius-md);
+    color: #ffffff !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.dictionary-form-row input:focus {
+    background: rgba(0, 0, 0, 0.85) !important;
+    border-color: var(--primary-color);
+    box-shadow: 
+        inset 0 2px 8px rgba(0, 0, 0, 0.4),
+        0 0 0 3px rgba(88, 101, 242, 0.3);
+}
+
+/* 現在の辞書エントリー一覧 */
+.dictionary-entries-container {
+    background: rgba(15, 20, 25, 0.6);
+    border: 2px solid rgba(88, 101, 242, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    min-height: 300px;
+}
+
+.dictionary-entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dictionary-entry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, 
+        rgba(26, 31, 46, 0.9) 0%, 
+        rgba(20, 24, 31, 0.9) 100%);
+    border: 2px solid rgba(88, 101, 242, 0.25);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    transition: var(--transition-base);
+}
+
+.dictionary-entry-item:hover {
+    background: linear-gradient(135deg, 
+        rgba(88, 101, 242, 0.15) 0%, 
+        rgba(114, 137, 218, 0.12) 100%);
+    border-color: rgba(88, 101, 242, 0.4);
+    transform: translateX(6px);
+    box-shadow: 0 4px 16px rgba(88, 101, 242, 0.3);
+}
+
+.dictionary-entry-content {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.dictionary-entry-word {
+    min-width: 150px;
+}
+
+.dictionary-entry-word strong {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.dictionary-entry-word span {
+    font-size: 18px;
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+.dictionary-entry-reading {
+    flex: 1;
+}
+
+.dictionary-entry-reading strong {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.dictionary-entry-reading span {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600;
+}
+
+.dictionary-entry-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* 削除ボタン */
+.btn-delete,
+.btn-remove {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, var(--error-color), #d43f3f);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.btn-delete:hover,
+.btn-remove:hover {
+    background: linear-gradient(135deg, #d43f3f, #c23333);
+    box-shadow: 0 4px 12px rgba(240, 71, 71, 0.5);
+    transform: translateY(-2px);
+}
+
+/* 空の状態 */
+.dictionary-empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.dictionary-empty-state svg,
+.dictionary-empty-state i {
+    font-size: 64px;
+    color: rgba(88, 101, 242, 0.3);
+    margin-bottom: 20px;
+}
+
+.dictionary-empty-state h4 {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin-bottom: 12px;
+}
+
+.dictionary-empty-state p {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ===================================
+   トーストメッセージ
+   =================================== */
+
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toast {
+    background: rgba(26, 31, 46, 0.98);
+    border: 2px solid;
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    min-width: 320px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.toast-info {
+    border-color: var(--info-color);
+}
+
+.toast.toast-success {
+    border-color: var(--success-color);
+}
+
+.toast.toast-warning {
+    border-color: var(--warning-color);
+}
+
+.toast.toast-error {
+    border-color: var(--error-color);
+}
+
+.toast-message {
+    color: #ffffff !important;
+    font-weight: 600;
 }

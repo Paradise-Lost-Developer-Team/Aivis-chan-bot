@@ -1710,102 +1710,95 @@ class Dashboard {
                 return;
             }
 
-            // 初期状態：読み込み中表示
+            // 初期状態：読み込み中クラスを追加
+            displayEl.classList.add('loading');
             displayEl.textContent = '読み込み中...';
             displayEl.style.color = 'rgba(255, 255, 255, 0.6)';
 
-            if (this.state.isLoggedIn && this.state.user) {
-                // ユーザー名の取得（優先順位付き、デバッグ出力）
-                const name = this.state.user.nickname 
-                    || this.state.user.username 
-                    || this.state.user.displayName 
-                    || this.state.user.name 
-                    || this.state.user.tag 
-                    || 'ユーザー';
-                
-                console.log('[Dashboard] User name resolved:', name);
-                console.log('[Dashboard] User object keys:', Object.keys(this.state.user));
-                
-                displayEl.textContent = name;
-                displayEl.style.color = 'rgba(255, 255, 255, 0.95)';
-                displayEl.style.fontWeight = '600';
+            // 短い遅延の後、状態を確認
+            await new Promise(resolve => setTimeout(resolve, 100));
 
-                // アバター画像の設定
-                if (avatarEl) {
-                    let avatarSrc = null;
-                    
-                    // アバターURLの取得（優先順位付き）
-                    if (this.state.user.avatarUrl) {
-                        avatarSrc = this.state.user.avatarUrl;
-                        console.log('[Dashboard] Using avatarUrl:', avatarSrc);
-                    } else if (this.state.user.avatar && this.state.user.id) {
-                        avatarSrc = `https://cdn.discordapp.com/avatars/${this.state.user.id}/${this.state.user.avatar}.png?size=128`;
-                        console.log('[Dashboard] Constructed avatar URL:', avatarSrc);
-                    } else if (this.state.user.avatarPath) {
-                        avatarSrc = this.state.user.avatarPath;
-                        console.log('[Dashboard] Using avatarPath:', avatarSrc);
-                    } else {
-                        console.warn('[Dashboard] No avatar URL available');
-                    }
-
-                    if (avatarSrc) {
-                        avatarEl.src = avatarSrc;
-                        avatarEl.style.display = 'block';
-                        avatarEl.alt = `${name} のアバター`;
-                        
-                        // エラーハンドリング
-                        avatarEl.onerror = () => {
-                            console.error('[Dashboard] Failed to load avatar:', avatarSrc);
-                            avatarEl.style.display = 'none';
-                            // Fallback: 名前の頭文字を表示
-                            this.createFallbackAvatar(name);
-                        };
-                    } else {
-                        avatarEl.style.display = 'none';
-                        this.createFallbackAvatar(name);
-                    }
-                }
-
-                // ボタンの表示切り替え
-                if (logoutBtn) {
-                    logoutBtn.style.display = 'inline-block';
-                    logoutBtn.disabled = false;
-                }
-                if (loginBtn) {
-                    loginBtn.style.display = 'none';
-                }
-
-                logger.success(`[Dashboard] User info loaded: ${name}`);
-                console.log('[Dashboard] User info display complete');
-            } else {
-                // 未ログイン状態
+            if (!this.state.isLoggedIn || !this.state.user) {
+                // 未ログイン状態を確定
                 console.warn('[Dashboard] User not logged in or user data missing');
-                
+                displayEl.classList.remove('loading');
                 displayEl.textContent = '未ログイン';
                 displayEl.style.color = 'rgba(255, 255, 255, 0.6)';
-                displayEl.style.fontWeight = '400';
                 
                 if (avatarEl) {
                     avatarEl.style.display = 'none';
                     avatarEl.src = '';
                 }
                 
-                if (logoutBtn) {
-                    logoutBtn.style.display = 'none';
-                }
-                if (loginBtn) {
-                    loginBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                
+                logger.info('[Dashboard] User not authenticated');
+                return;
+            }
+
+            // ユーザー名の取得（優先順位付き）
+            const name = this.state.user.nickname 
+                || this.state.user.username 
+                || this.state.user.displayName 
+                || this.state.user.name 
+                || this.state.user.tag 
+                || `User ${this.state.user.id?.slice(0, 6)}`;
+            
+            console.log('[Dashboard] User name resolved:', name);
+            console.log('[Dashboard] User object keys:', Object.keys(this.state.user));
+            
+            // ローディング状態を解除してユーザー名を表示
+            displayEl.classList.remove('loading');
+            displayEl.textContent = name;
+            displayEl.style.color = '#ffffff';
+            displayEl.style.fontWeight = '700';
+
+            // アバター画像の設定
+            if (avatarEl) {
+                let avatarSrc = null;
+                
+                if (this.state.user.avatarUrl) {
+                    avatarSrc = this.state.user.avatarUrl;
+                } else if (this.state.user.avatar && this.state.user.id) {
+                    avatarSrc = `https://cdn.discordapp.com/avatars/${this.state.user.id}/${this.state.user.avatar}.png?size=128`;
                 }
 
-                logger.info('[Dashboard] User not authenticated');
+                if (avatarSrc) {
+                    avatarEl.src = avatarSrc;
+                    avatarEl.style.display = 'block';
+                    avatarEl.alt = `${name} のアバター`;
+                    
+                    avatarEl.onerror = () => {
+                        console.error('[Dashboard] Failed to load avatar:', avatarSrc);
+                        avatarEl.style.display = 'none';
+                        this.createFallbackAvatar(name);
+                    };
+                } else {
+                    avatarEl.style.display = 'none';
+                    this.createFallbackAvatar(name);
+                }
             }
+
+            // ボタンの表示切り替え
+            if (logoutBtn) {
+                logoutBtn.style.display = 'inline-block';
+                logoutBtn.disabled = false;
+            }
+            if (loginBtn) {
+                loginBtn.style.display = 'none';
+            }
+
+            logger.success(`[Dashboard] User info loaded: ${name}`);
+            console.log('[Dashboard] User info display complete');
+            
         } catch (error) {
             console.error('[Dashboard] Error updating user info:', error);
             logger.error('ユーザー情報の更新に失敗しました');
             
-            // エラー時の表示
             const displayEl = document.getElementById('user-display');
             if (displayEl) {
+                displayEl.classList.remove('loading');
                 displayEl.textContent = 'エラー';
                 displayEl.style.color = 'var(--error-color)';
             }
