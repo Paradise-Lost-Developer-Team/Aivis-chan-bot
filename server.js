@@ -246,6 +246,43 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
+// --- Improved Passport Serialization ---
+passport.serializeUser((user, done) => {
+  // Store complete user object in session
+  try {
+    const sessionUser = {
+      id: user.id,
+      username: user.username,
+      nickname: user.nickname,
+      avatarUrl: user.avatarUrl,
+      discriminator: user.discriminator,
+      guilds: user.guilds || [],
+      version: user.version || 'free',
+      accessToken: user.accessToken // Store for API calls if needed
+    };
+    console.log('[SERIALIZE] Storing user in session:', { id: sessionUser.id, guildsCount: sessionUser.guilds?.length || 0 });
+    done(null, sessionUser);
+  } catch (error) {
+    console.error('[SERIALIZE] Error:', error);
+    done(error);
+  }
+});
+
+passport.deserializeUser((sessionUser, done) => {
+  // Restore user from session
+  try {
+    if (!sessionUser || !sessionUser.id) {
+      console.warn('[DESERIALIZE] Invalid session user');
+      return done(null, false);
+    }
+    console.log('[DESERIALIZE] Restoring user from session:', { id: sessionUser.id, guildsCount: sessionUser.guilds?.length || 0 });
+    done(null, sessionUser);
+  } catch (error) {
+    console.error('[DESERIALIZE] Error:', error);
+    done(error);
+  }
+});
+
 // ミドルウェア設定
 // リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
 app.set('trust proxy', 1);
@@ -686,7 +723,7 @@ app.get('/api/bot-stats/:botId', async (req, res) => {
   if (USE_BOT_STATS_SERVER) {
     try {
       const r = await axios.get(`${BOT_STATS_SERVER_BASE.replace(/\/$/, '')}/api/bot-stats/${botId}`, { timeout: 7000 });
-      if (r?.data) return res.json(Object.assign({ via: 'aggregator' }, r.data));
+      if r?.data) return res.json(Object.assign({ via: 'aggregator' }, r.data));
     } catch (e) {
       console.warn(`[single-bot] aggregator fetch failed for ${botId}:`, e.message);
     }
@@ -937,9 +974,36 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// クライアント用：現在のセッション状態を返す（フロントがlocalStorageではなくサーバーセッションを見るため）
+// --- User Session API (replace existing /api/session) ---
+app.get('/api/user/session', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ authenticated: false });
+  }
+  
+  // Ensure user object has required fields
+  const user = req.user || {};
+  const safeUser = {
+    id: user.id,
+    username: user.username,
+    nickname: user.nickname || user.username,
+    avatarUrl: user.avatarUrl,
+    discriminator: user.discriminator,
+    guilds: Array.isArray(user.guilds) ? user.guilds : [],
+    version: user.version || 'free'
+  };
+  
+  return res.json({ 
+    authenticated: true, 
+    user: safeUser 
+  });
+});
+
+// Keep legacy /api/session for backward compatibility
 app.get('/api/session', (req, res) => {
-  // キャッシュさせない（SW/中継キャッシュ対策）
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
@@ -1624,3 +1688,115 @@ async function notifyBotsSettingsUpdate(guildId, settingsType = 'settings') {
   console.log(`[NOTIFY] Notification complete: ${successCount}/${botUrls.length} bots notified for guild ${guildId}`);
   return { total: botUrls.length, success: successCount };
 }
+
+// --- Async File Operations Helper ---
+const fsPromises = require('fs').promises;
+
+async function ensureDirectory(dirPath) {
+  try {
+    await fsPromises.mkdir(dirPath, { recursive: true });
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+  }
+}
+
+async function saveJsonFile(filePath, data) {
+  const dir = path.dirname(filePath);
+  await ensureDirectory(dir);
+  await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+}
+
+async function loadJsonFile(filePath, defaultValue = null) {
+  try {
+    const exists = await fsPromises.access(filePath)
+      .then(() => true)
+      .catch(() => false);
+    
+    if (!exists) return defaultValue;
+    
+    const content = await fsPromises.readFile(filePath, 'utf8');
+    return JSON.parse(content);
+  } catch (error) {
+    console.error(`[FS] Failed to load JSON file ${filePath}:`, error.message);
+    return defaultValue;
+  }
+}
+
+// --- Graceful Shutdown Handler ---
+let isShuttingDown = false;
+let server = null;
+const activeConnections = new Set();
+
+// Track active connections
+app.use((req, res, next) => {
+  if (isShuttingDown) {
+    res.set('Connection', 'close');
+    return res.status(503).json({ error: 'Server is shutting down' });
+  }
+  
+  activeConnections.add(res);
+  res.on('finish', () => activeConnections.delete(res));
+  res.on('close', () => activeConnections.delete(res));
+  next();
+});
+
+async function gracefulShutdown(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  
+  console.log(`[SHUTDOWN] Received ${signal}, shutting down gracefully...`);
+  
+  // Stop accepting new connections
+  if (server) {
+    server.close(() => {
+      console.log('[SHUTDOWN] HTTP server closed');
+    });
+  }
+  
+  // Close Redis connection
+  if (redisStoreInstance && redisStoreInstance.client) {
+    try {
+      await redisStoreInstance.client.quit();
+      console.log('[SHUTDOWN] Redis connection closed');
+    } catch (e) {
+      console.error('[SHUTDOWN] Redis close error:', e.message);
+    }
+  }
+  
+  // Wait for active connections to finish (with timeout)
+  const timeout = setTimeout(() => {
+    console.error(`[SHUTDOWN] Forcing exit after timeout (${activeConnections.size} connections remaining)`);
+    process.exit(1);
+  }, 30000); // 30 second timeout
+  
+  const checkInterval = setInterval(() => {
+    const remaining = activeConnections.size;
+    if (remaining === 0) {
+      clearInterval(checkInterval);
+      clearTimeout(timeout);
+      console.log('[SHUTDOWN] All connections closed, exiting gracefully');
+      process.exit(0);
+    } else {
+      console.log(`[SHUTDOWN] Waiting for ${remaining} active connection(s) to finish...`);
+    }
+  }, 1000);
+}
+
+// Replace existing error handlers
+process.removeAllListeners('uncaughtException');
+process.removeAllListeners('unhandledRejection');
+process.removeAllListeners('SIGTERM');
+process.removeAllListeners('SIGINT');
+
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err.stack || err.message || err);
+  gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled Rejection:', reason);
+  gracefulShutdown('unhandledRejection');
+});
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
