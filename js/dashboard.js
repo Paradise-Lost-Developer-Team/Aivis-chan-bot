@@ -316,6 +316,7 @@ class Dashboard {
         // セットアップ処理
         this.setupTabNavigation();
         this.setupEventListeners();
+        this.setupLogout(); // ← ログアウトボタンのイベントリスナーを登録
         this.disableServerSpecificUI();
         
         // データ読み込み（並行実行）
@@ -633,16 +634,40 @@ class Dashboard {
     setupLogout() {
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
+            // 既存のリスナーを削除してから新規登録（重複防止）
+            const newLogoutBtn = logoutBtn.cloneNode(true);
+            logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+            
+            newLogoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.logout();
             });
+            
+            logger.info('[Dashboard] Logout button initialized');
+        } else {
+            console.warn('[Dashboard] Logout button element not found');
         }
     }
 
     // ログアウト処理
     logout() {
-        // サーバーセッションを破棄
+        logger.info('[Dashboard] Logging out...');
+        
+        // ローカルデータをクリア
+        try {
+            localStorage.removeItem('bot-settings');
+            localStorage.removeItem('personal-settings');
+            localStorage.removeItem('dictionary-entries');
+            localStorage.removeItem('auto-connect-settings');
+            logger.info('[Dashboard] Local storage cleared');
+        } catch (error) {
+            console.error('[Dashboard] Failed to clear local storage:', error);
+        }
+        
+        // クリーンアップ処理を実行
+        this.cleanup();
+        
+        // サーバーセッションを破棄してリダイレクト
         window.location.href = '/logout';
     }
 

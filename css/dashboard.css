@@ -221,81 +221,144 @@ body {
     transform: scaleY(1);
 }
 
-/* サーバーアイコン */
+/* サーバーリスト項目 */
+.server-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+    background: rgba(88, 101, 242, 0.05);
+    border: 1px solid rgba(88, 101, 242, 0.1);
+}
+
+.server-item:hover {
+    background: rgba(88, 101, 242, 0.12);
+    border-color: rgba(88, 101, 242, 0.3);
+    transform: translateX(4px);
+}
+
+.server-item.selected {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.2), rgba(114, 137, 218, 0.15));
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(88, 101, 242, 0.3);
+}
+
 .server-icon {
     width: 48px;
     height: 48px;
-    min-width: 48px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
+    margin-right: 14px;
     flex-shrink: 0;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    object-fit: cover;
+    border: 2px solid rgba(88, 101, 242, 0.2);
 }
 
 .server-icon-fallback {
     width: 48px;
     height: 48px;
-    min-width: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    margin-right: 14px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 18px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
-    flex-shrink: 0;
-    box-shadow: var(--shadow-md);
+    font-weight: 700;
+    font-size: 20px;
+    border: 2px solid rgba(88, 101, 242, 0.3);
 }
 
-/* サーバー情報 */
 .server-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .server-name {
-    font-weight: 600;
     font-size: 15px;
-    color: var(--text-primary);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95); /* ← 明るい色に変更 */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* ← 可読性向上 */
 }
 
-.server-bot,
-.server-id {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-family: 'Courier New', monospace;
+.server-item:hover .server-name {
+    color: #ffffff; /* ← ホバー時はさらに明るく */
 }
 
-/* サーバー管理ボタン */
-.server-manage-btn {
-    padding: 6px 12px;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
+.server-item.selected .server-name {
+    color: #ffffff; /* ← 選択時は白色 */
+    font-weight: 700;
+}
+
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-base);
+    color: rgba(255, 255, 255, 0.7); /* ← ステータステキストも明るく */
 }
 
-.server-manage-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
+.server-item:hover .server-status {
+    color: rgba(255, 255, 255, 0.85);
 }
 
-/* 空の状態 */
-.no-servers {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-muted);
-    font-size: 14px;
+.server-item.selected .server-status {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--success-color);
+    box-shadow: 0 0 8px rgba(67, 181, 129, 0.6);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(67, 181, 129, 0.6);
+        opacity: 1;
+    }
+    50% {
+        box-shadow: 0 0 16px rgba(67, 181, 129, 0.8);
+        opacity: 0.8;
+    }
+}
+
+/* オフライン状態 */
+.server-item.offline .status-indicator {
+    background-color: var(--error-color);
+    box-shadow: 0 0 8px rgba(240, 71, 71, 0.6);
+    animation: none;
+}
+
+/* サーバーリストのスクロールバースタイリング */
+.server-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.server-list-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.server-list-container::-webkit-scrollbar-thumb {
+    background: rgba(88, 101, 242, 0.3);
+    border-radius: 4px;
+}
+
+.server-list-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(88, 101, 242, 0.5);
 }
 
 /* ===================================
