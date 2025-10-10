@@ -865,114 +865,108 @@ app.get('/auth/discord', (req, res, next) => {
   return passport.authenticate('discord')(req, res, next);
 });
 
-// Discord認証コールバック（無料版）
-app.get('/auth/discord/callback/:version', (req, res, next) => {
-  const version = req.params.version || 'free';
-  const strategy = `discord-${version}`;
-  if (!passport._strategies || !passport._strategies[strategy]) {
-    console.warn('[AUTH] strategy not available:', strategy);
-    return res.redirect('/login');
-  }
+// --- Discord Authentication Callback (unified handling) ---
+function handleDiscordCallback(strategyName, versionName) {
+  return (req, res, next) => {
+    if (!passport._strategies || !passport._strategies[strategyName]) {
+      console.warn(`[AUTH] Strategy not available: ${strategyName}`);
+      return res.redirect('/login?error=strategy_not_configured');
+    }
 
-  passport.authenticate(strategy, { session: true }, (err, user, info) => {
-    try {
-      console.log('[AUTH DEBUG] passport callback raw:', { err: err && String(err.message || err), user: user ? (user.id || user.username || '[user]') : null, info });
-      if (err) {
-        // 詳細ログ（token exchange のレスポンス本文などを含めて出力）
-        console.error('[AUTH DEBUG] authenticate error:', err && (err.stack || err));
-        try {
-          // oauth2 の詳細フィールドがあれば出す
-          console.error('[AUTH DEBUG] oauth error details:', {
+    passport.authenticate(strategyName, { session: true }, async (err, user, info) => {
+      try {
+        // Log authentication attempt
+        console.log('[AUTH] Callback received:', { 
+          strategy: strategyName, 
+          version: versionName,
+          hasError: !!err,
+          hasUser: !!user,
+          userId: user?.id,
+          sessionID: req.sessionID
+        });
+
+        // Handle authentication error
+        if (err) {
+          console.error('[AUTH] Authentication error:', {
             name: err.name,
             message: err.message,
-            status: err.status || err.statusCode || null,
-            data: err.data || err.oauthError || (err.response && err.response.data) || null
+            status: err.status || err.statusCode,
+            stack: err.stack
           });
-        } catch (ee) {}
-        return res.status(500).send('authentication error');
-      }
-      if (!user) {
-        console.warn('[AUTH DEBUG] authenticate returned no user, info=', info);
-        return res.redirect('/login');
-      }
-      // ensure login establishes session
-      req.logIn(user, (loginErr) => {
-        if (loginErr) {
-          console.error('[AUTH DEBUG] req.logIn failed:', loginErr && (loginErr.stack || loginErr.message || loginErr));
-          return res.status(500).send('login failed');
+          return res.redirect('/login?error=auth_failed');
         }
-        if (req.session) {
-          req.session.save((saveErr) => {
-            if (saveErr) console.warn('[SESSION] save after oauth failed:', saveErr && (saveErr.message || saveErr));
-            console.log('[AUTH DEBUG] login success sessionID=', req.sessionID);
-            return res.redirect(`/dashboard?version=${version}`);
-          });
-        } else {
-          console.log('[AUTH DEBUG] login success but no session object');
-          return res.redirect(`/dashboard?version=${version}`);
+
+        // Handle no user returned
+        if (!user) {
+          console.warn('[AUTH] No user returned:', info);
+          return res.redirect('/login?error=no_user');
         }
-      });
-    } catch (inner) {
-      console.error('[AUTH DEBUG] unexpected error in callback handler:', inner && (inner.stack || inner.message || inner));
-      return res.status(500).send('internal handler error');
-    }
-  })(req, res, next);
-});
 
-// Backwards-compatible callback route: handle redirects to /auth/discord/callback (no :version)
-app.get('/auth/discord/callback', (req, res, next) => {
-  try {
-    const versionQuery = req.query.version || req.query.v;
-    const version = String(versionQuery || 'free');
+        // Establish session
+        req.logIn(user, (loginErr) => {
+          if (loginErr) {
+            console.error('[AUTH] Login error:', loginErr);
+            return res.redirect('/login?error=login_failed');
+          }
 
-    let strategyName = null;
-    if (passport._strategies && passport._strategies[`discord-${version}`]) {
-      strategyName = `discord-${version}`;
-    } else if (passport._strategies && passport._strategies['discord']) {
-      strategyName = 'discord';
-    } else if (passport._strategies && passport._strategies['discord-free']) {
-      strategyName = 'discord-free';
-    }
+          // Save session explicitly
+          if (req.session) {
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                console.error('[AUTH] Session save error:', saveErr);
+              }
+              
+              console.log('[AUTH] Login successful:', {
+                userId: user.id,
+                version: versionName,
+                sessionID: req.sessionID,
+                guildsCount: user.guilds?.length || 0
+              });
 
-    if (!strategyName) {
-      console.warn('[auth] No Discord strategy available to handle callback');
-      return res.redirect('/login');
-    }
-
-    return passport.authenticate(strategyName, { failureRedirect: '/login' })(req, res, () => {
-      if (req.session) {
-        req.session.save((err) => {
-          if (err) console.warn('[SESSION] save after oauth failed:', err && (err.message || err));
-          try {
-            console.log(`[AUTH DEBUG] callback(no-version) strategy=${strategyName} sessionID=${req.sessionID} isAuthenticated=${typeof req.isAuthenticated === 'function' ? req.isAuthenticated() : '(n/a)'} user=${req.user ? (req.user.id || req.user.username || '[user]') : '(none)'}`);
-          } catch (e) {}
-          return res.redirect(`/dashboard?version=${version}`);
+              return res.redirect(`/dashboard?version=${versionName}`);
+            });
+          } else {
+            console.warn('[AUTH] No session object available');
+            return res.redirect(`/dashboard?version=${versionName}`);
+          }
         });
-      } else {
-        try {
-          console.log(`[AUTH DEBUG] callback(no-version) no session object present`);
-        } catch (e) {}
-        return res.redirect(`/dashboard?version=${version}`);
+      } catch (error) {
+        console.error('[AUTH] Unexpected error in callback:', error);
+        return res.redirect('/login?error=internal_error');
       }
-    });
-  } catch (e) {
-    console.error('[auth] callback (no-version) handler error:', e);
-    return res.redirect('/login');
-  }
+    })(req, res, next);
+  };
+}
+
+// Apply unified callback handler to all versions
+app.get('/auth/discord/callback/:version', (req, res, next) => {
+  const version = req.params.version || 'free';
+  const strategyName = `discord-${version}`;
+  handleDiscordCallback(strategyName, version)(req, res, next);
 });
 
-// ログアウト
-app.get('/logout', (req, res) => {
-  // Passport 0.6+: req.logout requires callback
-  req.logout(err => {
-    if (err) console.error('Logout error:', err);
-    // Destroy the session
-    req.session?.destroy(() => {
-      res.clearCookie('connect.sid');
-      return res.redirect('/login');
-    });
-  });
+// Backward compatibility: no version specified
+app.get('/auth/discord/callback', (req, res, next) => {
+  const versionQuery = req.query.version || req.query.v || 'free';
+  const version = String(versionQuery);
+  
+  // Try versioned strategy first, then fallback
+  let strategyName = `discord-${version}`;
+  if (!passport._strategies[strategyName]) {
+    if (passport._strategies['discord']) {
+      strategyName = 'discord';
+    } else if (passport._strategies['discord-free']) {
+      strategyName = 'discord-free';
+    } else {
+      console.warn('[AUTH] No Discord strategy available');
+      return res.redirect('/login?error=no_strategy');
+    }
+  }
+  
+  handleDiscordCallback(strategyName, version)(req, res, next);
 });
+
+// Remove duplicate pro callback handler (already handled by unified handler above)
 
 // --- User Session API (replace existing /api/session) ---
 app.get('/api/user/session', (req, res) => {
@@ -1653,6 +1647,7 @@ class RateLimiter {
       }
       
       // Check if blocked
+     
       if (record.blockedUntil > now) {
         const retryAfter = Math.ceil((record.blockedUntil - now) / 1000);
         res.set('Retry-After', retryAfter);
