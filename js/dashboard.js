@@ -235,29 +235,135 @@ class Dashboard {
         try {
             logger.info('[Dashboard] Initializing...');
             
-            // 1. セッション確認
+            // 1. セッション確認（改善版）
             const authenticated = await this.checkSession();
             
-            if (!authenticated) {
-                // 2. 認証されていない場合、短期間ポーリング
-                await this.waitForAuthentication();
-            }
-            
-            // 3. 認証済みの場合のみダッシュボードを表示
-            if (this.state.isLoggedIn) {
+            if (authenticated) {
+                // 認証済みの場合、すぐにダッシュボードを表示
                 await this.showDashboard();
+            } else {
+                // 2. 認証されていない場合、短期間ポーリング
+                const pollingSuccess = await this.waitForAuthentication();
+                
+                if (pollingSuccess) {
+                    await this.showDashboard();
+                } else {
+                    logger.warn('[Dashboard] Authentication polling timed out');
+                    this.showLoginPrompt();
+                }
             }
             
             logger.success('[Dashboard] Initialization complete');
         } catch (error) {
             logger.error(`[Dashboard] Initialization failed: ${error.message}`);
+            console.error('[Dashboard] Init error:', error);
             this.showToast('ダッシュボードの初期化に失敗しました', 'error');
         } finally {
             this.state.isInitializing = false;
         }
     }
 
-    // セッション確認を修正
+    // セッション確認を修正（詳細なログ出力）
+    async checkSession() {
+        try {
+            console.log('[Dashboard] Checking session...');
+            
+            const response = await fetch('/api/user/session', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
+            console.log('[Dashboard] Session response status:', response.status);
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.log('[Dashboard] Not authenticated (401)');
+                    return false;
+                }
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const session = await response.json();
+            console.log('[Dashboard] Session data:', {
+                authenticated: session.authenticated,
+                hasUser: !!session.user,
+                userId: session.user?.id,
+                username: session.user?.username
+            });
+            
+            if (session && session.authenticated && session.user) {
+                this.state.isLoggedIn = true;
+                this.state.user = session.user;
+                
+                logger.info(`[Dashboard] User authenticated: ${session.user.username || session.user.id}`);
+                console.log('[Dashboard] User object:', session.user);
+                
+                return true;
+            }
+            
+            console.log('[Dashboard] Session exists but not authenticated');
+            return false;
+        } catch (error) {
+            logger.error(`[Dashboard] Session check failed: ${error.message}`);
+            console.error('[Dashboard] Session check error:', error);
+            return false;
+        }
+    }
+
+    // ポーリング処理を修正（最大3回、1秒間隔）
+    async waitForAuthentication() {
+        const maxAttempts = 3;
+        const interval = 1000;
+        
+        console.log(`[Dashboard] Starting authentication polling (max ${maxAttempts} attempts)`);
+        
+        for (let i = 0; i < maxAttempts; i++) {
+            console.log(`[Dashboard] Polling attempt ${i + 1}/${maxAttempts}`);
+            
+            await new Promise(resolve => setTimeout(resolve, interval));
+            
+            if (await this.checkSession()) {
+                console.log('[Dashboard] Authentication polling successful');
+                return true;
+            }
+        }
+        
+        console.log('[Dashboard] Authentication polling failed after max attempts');
+        return false;
+    }
+
+    // ログインプロンプトを表示
+    showLoginPrompt() {
+        const displayEl = document.getElementById('user-display');
+        const loginBtn = document.getElementById('discord-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const avatarEl = document.getElementById('user-avatar');
+        
+        if (displayEl) {
+            displayEl.textContent = '未ログイン';
+            displayEl.style.color = 'rgba(255, 255, 255, 0.6)';
+        }
+        
+        if (avatarEl) {
+            avatarEl.style.display = 'none';
+        }
+        
+        if (loginBtn) {
+            loginBtn.style.display = 'inline-block';
+        }
+        
+        if (logoutBtn) {
+            logoutBtn.style.display = 'none';
+        }
+        
+        logger.info('[Dashboard] Showing login prompt');
+    }
+
+    // セッション確認
     async checkSession() {
         try {
             const session = await fetch('/api/user/session', {
@@ -281,7 +387,7 @@ class Dashboard {
         }
     }
 
-    // ポーリング処理を修正
+    // ポーリング処理
     async waitForAuthentication() {
         const maxAttempts = 5; // 10秒から5秒に短縮
         const interval = 1000;
@@ -305,6 +411,8 @@ class Dashboard {
             return;
         }
 
+        console.log('[Dashboard] Showing dashboard...');
+        
         mainDashboard.style.display = 'block';
         mainDashboard.classList.add('logged-in');
 
@@ -316,14 +424,16 @@ class Dashboard {
         // セットアップ処理
         this.setupTabNavigation();
         this.setupEventListeners();
-        this.setupLogout(); // ← ログアウトボタンのイベントリスナーを登録
+        this.setupLogout();
         this.disableServerSpecificUI();
+        
+        // ユーザー情報を最初に読み込み（即座に表示）
+        await this.loadUserInfo();
         
         // データ読み込み（並行実行）
         await Promise.allSettled([
             this.loadOverviewData(),
-            this.loadUserInfo(),
-            this.loadGuilds() // 一度だけ呼び出し
+            this.loadGuilds()
         ]);
         
         // プレミアムステータス確認
@@ -335,6 +445,8 @@ class Dashboard {
         if (!this.updateInterval) {
             this.startGuildUpdates();
         }
+        
+        console.log('[Dashboard] Dashboard display complete');
     }
 
     // サーバー選択を修正（デバウンス付き）
@@ -1581,633 +1693,274 @@ class Dashboard {
 
     async loadUserInfo() {
         try {
+            console.log('[Dashboard] Loading user info...');
+            console.log('[Dashboard] Current state:', {
+                isLoggedIn: this.state.isLoggedIn,
+                hasUser: !!this.state.user,
+                userId: this.state.user?.id
+            });
+            
             const displayEl = document.getElementById('user-display');
             const avatarEl = document.getElementById('user-avatar');
             const logoutBtn = document.getElementById('logout-btn');
             const loginBtn = document.getElementById('discord-login-btn');
 
-            if (!displayEl) return;
+            if (!displayEl) {
+                console.error('[Dashboard] user-display element not found');
+                return;
+            }
+
+            // 初期状態：読み込み中表示
+            displayEl.textContent = '読み込み中...';
+            displayEl.style.color = 'rgba(255, 255, 255, 0.6)';
 
             if (this.state.isLoggedIn && this.state.user) {
-                // Determine a friendly display name
-                const name = this.state.user.displayName || this.state.user.username || this.state.user.name || this.state.user.tag || 'ユーザー';
+                // ユーザー名の取得（優先順位付き、デバッグ出力）
+                const name = this.state.user.nickname 
+                    || this.state.user.username 
+                    || this.state.user.displayName 
+                    || this.state.user.name 
+                    || this.state.user.tag 
+                    || 'ユーザー';
+                
+                console.log('[Dashboard] User name resolved:', name);
+                console.log('[Dashboard] User object keys:', Object.keys(this.state.user));
+                
                 displayEl.textContent = name;
+                displayEl.style.color = 'rgba(255, 255, 255, 0.95)';
+                displayEl.style.fontWeight = '600';
 
-                // Avatar handling (support common shapes)
+                // アバター画像の設定
                 if (avatarEl) {
-                    let avatarSrc = '';
-                    if (this.state.user.avatarUrl) avatarSrc = this.state.user.avatarUrl;
-                    else if (this.state.user.avatar && this.state.user.id) avatarSrc = `https://cdn.discordapp.com/avatars/${this.state.user.id}/${this.state.user.avatar}.png?size=128`;
-                    else if (this.state.user.avatarPath) avatarSrc = this.state.user.avatarPath;
+                    let avatarSrc = null;
+                    
+                    // アバターURLの取得（優先順位付き）
+                    if (this.state.user.avatarUrl) {
+                        avatarSrc = this.state.user.avatarUrl;
+                        console.log('[Dashboard] Using avatarUrl:', avatarSrc);
+                    } else if (this.state.user.avatar && this.state.user.id) {
+                        avatarSrc = `https://cdn.discordapp.com/avatars/${this.state.user.id}/${this.state.user.avatar}.png?size=128`;
+                        console.log('[Dashboard] Constructed avatar URL:', avatarSrc);
+                    } else if (this.state.user.avatarPath) {
+                        avatarSrc = this.state.user.avatarPath;
+                        console.log('[Dashboard] Using avatarPath:', avatarSrc);
+                    } else {
+                        console.warn('[Dashboard] No avatar URL available');
+                    }
 
                     if (avatarSrc) {
                         avatarEl.src = avatarSrc;
-                        avatarEl.style.display = '';
-                        avatarEl.alt = `${name} avatar`;
+                        avatarEl.style.display = 'block';
+                        avatarEl.alt = `${name} のアバター`;
+                        
+                        // エラーハンドリング
+                        avatarEl.onerror = () => {
+                            console.error('[Dashboard] Failed to load avatar:', avatarSrc);
+                            avatarEl.style.display = 'none';
+                            // Fallback: 名前の頭文字を表示
+                            this.createFallbackAvatar(name);
+                        };
                     } else {
                         avatarEl.style.display = 'none';
+                        this.createFallbackAvatar(name);
                     }
                 }
 
-                if (logoutBtn) logoutBtn.style.display = '';
-                if (loginBtn) loginBtn.style.display = 'none';
+                // ボタンの表示切り替え
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'inline-block';
+                    logoutBtn.disabled = false;
+                }
+                if (loginBtn) {
+                    loginBtn.style.display = 'none';
+                }
 
-                logger.info(`User info loaded: ${name}`);
+                logger.success(`[Dashboard] User info loaded: ${name}`);
+                console.log('[Dashboard] User info display complete');
             } else {
-                // Not logged in
+                // 未ログイン状態
+                console.warn('[Dashboard] User not logged in or user data missing');
+                
                 displayEl.textContent = '未ログイン';
+                displayEl.style.color = 'rgba(255, 255, 255, 0.6)';
+                displayEl.style.fontWeight = '400';
+                
                 if (avatarEl) {
                     avatarEl.style.display = 'none';
                     avatarEl.src = '';
                 }
-                if (logoutBtn) logoutBtn.style.display = 'none';
-                if (loginBtn) loginBtn.style.display = '';
-
-                logger.info('User not authenticated (UI updated)');
-            }
-        } catch (e) {
-            console.error('Error updating user UI:', e);
-        }
-    }
-
-    // ギルド情報を読み込む
-    loadGuilds() {
-        console.log('Loading server information...');
-        const serverListContainer = document.getElementById('server-list');
-        if (!serverListContainer) {
-            console.error("Element 'server-list' not found. Unable to display servers.");
-            return;
-        }
-
-        fetch('/api/servers')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}`);
+                
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'none';
                 }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Servers loaded:', data);
-                serverListContainer.innerHTML = '';
-
-                data.forEach(server => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'server-item';
-                    listItem.setAttribute('data-server-id', server.id);
-
-                    const icon = document.createElement('img');
-                    icon.src = server.iconUrl || '/default-icon.svg';
-                    icon.alt = `${server.name} icon`;
-                    icon.classList.add('server-icon');
-                    
-                    // アイコンの読み込みエラー時のフォールバック
-                    icon.onerror = function() {
-                        // SVGアイコンの代わりにテキストベースのアイコンを使用
-                        const fallbackIcon = document.createElement('div');
-                        fallbackIcon.className = 'server-icon server-icon-fallback';
-                        fallbackIcon.textContent = server.name.charAt(0).toUpperCase();
-                        fallbackIcon.title = server.name;
-                        this.parentNode.replaceChild(fallbackIcon, this);
-                    };
-
-                    const serverInfo = document.createElement('div');
-                    serverInfo.className = 'server-info';
-
-                    const name = document.createElement('div');
-                    name.className = 'server-name';
-                    name.textContent = server.name;
-
-                    const status = document.createElement('div');
-                    status.className = 'server-status';
-                    const statusIndicator = document.createElement('span');
-                    statusIndicator.className = 'status-indicator';
-                    const statusText = document.createElement('span');
-                    statusText.textContent = 'オンライン';
-                    status.appendChild(statusIndicator);
-                    status.appendChild(statusText);
-
-                    serverInfo.appendChild(name);
-                    serverInfo.appendChild(status);
-
-                    listItem.appendChild(icon);
-                    listItem.appendChild(serverInfo);
-                    serverListContainer.appendChild(listItem);
-
-                    // クリックイベントを追加
-                    listItem.addEventListener('click', () => {
-                        this.selectServer(server.id);
-                    }); // イベントリスナーが削除されない
-                });
-                // 自動で最初のサーバーを選択して設定を読み込む
-                if (data.length > 0) {
-                    const firstId = data[0].id;
-                    // defer によって DOM が安定してから選択処理を行う
-                    setTimeout(() => this.selectServer(firstId), 0);
+                if (loginBtn) {
+                    loginBtn.style.display = 'inline-block';
                 }
-            })
-            .catch(error => {
-                console.error('Failed to load servers:', error);
-                serverListContainer.innerHTML = '<li style="padding: 12px; color: #f44336;">サーバーの読み込みに失敗しました</li>';
-            });
-    }
 
-    // サーバー選択処理
-    selectServer(serverId, serverName) {
-        console.log(`Selected server: ${serverName} (${serverId})`);
-        
-        // 現在の選択を解除
-        document.querySelectorAll('.server-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-
-        // 新しい選択を設定
-        const selectedItem = document.querySelector(`[data-server-id="${serverId}"]`);
-        if (selectedItem) {
-            selectedItem.classList.add('selected');
-        }
-
-        // ここで選択されたサーバーの設定画面を表示する処理を追加
-        this.loadServerSettings(serverId, serverName);
-    }
-
-    // 現在選択されているサーバーのIDを取得
-    getCurrentGuildId() {
-        const selectedServer = document.querySelector('.server-item.selected');
-        if (selectedServer) {
-            return selectedServer.getAttribute('data-server-id');
-        }
-        
-        // デフォルトで最初のサーバーを選択
-        const firstServer = document.querySelector('.server-item');
-        if (firstServer) {
-            firstServer.classList.add('selected');
-            return firstServer.getAttribute('data-server-id');
-        }
-        
-        return null;
-    }
-
-    // サーバーを選択
-    selectServer(serverId) {
-        // 既存の選択を解除
-        document.querySelectorAll('.server-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-        
-        // 新しいサーバーを選択
-        const serverElement = document.querySelector(`[data-server-id="${serverId}"]`);
-        if (serverElement) {
-            serverElement.classList.add('selected');
-            this.loadServerSettings(serverId);
-        }
-    }
-
-    // サーバー設定読み込み
-    async loadServerSettings(serverId) {
-        if (!serverId) return;
-
-        // Reentrancy guard: prevent infinite recursion if this function is triggered
-        // again while already loading the same server.
-        if (!this._loadingServerState) this._loadingServerState = { active: false, id: null };
-        if (this._loadingServerState.active && this._loadingServerState.id === serverId) {
-            console.warn(`Re-entrant call detected — skipping`);
-            return; // ガードはあるが、複数の箇所から呼ばれる可能性
-        }
-
-        this._loadingServerState.active = true;
-        this._loadingServerState.id = serverId;
-
-        console.log(`Loading settings for server: ${serverId}`);
-        
-        try {
-            // サーバー設定を読み込み
-            const settingsResponse = await fetch(`/api/settings/${serverId}`);
-            if (settingsResponse.ok) {
-                const settingsData = await settingsResponse.json();
-                if (settingsData.settings) {
-                    this.applySettings(settingsData.settings);
-                }
-            }
-
-            // 個人設定を読み込み
-            const personalResponse = await fetch(`/api/personal-settings/${serverId}`);
-            if (personalResponse.ok) {
-                const personalData = await personalResponse.json();
-                if (personalData.settings) {
-                    this.applyPersonalSettings(personalData.settings);
-                }
-            }
-
-            // 辞書を読み込み
-            const dictionaryResponse = await fetch(`/api/dictionary/${serverId}`);
-            if (dictionaryResponse.ok) {
-                const dictionaryData = await dictionaryResponse.json();
-                if (dictionaryData.dictionary) {
-                    localStorage.setItem('dictionary-entries', JSON.stringify(dictionaryData.dictionary));
-                    this.renderDictionaryEntries();
-                }
-            }
-            // サーバー関連の補助データ（話者リストやチャンネル）を読み込み/反映
-            try {
-                await this.populateSpeakersAndChannels(serverId);
-                // Enable server-specific UI after attempting to populate speakers/channels
-                // so that settings, personal settings and dictionary become interactive.
-                this.enableServerSpecificUI();
-            } catch (e) {
-                console.warn('populateSpeakersAndChannels failed', e);
+                logger.info('[Dashboard] User not authenticated');
             }
         } catch (error) {
-            console.error('Failed to load server settings:', error);
-        } finally {
-            // clear guard
-            if (this._loadingServerState) {
-                this._loadingServerState.active = false;
-                this._loadingServerState.id = null;
+            console.error('[Dashboard] Error updating user info:', error);
+            logger.error('ユーザー情報の更新に失敗しました');
+            
+            // エラー時の表示
+            const displayEl = document.getElementById('user-display');
+            if (displayEl) {
+                displayEl.textContent = 'エラー';
+                displayEl.style.color = 'var(--error-color)';
             }
         }
     }
 
-    // 話者候補やチャンネル候補を取得して select に反映する
-    async populateSpeakersAndChannels(guildId) {
-        console.log(`populateSpeakersAndChannels called for guildId=${guildId}`);
-        // 1) 話者一覧を取得（まずはギルド/ボット固有のエンドポイントを試行し、フォールバックで一般的なエンドポイントへ）
-        const speakerSelectIds = ['default-speaker', 'personal-speaker'];
-        let speakers = [];
-
-        // 保存されている選択値を保持
-        const previousValues = {};
-        speakerSelectIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) previousValues[id] = el.value;
-        });
-
-        // UI に読み込みプレースホルダを表示
-        speakerSelectIds.forEach(id => {
-            const sel = document.getElementById(id);
-            if (!sel) return;
-            sel.innerHTML = '';
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = '読み込み中...';
-            sel.appendChild(opt);
-            sel.disabled = true;
-        });
-
-        // Avoid Mixed Content: if the page is served over HTTPS, do not attempt
-        // to fetch insecure http:// cluster addresses from the browser.
-        const isSecure = window.location.protocol === 'https:';
-        const insecureDirectUrls = [
-            'http://localhost:10101/speakers',
-            'http://aivisspeech-engine:10101/speakers',
-            'http://aivisspeech-engine.aivis-chan-bot.svc.cluster.local:10101/speakers'
-        ];
-
-        if (isSecure) {
-            console.log('HTTPS page: skipping direct http:// engine endpoints to avoid mixed-content blocking');
+    // フォールバックアバターを作成（名前の頭文字を表示）
+    createFallbackAvatar(name) {
+        const avatarEl = document.getElementById('user-avatar');
+        if (!avatarEl) return;
+        
+        const userInfo = avatarEl.parentElement;
+        if (!userInfo) return;
+        
+        // 既存のフォールバックを削除
+        const existingFallback = userInfo.querySelector('.avatar-fallback');
+        if (existingFallback) {
+            existingFallback.remove();
         }
-
-        const tryUrls = [
-            `/api/guilds/${guildId}/speakers`,
-            `/api/bots/${guildId}/speakers`,
-            '/api/tts/speakers', // server-side proxy preferred
-            '/speakers'         // may be blocked by CORS or mixed-content
-        ].concat(isSecure ? [] : insecureDirectUrls);
-
-        for (const url of tryUrls) {
-            try {
-                console.log(`Trying speaker URL: ${url}`);
-                const resp = await fetch(url, { credentials: 'include' });
-                if (resp) console.log(`Response status for ${url}:`, resp.status);
-                if (resp && resp.ok) {
-                    let body;
-                    try {
-                        body = await resp.json();
-                    } catch (e) {
-                        console.log(`Failed to parse JSON from ${url}:`, e && e.message ? e.message : e);
-                        body = null;
-                    }
-
-                    // Normalize several possible response shapes:
-                    //  - Array of strings or objects => use directly
-                    //  - { speakers: [...] } => use body.speakers
-                    //  - Object map { id: name, ... } => convert to array
-                    let candidate = [];
-                    if (Array.isArray(body) && body.length > 0) {
-                        candidate = body;
-                    } else if (body && Array.isArray(body.speakers) && body.speakers.length > 0) {
-                        candidate = body.speakers;
-                    } else if (body && typeof body === 'object' && !Array.isArray(body)) {
-                        // if object keys map to speaker names, convert
-                        const entries = Object.entries(body);
-                        if (entries.length > 0 && entries.every(([k, v]) => typeof v === 'string' || typeof v === 'object')) {
-                            candidate = entries.map(([k, v]) => (typeof v === 'string' ? { id: k, name: v } : (v && (v.id || v.name) ? { id: v.id || k, name: v.name || k } : null))).filter(Boolean);
-                        }
-                    }
-
-                    if (candidate.length > 0) {
-                        // Normalize and preserve style/variant arrays if present.
-                        speakers = candidate.map(s => {
-                            if (typeof s === 'string') return { id: s, name: s, styles: [] };
-                            const id = s.id || s.name || String(Math.random());
-                            const name = s.name || s.id || id;
-                            // Extract styles array and normalize each style to a string
-                            let rawStyles = Array.isArray(s.styles) ? s.styles
-                                : Array.isArray(s.voice_styles) ? s.voice_styles
-                                : Array.isArray(s.variants) ? s.variants
-                                : [];
-                            // Normalize each style: if object, extract name/id; if string, use as-is
-                            const styles = rawStyles.map(st => {
-                                if (typeof st === 'string') return st;
-                                if (st && typeof st === 'object') {
-                                    return st.name || st.id || String(st);
-                                }
-                                return String(st);
-                            });
-                            return { id, name, styles };
-                        });
-                         console.log(`Loaded speakers from ${url}`, speakers.length);
-                         // mark source for UI tooltip
-                         speakerSelectIds.forEach(id => {
-                             const sel = document.getElementById(id);
-                             if (sel) sel.title = `Loaded from: ${url}`;
-                         });
-                         try {
-                             // cache for offline/fallback use
-                             localStorage.setItem('cached-speakers', JSON.stringify(speakers));
-                         } catch (e) {
-                             // ignore storage failures
-                         }
-                         break;
-                     } else {
-                         console.log(`Speaker endpoint ${url} returned empty or unsupported body shape`);
-                     }
-                 }
-             } catch (e) {
-                 // ignore and try next
-                console.log(`Speaker fetch failed for ${url}:`, e && e.message ? e.message : e);
-             }
-         }
- 
-         // If no speakers were loaded from remote endpoints, try cached speakers
-         if ((!speakers || speakers.length === 0)) {
-             try {
-                 const cached = JSON.parse(localStorage.getItem('cached-speakers') || 'null');
-                 if (Array.isArray(cached) && cached.length > 0) {
-                     speakers = cached;
-                     console.log('Using cached speakers from localStorage', speakers.length);
-                     speakerSelectIds.forEach(id => {
-                         const sel = document.getElementById(id);
-                         if (sel) sel.title = 'Loaded from local cache';
-                     });
-                 }
-             } catch (e) {
-                 // ignore cache errors
-             }
-         }
- 
-         // 2) チャンネル一覧を取得（サーバー内の bot が保持しているチャンネル一覧を提供する内部APIがある場合を想定）
-         // 優先: /api/guilds/:guildId/channels, /api/bots/:guildId/channels → フォールバック: none
-         let channels = [];
-
-    // (チャンネルの select 要素は後で取得してプレースホルダ処理を行います)
-
-         const channelUrls = [
-             `/api/guilds/${guildId}/channels`,
-             `/api/bots/${guildId}/channels`,
-         ];
-
-         for (const url of channelUrls) {
-            try {
-                console.log(`Trying channel URL: ${url}`);
-                const chResp = await fetch(url, { credentials: 'include' });
-                if (chResp) console.log(`Channel response status for ${url}:`, chResp.status);
-                if (chResp && chResp.ok) {
-                    const chBody = await chResp.json();
-                    if (Array.isArray(chBody) && chBody.length > 0) {
-                        channels = chBody.map(c => ({ id: c.id, name: c.name, type: c.type }));
-                        console.log(`Loaded channels from ${url}`, channels.length);
-                        // annotate UI selects with source
-                        [ 'auto-join-voice', 'auto-join-text' ].forEach(id => {
-                            const sel = document.getElementById(id);
-                            if (sel) sel.title = `Loaded from: ${url}`;
-                        });
-                        break;
-                    } else {
-                        console.log(`Channel endpoint ${url} returned empty or non-array body`);
-                    }
-                }
-            } catch (e) {
-                console.log(`Guild channels fetch failed for ${url}:`, e && e.message ? e.message : e);
-            }
-        }
-
-        // 3) DOM に反映
-        speakerSelectIds.forEach(id => {
-            const sel = document.getElementById(id);
-            if (!sel) return;
-            // 既存オプションを保存してクリア
-            const previous = sel.value;
-            sel.innerHTML = '';
-
-            if (speakers.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = '利用可能な話者が見つかりません';
-                sel.appendChild(opt);
-                sel.disabled = true;
-            } else {
-                sel.disabled = false;
-                const placeholder = document.createElement('option');
-                placeholder.value = '';
-                placeholder.textContent = '（選択してください）';
-                sel.appendChild(placeholder);
-
-                // Create option per style if available, otherwise single option per speaker.
-                speakers.forEach(sp => {
-                    if (Array.isArray(sp.styles) && sp.styles.length > 0) {
-                        sp.styles.forEach(style => {
-                            const opt = document.createElement('option');
-                            opt.value = `${sp.id}:${style}`;
-                            opt.textContent = `${sp.name} — ${style}`;
-                            sel.appendChild(opt);
-                        });
-                    } else {
-                        const opt = document.createElement('option');
-                        opt.value = sp.id;
-                        opt.textContent = sp.name || sp.id;
-                        sel.appendChild(opt);
-                    }
-                });
-
-                // 以前の設定が存在すれば優先して再選択する。保存形式が "id" または "id:style" の両方に対応。
-                if (previous) {
-                    const found = Array.from(sel.options).some(o => o.value === previous);
-                    if (found) {
-                        sel.value = previous;
-                    } else {
-                        // 以前の値が speaker id だけだった場合、対応する最初の style option を選択する
-                        const idx = speakers.findIndex(s => s.id === previous);
-                        if (idx !== -1 && Array.isArray(speakers[idx].styles) && speakers[idx].styles.length > 0) {
-                            sel.value = `${speakers[idx].id}:${speakers[idx].styles[0]}`;
-                        }
-                    }
-                }
-            }
-        });
-
-        // auto-join の voice/text チャンネル select
-        const voiceSel = document.getElementById('auto-join-voice');
-        const textSel = document.getElementById('auto-join-text');
-        [voiceSel, textSel].forEach(s => { if (s) s.innerHTML = ''; });
-
-        if (!channels || channels.length === 0) {
-            // フォールバック表示
-            [voiceSel, textSel].forEach(s => {
-                if (!s) return;
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'チャンネル情報がありません';
-                s.appendChild(opt);
-                s.disabled = true;
-            });
-        } else {
-            // Filter channels into voice/text by type. Discord may return numeric
-            // types (0=text, 2=voice) or string constants like 'GUILD_VOICE'.
-            const isVoice = t => {
-                if (t === null || t === undefined) return false;
-                if (typeof t === 'number') return t === 2 || t === 13; // 2=voice, 13=stage? (defensive)
-                if (typeof t === 'string') return t.toLowerCase().includes('voice');
-                return false;
-            };
-            const isText = t => {
-                if (t === null || t === undefined) return false;
-                if (typeof t === 'number') return t === 0 || t === 5; // 0=text, 5=announcement? (defensive)
-                if (typeof t === 'string') return t.toLowerCase().includes('text') || t.toLowerCase().includes('forum');
-                return false;
-            };
-
-            const voiceChannels = channels.filter(c => isVoice(c.type));
-            const textChannels = channels.filter(c => isText(c.type));
-
-            // If no explicit voice/text types found, fallback to best-effort by name
-            if (voiceChannels.length === 0 && textChannels.length === 0) {
-                // As a fallback, include channels where names contain 'voice' or 'vc'
-                voiceChannels.push(...channels.filter(c => /voice|vc|ボイス|ボイチャ/i.test(c.name)));
-                textChannels.push(...channels.filter(c => !voiceChannels.includes(c)));
-            }
-
-            voiceChannels.forEach(ch => {
-                const optV = document.createElement('option');
-                optV.value = ch.id;
-                optV.textContent = `🔈 ${ch.name}`;
-                if (voiceSel) voiceSel.appendChild(optV);
-            });
-
-            textChannels.forEach(ch => {
-                const optT = document.createElement('option');
-                optT.value = ch.id;
-                optT.textContent = `💬 ${ch.name}`;
-                if (textSel) textSel.appendChild(optT);
-            });
-
-            if (voiceSel) voiceSel.disabled = voiceChannels.length === 0;
-            if (textSel) textSel.disabled = textChannels.length === 0;
-        }
-
-        return { speakers, channels };
+        
+        // 新しいフォールバックを作成
+        const fallback = document.createElement('div');
+        fallback.className = 'avatar-fallback';
+        fallback.textContent = name.charAt(0).toUpperCase();
+        fallback.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            border: 2px solid rgba(88, 101, 242, 0.4);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        `;
+        
+        avatarEl.style.display = 'none';
+        userInfo.insertBefore(fallback, avatarEl);
+        
+        console.log('[Dashboard] Created fallback avatar for:', name);
     }
 
-    // 設定をUIに適用
+    // 現在のギルドIDを取得
+    getCurrentGuildId() {
+        return this.state.currentGuildId;
+    }
+
+    // 話者とチャンネルを取得して選択肢に追加
+    async populateSpeakersAndChannels(serverId) {
+        try {
+            // 実装が必要な場合はここに追加
+            console.log(`[Dashboard] Populating speakers and channels for server: ${serverId}`);
+        } catch (error) {
+            console.error('[Dashboard] Failed to populate speakers and channels:', error);
+        }
+    }
+
+    // 設定を適用
     applySettings(settings) {
-        Object.keys(settings).forEach(key => {
-            const element = document.getElementById(`default-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = settings[key];
-                } else if (element.type === 'range') {
-                    element.value = settings[key];
-                    const valueElement = document.getElementById(element.id.replace('default-', '') + '-value');
-                    if (valueElement) {
-                        valueElement.textContent = settings[key];
-                    }
-                } else {
-                    element.value = settings[key];
-                }
-            }
-        });
+        if (settings.defaultSpeaker) document.getElementById('default-speaker').value = settings.defaultSpeaker;
+        if (settings.defaultSpeed) {
+            document.getElementById('default-speed').value = settings.defaultSpeed;
+            document.getElementById('speed-value').textContent = settings.defaultSpeed;
+        }
+        if (settings.defaultPitch) {
+            document.getElementById('default-pitch').value = settings.defaultPitch;
+            document.getElementById('pitch-value').textContent = settings.defaultPitch;
+        }
+        if (settings.defaultTempo) {
+            document.getElementById('default-tempo').value = settings.defaultTempo;
+            document.getElementById('tempo-value').textContent = settings.defaultTempo;
+        }
+        if (settings.defaultVolume) {
+            document.getElementById('default-volume').value = settings.defaultVolume;
+            document.getElementById('volume-value').textContent = settings.defaultVolume;
+        }
+        if (settings.defaultIntonation) {
+            document.getElementById('default-intonation').value = settings.defaultIntonation;
+            document.getElementById('intonation-value').textContent = settings.defaultIntonation;
+        }
+        if (settings.autoJoinVoice) document.getElementById('auto-join-voice').value = settings.autoJoinVoice;
+        if (settings.autoJoinText) document.getElementById('auto-join-text').value = settings.autoJoinText;
+        if (settings.tempVoice !== undefined) document.getElementById('temp-voice').checked = settings.tempVoice;
+        if (settings.autoLeave !== undefined) document.getElementById('auto-leave').checked = settings.autoLeave;
+        if (settings.ignoreBots !== undefined) document.getElementById('ignore-bots').checked = settings.ignoreBots;
+        if (settings.maxQueue) document.getElementById('max-queue').value = settings.maxQueue;
     }
 
-    // 個人設定をUIに適用
+    // 個人設定を適用
     applyPersonalSettings(settings) {
-        Object.keys(settings).forEach(key => {
-            const element = document.getElementById(`personal-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = settings[key];
-                } else if (element.type === 'range') {
-                    element.value = settings[key];
-                    const valueElement = document.getElementById(element.id + '-value');
-                    if (valueElement) {
-                        valueElement.textContent = settings[key];
-                    }
-                } else {
-                    element.value = settings[key];
-                }
-            }
-        });
+        if (settings.personalSpeaker) document.getElementById('personal-speaker').value = settings.personalSpeaker;
+        if (settings.personalSpeed) {
+            document.getElementById('personal-speed').value = settings.personalSpeed;
+            document.getElementById('personal-speed-value').textContent = settings.personalSpeed;
+        }
+        if (settings.personalPitch) {
+            document.getElementById('personal-pitch').value = settings.personalPitch;
+            document.getElementById('personal-pitch-value').textContent = settings.personalPitch;
+        }
+        if (settings.personalTempo) {
+            document.getElementById('personal-tempo').value = settings.personalTempo;
+            document.getElementById('personal-tempo-value').textContent = settings.personalTempo;
+        }
+        if (settings.personalVolume) {
+            document.getElementById('personal-volume').value = settings.personalVolume;
+            document.getElementById('personal-volume-value').textContent = settings.personalVolume;
+        }
+        if (settings.personalIntonation) {
+            document.getElementById('personal-intonation').value = settings.personalIntonation;
+            document.getElementById('personal-intonation-value').textContent = settings.personalIntonation;
+        }
     }
 
-    // NOTE: old wrapper removed to avoid accidental recursion. The real async
-    // loadServerSettings(serverId) is implemented above and will be used.
+    // デバッグ用: 現在の状態を出力
+    debugState() {
+        console.log('[Dashboard] Current State:', {
+            isInitializing: this.state.isInitializing,
+            isLoggedIn: this.state.isLoggedIn,
+            isLoadingGuild: this.state.isLoadingGuild,
+            currentGuildId: this.state.currentGuildId,
+            user: this.state.user ? {
+                id: this.state.user.id,
+                username: this.state.user.username,
+                nickname: this.state.user.nickname,
+                hasAvatar: !!this.state.user.avatar || !!this.state.user.avatarUrl,
+                guildsCount: this.state.user.guilds?.length || 0
+            } : null,
+            eventListenersCount: this.state.eventListeners.size,
+            hasUpdateInterval: !!this.updateInterval
+        });
+        
+        return this.state;
+    }
 
-    // ギルド情報の定期更新を開始
-    startGuildUpdates() {
-        // 既存のインターバルをクリア
-        if (this.updateInterval) {
-            clearInterval(this.updateInterval);
+    // デバッグ用: セッションを強制的に再取得
+    async forceRefreshSession() {
+        console.log('[Dashboard] Force refreshing session...');
+        this.state.isLoggedIn = false;
+        this.state.user = null;
+        
+        const success = await this.checkSession();
+        
+        if (success) {
+            await this.loadUserInfo();
+            console.log('[Dashboard] Session refreshed successfully');
+        } else {
+            console.warn('[Dashboard] Session refresh failed');
         }
         
-        console.log('[Dashboard] Starting periodic guild updates (every 60s)');
-        
-        // 定期更新を開始（60秒ごと）
-        this.updateInterval = setInterval(() => {
-            if (this.state.isLoggedIn && !this.state.isLoadingGuild) {
-                this.loadOverviewData(); // 統計情報のみ更新
-            }
-        }, 60000);
+        return success;
     }
-
-    // クリーンアップ処理
-    cleanup() {
-        // インターバルをクリア
-        if (this.updateInterval) {
-            clearInterval(this.updateInterval);
-            this.updateInterval = null;
-        }
-        
-        // イベントリスナーをすべて削除
-        this.state.eventListeners.forEach(({ element, event, handler }) => {
-            element?.removeEventListener(event, handler);
-        });
-        this.state.eventListeners.clear();
-        
-        // デバウンスタイマーをクリア
-        this.debounceTimers.forEach(timer => clearTimeout(timer));
-        this.debounceTimers.clear();
-        
-        logger.info('[Dashboard] Cleanup complete');
-    }
-
-    // ... 他のメソッドは省略（既存のまま）
 }
-
-// シングルトンインスタンス
-Dashboard.instance = null;
 
 // グローバルインスタンスを作成
 const dashboard = new Dashboard();
-
-// ページアンロード時にクリーンアップ
-window.addEventListener('beforeunload', () => {
-    dashboard.cleanup();
-});

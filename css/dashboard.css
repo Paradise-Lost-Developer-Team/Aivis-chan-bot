@@ -375,14 +375,13 @@ body {
 
 /* ダッシュボードヘッダー */
 .dashboard-header {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-    padding: 28px 32px;
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.08), rgba(114, 137, 218, 0.05));
+    border-bottom: 1px solid rgba(88, 101, 242, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .dashboard-header h1 {
@@ -404,45 +403,104 @@ body {
 .user-info {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 10px 16px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
+    gap: 14px;
 }
 
-.user-avatar {
-    width: 36px;
-    height: 36px;
+#user-avatar {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 2px solid rgba(88, 101, 242, 0.5);
+    border: 2px solid rgba(88, 101, 242, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: var(--transition-base);
+}
+
+#user-avatar:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 12px rgba(88, 101, 242, 0.4);
+    transform: scale(1.05);
 }
 
 #user-display {
-    color: var(--text-primary);
+    font-size: 16px;
     font-weight: 600;
-    font-size: 15px;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    min-width: 120px; /* 最小幅を設定してレイアウトシフトを防止 */
+    transition: color 0.3s ease;
 }
 
-.logout-btn,
-#logout-btn {
-    color: var(--error-color);
-    text-decoration: none;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    transition: var(--transition-base);
+/* ローディング中のアニメーション */
+#user-display.loading {
+    color: rgba(255, 255, 255, 0.6);
+    animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+#logout-btn,
+#discord-login-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-md);
     font-size: 14px;
-    background: transparent;
-    border: 1px solid transparent;
+    font-weight: 600;
     cursor: pointer;
+    transition: var(--transition-base);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.logout-btn:hover,
+#logout-btn {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    color: white;
+}
+
 #logout-btn:hover {
-    background: rgba(240, 71, 71, 0.1);
-    border-color: rgba(240, 71, 71, 0.3);
-    color: #ff8787;
+    background: linear-gradient(135deg, #d32f2f, #c62828);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+    transform: translateY(-2px);
+}
+
+#logout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+}
+
+#discord-login-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+#discord-login-btn:hover {
+    background: linear-gradient(135deg, #4e5cd7, #5a6ed8);
+    box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+    transform: translateY(-2px);
+}
+
+#discord-login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(88, 101, 242, 0.3);
+}
+
+/* ボタンの無効化状態 */
+#logout-btn:disabled,
+#discord-login-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#logout-btn:disabled:hover,
+#discord-login-btn:disabled:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* ナビゲーションタブ */
