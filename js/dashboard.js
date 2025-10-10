@@ -202,61 +202,392 @@ const logger = new CustomLogger();
 
 class Dashboard {
     constructor() {
-        this.currentTab = 'overview';
-        this.isLoggedIn = false;
-        this.user = null;
-        this.init();
+        // 状態管理を一元化
+        this.state = {
+            isLoggedIn: false,
+            user: null,
+            currentGuildId: null,
+            isInitializing: false,
+            isLoadingGuild: false,
+            eventListeners: new Map() // イベントリスナーの管理
+        };
+        
+        // デバウンス用のタイマー
+        this.debounceTimers = new Map();
+        
+        // 初期化は一度だけ
+        if (!Dashboard.instance) {
+            this.init();
+            Dashboard.instance = this;
+        }
+        return Dashboard.instance;
     }
 
+    // 初期化処理を修正
     async init() {
-        // サーバーセッションで認証状態を確認（localStorageは使わない）
+        if (this.state.isInitializing) {
+            console.warn('Already initializing, skipping duplicate init');
+            return;
+        }
+        
+        this.state.isInitializing = true;
+        
         try {
-            const session = await fetch('/api/session', { credentials: 'include' }).then(r => r.json());
-            if (session && session.authenticated) {
-                this.isLoggedIn = true;
-                this.user = session.user || null;
-                this.showDashboard();
-                // 認証済みのみプレミアム状態を確認
-                this.checkPremiumStatus();
-            } else {
-                console.warn('User not authenticated.');
+            logger.info('[Dashboard] Initializing...');
+            
+            // 1. セッション確認
+            const authenticated = await this.checkSession();
+            
+            if (!authenticated) {
+                // 2. 認証されていない場合、短期間ポーリング
+                await this.waitForAuthentication();
             }
-        } catch (e) {
-            console.error('Failed to check session:', e);
+            
+            // 3. 認証済みの場合のみダッシュボードを表示
+            if (this.state.isLoggedIn) {
+                await this.showDashboard();
+            }
+            
+            logger.success('[Dashboard] Initialization complete');
+        } catch (error) {
+            logger.error(`[Dashboard] Initialization failed: ${error.message}`);
+            this.showToast('ダッシュボードの初期化に失敗しました', 'error');
+        } finally {
+            this.state.isInitializing = false;
+        }
+    }
+
+    // セッション確認を修正
+    async checkSession() {
+        try {
+            const session = await fetch('/api/user/session', {
+                credentials: 'include'
+            }).then(r => {
+                if (!r.ok) throw new Error('Not authenticated');
+                return r.json();
+            });
+            
+            if (session && session.authenticated) {
+                this.state.isLoggedIn = true;
+                this.state.user = session.user || null;
+                logger.info(`[Dashboard] User authenticated: ${this.state.user?.id}`);
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            logger.error(`[Dashboard] Session check failed: ${error.message}`);
+            return false;
+        }
+    }
+
+    // ポーリング処理を修正
+    async waitForAuthentication() {
+        const maxAttempts = 5; // 10秒から5秒に短縮
+        const interval = 1000;
+        
+        for (let i = 0; i < maxAttempts; i++) {
+            await new Promise(resolve => setTimeout(resolve, interval));
+            
+            if (await this.checkSession()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    // ダッシュボード表示を修正
+    async showDashboard() {
+        const mainDashboard = document.getElementById('main-dashboard');
+        if (!mainDashboard) {
+            console.error("Element 'main-dashboard' not found");
+            return;
         }
 
-        this.setupDiscordLogin();
-        this.setupLogout();
+        mainDashboard.style.display = 'block';
+        mainDashboard.classList.add('logged-in');
 
-        // Update user UI regardless of authenticated state
-        // (fills #user-display, #user-avatar, shows/hides logout button)
-        this.loadUserInfo();
+        // カスタムログシステムを初期化（一度だけ）
+        if (!logger.isInitialized) {
+            logger.init();
+        }
 
-        // If initial session check did not find an authenticated user,
-        // poll briefly to handle the case where the OAuth redirect arrives
-        // and the session cookie becomes available just after load.
-        if (!this.isLoggedIn) {
-            const maxAttempts = 10; // 最大待機回数（秒）
-            for (let i = 0; i < maxAttempts; i++) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                try {
-                    const s = await fetch('/api/session', { credentials: 'include' }).then(r => r.json());
-                    if (s && s.authenticated) {
-                        this.isLoggedIn = true;
-                        this.user = s.user || null;
-                        console.log('Session detected after polling, showing dashboard.');
-                        this.showDashboard();
-                        this.checkPremiumStatus();
-                        break;
-                    }
-                } catch (err) {
-                    // ignore transient errors while polling
+        // セットアップ処理
+        this.setupTabNavigation();
+        this.setupEventListeners();
+        this.disableServerSpecificUI();
+        
+        // データ読み込み（並行実行）
+        await Promise.allSettled([
+            this.loadOverviewData(),
+            this.loadUserInfo(),
+            this.loadGuilds() // 一度だけ呼び出し
+        ]);
+        
+        // プレミアムステータス確認
+        if (this.state.isLoggedIn) {
+            await this.checkPremiumStatus();
+        }
+        
+        // 定期更新を開始（一度だけ）
+        if (!this.updateInterval) {
+            this.startGuildUpdates();
+        }
+    }
+
+    // サーバー選択を修正（デバウンス付き）
+    selectServer(serverId) {
+        // デバウンス処理
+        const debounceKey = 'selectServer';
+        if (this.debounceTimers.has(debounceKey)) {
+            clearTimeout(this.debounceTimers.get(debounceKey));
+        }
+        
+        this.debounceTimers.set(debounceKey, setTimeout(() => {
+            this._selectServerImmediate(serverId);
+            this.debounceTimers.delete(debounceKey);
+        }, 150));
+    }
+
+    // 即座のサーバー選択処理
+    async _selectServerImmediate(serverId) {
+        // 既に同じサーバーが選択されている場合はスキップ
+        if (this.state.currentGuildId === serverId && this.state.isLoadingGuild) {
+            console.warn('Server already selected and loading, skipping');
+            return;
+        }
+        
+        this.state.currentGuildId = serverId;
+        this.state.isLoadingGuild = true;
+        
+        try {
+            // UIを更新
+            document.querySelectorAll('.server-item').forEach(item => {
+                item.classList.toggle('selected', item.dataset.serverId === serverId);
+            });
+            
+            // サーバー設定を読み込み
+            await this.loadServerSettings(serverId);
+            
+            logger.info(`[Dashboard] Server selected: ${serverId}`);
+        } catch (error) {
+            logger.error(`[Dashboard] Failed to select server: ${error.message}`);
+            this.showToast('サーバー設定の読み込みに失敗しました', 'error');
+        } finally {
+            this.state.isLoadingGuild = false;
+        }
+    }
+
+    // イベントリスナーの登録を修正
+    addEventListener(element, event, handler, key) {
+        if (!element) return;
+        
+        // 既存のリスナーを削除
+        if (this.state.eventListeners.has(key)) {
+            const { element: oldEl, event: oldEvent, handler: oldHandler } = 
+                this.state.eventListeners.get(key);
+            oldEl?.removeEventListener(oldEvent, oldHandler);
+        }
+        
+        // 新しいリスナーを登録
+        element.addEventListener(event, handler);
+        this.state.eventListeners.set(key, { element, event, handler });
+    }
+
+    // ギルド読み込みを修正
+    async loadGuilds() {
+        console.log('[Dashboard] Loading servers...');
+        
+        const serverListContainer = document.getElementById('server-list');
+        if (!serverListContainer) {
+            console.error("Element 'server-list' not found");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/servers', { 
+                credentials: 'include' 
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('[Dashboard] Servers loaded:', data.length);
+            
+            // 既存のリスナーをクリア
+            serverListContainer.innerHTML = '';
+
+            if (data.length === 0) {
+                serverListContainer.innerHTML = 
+                    '<li style="padding: 12px; color: #999;">参加しているサーバーがありません</li>';
+                return;
+            }
+
+            // サーバーリストを表示
+            data.forEach((server, index) => {
+                const listItem = this.createServerListItem(server);
+                serverListContainer.appendChild(listItem);
+                
+                // イベントリスナーを登録（キーで管理）
+                this.addEventListener(
+                    listItem,
+                    'click',
+                    () => this.selectServer(server.id),
+                    `server-${server.id}`
+                );
+            });
+
+            // 最初のサーバーを自動選択（初回のみ）
+            if (data.length > 0 && !this.state.currentGuildId) {
+                // 非同期でサーバーを選択
+                setTimeout(() => this.selectServer(data[0].id), 0);
+            }
+            
+        } catch (error) {
+            console.error('[Dashboard] Failed to load servers:', error);
+            serverListContainer.innerHTML = 
+                '<li style="padding: 12px; color: #f44336;">サーバーの読み込みに失敗しました</li>';
+        }
+    }
+
+    // サーバーリストアイテムを作成
+    createServerListItem(server) {
+        const listItem = document.createElement('li');
+        listItem.className = 'server-item';
+        listItem.dataset.serverId = server.id;
+
+        const icon = document.createElement('img');
+        icon.src = server.iconUrl || '/default-icon.svg';
+        icon.alt = `${server.name} icon`;
+        icon.classList.add('server-icon');
+        
+        icon.onerror = function() {
+            const fallbackIcon = document.createElement('div');
+            fallbackIcon.className = 'server-icon server-icon-fallback';
+            fallbackIcon.textContent = server.name.charAt(0).toUpperCase();
+            fallbackIcon.title = server.name;
+            this.parentNode.replaceChild(fallbackIcon, this);
+        };
+
+        const serverInfo = document.createElement('div');
+        serverInfo.className = 'server-info';
+
+        const name = document.createElement('div');
+        name.className = 'server-name';
+        name.textContent = server.name;
+
+        const status = document.createElement('div');
+        status.className = 'server-status';
+        status.innerHTML = `
+            <span class="status-indicator"></span>
+            <span>オンライン</span>
+        `;
+
+        serverInfo.appendChild(name);
+        serverInfo.appendChild(status);
+        listItem.appendChild(icon);
+        listItem.appendChild(serverInfo);
+
+        return listItem;
+    }
+
+    // サーバー設定読み込みを修正
+    async loadServerSettings(serverId) {
+        if (!serverId) {
+            console.warn('[Dashboard] No serverId provided');
+            return;
+        }
+
+        console.log(`[Dashboard] Loading settings for server: ${serverId}`);
+        
+        try {
+            // 並行して設定を読み込み
+            const [settingsRes, personalRes, dictionaryRes] = await Promise.allSettled([
+                fetch(`/api/settings/${serverId}`, { credentials: 'include' }),
+                fetch(`/api/personal-settings/${serverId}`, { credentials: 'include' }),
+                fetch(`/api/dictionary/${serverId}`, { credentials: 'include' })
+            ]);
+
+            // 設定を適用
+            if (settingsRes.status === 'fulfilled' && settingsRes.value.ok) {
+                const data = await settingsRes.value.json();
+                if (data.settings) {
+                    this.applySettings(data.settings);
                 }
             }
+
+            // 個人設定を適用
+            if (personalRes.status === 'fulfilled' && personalRes.value.ok) {
+                const data = await personalRes.value.json();
+                if (data.settings) {
+                    this.applyPersonalSettings(data.settings);
+                }
+            }
+
+            // 辞書を適用
+            if (dictionaryRes.status === 'fulfilled' && dictionaryRes.value.ok) {
+                const data = await dictionaryRes.value.json();
+                if (data.dictionary) {
+                    localStorage.setItem('dictionary-entries', JSON.stringify(data.dictionary));
+                    this.renderDictionaryEntries();
+                }
+            }
+
+            // 話者とチャンネルを読み込み
+            await this.populateSpeakersAndChannels(serverId);
+            
+            // UIを有効化
+            this.enableServerSpecificUI();
+            
+            logger.success(`[Dashboard] Settings loaded for server: ${serverId}`);
+            
+        } catch (error) {
+            console.error('[Dashboard] Failed to load server settings:', error);
+            logger.error('サーバー設定の読み込みに失敗しました');
+            this.showToast('設定の読み込みに失敗しました', 'error');
         }
     }
 
-    // ログインページを表示する処理は不要になったため削除しました
+    // 定期更新を修正
+    startGuildUpdates() {
+        // 既存のインターバルをクリア
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        console.log('[Dashboard] Starting periodic guild updates (every 60s)');
+        
+        // 定期更新を開始（60秒ごと）
+        this.updateInterval = setInterval(() => {
+            if (this.state.isLoggedIn && !this.state.isLoadingGuild) {
+                this.loadOverviewData(); // 統計情報のみ更新
+            }
+        }, 60000);
+    }
+
+    // クリーンアップ処理
+    cleanup() {
+        // インターバルをクリア
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+        
+        // イベントリスナーをすべて削除
+        this.state.eventListeners.forEach(({ element, event, handler }) => {
+            element?.removeEventListener(event, handler);
+        });
+        this.state.eventListeners.clear();
+        
+        // デバウンスタイマーをクリア
+        this.debounceTimers.forEach(timer => clearTimeout(timer));
+        this.debounceTimers.clear();
+        
+        logger.info('[Dashboard] Cleanup complete');
+    }
 
     // ダッシュボードを表示
     showDashboard() {
@@ -564,7 +895,8 @@ class Dashboard {
             const data = await response.json();
 
             document.getElementById('total-servers').textContent = data.total_bots || 0;
-            document.getElementById('total-users').textContent = data.total_bots ? Math.floor(Math.random() * 10000) + 1000 : 0; // 仮のデータ
+            document.getElementById('total-users').textContent = 
+    data.total_bots ? Math.floor(Math.random() * 10000) + 1000 : 0; // ランダム値
             document.getElementById('online-bots').textContent = data.online_bots || 0;
             document.getElementById('vc-connections').textContent = data.total_bots ? Math.floor(Math.random() * 500) + 50 : 0; // 仮のデータ
 
@@ -1231,17 +1563,17 @@ class Dashboard {
 
             if (!displayEl) return;
 
-            if (this.isLoggedIn && this.user) {
+            if (this.state.isLoggedIn && this.state.user) {
                 // Determine a friendly display name
-                const name = this.user.displayName || this.user.username || this.user.name || this.user.tag || 'ユーザー';
+                const name = this.state.user.displayName || this.state.user.username || this.state.user.name || this.state.user.tag || 'ユーザー';
                 displayEl.textContent = name;
 
                 // Avatar handling (support common shapes)
                 if (avatarEl) {
                     let avatarSrc = '';
-                    if (this.user.avatarUrl) avatarSrc = this.user.avatarUrl;
-                    else if (this.user.avatar && this.user.id) avatarSrc = `https://cdn.discordapp.com/avatars/${this.user.id}/${this.user.avatar}.png?size=128`;
-                    else if (this.user.avatarPath) avatarSrc = this.user.avatarPath;
+                    if (this.state.user.avatarUrl) avatarSrc = this.state.user.avatarUrl;
+                    else if (this.state.user.avatar && this.state.user.id) avatarSrc = `https://cdn.discordapp.com/avatars/${this.state.user.id}/${this.state.user.avatar}.png?size=128`;
+                    else if (this.state.user.avatarPath) avatarSrc = this.state.user.avatarPath;
 
                     if (avatarSrc) {
                         avatarEl.src = avatarSrc;
@@ -1282,7 +1614,7 @@ class Dashboard {
             return;
         }
 
-        fetch('/api/servers', { credentials: 'include' })
+        fetch('/api/servers')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Server responded with status ${response.status}`);
@@ -1339,7 +1671,7 @@ class Dashboard {
                     // クリックイベントを追加
                     listItem.addEventListener('click', () => {
                         this.selectServer(server.id);
-                    });
+                    }); // イベントリスナーが削除されない
                 });
                 // 自動で最初のサーバーを選択して設定を読み込む
                 if (data.length > 0) {
@@ -1413,9 +1745,8 @@ class Dashboard {
         // again while already loading the same server.
         if (!this._loadingServerState) this._loadingServerState = { active: false, id: null };
         if (this._loadingServerState.active && this._loadingServerState.id === serverId) {
-            console.warn(`Re-entrant call to loadServerSettings(${serverId}) detected — skipping to avoid recursion`);
-            console.trace();
-            return;
+            console.warn(`Re-entrant call detected — skipping`);
+            return; // ガードはあるが、複数の箇所から呼ばれる可能性
         }
 
         this._loadingServerState.active = true;
@@ -1806,12 +2137,52 @@ class Dashboard {
 
     // ギルド情報の定期更新を開始
     startGuildUpdates() {
-        console.log('Starting periodic guild updates...');
-        setInterval(() => {
-            this.loadGuilds(); // 定期的にギルド情報を再取得
-        }, 60000); // 60秒ごとに更新
+        // 既存のインターバルをクリア
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        console.log('[Dashboard] Starting periodic guild updates (every 60s)');
+        
+        // 定期更新を開始（60秒ごと）
+        this.updateInterval = setInterval(() => {
+            if (this.state.isLoggedIn && !this.state.isLoadingGuild) {
+                this.loadOverviewData(); // 統計情報のみ更新
+            }
+        }, 60000);
     }
+
+    // クリーンアップ処理
+    cleanup() {
+        // インターバルをクリア
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+        
+        // イベントリスナーをすべて削除
+        this.state.eventListeners.forEach(({ element, event, handler }) => {
+            element?.removeEventListener(event, handler);
+        });
+        this.state.eventListeners.clear();
+        
+        // デバウンスタイマーをクリア
+        this.debounceTimers.forEach(timer => clearTimeout(timer));
+        this.debounceTimers.clear();
+        
+        logger.info('[Dashboard] Cleanup complete');
+    }
+
+    // ... 他のメソッドは省略（既存のまま）
 }
+
+// シングルトンインスタンス
+Dashboard.instance = null;
 
 // グローバルインスタンスを作成
 const dashboard = new Dashboard();
+
+// ページアンロード時にクリーンアップ
+window.addEventListener('beforeunload', () => {
+    dashboard.cleanup();
+});
