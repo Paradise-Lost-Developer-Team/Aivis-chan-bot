@@ -1,5 +1,5 @@
 import { Events, Message, Client, GuildMember, Collection, ChannelType, VoiceChannel, TextChannel } from 'discord.js';
-import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, getJoinCommandChannel, getTextChannelFromMapByGuild, normalizeTextChannelsMap, textChannelByVoice } from './TTS-Engine';
+import { voiceClients, loadAutoJoinChannels, MAX_TEXT_LENGTH, speakVoice, speakAnnounce, updateLastSpeechTime, monitorMemoryUsage, getJoinCommandChannel, getTextChannelFromMapByGuild, normalizeTextChannelsMap, textChannelByVoice, currentSpeaker } from './TTS-Engine';
 import { AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 import { logError } from './errorLogger';
 import { findMatchingResponse, processResponse } from './custom-responses';
@@ -101,264 +101,160 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
 };
 
 export function MessageCreate(client: ExtendedClient) {
-    client.on(Events.MessageCreate, async (message: Message) => {
-        if (message.author.bot) {
-            console.log("Message is from a bot, ignoring.");
-            return;
-        }
-    
+    client.on("messageCreate", async (message) => {
         try {
-            const guildId = message.guildId!;
-            let messageContent = message.content;
-            let voiceClient = voiceClients[guildId];
-
-            // 動的テキストチャンネル判定システムを使用
-            const { shouldTTS, reason } = await shouldPerformTTS(message);
+            // Bot自身のメッセージは無視
+            if (message.author.id === client.user?.id) return;
             
-            if (!shouldTTS) {
-                console.log(`[TTS:1st] メッセージ無視: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
+            // DMは無視
+            if (!message.guild) return;
+            
+            const guildId = message.guild.id;
+            const channelId = message.channel.id;
+            
+            // チャンネル名を安全に取得（Type Guard使用）
+            const channelName = 'name' in message.channel ? message.channel.name : 'Unknown Channel';
+            
+            console.log(`[TTS:MessageCreate] Message received in guild: ${message.guild.name} (${guildId}), channel: ${channelName} (${channelId})`);
+            
+            // ボイス接続を確認
+            const voiceConnection = voiceClients[guildId];
+            if (!voiceConnection) {
+                console.log(`[TTS:MessageCreate] No voice connection for guild: ${guildId}`);
                 return;
             }
             
-            console.log(`[TTS:1st] TTS実行許可: ${reason} (guild: ${message.guild?.name}, channel: ${(message.channel as TextChannel).name})`);
-    
-            // メッセージ内容の加工
-            // スポイラーを置換
-            const spoilers = messageContent.match(/\|\|[\s\S]+?\|\|/g) || [];
-            spoilers.forEach(spoiler => {
-                messageContent = messageContent.replace(spoiler, "ネタバレ");
-            });
-            
-            // Unicode絵文字を置換（カスタム絵文字/<a:…>タグ内は除外）、アラビア数字単体は除外
-            {
-                const original = messageContent;
-                messageContent = original.replace(/\p{Emoji}/gu, (emoji, offset) => {
-                    // 単一のアラビア数字（0-9）の場合は置換しない
-                    if (/^[0-9]$/.test(emoji)) {
-                        return emoji;
-                    }
-                    // 絵文字の位置が <…> タグ内かをチェック
-                    const openIdx  = original.lastIndexOf('<', offset);
-                    const closeIdx = original.indexOf('>',  offset);
-                    if (openIdx !== -1 && closeIdx !== -1 && openIdx < offset && offset < closeIdx) {
-                        // タグ内なのでカスタム絵文字 or アニメーション絵文字
-                        return emoji;
-                    }
-                    return '絵文字';
-                });
-            }
-            // カスタム絵文字を置換
-            const customEmojis = messageContent.match(/<:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
-            customEmojis.forEach(emoji => {
-                messageContent = messageContent.replace(emoji, "カスタム絵文字");
-            });
-            
-            // 動く絵文字（アニメーション絵文字）を置換
-            const animatedEmojis = messageContent.match(/<a:[a-zA-Z0-9_]+:[0-9]+>/g) || [];
-            animatedEmojis.forEach(emoji => {
-                messageContent = messageContent.replace(emoji, "動く絵文字");
-            });
-
-            // 添付ファイルがある場合は "添付ファイル" に置換
-            if (message.attachments.size > 0) {
-                messageContent = messageContent.replace(/$/, messageContent.trim() === '' ? "添付ファイル" : " 添付ファイル");
-            }
-
-            // URLを置換
-            const urls = messageContent.match(/https?:\/\/\S+/g) || [];
-            urls.forEach(url => {
-                messageContent = messageContent.replace(url, "URL省略");
-            });
-    
-            // ロールメンションを置換
-            const roleMentions = messageContent.match(/<@&(\d+)>/g) || [];
-            const rolePromises = roleMentions.map(async (mention) => {
-                const roleId = mention.match(/\d+/)![0];
-                try {
-                    const role = await message.guild!.roles.fetch(roleId);
-                    return { mention, roleName: role ? `${role.name}` : `@Unknown Role (${roleId})` };
-                } catch (error) {
-                    console.error(`Failed to fetch role for ID: ${roleId}`, error);
-                    return { mention, roleName: `@Unknown Role (${roleId})` };
-                }
-            });
-            const resolvedRoleMentions = await Promise.all(rolePromises);
-            resolvedRoleMentions.forEach(({ mention, roleName }) => {
-                messageContent = messageContent.replace(mention, roleName);
-            });
-    
-            // チャンネルメンションを置換
-            const channelMentions = messageContent.match(/<#(\d+)>/g) || [];
-            const channelPromises = channelMentions.map(async (mention) => {
-                const channelId = mention.match(/\d+/)![0];
-                try {
-                    const channel = await message.guild!.channels.fetch(channelId);
-                    if (channel && 'name' in channel) {
-                        return { mention, channelName: `${channel.name}` };
-                    }
-                    return { mention, channelName: `#Unknown Channel (${channelId})` };
-                } catch (error) {
-                    console.error(`Failed to fetch channel for ID: ${channelId}`, error);
-                    return { mention, channelName: `#Unknown Channel (${channelId})` };
-                }
-            });
-            const resolvedChannelMentions = await Promise.all(channelPromises);
-            resolvedChannelMentions.forEach(({ mention, channelName }) => {
-                messageContent = messageContent.replace(mention, channelName);
-            });
-
-            // ユーザーメンションを置換
-            const userMentions = messageContent.match(/<@!?(\d+)>/g) || [];
-            const userPromises = userMentions.map(async (mention) => {
-                const userId = mention.match(/\d+/)![0];
-                const nickname = message.guild?.members.cache.get(userId)?.nickname || null;
-                try {
-                    const user = await client.users.fetch(userId);
-                    // Use nickname if available, otherwise fallback to username or globalName
-                    const displayName = nickname || user.globalName || user.username;
-                    return { mention, username: `${displayName}` };
-                } catch (error) {
-                    console.error(`Failed to fetch user for Nickname: ${nickname}`, error);
-                    return { mention, username: `Unknown User (${nickname})` };
-                }
-            });
-            const resolvedMentions = await Promise.all(userPromises);
-            resolvedMentions.forEach(({ mention, username }) => {
-                messageContent = messageContent.replace(mention, username);
-            });
-            
-            // コードブロック除外
-            if (messageContent.match(/```[\s\S]+```/g)) {
-                console.log("Message contains code block, ignoring.");
+            // 接続状態を確認
+            if (voiceConnection.state.status !== VoiceConnectionStatus.Ready) {
+                console.log(`[TTS:MessageCreate] Voice connection not ready for guild: ${guildId}, status: ${voiceConnection.state.status}`);
                 return;
             }
-    
-            // メッセージ先頭に "(音量0)" がある場合は読み上げを行わない
-            if (messageContent.startsWith("(音量0)")) {
-                console.log("Message starts with (音量0), ignoring.");
-                return;
-            }
-    
-            // 以下を追加：BOTが接続しているボイスチャンネルに人がいなければ処理を中断する
-            if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
-                const voiceChannel = message.guild?.channels.cache.get(voiceClient.joinConfig.channelId!);
-                if (voiceChannel && 'members' in voiceChannel) {
-                    const membersCollection = voiceChannel.members as Collection<string, GuildMember>;
-                    if (membersCollection.filter((member) => !member.user.bot).size === 0) {
-                        console.log("No human in the voice channel. Ignoring message.");
-                        return;
-                    }
-                }
-            }
             
-            // 1度だけボイス接続状態の保存や再取得を行う
-            if (!voiceInitMap[guildId]) {
-                if (voiceClient) {
-                    // 接続状態を確認し、接続が切れていたら再取得
-                        if (voiceClient.state.status !== VoiceConnectionStatus.Ready) {
-                        const reconnectedClient = getVoiceConnection(guildId);
-                        if (reconnectedClient) {
-                            voiceClients[guildId] = reconnectedClient;
-                            voiceClient = reconnectedClient;
-                            console.log(`ギルド ${guildId} の接続を回復しました`);
-                        } else {
-                            console.error(`Voice client is not connected. Ignoring message. Guild ID: ${guildId}`);
-                            return;
-                        }
-                    }
-                }
-                // 初期化済みフラグを立てる
-                voiceInitMap[guildId] = true;
-            }
+            // テキストチャンネルの確認（複数の方法で試行）
+            let expectedTextChannelId = getTextChannelFromMapByGuild(guildId)?.id || null;
             
-            // ボイスクライアント接続状態の確認と処理
-            if (voiceClient) {
-                // 接続状態を確認
-                const isReady = voiceClient.state.status === VoiceConnectionStatus.Ready;
-                console.log(`Voice client status: ${voiceClient.state.status}, Guild: ${guildId}`);
+            // 保存されたマッピングがない場合、設定から取得
+            if (!expectedTextChannelId) {
+                console.log(`[TTS:MessageCreate] No saved text channel mapping for guild: ${guildId}, checking settings...`);
                 
-                if (isReady) {
-                    console.log("Voice client is connected and ready. Processing message.");
-                    
-                    // 文字数制限
-                    if (messageContent.length > MAX_TEXT_LENGTH) {
-                        messageContent = messageContent.substring(0, MAX_TEXT_LENGTH) + "...";
-                    }
-                    
-                    // 優先度の決定（キューが利用可能な場合のみ）
-                    let priority = Priority?.NORMAL || 'normal';
-                    
-                    // システム通知やコマンド応答などは優先度高 & speakAnnounce使用
-                    if (messageContent.includes('接続しました') || 
-                        messageContent.includes('入室しました') || 
-                        messageContent.includes('退室しました')) {
-                        priority = Priority?.HIGH || 'high';
-                        // システム通知はspeakAnnounceで処理
-                        try {
-                            await speakAnnounce(messageContent, guildId, client);
-                            updateLastSpeechTime();
-                            console.log(`システム通知を読み上げ処理: "${messageContent.substring(0, 30)}..."`);
-                        } catch (error) {
-                            console.error(`システム通知の読み上げエラー: ${error}`);
-                        }
-                        return; // 通常のキュー処理はスキップ
-                    }
-                    
-                    // 長いメッセージやURLが多いメッセージは優先度低
-                    if (messageContent.length > 100 || messageContent.includes('URL省略')) {
-                        priority = Priority?.LOW || 'low';
-                    }
-                    
-                    // キューにメッセージを追加またはダイレクト読み上げ
-                    try {
-                        if (typeof enqueueText === 'function') {
-                            enqueueText(guildId, messageContent, priority, message);
-                            console.log(`キューに追加: "${messageContent.substring(0, 30)}..." (優先度: ${priority})`);
-                        } else {
-                            // キュー機能がない場合は直接読み上げ
-                            await speakVoice(messageContent, message.author.id, guildId, client);
-                            console.log(`直接読み上げ処理: "${messageContent.substring(0, 30)}..."`);
-                        }
-                        updateLastSpeechTime(); // 発話時刻を更新
-                    } catch (error) {
-                        console.error(`読み上げ処理エラー: ${error}`);
-                    }
-                } else {
-                    console.log(`ボイスクライアントの状態が Ready ではありません (${voiceClient.state.status})。メッセージを無視します。ギルドID: ${guildId}`);
+                // autoJoinChannels から取得
+                const autoJoinChannelsData = loadAutoJoinChannels();
+                const autoJoinSetting = autoJoinChannelsData[guildId];
+                if (autoJoinSetting?.textChannelId) {
+                    expectedTextChannelId = autoJoinSetting.textChannelId;
+                    console.log(`[TTS:MessageCreate] Using autoJoin text channel: ${expectedTextChannelId}`);
                 }
+                
+                // joinChannels から取得（既にインポート済みの関数を使用）
+                if (!expectedTextChannelId) {
+                    const joinCommandChannelId = getJoinCommandChannel(guildId);
+                    if (joinCommandChannelId) {
+                        expectedTextChannelId = joinCommandChannelId;
+                        console.log(`[TTS:MessageCreate] Using join command channel: ${expectedTextChannelId}`);
+                    }
+                }
+                
+                // まだ見つからない場合、ボイスチャンネルと同じカテゴリのテキストチャンネルを探す
+                if (!expectedTextChannelId) {
+                    const voiceChannelId = voiceConnection.joinConfig.channelId;
+                    if (voiceChannelId) {
+                        const voiceChannel = message.guild.channels.cache.get(voiceChannelId);
+                        if (voiceChannel && 'parentId' in voiceChannel && voiceChannel.parentId) {
+                            // 同じカテゴリ内のテキストチャンネルを検索
+                            const categoryChannels = message.guild.channels.cache.filter(
+                                (ch) => ch.type === ChannelType.GuildText && 'parentId' in ch && ch.parentId === voiceChannel.parentId
+                            );
+                            
+                            if (categoryChannels.size > 0) {
+                                const firstTextChannel = categoryChannels.first() as TextChannel;
+                                expectedTextChannelId = firstTextChannel.id;
+                                console.log(`[TTS:MessageCreate] Using category text channel: ${firstTextChannel.name} (${expectedTextChannelId})`);
+                            }
+                        }
+                        
+                        // カテゴリが同じでない場合、同名のテキストチャンネルを探す
+                        if (!expectedTextChannelId && voiceChannel && 'name' in voiceChannel) {
+                            const sameNameChannel = message.guild.channels.cache.find(
+                                (ch) => ch.type === ChannelType.GuildText && 'name' in ch && ch.name.toLowerCase() === (voiceChannel as VoiceChannel).name.toLowerCase()
+                            ) as TextChannel | undefined;
+                            
+                            if (sameNameChannel) {
+                                expectedTextChannelId = sameNameChannel.id;
+                                console.log(`[TTS:MessageCreate] Using same-name text channel: ${sameNameChannel.name} (${expectedTextChannelId})`);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // チャンネルIDが一致するか確認
+            if (expectedTextChannelId && channelId !== expectedTextChannelId) {
+                console.log(`[TTS:MessageCreate] メッセージ無視: no-match (guild: ${message.guild.name}, channel: ${channelName}, expected: ${expectedTextChannelId}, actual: ${channelId})`);
+                return;
+            }
+            
+            // expectedTextChannelId が null の場合、どのテキストチャンネルでも読み上げを許可
+            if (!expectedTextChannelId) {
+                console.log(`[TTS:MessageCreate] No text channel restriction for guild: ${guildId}, allowing all text channels`);
+            }
+            
+            console.log(`[TTS:MessageCreate] Processing message from ${message.author.tag} in ${channelName}`);
+            
+            // メッセージ内容を取得
+            let textToSpeak = message.content.trim();
+            
+            // 空メッセージは無視
+            if (!textToSpeak) {
+                console.log(`[TTS:MessageCreate] Empty message, skipping TTS`);
+                return;
+            }
+            
+            // カスタムレスポンス機能のチェック
+            const customResponse = await findMatchingResponse(textToSpeak, guildId);
+            if (customResponse) {
+                textToSpeak = processResponse(customResponse, textToSpeak, message.author.username);
+                console.log(`[TTS:MessageCreate] Using custom response: "${textToSpeak}"`);
+            }
+            
+            // スマートTTS機能のチェック（プロ機能）
+            const isProGuild = await isProFeatureAvailable(guildId, 'smart-tts');
+            if (isProGuild) {
+                const smartSettings = await getSmartTTSSettings(guildId);
+                if (smartSettings) {
+                    // Get the current speaker ID for the guild (which is a number)
+                    const speakerId = currentSpeaker[guildId] || 0;
+                    const smartText = await generateSmartSpeech(textToSpeak, speakerId, guildId);
+                    if (smartText) {
+                        textToSpeak = smartText;
+                        console.log(`[TTS:MessageCreate] Using smart TTS: "${textToSpeak}"`);
+                    }
+                }
+            }
+            
+            // 長すぎるメッセージは切り詰め
+            if (textToSpeak.length > MAX_TEXT_LENGTH) {
+                textToSpeak = textToSpeak.substring(0, MAX_TEXT_LENGTH) + '... 以下略';
+            }
+            
+            // TTS実行
+            if (enqueueText && Priority) {
+                // キューシステムを使用
+                await enqueueText(guildId, textToSpeak, Priority.NORMAL, {
+                    userId: message.author.id,
+                    username: message.author.username,
+                    channelId: message.channel.id
+                });
+                console.log(`[TTS:MessageCreate] Message enqueued for TTS`);
             } else {
-                console.log(`ボイスクライアントが存在しません。メッセージを無視します。ギルドID: ${guildId}`);
+                // 直接読み上げ
+                await speakVoice(guildId, textToSpeak, message.author.id, message.author.username);
+                updateLastSpeechTime();
+                console.log(`[TTS:MessageCreate] Message spoken directly`);
             }
 
-            const match = findMatchingResponse(guildId, message.content);
-            if (match) {
-                // カスタム応答のテキストを生成
-                const replyText = processResponse(match, message.content, message.author.username);
-                if (message.channel.isTextBased() && 'send' in message.channel) {
-                    await message.channel.send(replyText);
-                }
-
-                // ボイスチャンネルに接続中ならTTSを試みる
-                if (voiceClient && voiceClient.state.status === VoiceConnectionStatus.Ready) {
-                    try {
-                        if (await isProFeatureAvailable(guildId, 'smart-tts')) {
-                            const audioPath = await generateSmartSpeech(replyText, 888753760, guildId);
-                        } else {
-                            // カスタム応答はアナウンス形式で読み上げ
-                            await speakAnnounce(replyText, guildId);
-                        }
-                        updateLastSpeechTime();
-                    } catch (error) {
-                        console.error('カスタム応答TTSエラー:', error);
-                    }
-                }
-            }
         } catch (error) {
-            console.error(`メッセージの処理中にエラーが発生しました: ${error}`);
-            logError('messageProcessError', error instanceof Error ? error : new Error(String(error)));
-        } finally {
-            // メモリ使用状況をチェック
-            monitorMemoryUsage();
+            console.error(`[TTS:MessageCreate] Error processing message:`, error);
+            logError('messageCreateError', error instanceof Error ? error : new Error(String(error)));
         }
     });
 }
