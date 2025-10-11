@@ -1630,24 +1630,106 @@ app.get('/health/redis', async (req, res) => {
   }
 });
 
-// --- Server Startup ---
-if (require.main === module) {
-  server = app.listen(PORT, HOST, () => {
-    console.log(`[LISTEN] Server started successfully`);
+// サーバーの起動（server 変数を先に宣言）
+const server = app.listen(PORT, HOST, () => {
+    console.log('[LISTEN] Server started successfully');
     console.log(`[LISTEN] - Address: http://${HOST}:${PORT}`);
     console.log(`[LISTEN] - Process ID: ${process.pid}`);
     console.log(`[LISTEN] - Node Version: ${process.version}`);
     console.log(`[LISTEN] - Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`[LISTEN] Ready to accept connections`);
-  });
+    console.log('[LISTEN] Ready to accept connections');
+});
 
-  server.on('error', (err) => {
-    console.error('[LISTEN] Server error:', err);
-    process.exit(1);
-  });
-}
+// エラーハンドリング
+server.on('error', (error) => {
+    console.error('[LISTEN] Server error:', error);
+    if (error.code === 'EADDRINUSE') {
+        console.error(`[LISTEN] Port ${PORT} is already in use`);
+        process.exit(1);
+    }
+});
 
-module.exports = app; // For testing
+// ===== グレースフルシャットダウンの実装（server 宣言の後） =====
+process.on('SIGTERM', async () => {
+    console.log('[SHUTDOWN] SIGTERM signal received: closing HTTP server');
+    isShuttingDown = true;
+    
+    server.close(() => {
+        console.log('[SHUTDOWN] HTTP server closed');
+        
+        // Redis接続をクローズ
+        if (redisStoreInstance && redisStoreInstance.client) {
+            redisStoreInstance.client.quit().then(() => {
+                console.log('[SHUTDOWN] Redis connection closed');
+                process.exit(0);
+            }).catch(err => {
+                console.error('[SHUTDOWN] Redis close error:', err);
+                process.exit(1);
+            });
+        } else {
+            process.exit(0);
+        }
+    });
+    
+    // 30秒後に強制終了
+    setTimeout(() => {
+        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 30000);
+});
+
+process.on('SIGINT', async () => {
+    console.log('[SHUTDOWN] SIGINT signal received: closing HTTP server');
+    isShuttingDown = true;
+    
+    server.close(() => {
+        console.log('[SHUTDOWN] HTTP server closed');
+        
+        // Redis接続をクローズ
+        if (redisStoreInstance && redisStoreInstance.client) {
+            redisStoreInstance.client.quit().then(() => {
+                console.log('[SHUTDOWN] Redis connection closed');
+                process.exit(0);
+            }).catch(err => {
+                console.error('[SHUTDOWN] Redis close error:', err);
+                process.exit(1);
+            });
+        } else {
+            process.exit(0);
+        }
+    });
+    
+    // 30秒後に強制終了
+    setTimeout(() => {
+        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 30000);
+});
+
+// 未処理の Promise エラーをキャッチ
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[FATAL] Unhandled Promise Rejection:', reason);
+    console.error('[FATAL] Promise:', promise);
+});
+
+// 未処理の例外をキャッチ
+process.on('uncaughtException', (error) => {
+    console.error('[FATAL] Uncaught Exception:', error);
+    // 致命的なエラーの場合はプロセスを終了
+    if (!isShuttingDown) {
+        isShuttingDown = true;
+        server.close(() => {
+            process.exit(1);
+        });
+        // 5秒後に強制終了
+        setTimeout(() => {
+            process.exit(1);
+        }, 5000);
+    }
+});
+
+// module.exports (必要に応じて)
+module.exports = app;
 
 // --- Rate Limiter Middleware ---
 class RateLimiter {
@@ -1795,68 +1877,82 @@ async function saveJsonFile(filePath, data) {
 }
 
 // グレースフルシャットダウンの実装
-let server;
+// server variable is already declared above when calling app.listen()
 
 process.on('SIGTERM', async () => {
     console.log('[SHUTDOWN] SIGTERM signal received: closing HTTP server');
     isShuttingDown = true;
     
-    if (server) {
-        server.close(() => {
-            console.log('[SHUTDOWN] HTTP server closed');
-            
-            // Redis接続をクローズ
-            if (redisStoreInstance && redisStoreInstance.client) {
-                redisStoreInstance.client.quit().then(() => {
-                    console.log('[SHUTDOWN] Redis connection closed');
-                    process.exit(0);
-                }).catch(err => {
-                    console.error('[SHUTDOWN] Redis close error:', err);
-                    process.exit(1);
-                });
-            } else {
-                process.exit(0);
-            }
-        });
+    server.close(() => {
+        console.log('[SHUTDOWN] HTTP server closed');
         
-        // 30秒後に強制終了
-        setTimeout(() => {
-            console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
-            process.exit(1);
-        }, 30000);
-    } else {
-        process.exit(0);
-    }
+        // Redis接続をクローズ
+        if (redisStoreInstance && redisStoreInstance.client) {
+            redisStoreInstance.client.quit().then(() => {
+                console.log('[SHUTDOWN] Redis connection closed');
+                process.exit(0);
+            }).catch(err => {
+                console.error('[SHUTDOWN] Redis close error:', err);
+                process.exit(1);
+            });
+        } else {
+            process.exit(0);
+        }
+    });
+    
+    // 30秒後に強制終了
+    setTimeout(() => {
+        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 30000);
 });
 
 process.on('SIGINT', async () => {
     console.log('[SHUTDOWN] SIGINT signal received: closing HTTP server');
     isShuttingDown = true;
     
-    if (server) {
-        server.close(() => {
-            console.log('[SHUTDOWN] HTTP server closed');
-            
-            // Redis接続をクローズ
-            if (redisStoreInstance && redisStoreInstance.client) {
-                redisStoreInstance.client.quit().then(() => {
-                    console.log('[SHUTDOWN] Redis connection closed');
-                    process.exit(0);
-                }).catch(err => {
-                    console.error('[SHUTDOWN] Redis close error:', err);
-                    process.exit(1);
-                });
-            } else {
-                process.exit(0);
-            }
-        });
+    server.close(() => {
+        console.log('[SHUTDOWN] HTTP server closed');
         
-        // 30秒後に強制終了
-        setTimeout(() => {
-            console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+        // Redis接続をクローズ
+        if (redisStoreInstance && redisStoreInstance.client) {
+            redisStoreInstance.client.quit().then(() => {
+                console.log('[SHUTDOWN] Redis connection closed');
+                process.exit(0);
+            }).catch(err => {
+                console.error('[SHUTDOWN] Redis close error:', err);
+                process.exit(1);
+            });
+        } else {
+            process.exit(0);
+        }
+    });
+    
+    // 30秒後に強制終了
+    setTimeout(() => {
+        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 30000);
+});
+
+// 未処理の Promise エラーをキャッチ
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[FATAL] Unhandled Promise Rejection:', reason);
+    console.error('[FATAL] Promise:', promise);
+});
+
+// 未処理の例外をキャッチ
+process.on('uncaughtException', (error) => {
+    console.error('[FATAL] Uncaught Exception:', error);
+    // 致命的なエラーの場合はプロセスを終了
+    if (!isShuttingDown) {
+        isShuttingDown = true;
+        server.close(() => {
             process.exit(1);
-        }, 30000);
-    } else {
-        process.exit(0);
+        });
+        // 5秒後に強制終了
+        setTimeout(() => {
+            process.exit(1);
+        }, 5000);
     }
 });
