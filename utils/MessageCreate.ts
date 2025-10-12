@@ -101,7 +101,7 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
 };
 
 export function MessageCreate(client: ExtendedClient) {
-    client.on("messageCreate", async (message) => {
+    client.on('messageCreate', async (message) => {
         try {
             // Bot自身のメッセージは無視
             if (message.author.id === client.user?.id) return;
@@ -109,39 +109,67 @@ export function MessageCreate(client: ExtendedClient) {
             // DMは無視
             if (!message.guild) return;
             
-            const guildId = message.guild.id;
-            const channelId = message.channel.id;
-            
-            // チャンネル名を安全に取得（Type Guard使用）
-            const channelName = 'name' in message.channel ? message.channel.name : 'Unknown Channel';
-            
-            console.log(`[TTS:MessageCreate] Message received in guild: ${message.guild.name} (${guildId}), channel: ${channelName} (${channelId})`);
-            
-            // ボイス接続を確認
-            const voiceConnection = voiceClients[guildId];
-            if (!voiceConnection) {
-                console.log(`[TTS:MessageCreate] No voice connection for guild: ${guildId}`);
+            // チャンネルの型を確認
+            if (!message.channel || message.channel.type !== ChannelType.GuildText) {
+                console.log(`[TTS:MessageCreate] Non-text channel, skipping`);
                 return;
             }
             
-            // 接続状態を確認
-            if (voiceConnection.state.status !== VoiceConnectionStatus.Ready) {
-                console.log(`[TTS:MessageCreate] Voice connection not ready for guild: ${guildId}, status: ${voiceConnection.state.status}`);
-                return;
+            const guildId = message.guild.id;
+            const channelId = message.channel.id;
+            const currentChannel = message.channel as TextChannel;
+            
+            console.log(`[TTS:MessageCreate] Message received in guild: ${message.guild.name} (${guildId}), channel: ${currentChannel.name} (${channelId})`);
+            
+            // デバッグ: 現在の設定を出力
+            const { voiceSettings, autoJoinChannels, joinChannels } = await import('./TTS-Engine');
+            const settings = voiceSettings[guildId] || {};
+            
+            console.log(`[TTS:DEBUG] Guild settings for ${guildId}:`, {
+                textChannelId: settings.textChannelId,
+                voiceChannelId: settings.voiceChannelId,
+                defaultSpeaker: settings.defaultSpeaker,
+                ignoreBotMessages: settings.ignoreBotMessages
+            });
+            
+            console.log(`[TTS:DEBUG] autoJoinChannels for ${guildId}:`, autoJoinChannels[guildId]);
+            console.log(`[TTS:DEBUG] joinChannels for ${guildId}:`, joinChannels[guildId]);
+            
+            // テキストチャンネルの確認
+            try {
+                normalizeTextChannelsMap();
+            } catch (e) {
+                console.warn(`[TTS:DEBUG] Failed to normalize text channels map:`, e);
+            }
+            
+            const savedTextChannel = getTextChannelFromMapByGuild(guildId);
+            const savedTextChannelId = savedTextChannel?.id || null;
+            
+            console.log(`[TTS:DEBUG] Saved text channel: ${savedTextChannelId}`);
+            console.log(`[TTS:DEBUG] Current channel: ${channelId}`);
+            console.log(`[TTS:DEBUG] Match: ${savedTextChannelId === channelId}`);
+            
+            // ボイス接続の確認
+            const voiceConnection = voiceClients[guildId];
+            console.log(`[TTS:DEBUG] Voice connection status:`, voiceConnection ? voiceConnection.state.status : 'not connected');
+            
+            // Bot メッセージの確認
+            if (message.author.bot) {
+                console.log(`[TTS:DEBUG] Message from bot, ignoreBotMessages: ${settings.ignoreBotMessages}`);
             }
             
             // ===== 🔴 重要: 動的テキストチャンネル判定を実行 =====
             const ttsDecision = await shouldPerformTTS(message);
             if (!ttsDecision.shouldTTS) {
-                console.log(`[TTS:MessageCreate] メッセージ無視: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${channelName})`);
+                console.log(`[TTS:MessageCreate] メッセージ無視: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${currentChannel.name})`);
                 return;
             }
             
-            console.log(`[TTS:MessageCreate] TTS allowed: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${channelName})`);
+            console.log(`[TTS:MessageCreate] TTS allowed: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${currentChannel.name})`);
             
             // ===== 以下は既存の TTS 処理 =====
             
-            console.log(`[TTS:MessageCreate] Processing message from ${message.author.tag} in ${channelName}`);
+            console.log(`[TTS:MessageCreate] Processing message from ${message.author.tag} in ${currentChannel.name}`);
             
             // メッセージ内容を取得
             let textToSpeak = message.content.trim();
