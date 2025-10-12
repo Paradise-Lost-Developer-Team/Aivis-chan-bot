@@ -109,9 +109,9 @@ export function MessageCreate(client: ExtendedClient) {
             // DMは無視
             if (!message.guild) return;
             
-            // チャンネルの型を確認
+            // チャンネルの型を確認（ログを減らすため、GuildTextのみ処理）
             if (!message.channel || message.channel.type !== ChannelType.GuildText) {
-                console.log(`[TTS:MessageCreate] Non-text channel, skipping`);
+                // Non-text channels are silently ignored (no log spam)
                 return;
             }
             
@@ -119,57 +119,48 @@ export function MessageCreate(client: ExtendedClient) {
             const channelId = message.channel.id;
             const currentChannel = message.channel as TextChannel;
             
-            console.log(`[TTS:MessageCreate] Message received in guild: ${message.guild.name} (${guildId}), channel: ${currentChannel.name} (${channelId})`);
+            console.log(`[TTS:MessageCreate] Message received in guild: ${message.guild.name} (${guildId}), channel: ${currentChannel.name} (${channelId}), author: ${message.author.tag}`);
             
-            // デバッグ: 現在の設定を出力
-            const { voiceSettings, autoJoinChannels, joinChannels } = await import('./TTS-Engine');
-            const settings = voiceSettings[guildId] || {};
-            
-            console.log(`[TTS:DEBUG] Guild settings for ${guildId}:`, {
-                textChannelId: settings.textChannelId,
-                voiceChannelId: settings.voiceChannelId,
-                defaultSpeaker: settings.defaultSpeaker,
-                ignoreBotMessages: settings.ignoreBotMessages
-            });
-            
-            console.log(`[TTS:DEBUG] autoJoinChannels for ${guildId}:`, autoJoinChannels[guildId]);
-            console.log(`[TTS:DEBUG] joinChannels for ${guildId}:`, joinChannels[guildId]);
-            
-            // テキストチャンネルの確認
-            try {
-                normalizeTextChannelsMap();
-            } catch (e) {
-                console.warn(`[TTS:DEBUG] Failed to normalize text channels map:`, e);
-            }
-            
-            const savedTextChannel = getTextChannelFromMapByGuild(guildId);
-            const savedTextChannelId = savedTextChannel?.id || null;
-            
-            console.log(`[TTS:DEBUG] Saved text channel: ${savedTextChannelId}`);
-            console.log(`[TTS:DEBUG] Current channel: ${channelId}`);
-            console.log(`[TTS:DEBUG] Match: ${savedTextChannelId === channelId}`);
-            
-            // ボイス接続の確認
-            const voiceConnection = voiceClients[guildId];
-            console.log(`[TTS:DEBUG] Voice connection status:`, voiceConnection ? voiceConnection.state.status : 'not connected');
-            
-            // Bot メッセージの確認
-            if (message.author.bot) {
-                console.log(`[TTS:DEBUG] Message from bot, ignoreBotMessages: ${settings.ignoreBotMessages}`);
-            }
-            
-            // ===== 🔴 重要: 動的テキストチャンネル判定を実行 =====
+            // ===== 🔴 重要: 動的テキストチャンネル判定を実行（早期実行に変更）=====
             const ttsDecision = await shouldPerformTTS(message);
             if (!ttsDecision.shouldTTS) {
-                console.log(`[TTS:MessageCreate] メッセージ無視: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${currentChannel.name})`);
+                // Debug info only when there's a voice connection
+                const voiceConnection = voiceClients[guildId];
+                if (voiceConnection && voiceConnection.state.status === VoiceConnectionStatus.Ready) {
+                    console.log(`[TTS:MessageCreate] メッセージ無視: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${currentChannel.name})`);
+                    
+                    // デバッグ情報を出力（音声接続があるのに読み上げられない場合のみ）
+                    const { voiceSettings, autoJoinChannels } = await import('./TTS-Engine');
+                    const settings = voiceSettings[guildId] || {};
+                    
+                    console.log(`[TTS:DEBUG] Guild settings:`, {
+                        textChannelId: settings.textChannelId,
+                        voiceChannelId: settings.voiceChannelId,
+                        defaultSpeaker: settings.defaultSpeaker,
+                        ignoreBotMessages: settings.ignoreBotMessages
+                    });
+                    
+                    try {
+                        normalizeTextChannelsMap();
+                    } catch (e) {
+                        console.warn(`[TTS:DEBUG] Failed to normalize text channels map:`, e);
+                    }
+                    
+                    const savedTextChannel = getTextChannelFromMapByGuild(guildId);
+                    const savedTextChannelId = savedTextChannel?.id || null;
+                    
+                    console.log(`[TTS:DEBUG] Saved text channel: ${savedTextChannelId}, Current: ${channelId}, Match: ${savedTextChannelId === channelId}`);
+                    console.log(`[TTS:DEBUG] Join command channel: ${getJoinCommandChannel(guildId)}`);
+                    console.log(`[TTS:DEBUG] Voice channel: ${voiceConnection.joinConfig?.channelId}`);
+                }
                 return;
             }
             
-            console.log(`[TTS:MessageCreate] TTS allowed: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${currentChannel.name})`);
+            console.log(`[TTS:MessageCreate] ✅ TTS allowed: ${ttsDecision.reason} (guild: ${message.guild.name}, channel: ${currentChannel.name})`);
             
             // ===== 以下は既存の TTS 処理 =====
             
-            console.log(`[TTS:MessageCreate] Processing message from ${message.author.tag} in ${currentChannel.name}`);
+            console.log(`[TTS:MessageCreate] Processing message from ${message.author.tag}: "${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}"`);
             
             // メッセージ内容を取得
             let textToSpeak = message.content.trim();
@@ -199,7 +190,7 @@ export function MessageCreate(client: ExtendedClient) {
                 const customResponse = await findMatchingResponse(textToSpeak, guildId);
                 if (customResponse) {
                     textToSpeak = processResponse(customResponse, textToSpeak, message.author.username);
-                    console.log(`[TTS:MessageCreate] Using custom response: "${textToSpeak}"`);
+                    console.log(`[TTS:MessageCreate] Using custom response: "${textToSpeak.substring(0, 50)}..."`);
                 }
             } catch (error) {
                 console.warn(`[TTS:MessageCreate] Custom response error:`, error);
@@ -212,26 +203,19 @@ export function MessageCreate(client: ExtendedClient) {
                     const smartSettings = await getSmartTTSSettings(guildId);
                     if (smartSettings) {
                         try {
-                            // Get the current speaker ID for the guild (which is a number)
                             const speakerId = currentSpeaker[guildId] || 0;
                             const smartText = await generateSmartSpeech(textToSpeak, speakerId, guildId);
                             if (smartText && smartText !== textToSpeak) {
                                 textToSpeak = smartText;
                                 console.log(`[TTS:MessageCreate] Using smart TTS: "${textToSpeak.substring(0, 50)}..."`);
-                            } else {
-                                console.log(`[TTS:MessageCreate] Smart TTS returned no changes, using original text`);
                             }
                         } catch (smartError) {
                             console.warn(`[TTS:MessageCreate] Smart TTS generation failed, falling back to original text:`, smartError);
-                            // スマートTTSが失敗しても元のテキストを使用して続行
                         }
-                    } else {
-                        console.log(`[TTS:MessageCreate] Smart TTS settings not available for guild: ${guildId}`);
                     }
                 }
             } catch (error) {
                 console.warn(`[TTS:MessageCreate] Smart TTS check error, continuing with original text:`, error);
-                // エラーが発生しても処理を続行
             }
             
             // 長すぎるメッセージは切り詰め
@@ -241,7 +225,6 @@ export function MessageCreate(client: ExtendedClient) {
             
             // TTS実行
             if (enqueueText && Priority) {
-                // キューシステムを使用
                 try {
                     await enqueueText(guildId, textToSpeak, Priority.NORMAL, {
                         userId: message.author.id || 'unknown',
@@ -251,10 +234,9 @@ export function MessageCreate(client: ExtendedClient) {
                         messageId: message.id,
                         timestamp: Date.now()
                     });
-                    console.log(`[TTS:MessageCreate] Message enqueued for TTS by ${message.author.tag}`);
+                    console.log(`[TTS:MessageCreate] ✅ Message enqueued for TTS by ${message.author.tag}`);
                 } catch (enqueueError) {
                     console.error(`[TTS:MessageCreate] Failed to enqueue message, falling back to direct speech:`, enqueueError);
-                    // キュー追加に失敗した場合は直接読み上げにフォールバック
                     try {
                         await speakVoice(
                             guildId, 
@@ -263,14 +245,13 @@ export function MessageCreate(client: ExtendedClient) {
                             message.author.username || message.author.tag || 'Unknown User'
                         );
                         updateLastSpeechTime();
-                        console.log(`[TTS:MessageCreate] Message spoken directly (fallback)`);
+                        console.log(`[TTS:MessageCreate] ✅ Message spoken directly (fallback)`);
                     } catch (fallbackError) {
                         console.error(`[TTS:MessageCreate] Direct speech fallback also failed:`, fallbackError);
                         logError('ttsCompleteFail', fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)));
                     }
                 }
             } else {
-                // 直接読み上げ
                 try {
                     await speakVoice(
                         guildId, 
@@ -279,7 +260,7 @@ export function MessageCreate(client: ExtendedClient) {
                         message.author.username || message.author.tag || 'Unknown User'
                     );
                     updateLastSpeechTime();
-                    console.log(`[TTS:MessageCreate] Message spoken directly`);
+                    console.log(`[TTS:MessageCreate] ✅ Message spoken directly`);
                 } catch (directError) {
                     console.error(`[TTS:MessageCreate] Direct speech failed:`, directError);
                     logError('directSpeechError', directError instanceof Error ? directError : new Error(String(directError)));
