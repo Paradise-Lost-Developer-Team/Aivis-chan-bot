@@ -249,9 +249,8 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
-// --- Improved Passport Serialization ---
+// --- Improved Passport Serialization ---（この1箇所のみ残す）
 passport.serializeUser((user, done) => {
-  // Store complete user object in session
   try {
     const sessionUser = {
       id: user.id,
@@ -261,7 +260,7 @@ passport.serializeUser((user, done) => {
       discriminator: user.discriminator,
       guilds: user.guilds || [],
       version: user.version || 'free',
-      accessToken: user.accessToken // Store for API calls if needed
+      accessToken: user.accessToken
     };
     console.log('[SERIALIZE] Storing user in session:', { id: sessionUser.id, guildsCount: sessionUser.guilds?.length || 0 });
     done(null, sessionUser);
@@ -272,7 +271,6 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((sessionUser, done) => {
-  // Restore user from session
   try {
     if (!sessionUser || !sessionUser.id) {
       console.warn('[DESERIALIZE] Invalid session user');
@@ -287,88 +285,120 @@ passport.deserializeUser((sessionUser, done) => {
 });
 
 // ミドルウェア設定
-// リバースプロキシ配下（Ingress/LB）で secure cookie を正しく扱う
 app.set('trust proxy', 1);
 
-// Session config - do not auto-set cookie.domain from BASE_URL (use explicit COOKIE_DOMAIN if needed)
-const BASE_URL = process.env.BASE_URL || '';
-let cookieSecure = false;
-let cookieSameSite = 'lax';
-let cookieDomain = process.env.COOKIE_DOMAIN || undefined; // only use explicit env override
-
-try {
-  if (BASE_URL) {
-    const parsedBase = new URL(BASE_URL);
-    cookieSecure = parsedBase.protocol === 'https:';
-    // Only set SameSite='none' when secure (required by browsers)
-    if (cookieSecure) cookieSameSite = 'none';
-  } else {
-    cookieSecure = String(process.env.COOKIE_SECURE || '').toLowerCase() === 'true';
-    cookieSameSite = process.env.COOKIE_SAMESITE || 'lax';
-  }
-} catch (e) {
-  console.warn('[SESSION] failed to parse BASE_URL for cookie settings:', e.message);
-}
-
-// --- Environment Variable Validation (add after initial logging) ---
-function validateEnvironment() {
-  const required = {
-    SESSION_SECRET: process.env.SESSION_SECRET,
-    BASE_URL: process.env.BASE_URL
-  };
-  
-  const missing = Object.entries(required)
-    .filter(([key, value]) => !value || value === 'your-secret-key')
-    .map(([key]) => key);
-  
-  if (missing.length > 0) {
-    console.error('[ENV] Missing or invalid required environment variables:', missing);
-    throw new Error(`Required environment variables not set: ${missing.join(', ')}`);
-  }
-  
-  // Validate SESSION_SECRET strength
-  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length < 32) {
-    console.warn('[ENV] SESSION_SECRET should be at least 32 characters long');
-  }
-  
-  console.log('[ENV] Environment validation passed');
-}
-
-// Call validation before initializing app
-try {
-  validateEnvironment();
-} catch (error) {
-  console.error('[STARTUP] Environment validation failed:', error.message);
-  process.exit(1);
-}
-
-// --- Improved Session Configuration (replace existing sessionConfig) ---
+// Session config
 const sessionConfig = {
-  secret: process.env.SESSION_SECRET, // Already validated above
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   proxy: true,
-  name: 'aivis.sid', // Custom cookie name (avoid default 'connect.sid')
+  name: 'aivis.sid',
   cookie: {
     secure: cookieSecure,
-    httpOnly: true, // Prevent XSS attacks
+    httpOnly: true,
     sameSite: cookieSameSite,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 24 * 60 * 60 * 1000,
     domain: cookieDomain
   }
 };
 
-// Add Redis store if available
 if (redisStoreInstance) {
   sessionConfig.store = redisStoreInstance;
-} else {
-  console.warn('[SESSION] Using memory store - NOT RECOMMENDED FOR PRODUCTION');
-  console.warn('[SESSION] Set SESSION_STORE=redis and REDIS_URL for production use');
 }
 
 app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// --- Rate Limiter Middleware（ここに移動）---
+class RateLimiter {
+  constructor(options = {}) {
+    this.requests = new Map();
+    this.limit = options.limit || 100;
+    this.window = options.window || 60000;
+    this.blockDuration = options.blockDuration || 300000;
+    
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, record] of this.requests.entries()) {
+        if (now - record.windowStart > this.window && record.blockedUntil < now) {
+          this.requests.delete(key);
+        }
+      }
+    }, 60000);
+  }
+  
+  middleware() {
+    return (req, res, next) => {
+      if (isShuttingDown) {
+        return res.status(503).json({ error: 'Server is shutting down' });
+      }
+      
+      const key = req.ip || req.connection.remoteAddress || 'unknown';
+      const now = Date.now();
+      
+      let record = this.requests.get(key);
+      
+      if (!record || now - record.windowStart > this.window) {
+        record = {
+          count: 0,
+          windowStart: now,
+          blockedUntil: 0
+        };
+      }
+      
+      if (record.blockedUntil > now) {
+        const retryAfter = Math.ceil((record.blockedUntil - now) / 1000);
+        res.set('Retry-After', retryAfter);
+        return res.status(429).json({ 
+          error: 'Too many requests', 
+          retryAfter 
+        });
+      }
+      
+      record.count++;
+      
+      if (record.count > this.limit) {
+        record.blockedUntil = now + this.blockDuration;
+        this.requests.set(key, record);
+        
+        console.warn(`[RATE_LIMIT] Blocking ${key} for ${this.blockDuration}ms (${record.count} requests)`);
+        
+        const retryAfter = Math.ceil(this.blockDuration / 1000);
+        res.set('Retry-After', retryAfter);
+        return res.status(429).json({ 
+          error: 'Too many requests', 
+          retryAfter 
+        });
+      }
+      
+      this.requests.set(key, record);
+      
+      res.set('X-RateLimit-Limit', this.limit);
+      res.set('X-RateLimit-Remaining', Math.max(0, this.limit - record.count));
+      res.set('X-RateLimit-Reset', new Date(record.windowStart + this.window).toISOString());
+      
+      next();
+    };
+  }
+}
+
+const apiRateLimiter = new RateLimiter({ 
+  limit: 100, 
+  window: 60000,
+  blockDuration: 300000
+});
+
+const authRateLimiter = new RateLimiter({ 
+  limit: 10, 
+  window: 60000,
+  blockDuration: 600000
+});
+
+// Apply rate limiters
+app.use('/api/', apiRateLimiter.middleware());
+app.use('/auth/', authRateLimiter.middleware());
 
 // 静的ファイル配信（Dockerfileでコピーした全ディレクトリを対象に）
 app.use(express.static(__dirname));
@@ -1142,7 +1172,6 @@ app.post('/api/settings', requireAuth, express.json(), async (req, res) => {
 });
 
 app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
-    // シャットダウン中の場合はリクエストを拒否
     if (isShuttingDown) {
         return res.status(503).json({ 
             success: false, 
@@ -1154,11 +1183,22 @@ app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
     
     try {
         console.log(`[API] Loading settings for guild: ${guildId}`);
+        console.log(`[API] User ID: ${req.user?.id}`);
+        console.log(`[API] User guilds:`, req.user?.guilds?.map(g => g.id));
         
-        // 設定ファイルのパス
+        // ユーザーがこのギルドにアクセス権限があるか確認
+        const hasAccess = req.user?.guilds?.some(g => g.id === guildId);
+        if (!hasAccess) {
+            console.warn(`[API] User ${req.user?.id} has no access to guild ${guildId}`);
+            return res.status(403).json({ 
+                success: false, 
+                error: 'Access denied' 
+            });
+        }
+        
         const settingsPath = path.join('/tmp', 'data', 'settings', `${guildId}.json`);
+        console.log(`[API] Settings path: ${settingsPath}`);
         
-        // ファイルが存在するか確認
         const settingsData = await loadJsonFile(settingsPath, null);
         
         if (settingsData && settingsData.settings) {
@@ -1166,7 +1206,6 @@ app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
             res.json({ success: true, settings: settingsData.settings });
         } else {
             console.log(`[API] No settings found for guild: ${guildId}, returning defaults`);
-            // デフォルト設定を返す
             const defaultSettings = {
                 defaultSpeaker: 'haruka',
                 defaultSpeed: 1.0,
@@ -1185,6 +1224,7 @@ app.get('/api/settings/:guildId', requireAuth, async (req, res) => {
         }
     } catch (error) {
         console.error('[API] Settings load error:', error);
+        console.error('[API] Error stack:', error.stack);
         res.status(500).json({ 
             success: false, 
             error: 'Failed to load settings',
@@ -1649,63 +1689,6 @@ server.on('error', (error) => {
     }
 });
 
-// ===== グレースフルシャットダウンの実装（server 宣言の後） =====
-process.on('SIGTERM', async () => {
-    console.log('[SHUTDOWN] SIGTERM signal received: closing HTTP server');
-    isShuttingDown = true;
-    
-    server.close(() => {
-        console.log('[SHUTDOWN] HTTP server closed');
-        
-        // Redis接続をクローズ
-        if (redisStoreInstance && redisStoreInstance.client) {
-            redisStoreInstance.client.quit().then(() => {
-                console.log('[SHUTDOWN] Redis connection closed');
-                process.exit(0);
-            }).catch(err => {
-                console.error('[SHUTDOWN] Redis close error:', err);
-                process.exit(1);
-            });
-        } else {
-            process.exit(0);
-        }
-    });
-    
-    // 30秒後に強制終了
-    setTimeout(() => {
-        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-    }, 30000);
-});
-
-process.on('SIGINT', async () => {
-    console.log('[SHUTDOWN] SIGINT signal received: closing HTTP server');
-    isShuttingDown = true;
-    
-    server.close(() => {
-        console.log('[SHUTDOWN] HTTP server closed');
-        
-        // Redis接続をクローズ
-        if (redisStoreInstance && redisStoreInstance.client) {
-            redisStoreInstance.client.quit().then(() => {
-                console.log('[SHUTDOWN] Redis connection closed');
-                process.exit(0);
-            }).catch(err => {
-                console.error('[SHUTDOWN] Redis close error:', err);
-                process.exit(1);
-            });
-        } else {
-            process.exit(0);
-        }
-    });
-    
-    // 30秒後に強制終了
-    setTimeout(() => {
-        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-    }, 30000);
-});
-
 // 未処理の Promise エラーをキャッチ
 process.on('unhandledRejection', (reason, promise) => {
     console.error('[FATAL] Unhandled Promise Rejection:', reason);
@@ -1730,229 +1713,3 @@ process.on('uncaughtException', (error) => {
 
 // module.exports (必要に応じて)
 module.exports = app;
-
-// --- Rate Limiter Middleware ---
-class RateLimiter {
-  constructor(options = {}) {
-    this.requests = new Map();
-    this.limit = options.limit || 100;
-    this.window = options.window || 60000; // 1 minute
-    this.blockDuration = options.blockDuration || 300000; // 5 minutes
-    
-    // Cleanup old entries periodically
-    setInterval(() => {
-      const now = Date.now();
-      for (const [key, record] of this.requests.entries()) {
-        if (now - record.windowStart > this.window && record.blockedUntil < now) {
-          this.requests.delete(key);
-        }
-      }
-    }, 60000); // Clean every minute
-  }
-  
-  middleware() {
-    return (req, res, next) => {
-      if (isShuttingDown) {
-        return res.status(503).json({ error: 'Server is shutting down' });
-      }
-      
-      const key = req.ip || req.connection.remoteAddress || 'unknown';
-      const now = Date.now();
-      
-      let record = this.requests.get(key);
-      
-      // Initialize or reset if outside window
-      if (!record || now - record.windowStart > this.window) {
-        record = {
-          count: 0,
-          windowStart: now,
-         
-         
-         
-         
-          blockedUntil: 0
-        };
-      }
-      
-      // Check if blocked
-     
-      if (record.blockedUntil > now) {
-        const retryAfter = Math.ceil((record.blockedUntil - now) / 1000);
-        res.set('Retry-After', retryAfter);
-        return res.status(429).json({ 
-          error: 'Too many requests', 
-          retryAfter 
-        });
-      }
-      
-      // Increment count
-      record.count++;
-      
-      // Check limit
-      if (record.count > this.limit) {
-        record.blockedUntil = now + this.blockDuration;
-        this.requests.set(key, record);
-        
-        console.warn(`[RATE_LIMIT] Blocking ${key} for ${this.blockDuration}ms (${record.count} requests)`);
-        
-        const retryAfter = Math.ceil(this.blockDuration / 1000);
-        res.set('Retry-After', retryAfter);
-        return res.status(429).json({ 
-          error: 'Too many requests', 
-          retryAfter 
-        });
-      }
-      
-      this.requests.set(key, record);
-      
-      // Set rate limit headers
-      res.set('X-RateLimit-Limit', this.limit);
-      res.set('X-RateLimit-Remaining', Math.max(0, this.limit - record.count));
-      res.set('X-RateLimit-Reset', new Date(record.windowStart + this.window).toISOString());
-      
-      next();
-    };
-  }
-}
-
-// Create rate limiters for different endpoints
-const apiRateLimiter = new RateLimiter({ 
-  limit: 100, 
-  window: 60000,
-  blockDuration: 300000
-});
-
-const authRateLimiter = new RateLimiter({ 
-  limit: 10, 
-  window: 60000,
-  blockDuration: 600000 // 10 minutes for auth endpoints
-});
-
-// Apply rate limiters
-app.use('/api/', apiRateLimiter.middleware());
-app.use('/auth/', authRateLimiter.middleware());
-
-const fsPromises = require('fs').promises;
-
-/**
- * JSONファイルを読み込む
- * @param {string} filePath - ファイルパス
- * @param {Object} defaultValue - ファイルが存在しない場合のデフォルト値
- * @returns {Promise<Object>} - JSONオブジェクト
- */
-async function loadJsonFile(filePath, defaultValue = null) {
-    try {
-        const data = await fsPromises.readFile(filePath, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            // ファイルが存在しない場合はデフォルト値を返す
-            console.log(`[loadJsonFile] File not found: ${filePath}, returning default`);
-            return defaultValue;
-        }
-        console.error(`[loadJsonFile] Failed to load JSON file: ${filePath}`, error);
-        throw error;
-    }
-}
-
-/**
- * JSONファイルに保存する
- * @param {string} filePath - ファイルパス
- * @param {Object} data - 保存するデータ
- * @returns {Promise<void>}
- */
-async function saveJsonFile(filePath, data) {
-    try {
-        // ディレクトリが存在しない場合は作成
-        const dir = path.dirname(filePath);
-        await fsPromises.mkdir(dir, { recursive: true });
-        
-        // JSONファイルに保存
-        await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-        console.log(`[saveJsonFile] JSON file saved: ${filePath}`);
-    } catch (error) {
-        console.error(`[saveJsonFile] Failed to save JSON file: ${filePath}`, error);
-        throw error;
-    }
-}
-
-// グレースフルシャットダウンの実装
-// server variable is already declared above when calling app.listen()
-
-process.on('SIGTERM', async () => {
-    console.log('[SHUTDOWN] SIGTERM signal received: closing HTTP server');
-    isShuttingDown = true;
-    
-    server.close(() => {
-        console.log('[SHUTDOWN] HTTP server closed');
-        
-        // Redis接続をクローズ
-        if (redisStoreInstance && redisStoreInstance.client) {
-            redisStoreInstance.client.quit().then(() => {
-                console.log('[SHUTDOWN] Redis connection closed');
-                process.exit(0);
-            }).catch(err => {
-                console.error('[SHUTDOWN] Redis close error:', err);
-                process.exit(1);
-            });
-        } else {
-            process.exit(0);
-        }
-    });
-    
-    // 30秒後に強制終了
-    setTimeout(() => {
-        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-    }, 30000);
-});
-
-process.on('SIGINT', async () => {
-    console.log('[SHUTDOWN] SIGINT signal received: closing HTTP server');
-    isShuttingDown = true;
-    
-    server.close(() => {
-        console.log('[SHUTDOWN] HTTP server closed');
-        
-        // Redis接続をクローズ
-        if (redisStoreInstance && redisStoreInstance.client) {
-            redisStoreInstance.client.quit().then(() => {
-                console.log('[SHUTDOWN] Redis connection closed');
-                process.exit(0);
-            }).catch(err => {
-                console.error('[SHUTDOWN] Redis close error:', err);
-                process.exit(1);
-            });
-        } else {
-            process.exit(0);
-        }
-    });
-    
-    // 30秒後に強制終了
-    setTimeout(() => {
-        console.error('[SHUTDOWN] Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-    }, 30000);
-});
-
-// 未処理の Promise エラーをキャッチ
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('[FATAL] Unhandled Promise Rejection:', reason);
-    console.error('[FATAL] Promise:', promise);
-});
-
-// 未処理の例外をキャッチ
-process.on('uncaughtException', (error) => {
-    console.error('[FATAL] Uncaught Exception:', error);
-    // 致命的なエラーの場合はプロセスを終了
-    if (!isShuttingDown) {
-        isShuttingDown = true;
-        server.close(() => {
-            process.exit(1);
-        });
-        // 5秒後に強制終了
-        setTimeout(() => {
-            process.exit(1);
-        }, 5000);
-    }
-});
