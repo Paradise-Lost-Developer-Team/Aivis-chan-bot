@@ -25,8 +25,7 @@ interface ExtendedClient extends Client {
 const voiceInitMap: { [guildId: string]: boolean } = {};
 
 /**
- * 動的テキストチャンネル判定システム
- * join_channels.jsonに依存せず、現在の状況に基づいてTTSを実行するかを決定
+ * 動的テキストチャンネル判定システム（改善版）
  */
 const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean; reason: string }> => {
     const guildId = message.guildId!;
@@ -38,18 +37,21 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
         return { shouldTTS: false, reason: 'no-voice-connection' };
     }
     
-        try {
+    try {
         // normalize on module load ensures guildId keys exist where possible
         try { normalizeTextChannelsMap(); } catch (e) {}
+        
         // 1. API設定による明示的許可（互換ヘルパーを使用）
         const apiTextChannel = getTextChannelFromMapByGuild(guildId);
         if (apiTextChannel && apiTextChannel.id === currentChannel.id) {
+            console.log(`[shouldPerformTTS] ✅ Match: API setting (saved: ${apiTextChannel.id}, current: ${currentChannel.id})`);
             return { shouldTTS: true, reason: 'api-setting' };
         }
         
         // 2. /joinコマンドを実行したチャンネル
         const joinCommandChannelId = getJoinCommandChannel(guildId);
-        if (joinCommandChannelId === currentChannel.id) {
+        if (joinCommandChannelId && joinCommandChannelId === currentChannel.id) {
+            console.log(`[shouldPerformTTS] ✅ Match: Join command channel (${joinCommandChannelId})`);
             return { shouldTTS: true, reason: 'join-command-channel' };
         }
         
@@ -58,44 +60,82 @@ const shouldPerformTTS = async (message: Message): Promise<{ shouldTTS: boolean;
         if (voiceChannelId) {
             const voiceChannel = message.guild?.channels.cache.get(voiceChannelId) as VoiceChannel;
             
-                if (voiceChannel) {
-                    // Strict policy: do NOT allow all channels in the same category.
-                    // 1) explicit voice->text mapping
-                    try {
-                        const mapped = (textChannelByVoice as any)[voiceChannel.id] as TextChannel | undefined;
-                        if (mapped && mapped.id === currentChannel.id) return { shouldTTS: true, reason: 'voice-mapped-text-channel' };
-                    } catch (e) { /* ignore */ }
+            if (voiceChannel) {
+                console.log(`[shouldPerformTTS] Checking voice channel: ${voiceChannel.name} (${voiceChannel.id})`);
+                
+                // 3a. 明示的なマッピング
+                try {
+                    const mapped = (textChannelByVoice as any)[voiceChannel.id] as TextChannel | undefined;
+                    if (mapped && mapped.id === currentChannel.id) {
+                        console.log(`[shouldPerformTTS] ✅ Match: Voice-mapped text channel (voice: ${voiceChannel.id}, text: ${mapped.id})`);
+                        return { shouldTTS: true, reason: 'voice-mapped-text-channel' };
+                    }
+                } catch (e) {
+                    console.warn(`[shouldPerformTTS] Error checking voice mapping:`, e);
+                }
 
-                    // 2) same-name text channel only (fallback with permission check)
-                    const matchingTextChannel = voiceChannel.parent?.children.cache.find(
-                        ch => ch.type === ChannelType.GuildText && ch.name.toLowerCase() === voiceChannel.name.toLowerCase()
-                    );
-                    if (matchingTextChannel && matchingTextChannel.id === currentChannel.id) {
-                        try {
-                            const me = message.guild?.members.me || await message.guild?.members.fetch(message.client.user!.id).catch(() => null);
-                            const perms = me ? (matchingTextChannel as any).permissionsFor(me) : null;
-                            if (!perms || perms.has('SendMessages')) {
-                                return { shouldTTS: true, reason: 'matching-text-channel' };
-                            }
-                        } catch (e) { /* ignore */ }
+                // 3b. 同じ名前のテキストチャンネル（例: "vc-log" ボイス → "vc-log" テキスト）
+                const matchingTextChannel = voiceChannel.parent?.children.cache.find(
+                    ch => ch.type === ChannelType.GuildText && ch.name.toLowerCase() === voiceChannel.name.toLowerCase()
+                );
+                if (matchingTextChannel && matchingTextChannel.id === currentChannel.id) {
+                    console.log(`[shouldPerformTTS] Found matching text channel by name: ${matchingTextChannel.name} (${matchingTextChannel.id})`);
+                    try {
+                        const me = message.guild?.members.me || await message.guild?.members.fetch(message.client.user!.id).catch(() => null);
+                        const perms = me ? (matchingTextChannel as any).permissionsFor(me) : null;
+                        if (!perms || perms.has('SendMessages')) {
+                            console.log(`[shouldPerformTTS] ✅ Match: Matching text channel name (voice: ${voiceChannel.name}, text: ${matchingTextChannel.id})`);
+                            return { shouldTTS: true, reason: 'matching-text-channel' };
+                        } else {
+                            console.log(`[shouldPerformTTS] ❌ No permission to send messages in ${matchingTextChannel.name}`);
+                        }
+                    } catch (e) {
+                        console.warn(`[shouldPerformTTS] Error checking permissions:`, e);
                     }
                 }
+                
+                // 3c. ボイスチャンネルと同じカテゴリー内の "chat" や "text" チャンネル
+                const chatChannelPatterns = ['chat', 'text', 'general', 'vc-log', 'log'];
+                const categoryChannels = voiceChannel.parent?.children.cache.filter(
+                    ch => ch.type === ChannelType.GuildText && 
+                          chatChannelPatterns.some(pattern => ch.name.toLowerCase().includes(pattern))
+                );
+                
+                if (categoryChannels && categoryChannels.size > 0) {
+                    const foundChannel = categoryChannels.find(ch => ch.id === currentChannel.id);
+                    if (foundChannel) {
+                        console.log(`[shouldPerformTTS] ✅ Match: Category chat channel (voice: ${voiceChannel.name}, text: ${foundChannel.name})`);
+                        return { shouldTTS: true, reason: 'category-chat-channel' };
+                    }
+                }
+                
+                console.log(`[shouldPerformTTS] Voice channel parent: ${voiceChannel.parent?.name || 'none'}, channels in parent: ${voiceChannel.parent?.children.cache.size || 0}`);
+            }
         }
         
         // 4. Auto-join設定のフォールバック
         const autoJoinChannelsData = loadAutoJoinChannels();
         if (autoJoinChannelsData[guildId]) {
+            console.log(`[shouldPerformTTS] Checking auto-join settings:`, {
+                tempVoice: autoJoinChannelsData[guildId].tempVoice,
+                isManualTextChannelId: autoJoinChannelsData[guildId].isManualTextChannelId,
+                textChannelId: autoJoinChannelsData[guildId].textChannelId
+            });
+            
             if (autoJoinChannelsData[guildId].tempVoice && !autoJoinChannelsData[guildId].isManualTextChannelId) {
+                console.log(`[shouldPerformTTS] ✅ Match: Temp voice auto (allowing all text channels)`);
                 return { shouldTTS: true, reason: 'temp-voice-auto' };
             } else if (autoJoinChannelsData[guildId].textChannelId === currentChannel.id) {
+                console.log(`[shouldPerformTTS] ✅ Match: Auto-join setting (${currentChannel.id})`);
                 return { shouldTTS: true, reason: 'auto-join-setting' };
             }
         }
         
+        console.log(`[shouldPerformTTS] ❌ No match found (guild: ${guildId}, channel: ${currentChannel.id})`);
         return { shouldTTS: false, reason: 'no-match' };
         
     } catch (error) {
-        console.error(`[TTS:1st] 動的判定エラー:`, error);
+        console.error(`[shouldPerformTTS] Error in TTS decision:`, error);
         return { shouldTTS: false, reason: 'error' };
     }
 };
