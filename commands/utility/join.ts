@@ -1,12 +1,46 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
-import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType } from 'discord.js';
+import { VoiceChannel, TextChannel, CommandInteraction, MessageFlags, ChannelType, Channel } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 import { currentSpeaker, speakVoice, voiceClients, loadAutoJoinChannels, setJoinCommandChannel, setTextChannelForGuildInMap, addTextChannelsForGuildInMap, updateJoinChannelsConfig } from '../../utils/TTS-Engine';
 import { getBotInfos, pickLeastBusyBot, instructJoin } from '../../utils/botOrchestrator';
 import { setTextChannelForGuild } from '../../utils/voiceStateManager';
+
+/**
+ * ボイスチャンネル内のテキストチャンネルかどうかを判定
+ * Discord の新しい仕様では、ボイスチャンネル内のテキストチャットは
+ * parent が VoiceChannel になる場合があります
+ */
+function isVoiceChannelTextChat(channel: Channel): { isVoiceText: boolean; parentVoice?: VoiceChannel } {
+    // テキストチャンネルでない場合は false
+    if (channel.type !== ChannelType.GuildText) {
+        return { isVoiceText: false };
+    }
+
+    const textChannel = channel as TextChannel;
+    
+    // parent が存在しない場合は通常のテキストチャンネル
+    if (!textChannel.parent) {
+        return { isVoiceText: false };
+    }
+
+    // parent の名前がテキストチャンネルと一致し、同じカテゴリーにボイスチャンネルがある場合
+    const matchingVoiceChannel = textChannel.parent.children.cache.find(
+        ch => ch.type === ChannelType.GuildVoice && 
+              ch.name.toLowerCase() === textChannel.name.toLowerCase()
+    ) as VoiceChannel | undefined;
+
+    if (matchingVoiceChannel) {
+        return { 
+            isVoiceText: true, 
+            parentVoice: matchingVoiceChannel 
+        };
+    }
+
+    return { isVoiceText: false };
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -25,25 +59,40 @@ module.exports = {
     async execute(interaction: CommandInteraction) {
         await interaction.deferReply();
 
+        // ===== コマンド実行チャンネルの情報を取得 =====
+        const currentChannel = interaction.channel;
+        const voiceTextInfo = currentChannel ? isVoiceChannelTextChat(currentChannel) : { isVoiceText: false };
+
+        console.log(`[join] Command executed in channel: ${currentChannel?.id}, isVoiceText: ${voiceTextInfo.isVoiceText}, parentVoice: ${voiceTextInfo.parentVoice?.id}`);
+
         // ===== ボイスチャンネルの取得 =====
         let voiceChannel = (interaction as any).options.get("voice_channel")?.channel as VoiceChannel;
 
         if (!voiceChannel) {
-            const member = interaction.guild?.members.cache.get(interaction.user.id);
-            if (member?.voice.channel) {
-                voiceChannel = member.voice.channel as VoiceChannel;
-            } else {
-                await interaction.followUp({
-                    embeds: [addCommonFooter(
-                        new EmbedBuilder()
-                            .setTitle('エラー')
-                            .setDescription('ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。')
-                            .setColor(0xff0000)
-                    )],
-                    components: [getCommonLinksRow()],
-                    flags: MessageFlags.Ephemeral
-                });
-                return;
+            // 1. ボイスチャンネル内のテキストチャットから実行された場合、親ボイスチャンネルを使用
+            if (voiceTextInfo.isVoiceText && voiceTextInfo.parentVoice) {
+                voiceChannel = voiceTextInfo.parentVoice;
+                console.log(`[join] Using parent voice channel from voice text chat: ${voiceChannel.name} (${voiceChannel.id})`);
+            } 
+            // 2. ユーザーが参加しているボイスチャンネルを使用
+            else {
+                const member = interaction.guild?.members.cache.get(interaction.user.id);
+                if (member?.voice.channel) {
+                    voiceChannel = member.voice.channel as VoiceChannel;
+                    console.log(`[join] Using user's current voice channel: ${voiceChannel.name} (${voiceChannel.id})`);
+                } else {
+                    await interaction.followUp({
+                        embeds: [addCommonFooter(
+                            new EmbedBuilder()
+                                .setTitle('エラー')
+                                .setDescription('ボイスチャンネルが指定されておらず、あなたはボイスチャンネルに接続していません。\n\n💡 ボイスチャンネル内のテキストチャットで実行するか、`voice_channel` オプションで指定してください。')
+                                .setColor(0xff0000)
+                        )],
+                        components: [getCommonLinksRow()],
+                        flags: MessageFlags.Ephemeral
+                    });
+                    return;
+                }
             }
         }
 
@@ -72,10 +121,14 @@ module.exports = {
             }
         } else {
             // 指定されていない場合：コマンド実行チャンネルを使用
-            const currentChannel = interaction.channel;
             if (currentChannel && currentChannel.type === ChannelType.GuildText) {
                 textChannel = currentChannel as TextChannel;
                 console.log(`[join] Using command execution channel: ${textChannel.name} (${textChannel.id})`);
+                
+                // ボイスチャンネル内のテキストチャットの場合、その旨をログに出力
+                if (voiceTextInfo.isVoiceText) {
+                    console.log(`[join] ✅ Voice channel text chat detected - Voice: ${voiceChannel.name}, Text: ${textChannel.name}`);
+                }
             } else {
                 // コマンド実行チャンネルがテキストチャンネルでない場合（スラッシュコマンドでは通常起こらない）
                 console.warn(`[join] Command execution channel is not a text channel, trying to find fallback`);
@@ -149,11 +202,13 @@ module.exports = {
                         console.warn('[join] updateJoinChannelsConfig failed (already-connected):', e);
                     }
                     
+                    const isVoiceText = voiceTextInfo.isVoiceText ? '（ボイスチャンネル内のテキストチャット）' : '';
+                    
                     await interaction.editReply({
                         embeds: [addCommonFooter(
                             new EmbedBuilder()
                                 .setTitle('接続中')
-                                .setDescription(`✅ 既に「${currentVoiceChannel.name}」に接続しています。\n📝 読み上げチャンネルを「${textChannel.name}」に設定しました。`)
+                                .setDescription(`✅ 既に「${currentVoiceChannel.name}」に接続しています。\n📝 読み上げチャンネルを「${textChannel.name}${isVoiceText}」に設定しました。`)
                                 .setColor(0x00bfff)
                         )],
                         components: [getCommonLinksRow()]
@@ -168,7 +223,7 @@ module.exports = {
         setTextChannelForGuild(guildId, textChannel.id);
         setJoinCommandChannel(guildId, textChannel.id);
 
-        console.log(`[join] Settings updated - Guild: ${guildId}, Voice: ${voiceChannel.name} (${voiceChannel.id}), Text: ${textChannel.name} (${textChannel.id})`);
+        console.log(`[join] Settings updated - Guild: ${guildId}, Voice: ${voiceChannel.name} (${voiceChannel.id}), Text: ${textChannel.name} (${textChannel.id}), IsVoiceText: ${voiceTextInfo.isVoiceText}`);
 
         // ===== Bot選択と接続指示 =====
         try {
@@ -195,16 +250,20 @@ module.exports = {
             } catch (e) {
                 console.warn('[join] updateJoinChannelsConfig failed (post-instructJoin):', e);
             }
+            
+            const channelDescription = voiceTextInfo.isVoiceText 
+                ? '（ボイスチャンネル内のテキストチャット）' 
+                : '';
  
             await interaction.editReply({
                 embeds: [addCommonFooter(
                     new EmbedBuilder()
                         .setTitle('接続完了')
-                        .setDescription(`✅ **${voiceChannel.name}** に参加しました！`)
+                        .setDescription(`✅ **${voiceChannel.name}** に参加しました！${voiceTextInfo.isVoiceText ? '\n🎤 ボイスチャンネル内のテキストチャットから読み上げます。' : ''}`)
                         .setColor(0x00bfff)
                         .addFields(
                             { name: '🔊 接続先', value: `<#${voiceChannel.id}>`, inline: true },
-                            { name: '📝 読み上げチャンネル', value: `<#${textChannel.id}>`, inline: true },
+                            { name: '📝 読み上げチャンネル', value: `<#${textChannel.id}>${channelDescription}`, inline: true },
                             { name: '👤 実行者', value: `<@${interaction.user.id}>`, inline: true }
                         )
                         .setFooter({ text: `Bot: ${picked.bot.name}` })
