@@ -169,17 +169,30 @@ export function MessageCreate(client: ExtendedClient) {
                 (message.channel.type !== ChannelType.GuildText && 
                  message.channel.type !== ChannelType.GuildVoice)) {
                 // 処理対象外のチャンネルタイプは無視
-                console.log(`[TTS:MessageCreate] Ignoring non-text/voice channel type: ${message.channel?.type}`);
                 return;
             }
             
             const guildId = message.guild.id;
             const channelId = message.channel.id;
             
-            // チャンネル名の取得（型安全に）
-            const channelName = 'name' in message.channel && message.channel.name 
-                ? message.channel.name 
-                : 'Unknown Channel';
+            // チャンネル名の取得（型安全に）- 修正版
+            let channelName = 'Unknown Channel';
+            try {
+                if (message.channel.type === ChannelType.GuildVoice) {
+                    // ボイスチャンネルの場合、fetchで最新情報を取得
+                    const fetchedChannel = await message.guild.channels.fetch(channelId).catch(() => null);
+                    if (fetchedChannel && 'name' in fetchedChannel) {
+                        channelName = fetchedChannel.name;
+                    } else {
+                        channelName = `Voice Channel (${channelId})`;
+                    }
+                } else if ('name' in message.channel && message.channel.name) {
+                    channelName = message.channel.name;
+                }
+            } catch (e) {
+                console.warn(`[TTS:MessageCreate] Failed to get channel name:`, e);
+                channelName = `Channel (${channelId})`;
+            }
             
             console.log(`[TTS:MessageCreate] Message received in guild: ${message.guild.name} (${guildId}), channel: ${channelName} (${channelId}), type: ${message.channel.type}, author: ${message.author.tag}`);
             
