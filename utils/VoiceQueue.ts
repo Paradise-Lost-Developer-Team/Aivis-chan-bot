@@ -13,6 +13,16 @@ export enum Priority {
 }
 
 // キューに格納するアイテムの型
+interface QueueItemMetadata {
+    userId: string;
+    username: string;
+    displayName?: string;
+    channelId?: string;
+    messageId?: string;
+    timestamp?: number;
+    originalMessage?: Message; // 元のメッセージ（履歴保存用）
+}
+
 interface QueueItem {
     guildId: string;
     text: string;
@@ -20,35 +30,43 @@ interface QueueItem {
     priority: Priority;
     timestamp: number;
     originalMessage?: Message;  // 元のメッセージ（履歴保存用）
+    metadata?: QueueItemMetadata;
 }
 
 // ギルドIDごとのキュー
 const queues: { [guildId: string]: QueueItem[] } = {};
 // 処理中フラグ
 const processing: { [guildId: string]: boolean } = {};
+// メタデータのデフォルト値を設定
+// `createSafeMetadata` accepts a Partial so callers can pass undefined or a partial metadata object.
+function createSafeMetadata(metadata?: Partial<QueueItemMetadata>): QueueItemMetadata {
+    return {
+        userId: metadata?.userId ?? 'system',
+        username: metadata?.username ?? 'System',
+        displayName: metadata?.displayName ?? metadata?.username ?? 'System',
+        channelId: metadata?.channelId ?? '',
+        messageId: metadata?.messageId ?? '',
+        timestamp: metadata?.timestamp ?? Date.now(),
+        originalMessage: metadata?.originalMessage
+    };
+}
+// デフォルトの safeMetadata（必要に応じて enqueue 時に createSafeMetadata を呼ぶ）
+const safeMetadata: QueueItemMetadata = createSafeMetadata();
 
-/**
- * テキストをキューに追加する
- */
-export function enqueueText(
-    guildId: string, 
-    text: string, 
-    priority: Priority = Priority.NORMAL, 
-    originalMessage?: Message
-): boolean {
+export async function enqueue(guildId: string, text: string, priority: Priority = Priority.NORMAL, metadata?: Partial<QueueItemMetadata>): Promise<void> {
     try {
+        const safeMeta = createSafeMetadata(metadata);
+        const chunks = chunkText(text);
+
         // キューが存在しなければ初期化
         if (!queues[guildId]) {
             queues[guildId] = [];
         }
+        const queue = queues[guildId];
 
         // 話者IDの取得（デフォルトはAnneliのノーマル）
         const speakerId = currentSpeaker[guildId] || 888753760;
 
-        // テキストをchunkTextで分割し、各チャンクを個別にキューへ追加
-        const chunks = chunkText(text);
-        if (chunks.length === 0) return false;
-        const queue = queues[guildId];
         for (const chunk of chunks) {
             const item: QueueItem = {
                 guildId,
@@ -56,8 +74,10 @@ export function enqueueText(
                 speakerId,
                 priority,
                 timestamp: Date.now(),
-                originalMessage
+                originalMessage: safeMeta.originalMessage,
+                metadata: safeMeta
             };
+
             // 優先度に基づいてキューに挿入
             let inserted = false;
             for (let i = 0; i < queue.length; i++) {
@@ -76,12 +96,9 @@ export function enqueueText(
         if (!processing[guildId]) {
             processQueue(guildId);
         }
-
-        return true;
     } catch (error) {
         console.error(`キューへの追加エラー: ${error}`);
         logError('queueAddError', error instanceof Error ? error : new Error(String(error)));
-        return false;
     }
 }
 
@@ -110,41 +127,30 @@ async function processQueue(guildId: string): Promise<void> {
 
             // ボイスクライアントのチェック
             const voiceClient = voiceClients[guildId];
-            if (!voiceClient || voiceClient.state.status !== VoiceConnectionStatus.Ready) {
+            if (!voiceClient || voiceClient.state.status !== 'ready') {
                 console.log(`ボイスクライアントが利用できないため、キュー処理をスキップします: ${guildId}`);
                 continue;
             }
 
             try {
-                // 音声を生成
-                console.log(`キュー処理: "${item.text.substring(0, 30)}..." を再生します (${guildId})`);
-                // originalMessageがあればuserIdを渡す、なければデフォルト話者
-                const userId = item.originalMessage?.author.id ?? 'default';
-                await speakVoice(item.text, userId, guildId);
+                await processQueueItem(guildId, item);
                 
-                // 最終発話時間を更新
-                updateLastSpeechTime();
-
                 // Pro版ユーザーの場合、履歴に保存
-                if (item.originalMessage) {
+                if (item.originalMessage && await isProFeatureAvailable(guildId, 'voice-history')) {
                     try {
-                        // 非同期で特典チェックを実行
-                        const isProAvailable = await isProFeatureAvailable(guildId, 'voice-history');
-                        if (isProAvailable) {
-                            const historyItem: VoiceHistoryItem = {
-                                timestamp: new Date().toISOString(),
-                                text: item.text,
-                                userId: item.originalMessage.author.id,
-                                username: item.originalMessage.member?.displayName || item.originalMessage.author.username,
-                                speakerId: item.speakerId,
-                                channelId: item.originalMessage.channelId,
-                                channelName: item.originalMessage.channel.isTextBased() ? 
-                                            (item.originalMessage.channel.isDMBased() ? 'DM' : item.originalMessage.channel.name) : 
-                                            '不明なチャンネル'
-                            };
-                            
-                            await saveVoiceHistoryItem(guildId, historyItem);
-                        }
+                        const historyItem: VoiceHistoryItem = {
+                            timestamp: new Date().toISOString(),
+                            text: item.text,
+                            userId: item.originalMessage.author.id,
+                            username: item.originalMessage.member?.displayName || item.originalMessage.author.username,
+                            speakerId: item.speakerId,
+                            channelId: item.originalMessage.channelId,
+                            channelName: item.originalMessage.channel.isTextBased() ? 
+                                        (item.originalMessage.channel.isDMBased() ? 'DM' : item.originalMessage.channel.name) : 
+                                        '不明なチャンネル'
+                        };
+                        
+                        await saveVoiceHistoryItem(guildId, historyItem);
                     } catch (historyError) {
                         console.error('履歴保存エラー:', historyError);
                     }
@@ -161,6 +167,32 @@ async function processQueue(guildId: string): Promise<void> {
     } finally {
         // 処理完了フラグを下げる
         processing[guildId] = false;
+    }
+}
+
+/**
+ * キューアイテムの処理
+ */
+async function processQueueItem(guildId: string, item: QueueItem): Promise<void> {
+    try {
+        console.log(`キュー処理: "${item.text.substring(0, 30)}..." を再生します (${guildId})`);
+        
+        // メタデータの安全な取得
+        const userId = item.metadata?.userId || 'system';
+        const username = item.metadata?.username || 'System';
+        
+        // メタデータが存在しない場合の警告
+        if (!item.metadata) {
+            console.warn(`[VoiceQueue] メタデータが存在しません: guildId=${guildId}, text="${item.text.substring(0, 30)}..."`);
+        }
+        
+        await speakVoice(guildId, item.text, userId, username);
+        updateLastSpeechTime();
+        
+        console.log(`✅ キュー処理完了: guildId=${guildId}, user=${username}`);
+    } catch (error) {
+        console.error(`キューアイテム処理エラー:`, error);
+        throw error;
     }
 }
 
