@@ -301,26 +301,28 @@ export function MessageCreate(client: ExtendedClient) {
             // TTS実行
             if (enqueueText && Priority) {
                 try {
-                    await enqueueText(guildId, textToSpeak, Priority.NORMAL, {
-                        userId: message.author.id || 'unknown',
-                        username: message.author.username || message.author.tag || 'Unknown User',
-                        displayName: message.member?.displayName || message.author.displayName || message.author.username || 'Unknown',
+                    const guildId = message.guild!.id; // ここで必ず guildId を確定
+                    const metadata = {
+                        guildId, // ← 追加してキュー側で参照可能に
+                        userId: message.author.id,
+                        username: message.author.username || message.author.tag,
+                        displayName: message.member?.displayName || message.author.username,
                         channelId: message.channel.id,
                         messageId: message.id,
                         timestamp: Date.now()
-                    });
-                    console.log(`[TTS:MessageCreate] ✅ Message enqueued for TTS by ${message.author.tag}`);
+                    };
+                    
+                    console.log(`[TTS:MessageCreate] Enqueueing guild=${guildId} channel=${message.channel.id} user=${message.author.id}`);
+                    
+                    await enqueueText(guildId, textToSpeak, Priority.NORMAL, metadata);
+                    console.log(`[TTS:MessageCreate] ✅ Message enqueued for TTS: guild=${guildId}`);
                 } catch (enqueueError) {
-                    console.error(`[TTS:MessageCreate] Failed to enqueue message, falling back to direct speech:`, enqueueError);
+                    console.error(`[TTS:MessageCreate] Enqueue failed, falling back to direct speak - guild=${message.guild?.id}`, enqueueError);
                     try {
-                        await speakVoice(
-                            guildId, 
-                            textToSpeak, 
-                            message.author.id || 'unknown', 
-                            message.author.username || message.author.tag || 'Unknown User'
-                        );
+                        // 直接呼ぶ場合も必ず message.guild!.id を渡す
+                        await speakVoice(message.guild!.id, textToSpeak, message.author.id, message.author.username || message.author.tag);
                         updateLastSpeechTime();
-                        console.log(`[TTS:MessageCreate] ✅ Message spoken directly (fallback)`);
+                        console.log(`[TTS:MessageCreate] ✅ Message spoken directly (fallback) guild=${message.guild?.id}`);
                     } catch (fallbackError) {
                         console.error(`[TTS:MessageCreate] Direct speech fallback also failed:`, fallbackError);
                         logError('ttsCompleteFail', fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)));
@@ -328,14 +330,10 @@ export function MessageCreate(client: ExtendedClient) {
                 }
             } else {
                 try {
-                    await speakVoice(
-                        guildId, 
-                        textToSpeak, 
-                        message.author.id || 'unknown', 
-                        message.author.username || message.author.tag || 'Unknown User'
-                    );
+                    // 直接呼ぶ場合も必ず message.guild!.id を渡す
+                    await speakVoice(message.guild!.id, textToSpeak, message.author.id, message.author.username || message.author.tag);
                     updateLastSpeechTime();
-                    console.log(`[TTS:MessageCreate] ✅ Message spoken directly`);
+                    console.log(`[TTS:MessageCreate] ✅ Message spoken directly guild=${message.guild?.id}`);
                 } catch (directError) {
                     console.error(`[TTS:MessageCreate] Direct speech failed:`, directError);
                     logError('directSpeechError', directError instanceof Error ? directError : new Error(String(directError)));

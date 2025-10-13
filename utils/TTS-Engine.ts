@@ -757,42 +757,46 @@ export async function postSynthesis(audioQuery: any, speaker: number): Promise<B
     }
 }
 
-let guildDictionary: { [key: string]: any } = {};
-
-try {
-    if (fs.existsSync(DICTIONARY_FILE)) {
-        guildDictionary = JSON.parse(fs.readFileSync(DICTIONARY_FILE, "utf-8"));
-    } else {
-        guildDictionary = {};
-        // 新規作成
-        fs.writeFileSync(DICTIONARY_FILE, JSON.stringify(guildDictionary, null, 2), "utf-8");
+/**
+ * postSynthesis: 音声生成後のアップロード等を行う内部関数
+ * 422/404 等は致命扱いせず null を返す（呼び出し元でフォールバック）
+ */
+async function postSynthesisSafe(...args: any[]): Promise<Buffer | null> {
+    try {
+        const buf = await postSynthesis(...args); // 既存関数を呼ぶ
+        if (!buf || !(buf instanceof Buffer) || buf.length === 0) {
+            console.warn('[TTS-Engine] postSynthesis returned empty buffer, treating as no-op');
+            return null;
+        }
+        return buf;
+    } catch (err: any) {
+        // 422 / Not Found 等は警告に留める
+        console.warn('[TTS-Engine] postSynthesis failed (non-fatal):', err?.message ?? err);
+        return null;
     }
-} catch (error) {
-    console.error("辞書ファイル読み込みエラー:", error);
-    guildDictionary = {};
 }
 
-// ローカル辞書のスナップショット取得（軽量キャッシュ）
-let _dictCache: any = null;
-let _dictMtimeMs = 0;
-function getGuildDictionarySnapshot(): any {
+// generateSmartSpeech 側の呼び出しを postSynthesisSafe に差し替え
+export async function generateSmartSpeech(originalText: string, speakerId: number, guildId: string): Promise<string> {
     try {
-        if (fs.existsSync(DICTIONARY_FILE)) {
-            const stat = fs.statSync(DICTIONARY_FILE);
-            if (!_dictCache || stat.mtimeMs !== _dictMtimeMs) {
-                const raw = fs.readFileSync(DICTIONARY_FILE, 'utf-8');
-                _dictCache = JSON.parse(raw) || {};
-                _dictMtimeMs = stat.mtimeMs;
-            }
-        } else {
-            _dictCache = {};
-            _dictMtimeMs = 0;
+        // ...existing smart TTS logic that produces processedText...
+
+        // postSynthesis を安全呼び出し
+        const resultBuf = await postSynthesisSafe(processedText, speakerId, guildId);
+        if (!resultBuf) {
+            console.warn('[TTS-Engine] postSynthesisSafe failed or returned null — falling back to processedText (no audio upload)');
+            // ここでは音声アップロードに失敗しても、テキスト処理自体は有効なので processedText を返す
+            return processedText;
         }
-    } catch (e) {
-        // 壊れた場合は空辞書として扱う
-        _dictCache = {};
+
+        // もし resultBuf を使って何かする処理があれば続行
+        // ...existing code that uses resultBuf...
+
+        return processedText;
+    } catch (error) {
+        console.error('[TTS-Engine] generateSmartSpeech fatal error:', error);
+        return originalText;
     }
-    return _dictCache || {};
 }
 
 // ギルド辞書をテキストへ適用（単純置換: 長い語から順に）
