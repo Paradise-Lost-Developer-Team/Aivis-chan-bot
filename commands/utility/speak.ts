@@ -2,7 +2,7 @@ import { MessageFlags } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { voiceClients, currentSpeaker } from '../../utils/TTS-Engine';
-import { enqueueText, Priority } from '../../utils/VoiceQueue';
+import { enqueue, Priority } from '../../utils/VoiceQueue';
 import { addCommonFooter, getCommonLinksRow } from '../../utils/embedTemplate';
 
 module.exports = {
@@ -58,8 +58,8 @@ module.exports = {
             const priority = isPriority ? Priority.HIGH : Priority.NORMAL;
             
             // キューに追加（interaction.userオブジェクトを元にメッセージを作成するとエラーになるため、オリジナルメッセージは指定しない）
-            const formattedText = `${interaction.user.username}さんのコマンド、${text}`;
-            enqueueText(guildId, formattedText, priority);
+                        const formattedText = `${interaction.user.username}さんのコマンド、${text}`;
+                        enqueue(guildId, formattedText, priority);
             
             await interaction.editReply({
                 embeds: [addCommonFooter(
