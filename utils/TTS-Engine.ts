@@ -1932,3 +1932,50 @@ export function getTextChannelForGuild(guildId: string): string | null {
     
     return null;
 }
+
+// --- ギルド辞書スナップショット（同期取得） ---
+// applyGuildDictionary が同期で参照しているため、同期で取得できる関数を提供します。
+let _guildDictionaryCache: { [guildId: string]: any } = {};
+let _guildDictionaryLoadedAt = 0;
+
+/**
+ * 同期でギルド辞書スナップショットを返す。
+ * ファイルが存在すれば同期的に読み込んでキャッシュする（軽量実装）。
+ */
+export function getGuildDictionarySnapshot(): { [guildId: string]: any } {
+    try {
+        // キャッシュが空なら同期読み込みを試みる
+        if ((!_guildDictionaryCache || Object.keys(_guildDictionaryCache).length === 0) && fs.existsSync(DICTIONARY_FILE)) {
+            try {
+                const raw = fs.readFileSync(DICTIONARY_FILE, 'utf-8') || '{}';
+                _guildDictionaryCache = JSON.parse(raw);
+                _guildDictionaryLoadedAt = Date.now();
+            } catch (e) {
+                console.warn('[TTS-Engine] getGuildDictionarySnapshot: failed to parse dictionary file, using empty cache', e);
+                _guildDictionaryCache = {};
+            }
+        }
+    } catch (e) {
+        _guildDictionaryCache = {};
+    }
+    return _guildDictionaryCache;
+}
+
+/**
+ * 非同期で辞書を再読み込みしてキャッシュを更新するユーティリティ。
+ */
+export async function reloadGuildDictionarySnapshot(): Promise<void> {
+    try {
+        if (fs.existsSync(DICTIONARY_FILE)) {
+            const raw = fs.readFileSync(DICTIONARY_FILE, 'utf-8') || '{}';
+            _guildDictionaryCache = JSON.parse(raw);
+            _guildDictionaryLoadedAt = Date.now();
+            console.log('[TTS-Engine] reloadGuildDictionarySnapshot: dictionary reloaded.');
+        } else {
+            _guildDictionaryCache = {};
+        }
+    } catch (e) {
+        console.warn('[TTS-Engine] reloadGuildDictionarySnapshot failed:', e);
+        _guildDictionaryCache = {};
+    }
+}
